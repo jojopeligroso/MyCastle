@@ -1,0 +1,20 @@
+# Ignore system and temporary files
+.DS_Store
+Thumbs.db
+*.tmp
+*.bak
+
+# Ignore environment and secret files
+.env*
+
+# Ignore dependencies and build artefacts
+node_modules/
+dist/
+
+# Ignore logs
+*.log
+
+# Ignore editor-specific files
+.vscode/
+.idea/
+
