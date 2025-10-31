@@ -1,0 +1,33 @@
+{
+  "name": "admin-mcp",
+  "version": "1.0.0",
+  "description": "Admin MCP server for ESL Learning Platform - provides secure administrative operations with audit logging",
+  "mcpVersion": "1.0",
+  "capabilities": {
+    "resources": true,
+    "tools": true,
+    "prompts": false
+  },
+  "transports": {
+    "stdio": {
+      "enabled": true,
+      "command": "node",
+      "args": ["dist/index.js", "stdio"]
+    },
+    "http": {
+      "enabled": true,
+      "port": 3000
+    }
+  },
+  "authentication": {
+    "type": "bearer",
+    "scheme": "JWT",
+    "jwks_uri": "${JWKS_URI}",
+    "audience": "${JWT_AUDIENCE}"
+  },
+  "security": {
+    "auditLogging": true,
+    "scopeValidation": true,
+    "rlsEnforced": true
+  }
+}
