@@ -1,0 +1,29 @@
+{
+  "name": "esl-student-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Server for ESL Student Assistant",
+  "type": "module",
+  "main": "index.ts",
+  "bin": {
+    "esl-student-server": "./index.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node index.js",
+    "dev": "tsx watch index.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "tsx": "^4.0.0"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "esl",
+    "education"
+  ]
+}
