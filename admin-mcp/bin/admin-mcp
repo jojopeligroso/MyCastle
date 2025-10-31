@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Admin MCP Server - STDIO Transport Launcher
+#
+# Launches the Admin MCP server in STDIO mode for integration with
+# MCP clients like Claude Desktop or other AI assistants.
+#
+# Usage:
+#   admin-mcp
+#
+# Environment variables:
+#   JWKS_URI                  - JWT verification endpoint (required)
+#   JWT_AUDIENCE              - Expected JWT audience (default: admin-mcp)
+#   SUPABASE_URL              - Supabase project URL (required)
+#   SUPABASE_SERVICE_ROLE_KEY - Supabase service role key (required)
+#   MCP_AUTH_HEADER           - Default Authorization header (optional)
+
+# Get the directory containing this script
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." && pwd )"
+
+# Run the compiled TypeScript entry point
+exec node "$PROJECT_ROOT/dist/index.js" stdio
