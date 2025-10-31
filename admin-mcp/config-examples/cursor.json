@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "admin-esl": {
+      "command": "node",
+      "args": [
+        "/home/eoin/work/esl-learning-platform/admin-mcp/dist/index.js",
+        "stdio"
+      ],
+      "env": {
+        "JWKS_URI": "https://YOUR_PROJECT_ID.supabase.co/auth/v1/jwks",
+        "SUPABASE_URL": "https://YOUR_PROJECT_ID.supabase.co",
+        "SUPABASE_SERVICE_ROLE_KEY": "your-service-role-key-here",
+        "JWT_AUDIENCE": "admin-mcp",
+        "MCP_FILES_DIR": "/tmp/mcp-files"
+      }
+    }
+  }
+}
