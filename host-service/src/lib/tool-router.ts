@@ -10,21 +10,40 @@ import { User } from './context-aggregator.js';
  * Tool registry mapping tool names to MCP roles
  */
 const TOOL_REGISTRY: Record<string, string> = {
-  // Admin MCP tools
+  // Admin MCP tools - Identity & Access
   'create-user': 'admin',
+  'update-user': 'admin',
+  'suspend-user': 'admin',
   'assign-role': 'admin',
-  'create-class': 'admin',
-  'enroll-student': 'admin',
-  'mark-attendance': 'admin',
   'list-users': 'admin',
-  'list-classes': 'admin',
   'search-users': 'admin',
-  'generate-export': 'admin',
-  'download-export': 'admin',
-  'get-attendance-summary': 'admin',
+
+  // Admin MCP tools - Academic Programs
   'create-programme': 'admin',
   'create-course': 'admin',
   'assign-course-programme': 'admin',
+
+  // Admin MCP tools - Class Management
+  'create-class': 'admin',
+  'list-classes': 'admin',
+  'assign-teacher': 'admin',
+
+  // Admin MCP tools - Scheduling
+  'create-session': 'admin',
+
+  // Admin MCP tools - Enrollment
+  'enroll-student': 'admin',
+
+  // Admin MCP tools - Attendance
+  'mark-attendance': 'admin',
+  'correct-attendance-admin': 'admin',
+
+  // Admin MCP tools - Reporting & Analytics
+  'get-attendance-summary': 'admin',
+
+  // Admin MCP tools - Export & Data
+  'generate-export': 'admin',
+  'download-export': 'admin',
 
   // Future: Teacher MCP tools
   // 'create-lesson-plan': 'teacher',
@@ -39,21 +58,40 @@ const TOOL_REGISTRY: Record<string, string> = {
  * Tool scope requirements mapping
  */
 const TOOL_SCOPES: Record<string, string[]> = {
-  // Admin tools
+  // Admin tools - Identity & Access
   'create-user': ['admin.write.user'],
+  'update-user': ['admin.write.user'],
+  'suspend-user': ['admin.write.user'],
   'assign-role': ['admin.write.user', 'admin.write.role'],
-  'create-class': ['admin.write.class'],
-  'enroll-student': ['admin.write.enrollment'],
-  'mark-attendance': ['admin.write.attendance', 'teacher.write.attendance'],
   'list-users': ['admin.read.user'],
-  'list-classes': ['admin.read.class'],
   'search-users': ['admin.read.user'],
-  'generate-export': ['admin.write.export'],
-  'download-export': ['admin.read.export'],
-  'get-attendance-summary': ['admin.read.attendance'],
+
+  // Admin tools - Academic Programs
   'create-programme': ['admin.write.programme'],
   'create-course': ['admin.write.course'],
   'assign-course-programme': ['admin.write.course'],
+
+  // Admin tools - Class Management
+  'create-class': ['admin.write.class'],
+  'list-classes': ['admin.read.class'],
+  'assign-teacher': ['admin.write.class', 'admin.write.assignment'],
+
+  // Admin tools - Scheduling
+  'create-session': ['admin.write.session'],
+
+  // Admin tools - Enrollment
+  'enroll-student': ['admin.write.enrollment'],
+
+  // Admin tools - Attendance
+  'mark-attendance': ['admin.write.attendance', 'teacher.write.attendance'],
+  'correct-attendance-admin': ['admin.write.attendance'],
+
+  // Admin tools - Reporting & Analytics
+  'get-attendance-summary': ['admin.read.attendance'],
+
+  // Admin tools - Export & Data
+  'generate-export': ['admin.write.export'],
+  'download-export': ['admin.read.export'],
 
   // Teacher tools
   // 'mark-attendance': ['teacher.write.attendance'], // Already listed above
