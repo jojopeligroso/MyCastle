@@ -11,8 +11,10 @@ export * from './create-user.js';
 export * from './update-user.js';
 export * from './assign-role.js';
 export * from './create-class.js';
+export * from './assign-teacher.js';
 export * from './plan-roster.js';
 export * from './record-attendance.js';
+export * from './correct-attendance.js';
 export * from './adjust-enrolment.js';
 export * from './gen-register-csv.js';
 export * from './ar-snapshot.js';
@@ -28,8 +30,10 @@ import { createUserMetadata } from './create-user.js';
 import { updateUserMetadata } from './update-user.js';
 import { assignRoleMetadata } from './assign-role.js';
 import { createClassMetadata } from './create-class.js';
+import { assignTeacherMetadata } from './assign-teacher.js';
 import { planRosterMetadata } from './plan-roster.js';
 import { recordAttendanceMetadata } from './record-attendance.js';
+import { correctAttendanceMetadata } from './correct-attendance.js';
 import { adjustEnrolmentMetadata } from './adjust-enrolment.js';
 import { genRegisterCsvMetadata } from './gen-register-csv.js';
 import { arSnapshotMetadata } from './ar-snapshot.js';
@@ -51,8 +55,10 @@ export const toolRegistry: MCPTool[] = [
   updateUserMetadata,
   assignRoleMetadata,
   createClassMetadata,
+  assignTeacherMetadata,
   planRosterMetadata,
   recordAttendanceMetadata,
+  correctAttendanceMetadata,
   adjustEnrolmentMetadata,
   genRegisterCsvMetadata,
   arSnapshotMetadata,
