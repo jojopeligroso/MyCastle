@@ -6,6 +6,8 @@ interface SettingsContextType {
   setProjectsEnabled: (enabled: boolean) => Promise<void>;
   styleGuideEnabled: boolean;
   setStyleGuideEnabled: (enabled: boolean) => Promise<void>;
+  xlsxTransformEnabled: boolean;
+  setXlsxTransformEnabled: (enabled: boolean) => Promise<void>;
   loading: boolean;
   refreshSettings: () => Promise<void>;
 }
@@ -27,16 +29,18 @@ interface SettingsProviderProps {
 export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) => {
   const [projectsEnabled, setProjectsEnabledState] = useState(true);
   const [styleGuideEnabled, setStyleGuideEnabledState] = useState(false);
+  const [xlsxTransformEnabled, setXlsxTransformEnabledState] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const loadSettings = async () => {
     try {
       setLoading(true);
 
-      // Load Projects and Style Guide settings
-      const [projectsResponse, styleGuideResponse] = await Promise.all([
+      // Load Projects, Style Guide, and XLSX Transform settings
+      const [projectsResponse, styleGuideResponse, xlsxTransformResponse] = await Promise.all([
         credentialsService.getCredential('PROJECTS_ENABLED').catch(() => ({ value: undefined })),
-        credentialsService.getCredential('STYLE_GUIDE_ENABLED').catch(() => ({ value: undefined }))
+        credentialsService.getCredential('STYLE_GUIDE_ENABLED').catch(() => ({ value: undefined })),
+        credentialsService.getCredential('XLSX_TRANSFORM_ENABLED').catch(() => ({ value: undefined }))
       ]);
 
       if (projectsResponse.value !== undefined) {
@@ -51,10 +55,17 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
         setStyleGuideEnabledState(false); // Default to false
       }
 
+      if (xlsxTransformResponse.value !== undefined) {
+        setXlsxTransformEnabledState(xlsxTransformResponse.value === 'true');
+      } else {
+        setXlsxTransformEnabledState(false); // Default to false (disabled by default)
+      }
+
     } catch (error) {
       console.error('Failed to load settings:', error);
       setProjectsEnabledState(true);
       setStyleGuideEnabledState(false);
+      setXlsxTransformEnabledState(false);
     } finally {
       setLoading(false);
     }
@@ -106,6 +117,27 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
     }
   };
 
+  const setXlsxTransformEnabled = async (enabled: boolean) => {
+    try {
+      // Update local state immediately
+      setXlsxTransformEnabledState(enabled);
+
+      // Save to backend
+      await credentialsService.createCredential({
+        key: 'XLSX_TRANSFORM_ENABLED',
+        value: enabled.toString(),
+        is_encrypted: false,
+        category: 'features',
+        description: 'Enable XLSX to Supabase data transformation feature'
+      });
+    } catch (error) {
+      console.error('Failed to update XLSX transform setting:', error);
+      // Revert on error
+      setXlsxTransformEnabledState(!enabled);
+      throw error;
+    }
+  };
+
   const refreshSettings = async () => {
     await loadSettings();
   };
@@ -115,6 +147,8 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
     setProjectsEnabled,
     styleGuideEnabled,
     setStyleGuideEnabled,
+    xlsxTransformEnabled,
+    setXlsxTransformEnabled,
     loading,
     refreshSettings
   };

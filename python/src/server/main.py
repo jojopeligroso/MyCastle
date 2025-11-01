@@ -29,6 +29,7 @@ from .api_routes.pages_api import router as pages_router
 from .api_routes.progress_api import router as progress_router
 from .api_routes.projects_api import router as projects_router
 from .api_routes.providers_api import router as providers_router
+from .api_routes.transform_api import router as transform_router
 from .api_routes.version_api import router as version_router
 
 # Import modular API routers
@@ -188,6 +189,7 @@ app.include_router(pages_router)
 app.include_router(ollama_router)
 app.include_router(projects_router)
 app.include_router(progress_router)
+app.include_router(transform_router)
 app.include_router(agent_chat_router)
 app.include_router(internal_router)
 app.include_router(bug_report_router)

@@ -1,16 +1,43 @@
 import React from 'react';
-import { AlertCircle, Terminal, RefreshCw } from 'lucide-react';
+import { AlertCircle, Terminal, RefreshCw, X } from 'lucide-react';
 
-export const BackendStartupError: React.FC = () => {
+interface BackendStartupErrorProps {
+  onDismiss?: () => void;
+}
+
+export const BackendStartupError: React.FC<BackendStartupErrorProps> = ({ onDismiss }) => {
   const handleRetry = () => {
     // Reload the page to retry
     window.location.reload();
   };
 
+  const handleDismiss = () => {
+    // Remember dismissal in localStorage
+    localStorage.setItem('backendErrorDismissed', 'true');
+    onDismiss?.();
+  };
+
   return (
-    <div className="fixed inset-0 z-[10000] bg-black/90 backdrop-blur-sm flex items-center justify-center p-8">
-      <div className="max-w-2xl w-full">
-        <div className="bg-red-950/50 border-2 border-red-500/50 rounded-lg p-8 shadow-2xl backdrop-blur-md">
+    <div
+      className="fixed inset-0 z-[10000] bg-black/90 backdrop-blur-sm flex items-center justify-center p-8"
+      onClick={handleDismiss}
+    >
+      <div
+        className="max-w-2xl w-full"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="bg-red-950/50 border-2 border-red-500/50 rounded-lg p-8 shadow-2xl backdrop-blur-md relative">
+          {/* Close button */}
+          {onDismiss && (
+            <button
+              onClick={handleDismiss}
+              className="absolute top-4 right-4 text-red-300 hover:text-red-100 transition-colors"
+              aria-label="Dismiss error"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
+
           <div className="flex items-start gap-4">
             <AlertCircle className="w-8 h-8 text-red-500 flex-shrink-0 mt-1" />
             <div className="space-y-4 flex-1">

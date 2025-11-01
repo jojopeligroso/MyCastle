@@ -1,6 +1,6 @@
 import { AlertCircle, WifiOff } from "lucide-react";
 import type React from "react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useToast } from "../../features/shared/hooks/useToast";
 import { cn } from "../../lib/utils";
@@ -11,6 +11,7 @@ import { isLmConfigured } from "../../utils/onboarding";
 import { BackendStartupError } from "../BackendStartupError";
 import { useBackendHealth } from "./hooks/useBackendHealth";
 import { Navigation } from "./Navigation";
+import type { HealthResponse } from "./types";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -20,7 +21,7 @@ interface MainLayoutProps {
 interface BackendStatusProps {
   isHealthLoading: boolean;
   isBackendError: boolean;
-  healthData: { ready: boolean } | undefined;
+  healthData: HealthResponse | undefined;
 }
 
 /**
@@ -46,10 +47,17 @@ function BackendStatus({ isHealthLoading, isBackendError, healthData }: BackendS
   }
 
   if (healthData?.ready === false) {
+    // Show more specific status if available
+    const statusMessage =
+      healthData.credentials_status === "invalid" ? "Invalid Credentials" :
+      healthData.database_status === "error" ? "Database Error" :
+      healthData.server_status === "starting" ? "Starting..." :
+      "Not Ready";
+
     return (
       <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-yellow-50 dark:bg-yellow-950/30 text-yellow-700 dark:text-yellow-400 text-sm">
         <AlertCircle className="w-4 h-4" />
-        <span>Backend Starting...</span>
+        <span>{statusMessage}</span>
       </div>
     );
   }
@@ -66,7 +74,14 @@ export function MainLayout({ children, className }: MainLayoutProps) {
   const location = useLocation();
   const { showToast } = useToast();
 
+  // State for backend error dismissal
+  const [errorDismissed, setErrorDismissed] = useState(() => {
+    // Check if error was previously dismissed
+    return localStorage.getItem('backendErrorDismissed') === 'true';
+  });
+
   // Backend health monitoring with TanStack Query
+  // Stop polling if user dismissed the error to save resources
   const {
     data: healthData,
     isError: isBackendError,
@@ -76,7 +91,19 @@ export function MainLayout({ children, className }: MainLayoutProps) {
   } = useBackendHealth();
 
   // Track if backend has completely failed (for showing BackendStartupError)
-  const backendStartupFailed = isBackendError && failureCount >= 5;
+  // Only show if not dismissed and failed 5+ times
+  // Also check if backend is not ready (ready: false) which indicates startup issues
+  const backendStartupFailed =
+    (isBackendError && failureCount >= 5 && !errorDismissed) ||
+    (healthData?.ready === false && failureCount >= 3 && !errorDismissed);
+
+  // Clear dismissal flag when backend recovers
+  useEffect(() => {
+    if (healthData?.ready && errorDismissed) {
+      localStorage.removeItem('backendErrorDismissed');
+      setErrorDismissed(false);
+    }
+  }, [healthData?.ready, errorDismissed]);
 
   // TEMPORARY: Handle onboarding redirect using old logic until migrated
   useEffect(() => {
@@ -131,7 +158,7 @@ export function MainLayout({ children, className }: MainLayoutProps) {
   return (
     <div className={cn("relative min-h-screen overflow-hidden", className)}>
       {/* TEMPORARY: Show backend startup error using old component */}
-      {backendStartupFailed && <BackendStartupError />}
+      {backendStartupFailed && <BackendStartupError onDismiss={() => setErrorDismissed(true)} />}
 
       {/* Fixed full-page background - grid pattern on dark background */}
       <div className="fixed inset-0 bg-white dark:bg-black pointer-events-none -z-10" />
