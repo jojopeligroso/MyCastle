@@ -530,6 +530,23 @@ def register_modules():
         logger.error(f"✗ Failed to register feature tools: {e}")
         logger.error(traceback.format_exc())
 
+    # Transform Tools (XLSX schema analysis and transformation)
+    try:
+        from src.mcp_server.features.transform import register_transform_tools
+
+        register_transform_tools(mcp)
+        modules_registered += 1
+        logger.info("✓ Transform tools registered")
+    except ImportError as e:
+        logger.warning(f"⚠ Transform tools module not available (optional): {e}")
+    except (SyntaxError, NameError, AttributeError) as e:
+        logger.error(f"✗ Code error in transform tools - MUST FIX: {e}")
+        logger.error(traceback.format_exc())
+        raise
+    except Exception as e:
+        logger.error(f"✗ Failed to register transform tools: {e}")
+        logger.error(traceback.format_exc())
+
     logger.info(f"📦 Total modules registered: {modules_registered}")
 
     if modules_registered == 0:

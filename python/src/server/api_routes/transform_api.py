@@ -20,6 +20,15 @@ from ..services.transform_service import TransformService
 from ..utils import get_supabase_client
 from ..utils.xlsx_utils import XLSXParseError
 
+# Import schema analyzer agent
+try:
+    from ...agents.schema_analyzer_agent import SchemaAnalyzerAgent
+
+    AGENT_AVAILABLE = True
+except ImportError:
+    AGENT_AVAILABLE = False
+    logger.warning("Schema analyzer agent not available - using basic analysis")
+
 logger = get_logger(__name__)
 
 router = APIRouter(prefix="/api/transform", tags=["transform"])
@@ -110,8 +119,8 @@ async def analyze_schema(request: PreviewRequest):
     """
     Analyze XLSX sheet and suggest Supabase schema
 
-    Uses MCP/Agent to detect column types and relationships
-    Returns suggested table schema and column mappings
+    Uses AI-powered agent to detect column types, relationships, and data quality issues
+    Returns suggested table schema, column mappings, and comprehensive analysis
     """
     try:
         logger.info(
@@ -122,9 +131,55 @@ async def analyze_schema(request: PreviewRequest):
         service = TransformService()
         sheet_data = service.get_sheet_preview(request.upload_id, request.sheet_name)
 
-        # TODO: Call MCP/Agent for intelligent schema analysis
-        # For now, return basic schema suggestion based on column types
+        # Use AI agent for intelligent analysis if available
+        if AGENT_AVAILABLE:
+            try:
+                logger.info("Using AI agent for schema analysis")
+                agent = SchemaAnalyzerAgent()
+                analysis = await agent.analyze_schema(
+                    sheet_data=sheet_data,
+                    file_name=request.upload_id,
+                    sheet_name=request.sheet_name,
+                )
 
+                # Convert agent result to API response format
+                suggested_mapping = {}
+                suggested_schema = []
+
+                for col_analysis in analysis.columns:
+                    suggested_mapping[col_analysis.source_column] = col_analysis.suggested_name
+                    suggested_schema.append(
+                        {
+                            "column_name": col_analysis.suggested_name,
+                            "data_type": col_analysis.data_type,
+                            "source_column": col_analysis.source_column,
+                            "nullable": col_analysis.nullable,
+                            "unique": col_analysis.unique,
+                            "is_key_field": col_analysis.is_key_field,
+                            "data_quality_warning": col_analysis.data_quality_warning,
+                        }
+                    )
+
+                return {
+                    "suggested_mapping": suggested_mapping,
+                    "suggested_schema": suggested_schema,
+                    "suggested_table_name": analysis.suggested_table_name,
+                    "column_count": len(analysis.columns),
+                    "row_count": analysis.total_rows,
+                    "duplicate_row_count": analysis.duplicate_row_count,
+                    "data_quality_summary": analysis.data_quality_summary,
+                    "recommended_indexes": analysis.recommended_indexes,
+                    "create_table_sql": analysis.create_table_sql,
+                    "warnings": analysis.warnings,
+                    "ai_enhanced": True,
+                }
+
+            except Exception as agent_error:
+                logger.error(f"AI agent analysis failed: {agent_error}", exc_info=True)
+                logger.info("Falling back to basic analysis")
+                # Fall through to basic analysis
+
+        # Basic analysis fallback (if agent not available or failed)
         columns = sheet_data["columns"]
         column_types = sheet_data["column_types"]
 
@@ -165,6 +220,7 @@ async def analyze_schema(request: PreviewRequest):
             "suggested_schema": suggested_schema,
             "column_count": len(columns),
             "row_count": sheet_data["row_count"],
+            "ai_enhanced": False,
         }
 
     except Exception as e:
