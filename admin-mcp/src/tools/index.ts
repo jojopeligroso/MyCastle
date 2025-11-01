@@ -25,6 +25,9 @@ import { assignTeacher } from './assign-teacher.js';
 import { createSession } from './create-session.js';
 import { correctAttendance } from './correct-attendance.js';
 
+// Import & Data tools
+import { importData } from './import-data.js';
+
 /**
  * All available tools
  */
@@ -60,9 +63,10 @@ export const tools = {
   // Reporting & Analytics (1 tool)
   'get-attendance-summary': getAttendanceSummary,
 
-  // Export & Data (2 tools)
+  // Export & Data (3 tools)
   'generate-export': generateExport,
   'download-export': downloadExport,
+  'import-data': importData,
 };
 
 /**

@@ -44,6 +44,7 @@ const TOOL_REGISTRY: Record<string, string> = {
   // Admin MCP tools - Export & Data
   'generate-export': 'admin',
   'download-export': 'admin',
+  'import-data': 'admin',
 
   // Future: Teacher MCP tools
   // 'create-lesson-plan': 'teacher',
@@ -92,6 +93,7 @@ const TOOL_SCOPES: Record<string, string[]> = {
   // Admin tools - Export & Data
   'generate-export': ['admin.write.export'],
   'download-export': ['admin.read.export'],
+  'import-data': ['admin.write.import', 'admin.write.user', 'admin.write.class'],
 
   // Teacher tools
   // 'mark-attendance': ['teacher.write.attendance'], // Already listed above
