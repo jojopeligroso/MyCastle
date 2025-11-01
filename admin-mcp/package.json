@@ -30,7 +30,12 @@
     "build": "tsc",
     "dev:stdio": "tsx src/index.ts stdio",
     "dev:http": "tsx src/index.ts http",
-    "test": "vitest"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:unit": "vitest run tests/tools",
+    "test:integration": "vitest run tests/integration",
+    "test:e2e": "vitest run tests/e2e"
   },
   "description": "Admin MCP server for ESL Learning Platform - provides secure administrative operations with comprehensive audit logging.",
   "main": "index.js",
