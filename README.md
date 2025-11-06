@@ -12,7 +12,7 @@ An educational platform that leverages AI assistants (via MCP) to support three 
 ## 🗂️ Repository Structure
 
 ```
-esl-mcp-spec/
+MyCastle/
 ├── spec/                           # Detailed specifications
 │   ├── 01-overview.md              # Project objectives, stakeholders, tech stack
 │   ├── 02-system-architecture.md   # Architecture, frontend, backend, database
