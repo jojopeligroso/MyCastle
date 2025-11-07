@@ -1,39 +1,85 @@
-# AI-Powered Learning Platform – MCP Specification
+# MyCastle – ESL Learning Platform Specification
 
-This repository contains the **consolidated model specifications** for an AI-powered learning platform built on the Model Context Protocol (MCP) architecture. It defines the complete system design for Admin, Teacher, and Student modules with MCP-driven automation.
+> **Version:** 2.1.0 | **Last Updated:** 2025-11-07
 
-## 📋 Overview
+This repository contains the **complete specifications** for MyCastle, an ESL school operations platform built on the Model Context Protocol (MCP) architecture. It covers timetable management, CEFR-driven lesson planning, attendance tracking, student profiles, and AI-assisted workflows.
 
-An educational platform that leverages AI assistants (via MCP) to support three primary user roles:
-- **Students**: Personalized tutoring, homework help, progress tracking
-- **Teachers**: Content generation, grading automation, performance analytics
-- **Administrators**: User management, reporting, system operations
+---
+
+## 📋 Core Specification Documents (The Spine)
+
+These three documents form the **authoritative spine** of the project and are updated with every commit:
+
+### 1. [**REQ.md** — Requirements Specification](./REQ.md)
+**What the system must do and why.**
+- Goals (MoSCoW), stakeholders, user stories
+- Functional and non-functional requirements
+- Data requirements, compliance, acceptance criteria
+- Success metrics and traceability
+
+### 2. [**DESIGN.md** — Design Specification](./DESIGN.md)
+**How the system fulfils the requirements.**
+- Architecture (MCP, Next.js, Supabase)
+- Domain model, data flows, APIs
+- Security (RLS, JWT, encryption)
+- Performance strategies, observability
+
+### 3. [**TASKS.md** — Task Specification](./TASKS.md)
+**How work is executed to implement the design.**
+- Work breakdown structure (WBS) by Epic
+- Actionable tasks with acceptance criteria
+- Testing strategy, CI/CD pipeline
+- Traceability (REQ → DESIGN → TASK)
+
+**These documents are living and must be kept aligned with implementation.**
+
+---
 
 ## 🗂️ Repository Structure
 
 ```
-esl-mcp-spec/
-├── spec/                           # Detailed specifications
-│   ├── 01-overview.md              # Project objectives, stakeholders, tech stack
-│   ├── 02-system-architecture.md   # Architecture, frontend, backend, database
-│   ├── 03-mcp.md                   # MCP protocol implementation details
-│   ├── 04-admin-mcp.md             # Admin MCP (MVP PRIORITY)
-│   ├── 05-teacher-mcp.md           # Teacher MCP (future scope)
-│   ├── 06-student-mcp.md           # Student MCP (future scope)
-│   ├── 07-agents.md                # Host orchestration patterns
-│   ├── 08-database.md              # Complete database schema (Drizzle/PostgreSQL)
-│   └── table-of-contents.md        # Navigation index
+MyCastle/
+├── REQ.md                          # ✅ Requirements Specification (v2.1.0)
+├── DESIGN.md                       # ✅ Design Specification (v2.1.0)
+├── TASKS.md                        # ✅ Task Specification (v2.1.0)
 ├── README.md                       # This file
+│
+├── spec/                           # Detailed MCP architecture specs
+│   ├── 01-overview.md              # Project objectives, stakeholders
+│   ├── 02-system-architecture.md   # System architecture details
+│   ├── 03-mcp.md                   # MCP protocol implementation
+│   ├── 04-admin-mcp.md             # Admin MCP specification
+│   ├── 05-teacher-mcp.md           # Teacher MCP specification
+│   ├── 06-student-mcp.md           # Student MCP specification
+│   ├── 07-agents.md                # Host orchestration patterns
+│   ├── 08-database.md              # Complete database schema
+│   ├── 09-mcp-interaction-patterns.md  # MCP interaction patterns
+│   ├── table-of-contents.md        # Navigation index
+│   └── shared-services/            # Shared service MCPs
+│
 └── .gitignore
-
 ```
+
+---
 
 ## 🚀 Quick Start
 
-1. **Read the Overview**: Start with [spec/01-overview.md](./spec/01-overview.md) for project objectives and architecture summary
-2. **Understand MCP**: Review [spec/03-mcp.md](./spec/03-mcp.md) for MCP protocol details
-3. **MVP Focus**: Study [spec/04-admin-mcp.md](./spec/04-admin-mcp.md) for the first MCP server to build
-4. **Database Schema**: Reference [spec/08-database.md](./spec/08-database.md) for complete data model
+### For Product/Business
+1. **[REQ.md](./REQ.md)** — Understand what we're building and why
+2. **spec/01-overview.md** — See stakeholder personas and use cases
+
+### For Engineering
+1. **[DESIGN.md](./DESIGN.md)** — Understand technical architecture
+2. **[TASKS.md](./TASKS.md)** — See work breakdown and acceptance criteria
+3. **spec/03-mcp.md** — Deep-dive into MCP protocol
+4. **spec/08-database.md** — Review database schema
+
+### For Implementation
+1. Pick a task from **[TASKS.md](./TASKS.md)**
+2. Check linked requirements in **[REQ.md](./REQ.md)**
+3. Review design in **[DESIGN.md](./DESIGN.md)**
+4. Implement with traceability comments
+5. Update specs if design changes
 
 ## 🎯 MVP Scope (Phase 1)
 
@@ -141,23 +187,63 @@ This is a living specification. Changes should follow this process:
 4. Increment version in document status
 5. Commit with clear description
 
-## 📝 Version History
+## 📊 Traceability
 
-- **v1.0** (2025-10-30) - Consolidated specification from multiple sources
-  - Merged original spec.md and esl-mcp-spec content
-  - Completed sections 1-8
-  - Established MVP priorities (Admin MCP + Host)
+Every task in **TASKS.md** links to:
+- **User Stories** in REQ.md (§5) via REQ-T-*, REQ-A-*, REQ-S-* IDs
+- **Design Sections** in DESIGN.md via § references
+- **Acceptance Criteria** (GIVEN-WHEN-THEN format)
 
-## 👤 Author
+**Example Traceability Chain**:
+```
+User Story (REQ-T-001): Generate CEFR-aligned lesson plan
+    ↓
+Design (DESIGN §6): Lesson Planning Flow (AI-Assisted)
+    ↓
+Tasks: T-031 (API), T-032 (Schema), T-033 (Cache)
+    ↓
+Implementation: Code with comments linking back to REQ-T-001
+    ↓
+Tests: E2E test named "REQ-T-001: Generate lesson plan"
+```
 
-**Eoin Malone**
-
-## 📄 License
-
-[Specify license here]
+This ensures **bidirectional traceability**: from requirements to implementation, and from code back to requirements.
 
 ---
 
-**Last Updated**: 2025-10-30
-**Specification Version**: 1.0 (Consolidated)  
+## 📝 Version History
+
+### v2.1.0 (2025-11-07) — Specification Spine Integration
+- ✅ Added REQ.md, DESIGN.md, TASKS.md as project spine
+- ✅ Reconciled MCP architecture with traditional requirements
+- ✅ Established traceability between all specs
+- ✅ User stories mapped to detailed tasks
+- ✅ 42 tasks defined across 11 epics
+- ✅ 4 milestones with clear exit criteria
+
+### v2.0.0 (2025-10-31) — MCP Architecture Restructure
+- Complete MCP architecture specs (Admin, Teacher, Student MCPs)
+- Interaction patterns and orchestration details
+- Shared services architecture
+
+### v1.0.0 (2025-10-30) — Initial Consolidation
+- Merged original spec.md and esl-mcp-spec content
+- Completed sections 1-8
+- Established MVP priorities (Admin MCP + Host)
+
+---
+
+## 👤 Author
+
+**Eoin Malone** (with Claude Code)
+
+## 📄 License
+
+[To be specified]
+
+---
+
+**Specification Status**: ✅ Complete and Aligned (REQ ↔ DESIGN ↔ TASKS)
+**Last Updated**: 2025-11-07
+**Version**: 2.1.0  
 
