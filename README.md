@@ -1,6 +1,6 @@
 # MyCastle – ESL Learning Platform Specification
 
-> **Version:** 2.1.0 | **Last Updated:** 2025-11-07
+> **Version:** 3.0.0 | **Last Updated:** 2025-11-07
 
 This repository contains the **complete specifications** for MyCastle, an ESL school operations platform built on the Model Context Protocol (MCP) architecture. It covers timetable management, CEFR-driven lesson planning, attendance tracking, student profiles, and AI-assisted workflows.
 
@@ -212,6 +212,16 @@ This ensures **bidirectional traceability**: from requirements to implementation
 ---
 
 ## 📝 Version History
+
+### v3.0.0 (2025-11-07) — 8-MCP Domain-Driven Architecture
+- ✅ Split Admin MCP into 6 domain MCPs (Identity, Academic, Attendance, Finance, Student Services, Ops)
+- ✅ Optimized Teacher MCP (12 → 10 tools)
+- ✅ Optimized Student MCP (14 → 10 tools)
+- ✅ All 8 MCPs now ≤10 tools (compliance with constraint)
+- ✅ Added 34 migration tasks (T-110 to T-143) with 4-phase rollout plan
+- ✅ Updated C4 architecture diagrams with scope-based routing
+- ✅ Fine-grained authorization scopes (identity:*, finance:*, academic:*, etc.)
+- ✅ Total: 76 tasks (42 core + 34 migration)
 
 ### v2.1.0 (2025-11-07) — Specification Spine Integration
 - ✅ Added REQ.md, DESIGN.md, TASKS.md as project spine

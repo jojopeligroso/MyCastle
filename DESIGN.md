@@ -1,55 +1,77 @@
 # DESIGN.md — Design Specification (MyCastle)
 
-> **Version:** 2.1.0 | **Status:** Living Document | **Last Updated:** 2025-11-07
+> **Version:** 3.0.0 | **Status:** Living Document | **Last Updated:** 2025-11-07
 
 ---
 
 ## 1. Architecture Overview
 
-### 1.1 Context (C4-C1)
+### 1.1 Context (C4-C1) — v3.0 Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        USERS                                     │
-│  (Teacher / Admin / Student)                                     │
-└────────────────────┬────────────────────────────────────────────┘
-                     │ HTTPS/WebSocket
-                     ▼
-┌─────────────────────────────────────────────────────────────────┐
-│               Next.js 15 App (Frontend)                          │
-│  • React 19 UI • Tailwind CSS • RHF + Zod                       │
-└────────────────────┬────────────────────────────────────────────┘
-                     │ API Routes
-                     ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                   MCP Host (Orchestrator)                        │
-│  • Session management • Authorization • Context aggregation     │
-│  • Routes to: Admin MCP | Teacher MCP | Student MCP             │
-└────────────────────┬────────────────────────────────────────────┘
-                     │
-          ┌──────────┼──────────┐
-          ▼          ▼          ▼
-    ┌─────────┐ ┌─────────┐ ┌─────────┐
-    │ Admin   │ │ Teacher │ │ Student │
-    │   MCP   │ │   MCP   │ │   MCP   │
-    │ Server  │ │ Server  │ │ Server  │
-    └────┬────┘ └────┬────┘ └────┬────┘
-         │           │           │
-         └───────────┼───────────┘
-                     ▼
-          ┌──────────────────────┐
-          │  Supabase/PostgreSQL  │
-          │  • RLS enforcement    │
-          │  • Drizzle ORM        │
-          └──────────────────────┘
+┌────────────────────────────────────────────────────────────────────────┐
+│                              USERS                                      │
+│           (Teacher / Admin / Student)                                   │
+└─────────────────────────────┬──────────────────────────────────────────┘
+                              │ HTTPS/WebSocket
+                              ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                    Next.js 15 App (Frontend)                            │
+│       • React 19 UI • Tailwind CSS • RHF + Zod                         │
+└─────────────────────────────┬──────────────────────────────────────────┘
+                              │ API Routes
+                              ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                     MCP Host (Orchestrator)                             │
+│  • Session management • Scope-based routing • Context aggregation      │
+│  • Routes to 8 domain MCPs (all ≤10 tools)                             │
+└─────────────────────────────┬──────────────────────────────────────────┘
+                              │
+       ┌──────────────────────┼──────────────────────┐
+       │                      │                      │
+       ▼                      ▼                      ▼
+┌─────────────┐      ┌─────────────┐      ┌─────────────┐
+│ Identity &  │      │  Academic   │      │ Attendance  │
+│  Access MCP │      │   Ops MCP   │      │& Compliance │
+│  (6 tools)  │      │ (10 tools)  │      │   MCP       │
+└──────┬──────┘      └──────┬──────┘      │ (8 tools)   │
+       │                    │              └──────┬──────┘
+       │                    │                     │
+       ▼                    ▼                     ▼
+┌─────────────┐      ┌─────────────┐      ┌─────────────┐
+│  Finance    │      │  Student    │      │ Operations  │
+│   MCP       │      │ Services MCP│      │  & Quality  │
+│ (9 tools)   │      │ (9 tools)   │      │   MCP       │
+└──────┬──────┘      └──────┬──────┘      │ (8 tools)   │
+       │                    │              └──────┬──────┘
+       │                    │                     │
+       ▼                    ▼                     ▼
+┌─────────────┐                         ┌─────────────┐
+│  Teacher    │                         │  Student    │
+│   MCP       │                         │   MCP       │
+│ (10 tools)  │                         │ (10 tools)  │
+└──────┬──────┘                         └──────┬──────┘
+       │                                       │
+       └───────────────────┬───────────────────┘
+                           ▼
+              ┌────────────────────────┐
+              │  Supabase/PostgreSQL   │
+              │  • RLS enforcement     │
+              │  • Drizzle ORM         │
+              │  • Domain isolation    │
+              └────────────────────────┘
 ```
 
-**Key Design Decision**: **MCP Architecture**
-- Role-specific MCP servers isolate context and enforce security boundaries
-- Host mediates all interactions (no MCP-to-MCP communication)
-- LLM receives aggregated context from Host, not direct MCP access
+**Key Design Decision**: **Domain-Driven MCP Architecture (v3.0)**
+- **8 focused MCPs** (all ≤10 tools) vs v2.0 (3 bloated MCPs with 50+ tools)
+- **Domain-specific MCP servers** isolate context and enforce security boundaries
+- **Scope-based routing**: Host routes by authorization scope (e.g., `finance:*`, `academic:*`)
+- **Host mediates all interactions** (no MCP-to-MCP communication)
+- **Fine-grained authorization**: Different scopes for different domains
+- **Performance**: Distributed load, domain-specific caching, simpler RLS per MCP
+- **Security**: Smaller attack surface per MCP, least privilege enforcement
 
-### 1.2 Containers (C4-C2)
+### 1.2 Containers (C4-C2) — v3.0 Architecture
 
 ```mermaid
 graph TD
@@ -58,12 +80,25 @@ graph TD
     B -->|SQL over pool| D[(Postgres + RLS)]
     B -->|Signed URLs| E[Supabase Storage]
     B -->|MCP JSON-RPC 2.0| F[MCP Host Service]
-    F -->|stdio/HTTPS| G[Admin MCP]
-    F -->|stdio/HTTPS| H[Teacher MCP]
-    F -->|stdio/HTTPS| I[Student MCP]
-    G --> D
+
+    F -->|identity:*| G1[Identity & Access MCP<br/>6 tools]
+    F -->|academic:*| G2[Academic Ops MCP<br/>10 tools]
+    F -->|attendance:*, compliance:*| G3[Attendance & Compliance MCP<br/>8 tools]
+    F -->|finance:*| G4[Finance MCP<br/>9 tools]
+    F -->|student_services:*| G5[Student Services MCP<br/>9 tools]
+    F -->|ops:*, quality:*| G6[Operations & Quality MCP<br/>8 tools]
+    F -->|teacher:*| H[Teacher MCP<br/>10 tools]
+    F -->|student:*| I[Student MCP<br/>10 tools]
+
+    G1 --> D
+    G2 --> D
+    G3 --> D
+    G4 --> D
+    G5 --> D
+    G6 --> D
     H --> D
     I --> D
+
     B -->|HTTP| J[OpenAI API]
     B -->|OTel| K[Observability Stack]
 ```
@@ -1391,6 +1426,7 @@ All design decisions reference REQ IDs. See comprehensive mapping in REQ §15 an
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 3.0.0 | 2025-11-07 | Eoin Malone + Claude Code | 8-MCP domain-driven architecture with C4 diagrams updated, all MCPs ≤10 tools |
 | 2.1.0 | 2025-11-07 | Eoin Malone + Claude Code | Integrated DESIGN structure with MCP architecture |
 | 2.0.0 | 2025-10-31 | Eoin Malone + Claude Code | Complete MCP architecture restructure |
 | 1.0.0 | 2025-10-30 | Eoin Malone | Initial consolidated specification |
