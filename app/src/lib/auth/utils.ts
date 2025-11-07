@@ -12,7 +12,7 @@ import { cache } from 'react';
  * Cached per request to avoid multiple calls
  */
 export const getCurrentUser = cache(async () => {
-  const supabase = createServerClient();
+  const supabase = await createServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -23,7 +23,7 @@ export const getCurrentUser = cache(async () => {
  * Get the current user's session (server-side)
  */
 export const getSession = cache(async () => {
-  const supabase = createServerClient();
+  const supabase = await createServerClient();
   const {
     data: { session },
   } = await supabase.auth.getSession();

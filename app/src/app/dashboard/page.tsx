@@ -12,11 +12,9 @@ export default async function DashboardPage() {
     redirect('/login');
   });
 
-  const supabase = createClient();
-
   const handleSignOut = async () => {
     'use server';
-    const supabase = createClient();
+    const supabase = await createClient();
     await supabase.auth.signOut();
     redirect('/login');
   };
