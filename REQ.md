@@ -1,6 +1,6 @@
 # REQ.md — Requirements Specification (MyCastle)
 
-> **Version:** 2.1.0 | **Status:** Living Document | **Last Updated:** 2025-11-07
+> **Version:** 3.0.0 | **Status:** Living Document | **Last Updated:** 2025-11-07
 
 ---
 
@@ -360,18 +360,84 @@
 **Design Ref**: DESIGN §9
 **Tasks**: T-050 (rate limiter), T-052 (moderation queue)
 
-### 6.7 MCP Architecture
-**Module**: MCP Host + Role-based Servers
-- **Host orchestration**: Routes requests to appropriate MCP server
-- **Admin MCP**: Resources (users, classes, exports), Tools (CRUD, reports), Prompts (admin tasks)
-- **Teacher MCP**: Resources (timetable, plans, registers), Tools (plan generation, attendance), Prompts (teaching tasks)
-- **Student MCP**: Resources (timetable, materials, progress), Tools (AI tutor, homework), Prompts (learning tasks)
-- **Security**: MCP servers cannot access each other's context
+### 6.7 MCP Architecture (v3.0)
+**Module**: MCP Host + Domain-based Servers (8 MCPs, all ≤10 tools)
+
+**Architecture Principle**: Domain-driven MCP design for security, performance, and maintainability
+
+#### 6.7.1 Identity & Access MCP (6 tools)
+- **Purpose**: User authentication, authorization, role management
+- **Scope**: `identity:*`
+- **Tools**: create_user, update_user_role, set_permissions, revoke_session, rotate_api_key, audit_access
+- **Authorization**: Super-admin or `identity:write`
+- **Why Separate**: Security-critical operations, highest audit level, minimal change frequency
+
+#### 6.7.2 Academic Operations MCP (10 tools)
+- **Purpose**: Programme, course, scheduling, lesson planning
+- **Scope**: `academic:*`
+- **Tools**: create_programme, create_course, map_cefr_level, schedule_class, assign_teacher, allocate_room, register_lesson_template, approve_lesson_plan, link_cefr_descriptor, publish_materials
+- **Authorization**: Admin with `academic:write`
+- **Why Together**: High cohesion (academic delivery), shared data model
+
+#### 6.7.3 Attendance & Compliance MCP (8 tools)
+- **Purpose**: Attendance tracking, visa compliance, register exports
+- **Scope**: `attendance:*`, `compliance:*`
+- **Tools**: prepare_register, record_attendance, correct_attendance, export_attendance, visa_compliance_report, compile_compliance_pack, anonymise_dataset, policy_check
+- **Authorization**: Admin with `attendance:write` or `compliance:read`
+- **Why Together**: Legally coupled (visa tracking), similar audit requirements
+
+#### 6.7.4 Finance MCP (9 tools)
+- **Purpose**: Invoicing, payments, reconciliation, financial reporting
+- **Scope**: `finance:*`
+- **Tools**: create_booking, edit_booking, issue_invoice, apply_discount, refund_payment, reconcile_payouts, ledger_export, aging_report, confirm_intake
+- **Authorization**: Admin with `finance:write`
+- **Why Separate**: Strictest audit trail, PCI compliance, external integrations
+
+#### 6.7.5 Student Services MCP (9 tools)
+- **Purpose**: Accommodation, letters, certificates, lifecycle events
+- **Scope**: `student_services:*`
+- **Tools**: register_host, allocate_accommodation, swap_accommodation, export_placements, issue_letter, approve_deferral, award_certificate, track_visa_status, record_pastoral_note
+- **Authorization**: Admin with `student_services:write`
+- **Why Together**: Student welfare and lifecycle, shared workflows
+
+#### 6.7.6 Operations & Quality MCP (8 tools)
+- **Purpose**: System operations, backups, quality assurance, CPD
+- **Scope**: `ops:*`, `quality:*`
+- **Tools**: backup_db, restore_snapshot, record_observation, assign_cpd, export_quality_report, bulk_email, notify_stakeholders, mail_merge_pdf
+- **Authorization**: Admin with `ops:write` or `quality:write`
+- **Why Together**: Operational tools need highest privilege, QA/CPD related
+
+#### 6.7.7 Teacher MCP (10 tools)
+- **Purpose**: Lesson planning, attendance marking, grading
+- **Scope**: `teacher:*`
+- **Tools**: view_timetable, create_lesson_plan, attach_materials, map_cefr_objectives, mark_attendance, record_progress_note, assign_homework, grade_submission, export_class_data, raise_support_ticket
+- **Authorization**: Teacher role
+- **Optimized**: Reduced from 12 → 10 tools (merged room_swap into Academic MCP, merged quick_scan into mark_attendance)
+
+#### 6.7.8 Student MCP (10 tools)
+- **Purpose**: Timetable, materials, AI tutor, progress tracking
+- **Scope**: `student:*`
+- **Tools**: view_timetable, download_materials, submit_homework, view_grades, ask_tutor (includes explain/practice), track_progress, attendance_summary, request_letter, raise_support_request, view_invoice
+- **Authorization**: Student role
+- **Optimized**: Reduced from 14 → 10 tools (merged AI tutor tools, merged invoice tools, moved profile updates to Student Services MCP)
+
+#### 6.7.9 Cross-Cutting Concerns
+- **Host orchestration**: Routes requests to appropriate MCP server based on scope
+- **Security**: MCP servers cannot access each other's context (strict isolation)
 - **Protocol**: JSON-RPC 2.0 over stdio (dev) or HTTPS (prod)
+- **Performance**: Domain-specific caching, distributed load (8 MCPs vs 3 hotspot)
+- **Authorization**: Fine-grained scopes (e.g., `finance:write` ≠ `academic:write`)
+- **Audit**: Per-domain audit trails (finance separate from academic)
+
+**Benefits over v2.0 (3-MCP)**:
+- ✅ All MCPs ≤10 tools (compliance with constraint)
+- ✅ Better security (least privilege, smaller attack surface per MCP)
+- ✅ Better performance (distributed load, domain-specific caching)
+- ✅ Easier maintenance (clear domain boundaries, focused responsibility)
 
 **REQ IDs**: All (cross-cutting)
-**Design Ref**: DESIGN §3, §4
-**Tasks**: T-080 (MCP integration)
+**Design Ref**: DESIGN §1 (v3.0 architecture), MCP-ARCHITECTURE-OPTIMIZATION.md
+**Tasks**: T-020 through T-023 (MCP servers), T-110 through T-143 (v3.0 migration)
 
 ---
 
@@ -672,6 +738,7 @@ THEN verification code sent to new email
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 3.0.0 | 2025-11-07 | Eoin Malone + Claude Code | 8-MCP architecture (≤10 tools per MCP): Split Admin into 6 domain MCPs, optimized Teacher/Student to 10 tools each |
 | 2.1.0 | 2025-11-07 | Eoin Malone + Claude Code | Integrated REQ structure with existing MCP specs |
 | 2.0.0 | 2025-10-31 | Eoin Malone + Claude Code | Complete MCP architecture restructure |
 | 1.0.0 | 2025-10-30 | Eoin Malone | Initial consolidated specification |

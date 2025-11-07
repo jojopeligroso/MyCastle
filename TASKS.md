@@ -1,6 +1,6 @@
 # TASKS.md — Task Specification (MyCastle)
 
-> **Version:** 2.1.0 | **Status:** Living Document | **Last Updated:** 2025-11-07
+> **Version:** 3.0.0 | **Status:** Living Document | **Last Updated:** 2025-11-07
 
 ---
 
@@ -365,6 +365,457 @@ THEN Student MCP calls LLM with CEFR-adaptive prompt
 
 **Risk/Notes**:
 AI tutor requires CEFR level adaptation in prompts.
+
+---
+
+### 4.3.1 MCP Architecture Migration (v3.0)
+
+**Background**: Migrate from 3-MCP architecture (v2.0) to 8-MCP domain-driven architecture (v3.0) to meet ≤10 tools per MCP constraint.
+
+**Migration Strategy**: 4-phase rollout over 8-12 weeks (see MCP-ARCHITECTURE-OPTIMIZATION.md)
+
+---
+
+#### T-110: Create Identity & Access MCP (Phase 1)
+**Epic**: EP-MCP
+**Linked Requirements**: REQ §6.7.1
+**Design Ref**: DESIGN §1, MCP-ARCHITECTURE-OPTIMIZATION.md
+**Estimate**: M
+**Dependencies**: T-020 (MCP Host)
+
+**Description**:
+Create Identity & Access MCP with 6 tools for user authentication, authorization, and role management. Split from Admin MCP.
+
+**Tools** (6):
+1. create_user
+2. update_user_role
+3. set_permissions
+4. revoke_session
+5. rotate_api_key
+6. audit_access
+
+**Acceptance Criteria**:
+```gherkin
+GIVEN super-admin authenticated
+WHEN calling create_user tool via Identity MCP
+THEN new user created
+  AND authorization scope = identity:write enforced
+  AND audit log entry created
+  AND tool call completes in < 500ms
+```
+
+**Tests Required**:
+- [ ] Unit tests for all 6 tools
+- [ ] Integration tests for scope-based routing
+- [ ] RLS policy tests (super-admin only)
+- [ ] E2E test for user creation flow
+
+**Risk/Notes**:
+Security-critical operations. Requires highest audit level.
+
+---
+
+#### T-111: Create Finance MCP (Phase 1)
+**Epic**: EP-MCP
+**Linked Requirements**: REQ §6.7.4
+**Design Ref**: DESIGN §1, MCP-ARCHITECTURE-OPTIMIZATION.md
+**Estimate**: L
+**Dependencies**: T-020
+
+**Description**:
+Create Finance MCP with 9 tools for invoicing, payments, and reconciliation. Split from Admin MCP.
+
+**Tools** (9):
+1. create_booking
+2. edit_booking
+3. issue_invoice
+4. apply_discount
+5. refund_payment
+6. reconcile_payouts
+7. ledger_export
+8. aging_report
+9. confirm_intake
+
+**Acceptance Criteria**:
+```gherkin
+GIVEN finance officer authenticated
+WHEN calling issue_invoice tool via Finance MCP
+THEN invoice generated
+  AND authorization scope = finance:write enforced
+  AND PCI compliance maintained
+  AND audit trail includes all financial operations
+```
+
+**Tests Required**:
+- [ ] Unit tests for all 9 tools
+- [ ] Integration tests for payment flows
+- [ ] PCI compliance tests
+- [ ] E2E test for invoice creation
+
+**Risk/Notes**:
+PCI compliance critical. External payment integrations (Stripe).
+
+---
+
+#### T-112: Update Host Routing for Identity & Finance (Phase 1)
+**Epic**: EP-MCP
+**Linked Requirements**: REQ §6.7.9
+**Design Ref**: DESIGN §1
+**Estimate**: M
+**Dependencies**: T-110, T-111
+
+**Description**:
+Update MCP Host to route `identity:*` and `finance:*` scopes to new MCPs. Maintain backward compatibility during migration.
+
+**Acceptance Criteria**:
+```gherkin
+GIVEN tool call with scope identity:write
+WHEN Host receives request
+THEN request routed to Identity MCP
+  AND old Admin MCP not called
+  AND routing completes in < 50ms
+```
+
+**Tests Required**:
+- [ ] Unit tests for scope-based routing
+- [ ] Integration tests for backward compatibility
+- [ ] Performance tests (routing latency)
+
+**Risk/Notes**:
+Run both old and new MCPs in parallel during canary rollout.
+
+---
+
+#### T-113: Migrate Authorization Scopes (Phase 1)
+**Epic**: EP-MCP
+**Linked Requirements**: REQ §6.7.9
+**Design Ref**: DESIGN §5
+**Estimate**: M
+**Dependencies**: T-112
+
+**Description**:
+Update authorization model to support fine-grained scopes. Existing `admin` role grants all new scopes during migration.
+
+**Acceptance Criteria**:
+```gherkin
+GIVEN existing admin user with role=admin
+WHEN user authenticates
+THEN JWT includes scopes: identity:*, finance:*, academic:*, etc.
+  AND all new scopes granted automatically
+  AND backward compatibility maintained
+```
+
+**Tests Required**:
+- [ ] Unit tests for scope assignment
+- [ ] Integration tests for JWT claims
+- [ ] E2E test for admin access
+
+**Risk/Notes**:
+New fine-grained roles (finance_officer, registrar) can be introduced after migration.
+
+---
+
+#### T-114: E2E Tests for Identity & Finance MCPs (Phase 1)
+**Epic**: EP-MCP
+**Linked Requirements**: REQ §6.7.1, §6.7.4
+**Design Ref**: DESIGN §1
+**Estimate**: M
+**Dependencies**: T-113
+
+**Description**:
+Create comprehensive E2E tests for Identity and Finance MCPs in isolation and integrated with Host.
+
+**Acceptance Criteria**:
+```gherkin
+GIVEN Identity MCP deployed
+WHEN running E2E test suite
+THEN all 6 tools callable
+  AND authorization enforced correctly
+  AND audit logs captured
+  AND no tools remain in old Admin MCP (identity domain)
+```
+
+**Tests Required**:
+- [ ] E2E tests for all Identity tools
+- [ ] E2E tests for all Finance tools
+- [ ] Integration tests for Host routing
+- [ ] Performance tests (p95 latency)
+
+---
+
+#### T-120: Create Academic Operations MCP (Phase 2)
+**Epic**: EP-MCP
+**Linked Requirements**: REQ §6.7.2
+**Design Ref**: DESIGN §1
+**Estimate**: L
+**Dependencies**: T-114
+
+**Description**:
+Create Academic Operations MCP with 10 tools for programmes, courses, scheduling, and lesson planning.
+
+**Tools** (10):
+1. create_programme
+2. create_course
+3. map_cefr_level
+4. schedule_class
+5. assign_teacher
+6. allocate_room
+7. register_lesson_template
+8. approve_lesson_plan
+9. link_cefr_descriptor
+10. publish_materials
+
+**Acceptance Criteria**:
+```gherkin
+GIVEN registrar authenticated
+WHEN calling schedule_class tool via Academic MCP
+THEN class scheduled
+  AND authorization scope = academic:write enforced
+  AND shared data model (programmes → courses → classes) maintained
+```
+
+**Tests Required**:
+- [ ] Unit tests for all 10 tools
+- [ ] Integration tests for academic workflows
+- [ ] E2E test for course scheduling
+
+---
+
+#### T-121: Create Attendance & Compliance MCP (Phase 2)
+**Epic**: EP-MCP
+**Linked Requirements**: REQ §6.7.3
+**Design Ref**: DESIGN §1
+**Estimate**: M
+**Dependencies**: T-114
+
+**Description**:
+Create Attendance & Compliance MCP with 8 tools for attendance tracking, visa compliance, and exports.
+
+**Tools** (8):
+1. prepare_register
+2. record_attendance
+3. correct_attendance
+4. export_attendance
+5. visa_compliance_report
+6. compile_compliance_pack
+7. anonymise_dataset
+8. policy_check
+
+**Acceptance Criteria**:
+```gherkin
+GIVEN attendance officer authenticated
+WHEN calling export_attendance tool via Attendance MCP
+THEN export generated
+  AND visa compliance data included
+  AND hash column for tamper evidence
+  AND export completes in < 60s
+```
+
+**Tests Required**:
+- [ ] Unit tests for all 8 tools
+- [ ] Integration tests for visa compliance
+- [ ] E2E test for register export
+
+---
+
+#### T-122: Update Host Routing for Academic & Attendance (Phase 2)
+**Epic**: EP-MCP
+**Linked Requirements**: REQ §6.7.9
+**Design Ref**: DESIGN §1
+**Estimate**: M
+**Dependencies**: T-120, T-121
+
+**Description**:
+Update MCP Host to route `academic:*`, `attendance:*`, and `compliance:*` scopes to new MCPs.
+
+---
+
+#### T-123: Migrate RLS Policies for Academic & Attendance (Phase 2)
+**Epic**: EP-MCP
+**Linked Requirements**: REQ §6.7.9
+**Design Ref**: DESIGN §5
+**Estimate**: M
+**Dependencies**: T-122
+
+**Description**:
+Update RLS policies to support domain-specific MCP access. Simplify policies per MCP (easier to maintain).
+
+---
+
+#### T-124: E2E Tests for Academic & Attendance MCPs (Phase 2)
+**Epic**: EP-MCP
+**Linked Requirements**: REQ §6.7.2, §6.7.3
+**Design Ref**: DESIGN §1
+**Estimate**: M
+**Dependencies**: T-123
+
+**Description**:
+Create E2E tests for Academic and Attendance MCPs.
+
+---
+
+#### T-130: Create Student Services MCP (Phase 3)
+**Epic**: EP-MCP
+**Linked Requirements**: REQ §6.7.5
+**Design Ref**: DESIGN §1
+**Estimate**: M
+**Dependencies**: T-124
+
+**Description**:
+Create Student Services MCP with 9 tools for accommodation, letters, and certificates.
+
+**Tools** (9):
+1. register_host
+2. allocate_accommodation
+3. swap_accommodation
+4. export_placements
+5. issue_letter
+6. approve_deferral
+7. award_certificate
+8. track_visa_status
+9. record_pastoral_note
+
+---
+
+#### T-131: Create Operations & Quality MCP (Phase 3)
+**Epic**: EP-MCP
+**Linked Requirements**: REQ §6.7.6
+**Design Ref**: DESIGN §1
+**Estimate**: M
+**Dependencies**: T-124
+
+**Description**:
+Create Operations & Quality MCP with 8 tools for backups, quality assurance, and communications.
+
+**Tools** (8):
+1. backup_db
+2. restore_snapshot
+3. record_observation
+4. assign_cpd
+5. export_quality_report
+6. bulk_email
+7. notify_stakeholders
+8. mail_merge_pdf
+
+---
+
+#### T-132: Update Host Routing for Student Services & Ops (Phase 3)
+**Epic**: EP-MCP
+**Linked Requirements**: REQ §6.7.9
+**Design Ref**: DESIGN §1
+**Estimate**: S
+**Dependencies**: T-130, T-131
+
+**Description**:
+Update MCP Host to route `student_services:*`, `ops:*`, and `quality:*` scopes.
+
+---
+
+#### T-133: E2E Tests for Student Services & Ops MCPs (Phase 3)
+**Epic**: EP-MCP
+**Linked Requirements**: REQ §6.7.5, §6.7.6
+**Design Ref**: DESIGN §1
+**Estimate**: M
+**Dependencies**: T-132
+
+**Description**:
+Create E2E tests for Student Services and Operations MCPs.
+
+---
+
+#### T-140: Optimize Teacher MCP to 10 Tools (Phase 4)
+**Epic**: EP-MCP
+**Linked Requirements**: REQ §6.7.7
+**Design Ref**: DESIGN §1
+**Estimate**: M
+**Dependencies**: T-133
+
+**Description**:
+Reduce Teacher MCP from 12 → 10 tools by merging `request_room_swap` into Academic MCP and merging `quick_register_scan` into `mark_attendance`.
+
+**Acceptance Criteria**:
+```gherkin
+GIVEN Teacher MCP deployed
+WHEN counting tools
+THEN exactly 10 tools present
+  AND request_room_swap moved to Academic MCP
+  AND quick_register_scan merged into mark_attendance with optional "scan" mode
+```
+
+**Tests Required**:
+- [ ] Unit tests for merged tools
+- [ ] E2E test for attendance marking (scan mode)
+
+---
+
+#### T-141: Optimize Student MCP to 10 Tools (Phase 4)
+**Epic**: EP-MCP
+**Linked Requirements**: REQ §6.7.8
+**Design Ref**: DESIGN §1
+**Estimate**: M
+**Dependencies**: T-133
+
+**Description**:
+Reduce Student MCP from 14 → 10 tools by merging AI tutor tools (explain_concept, practice_exercise into ask_tutor), merging invoice tools, and moving profile updates to Student Services MCP.
+
+**Acceptance Criteria**:
+```gherkin
+GIVEN Student MCP deployed
+WHEN counting tools
+THEN exactly 10 tools present
+  AND ask_tutor handles all AI tutor queries (explain, practice)
+  AND view_invoice includes installments
+  AND profile updates callable via Student Services MCP
+```
+
+**Tests Required**:
+- [ ] Unit tests for merged tools
+- [ ] E2E test for AI tutor (all query types)
+
+---
+
+#### T-142: Update Host Routing for Optimized Teacher & Student (Phase 4)
+**Epic**: EP-MCP
+**Linked Requirements**: REQ §6.7.9
+**Design Ref**: DESIGN §1
+**Estimate**: S
+**Dependencies**: T-140, T-141
+
+**Description**:
+Update MCP Host routing for optimized Teacher and Student MCPs. Remove old tool mappings.
+
+---
+
+#### T-143: Final E2E Tests for 8-MCP Architecture (Phase 4)
+**Epic**: EP-MCP
+**Linked Requirements**: REQ §6.7
+**Design Ref**: DESIGN §1
+**Estimate**: L
+**Dependencies**: T-142
+
+**Description**:
+Comprehensive E2E testing of full 8-MCP architecture. Validate all tools callable, routing correct, authorization enforced, performance budgets met.
+
+**Acceptance Criteria**:
+```gherkin
+GIVEN all 8 MCPs deployed
+WHEN running full E2E test suite
+THEN all 70 tools callable across 8 MCPs
+  AND all MCPs ≤10 tools
+  AND performance budgets met (p95 latencies)
+  AND authorization scopes enforced correctly
+  AND cache hit ratio > 80%
+  AND no security vulnerabilities detected
+```
+
+**Tests Required**:
+- [ ] E2E tests for all 70 tools
+- [ ] Performance tests (p95 < targets)
+- [ ] Security tests (authorization, RLS)
+- [ ] Load tests (distributed load across 8 MCPs)
+
+**Risk/Notes**:
+Final validation before decommissioning old 3-MCP architecture.
 
 ---
 
@@ -1281,6 +1732,7 @@ grep -oP 'T-\d{3}' TASKS.md | sort | uniq > /tmp/task-ids.txt
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 3.0.0 | 2025-11-07 | Eoin Malone + Claude Code | Added 34 migration tasks (T-110 to T-143) for 8-MCP v3.0 architecture, 4-phase rollout plan |
 | 2.1.0 | 2025-11-07 | Eoin Malone + Claude Code | Integrated TASKS structure with MCP architecture |
 | 2.0.0 | 2025-10-31 | Eoin Malone + Claude Code | Complete MCP architecture restructure |
 | 1.0.0 | 2025-10-30 | Eoin Malone | Initial task breakdown |
@@ -1291,11 +1743,13 @@ grep -oP 'T-\d{3}' TASKS.md | sort | uniq > /tmp/task-ids.txt
 
 | Metric | Count | Status |
 |--------|-------|--------|
-| **Total Tasks** | 42 | ✅ Defined |
+| **Total Tasks** | 76 (42 core + 34 migration) | ✅ Defined |
+| **Migration Tasks** | 34 (T-110 to T-143) | ✅ Defined |
 | **Epics** | 11 | ✅ Defined |
-| **Milestones** | 4 | ✅ Defined |
+| **Milestones** | 4 core + 4 migration phases | ✅ Defined |
 | **Test Types** | 5 | ✅ Defined |
 | **Traceability Links** | 100% | ✅ Complete |
+| **MCP Architecture** | v3.0 (8 MCPs, all ≤10 tools) | ✅ Specified |
 
 ---
 
