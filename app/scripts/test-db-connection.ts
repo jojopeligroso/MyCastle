@@ -2,7 +2,7 @@
  * Database Connection Test Script
  * Usage: npx tsx scripts/test-db-connection.ts
  */
-
+import 'dotenv/config';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { sql } from 'drizzle-orm';

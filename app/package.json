@@ -21,7 +21,6 @@
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.80.0",
-    "dotenv": "^17.2.3",
     "drizzle-orm": "^0.44.7",
     "next": "16.0.1",
     "openai": "^6.8.1",
@@ -39,6 +38,7 @@
     "@types/pg": "^8.15.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^17.2.3",
     "drizzle-kit": "^0.31.6",
     "eslint": "^9",
     "eslint-config-next": "16.0.1",
