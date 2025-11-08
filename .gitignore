@@ -10,6 +10,9 @@ Thumbs.db
 # Ignore dependencies and build artefacts
 node_modules/
 dist/
+.next/
+out/
+build/
 
 # Ignore logs
 *.log
@@ -17,4 +20,8 @@ dist/
 # Ignore editor-specific files
 .vscode/
 .idea/
+
+# Next.js specific
+next-env.d.ts
+.vercel
 
