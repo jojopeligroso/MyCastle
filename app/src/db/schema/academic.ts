@@ -63,6 +63,8 @@ export const classes = pgTable(
     index('idx_classes_teacher').on(table.teacher_id),
     index('idx_classes_status').on(table.status),
     index('idx_classes_dates').on(table.start_date, table.end_date),
+    // T-044: Compound index idx_classes_teacher_status added via migration 003
+    // Optimizes: WHERE teacher_id = X AND status = 'active'
   ],
 );
 
@@ -131,7 +133,12 @@ export const classSessions = pgTable(
     created_at: timestamp('created_at').defaultNow().notNull(),
     updated_at: timestamp('updated_at').defaultNow().notNull(),
   },
-  table => [index('idx_sessions_class_date').on(table.class_id, table.session_date)],
+  table => [
+    // T-044: Compound index for optimal teacher timetable queries
+    // Supports: WHERE class_id IN (...) AND session_date BETWEEN start AND end
+    index('idx_sessions_class_date').on(table.class_id, table.session_date),
+    // Note: idx_class_sessions_teacher_date added via migration 003
+  ],
 );
 
 /**
