@@ -16,18 +16,23 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "parse:cefr": "tsx scripts/parse-cefr-csv.ts",
+    "seed:cefr": "tsx scripts/seed-cefr.ts",
+    "generate:cefr-sample": "tsx scripts/generate-sample-cefr-csv.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.21.1",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.80.0",
+    "@types/xlsx": "^0.0.35",
     "drizzle-orm": "^0.44.7",
     "next": "16.0.1",
     "openai": "^6.8.1",
     "postgres": "^3.4.7",
     "react": "19.2.0",
     "react-dom": "19.2.0",
+    "xlsx": "^0.18.5",
     "zod": "^4.1.12"
   },
   "devDependencies": {
