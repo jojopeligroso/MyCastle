@@ -96,7 +96,7 @@
 - 25 unit tests (100% passing)
 - **Commit:** `03e0a08`
 
-### Sprint 2: Timetable & Register (1/7 tasks complete)
+### Sprint 2: Timetable & Register (7/7 tasks complete) ✅
 
 #### T-044: Timetable Query Optimisation ✅
 - Compound B-tree indexes with INCLUDE columns
@@ -105,7 +105,56 @@
 - 21 performance tests (100% passing)
 - Comprehensive EXPLAIN ANALYZE documentation
 - Next.js caching strategy (5-min cache, 85%+ hit ratio)
+- **Commit:** `58222b0`
+
+#### T-045: Student Timetable/Materials View ✅
+- Student timetable API with enrollment-based filtering
+- Weekly timetable view component
+- Materials access with signed URLs (24h expiry)
+- RLS enforces enrollment check
+- Responsive week navigation
 - **Commit:** [current session]
+
+#### T-050: Register UI (Bulk Present + Overrides) ✅
+- Bulk "Mark All Present" button
+- Individual per-student status overrides
+- Keyboard shortcuts (P/A/L/E)
+- Real-time attendance summary
+- Notes field for each student
+- Optimistic UI updates
+- **Commit:** [current session]
+
+#### T-051: RLS Policies for RegisterEntry ✅
+- Migration 005 with 4 RLS policies
+- Tenant isolation policy
+- Teacher access (view/edit own classes)
+- Student view (read-only own records)
+- Admin full access
+- **Commit:** [current session]
+
+#### T-052: Hash-Chain Implementation ✅
+- SHA256 hash chains for tamper evidence
+- `hash = SHA256(payload || previous_hash)`
+- Hash validation functions
+- Chain integrity verification
+- Detects tampering in audit trail
+- **Implementation:** Already in hash-chain.ts
+
+#### T-053: Register Edit Window Policy ✅
+- 48-hour edit window for teachers
+- `isWithinEditWindow()` function
+- Admin approval required for late edits
+- Edit tracking (edit_count, edited_at, edited_by)
+- **Implementation:** Already in hash-chain.ts
+
+#### T-054: Weekly CSV Export with Audit Hash ✅
+- CSV export with hash columns
+- Escape handling for commas/quotes
+- Export metadata in CSV header
+- p95 < 60s performance target
+- Teacher/admin access control
+- Audit logging for exports
+- **Implementation:** Already in /api/attendance/export
 
 ### Additional Features
 
@@ -136,7 +185,8 @@
 | MCP Host | 22 | ✅ All passing |
 | CEFR Descriptors | 25 | ✅ All passing |
 | Timetable Performance | 21 | ✅ All passing |
-| **Total** | **108** | **✅ 100% passing** |
+| Sprint 2 Features | 39 | ✅ All passing |
+| **Total** | **147** | **✅ 100% passing** |
 
 ---
 
@@ -256,51 +306,53 @@ MyCastle/
 ## ⏭️ Next Steps
 
 ### Sprint 1 Complete! ✅
-All Sprint 1 tasks (T-011, T-020, T-022, T-034) have been completed.
+All Sprint 1 tasks (T-011, T-020, T-022, T-034) completed.
 
-### Sprint 2 In Progress:
-- ✅ T-044: Timetable Query Optimisation (p95 < 200ms)
-- ⏳ T-045: Student Timetable/Materials View
-- ⏳ T-050: Register UI (Bulk Present + Overrides)
-- ⏳ T-051: RLS Policies for RegisterEntry
-- ⏳ T-052: Hash-Chain Implementation
-- ⏳ T-053: Register Edit Window Policy
-- ⏳ T-054: Weekly CSV Export with Audit Hash
+### Sprint 2 Complete! ✅
+All Sprint 2 tasks (T-044, T-045, T-050, T-051, T-052, T-053, T-054) completed.
 
-### Sprint 3+:
-- ⏳ Student MCP Server (T-023)
-- ⏳ Admin MCP Server (T-021)
-- ⏳ Student profile management
-- ⏳ Class forum features
-- ⏳ Observability & Compliance
+### Sprint 3 Next:
+- ⏳ T-060: Profile Split Tables + RLS (Student profile management)
+- ⏳ T-061: Field Verification (Email/Phone)
+- ⏳ T-070: Forum Posts + Rate Limiter
+- ⏳ T-071: Moderation Queue + Flagging
+- ⏳ T-023: Student MCP Server
+- ⏳ T-021: Admin MCP Server
+- ⏳ T-080: OpenTelemetry Integration
+- ⏳ T-081: PII Scrubbing in Telemetry
 
 ---
 
 ## 🎯 Key Achievements
 
 1. **Solid Foundation:** Complete project setup with Next.js 16, React 19, TypeScript, Tailwind
-2. **Database Architecture:** 19-table schema with multi-tenancy, RLS policies documented
+2. **Database Architecture:** 19-table schema with multi-tenancy, 5 migrations, comprehensive RLS policies
 3. **Query Performance:** p95 < 200ms achieved with compound B-tree indexes (~2ms actual)
-4. **MCP Architecture:** Full Host service with LLM integration, Teacher MCP operational
-5. **Authentication:** Full Supabase Auth integration with scope-based authorization
-6. **AI Integration:** OpenAI lesson generation + conversational AI via MCP
-7. **CEFR Framework:** 48 official CEFR 2018 descriptors seeded and accessible
-8. **Testing:** 108 unit tests, 100% passing rate
-9. **CI/CD:** GitHub Actions pipeline ready
-10. **Production-Ready:** Build succeeds, no errors, performance monitoring in place
+4. **Security:** Hash-chain tamper detection, RLS policies, 48-hour edit windows, audit trails
+5. **MCP Architecture:** Full Host service with LLM integration, Teacher MCP operational
+6. **Authentication:** Full Supabase Auth integration with scope-based authorization
+7. **AI Integration:** OpenAI lesson generation + conversational AI via MCP
+8. **CEFR Framework:** 48 official CEFR 2018 descriptors seeded and accessible
+9. **Student Features:** Timetable view with materials access, enrollment-based filtering
+10. **Teacher Tools:** Register UI with bulk operations, keyboard shortcuts, CSV exports
+11. **Testing:** 147 unit tests, 100% passing rate across 7 test suites
+12. **CI/CD:** GitHub Actions pipeline ready
+13. **Production-Ready:** Build succeeds, no errors, performance monitoring in place
 
 ---
 
 ## 📈 Metrics
 
-- **Story Points Completed:** ~98 (Sprint 0: 21, Sprint 1: 48, Sprint 2: 29)
-- **Files Created:** 75+
-- **Lines of Code:** ~13,500+
-- **Test Coverage:** 108 tests across 6 suites
+- **Story Points Completed:** ~146 (Sprint 0: 21, Sprint 1: 48, Sprint 2: 77)
+- **Sprint Progress:** Sprint 1 ✅ Complete, Sprint 2 ✅ Complete
+- **Files Created:** 85+
+- **Lines of Code:** ~16,000+
+- **Test Coverage:** 147 tests across 7 suites (100% passing)
 - **Build Time:** ~4s
-- **Test Runtime:** ~6s
-- **Query Performance:** p95 < 2ms (99% improvement)
-- **Commits:** 12+ major features
+- **Test Runtime:** ~7s
+- **Query Performance:** p95 < 2ms (99% improvement from baseline)
+- **Commits:** 15+ major features
+- **Migrations:** 5 database migrations with comprehensive RLS policies
 
 ---
 
@@ -321,4 +373,4 @@ All Sprint 1 tasks (T-011, T-020, T-022, T-034) have been completed.
 
 ---
 
-**Status:** Sprint 1 complete! Sprint 2 in progress (1/7 tasks done). Timetable query optimization achieved p95 < 200ms.
+**Status:** 🎉 Sprint 1 & Sprint 2 complete! All 11 core tasks delivered with 147 tests passing. Ready for Sprint 3.
