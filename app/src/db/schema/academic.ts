@@ -137,6 +137,7 @@ export const classSessions = pgTable(
 /**
  * Attendance Table
  * Attendance records for class sessions
+ * T-052: Includes hash-chain for tamper detection
  */
 export const attendance = pgTable(
   'attendance',
@@ -159,11 +160,23 @@ export const attendance = pgTable(
     recorded_by: uuid('recorded_by').references(() => users.id), // Teacher/admin who recorded
     recorded_at: timestamp('recorded_at').defaultNow().notNull(),
 
+    // Hash-chain fields (T-052)
+    hash: varchar('hash', { length: 64 }), // SHA256(payload || previous_hash)
+    previous_hash: varchar('previous_hash', { length: 64 }), // Hash of previous record
+
+    // Edit tracking (T-053)
+    edited_at: timestamp('edited_at'),
+    edited_by: uuid('edited_by').references(() => users.id),
+    edit_count: integer('edit_count').default(0),
+    is_within_edit_window: varchar('is_within_edit_window', { length: 10 }).default('true'),
+
     created_at: timestamp('created_at').defaultNow().notNull(),
     updated_at: timestamp('updated_at').defaultNow().notNull(),
   },
   table => [
     uniqueIndex('idx_attendance_session_student').on(table.class_session_id, table.student_id),
+    index('idx_attendance_hash').on(table.hash),
+    index('idx_attendance_session_created').on(table.class_session_id, table.created_at),
   ],
 );
 
