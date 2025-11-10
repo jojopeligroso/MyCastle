@@ -104,7 +104,7 @@ const createLessonPlanTool: MCPTool = {
     cefrLevel: z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2']),
     topic: z.string(),
     durationMinutes: z.number(),
-    jsonPlan: z.record(z.unknown()).describe('Structured lesson plan JSON'),
+    jsonPlan: z.record(z.string(), z.unknown()).describe('Structured lesson plan JSON'),
     isAiGenerated: z.boolean().default(false),
   }),
   handler: async (input, session) => {
@@ -339,7 +339,7 @@ const createAssignmentTool: MCPTool = {
     assignedDate: z.string(),
     dueDate: z.string(),
     maxScore: z.number().optional(),
-    content: z.record(z.unknown()).optional(),
+    content: z.record(z.string(), z.unknown()).optional(),
   }),
   handler: async (input, session) => {
     const { classId, title, description, type, assignedDate, dueDate, maxScore, content } = input as {

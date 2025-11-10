@@ -40,7 +40,7 @@ export default async function DashboardPage() {
               Welcome back, {user.user_metadata?.name || user.email?.split('@')[0]}!
             </h1>
             <p className="text-gray-600">
-              You're logged in as <span className="font-medium">{userRole}</span>
+              You&apos;re logged in as <span className="font-medium">{userRole}</span>
             </p>
           </div>
 

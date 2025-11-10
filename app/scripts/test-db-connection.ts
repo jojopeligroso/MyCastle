@@ -33,9 +33,10 @@ async function testConnection() {
 
     console.log('\n✅ Database connection successful!');
     console.log('\n📊 Connection Details:');
-    console.log(`   Database: ${result[0].current_database}`);
-    console.log(`   User: ${result[0].current_user}`);
-    console.log(`   Version: ${result[0].version.split(' ')[0]} ${result[0].version.split(' ')[1]}`);
+    const row = result[0] as { current_database: string; current_user: string; version: string };
+    console.log(`   Database: ${row.current_database}`);
+    console.log(`   User: ${row.current_user}`);
+    console.log(`   Version: ${row.version.split(' ')[0]} ${row.version.split(' ')[1]}`);
 
     // Check if tables exist
     console.log('\n🔍 Checking tables...');
@@ -48,7 +49,7 @@ async function testConnection() {
 
     if (tables.length > 0) {
       console.log(`✅ Found ${tables.length} tables:`);
-      tables.forEach((table: any) => {
+      tables.forEach((table: { tablename: string }) => {
         console.log(`   - ${table.tablename}`);
       });
     } else {
@@ -65,7 +66,7 @@ async function testConnection() {
 
     if (rlsTables.length > 0) {
       console.log(`✅ RLS enabled on ${rlsTables.length} tables:`);
-      rlsTables.forEach((table: any) => {
+      rlsTables.forEach((table: { tablename: string }) => {
         console.log(`   - ${table.tablename}`);
       });
     } else {
