@@ -12,7 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { classSessions, classes, enrollments } from '@/db/schema';
 import { eq, and, gte, lte, sql } from 'drizzle-orm';
-import { getCurrentUser } from '@/lib/auth/utils';
+import { getNormalizedUser } from '@/lib/auth/utils';
 import { revalidateTag } from 'next/cache';
 
 export const dynamic = 'force-dynamic';
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .split('T')[0];
 
     // Verify authentication
-    const user = await getCurrentUser();
+    const user = await getNormalizedUser();
 
     if (!user) {
       return NextResponse.json(
@@ -150,7 +150,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    const user = await getCurrentUser();
+    const user = await getNormalizedUser();
 
     if (!user) {
       return NextResponse.json(

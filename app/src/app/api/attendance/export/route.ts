@@ -13,7 +13,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { attendance, classSessions, classes, enrollments } from '@/db/schema';
 import { eq, and, gte, lte, sql } from 'drizzle-orm';
-import { getCurrentUser } from '@/lib/auth/utils';
+import { getNormalizedUser } from '@/lib/auth/utils';
 
 /**
  * Generate CSV from attendance records
@@ -111,7 +111,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .split('T')[0];
 
     // Verify authentication
-    const user = await getCurrentUser();
+    const user = await getNormalizedUser();
 
     if (!user) {
       return NextResponse.json(

@@ -10,7 +10,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { attendance, classSessions, classes } from '@/db/schema';
 import { eq, and, sql } from 'drizzle-orm';
-import { getCurrentUser } from '@/lib/auth/utils';
+import { getNormalizedUser } from '@/lib/auth/utils';
 import { computeAttendanceHash, getLastHash } from '@/lib/hash-chain';
 import { z } from 'zod';
 
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const { sessionId, attendances: attendanceList } = validation.data;
 
     // Verify authentication
-    const user = await getCurrentUser();
+    const user = await getNormalizedUser();
 
     if (!user) {
       return NextResponse.json(

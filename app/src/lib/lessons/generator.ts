@@ -11,10 +11,19 @@ import { createHash } from 'crypto';
 
 /**
  * Get OpenAI client (lazy initialization)
+ * Throws error if API key is not configured
  */
 function getOpenAI() {
+  const apiKey = process.env.OPENAI_API_KEY;
+
+  if (!apiKey) {
+    throw new Error(
+      'OPENAI_API_KEY is not configured. Please set the environment variable.'
+    );
+  }
+
   return new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY || 'test-key',
+    apiKey,
   });
 }
 

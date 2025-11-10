@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAuth, requireRole, getTenantId } from '@/lib/auth/utils';
+import { requireAuth, requireRole, requireTenant } from '@/lib/auth/utils';
 import { LessonPlanRequestSchema } from '@/lib/lessons/schemas';
 import { generateLessonPlan, generateCacheKey } from '@/lib/lessons/generator';
 import { db } from '@/db';
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     // Require teacher or admin role
     await requireRole(['teacher', 'admin']);
     const user = await requireAuth();
-    const tenantId = await getTenantId();
+    const tenantId = await requireTenant(); // This will throw if no tenant context
 
     // Parse and validate request
     const body = await request.json();
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     const [savedPlan] = await db
       .insert(lessonPlans)
       .values({
-        tenant_id: tenantId || 'default-tenant',
+        tenant_id: tenantId, // No fallback - tenant is required
         teacher_id: user.id,
         class_id: validatedRequest.class_id || null,
         cefr_level: validatedRequest.cefr_level,

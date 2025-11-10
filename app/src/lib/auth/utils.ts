@@ -89,3 +89,29 @@ export const requireTenant = async (): Promise<string> => {
   }
   return tenantId;
 };
+
+/**
+ * Get user role from metadata
+ * Extracts role from either user_metadata or app_metadata
+ */
+export const getUserRole = async (): Promise<string | null> => {
+  const user = await getCurrentUser();
+  if (!user) return null;
+
+  return user.user_metadata?.role || user.app_metadata?.role || null;
+};
+
+/**
+ * Create a normalized user object with role and tenant_id
+ * This helper ensures consistent access to user metadata across the app
+ */
+export const getNormalizedUser = async () => {
+  const user = await getCurrentUser();
+  if (!user) return null;
+
+  return {
+    ...user,
+    role: user.user_metadata?.role || user.app_metadata?.role,
+    tenant_id: user.user_metadata?.tenant_id || user.app_metadata?.tenant_id,
+  };
+};

@@ -11,7 +11,7 @@ import { db } from '@/db';
 import { attendance, classSessions, classes } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { validateHashChain } from '@/lib/hash-chain';
-import { getCurrentUser } from '@/lib/auth/utils';
+import { getNormalizedUser } from '@/lib/auth/utils';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     // Verify authentication
-    const user = await getCurrentUser();
+    const user = await getNormalizedUser();
 
     if (!user) {
       return NextResponse.json(

@@ -8,7 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { attendance, classSessions, classes, enrollments } from '@/db/schema';
 import { eq, and, sql } from 'drizzle-orm';
-import { getCurrentUser } from '@/lib/auth/utils';
+import { getNormalizedUser } from '@/lib/auth/utils';
 import { z } from 'zod';
 
 /**
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     // Verify authentication
-    const user = await getCurrentUser();
+    const user = await getNormalizedUser();
 
     if (!user) {
       return NextResponse.json(
@@ -232,7 +232,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const { classId, sessionDate, startTime, endTime, topic } = validation.data;
 
-    const user = await getCurrentUser();
+    const user = await getNormalizedUser();
 
     if (!user) {
       return NextResponse.json(

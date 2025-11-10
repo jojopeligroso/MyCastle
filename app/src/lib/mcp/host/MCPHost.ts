@@ -6,6 +6,17 @@
  * - Session management + JWT verification
  * - Context aggregation for LLM
  * - Critical path - enables all MCP servers
+ *
+ * ⚠️  KNOWN LIMITATION: Sessions are stored in-memory
+ * This implementation uses an in-memory Map for session storage, which has limitations:
+ * - Sessions are lost on server restart
+ * - Not compatible with serverless deployments (e.g., Vercel, AWS Lambda)
+ * - Cannot scale horizontally across multiple instances
+ *
+ * PRODUCTION RECOMMENDATION:
+ * - Migrate to database-backed sessions (PostgreSQL table with TTL)
+ * - Or use distributed cache (Redis, Memcached) with proper expiry
+ * - Implement session cleanup worker for expired sessions
  */
 
 import {
@@ -26,13 +37,80 @@ import { createClient } from '@/lib/supabase/server';
 
 /**
  * MCP Host - Orchestrates requests across multiple MCP servers
+ *
+ * ⚠️  WARNING: This class uses in-memory session storage.
+ * For production deployments, replace with persistent storage.
  */
 export class MCPHost {
   private servers: Map<string, MCPServerConfig> = new Map();
   private sessions: Map<string, MCPSession> = new Map();
+  private cleanupIntervalId: NodeJS.Timeout | null = null;
 
   constructor() {
     // Initialize with no servers - they will be registered dynamically
+    this.startSessionCleanup();
+  }
+
+  /**
+   * Start periodic cleanup of expired sessions
+   * Runs every 5 minutes to prevent memory leaks
+   */
+  private startSessionCleanup(): void {
+    // Clean up every 5 minutes
+    this.cleanupIntervalId = setInterval(() => {
+      this.cleanupExpiredSessions();
+    }, 5 * 60 * 1000);
+
+    // Allow the process to exit even if this timer is active
+    if (this.cleanupIntervalId.unref) {
+      this.cleanupIntervalId.unref();
+    }
+  }
+
+  /**
+   * Clean up expired sessions from memory
+   */
+  private cleanupExpiredSessions(): void {
+    const now = new Date();
+    let removedCount = 0;
+
+    for (const [sessionId, session] of this.sessions.entries()) {
+      if (session.expiresAt < now) {
+        this.sessions.delete(sessionId);
+        removedCount++;
+      }
+    }
+
+    if (removedCount > 0) {
+      console.log(`[MCP Host] Cleaned up ${removedCount} expired sessions`);
+    }
+  }
+
+  /**
+   * Manually trigger session cleanup
+   * Useful for testing or explicit cleanup needs
+   */
+  public cleanupSessions(): void {
+    this.cleanupExpiredSessions();
+  }
+
+  /**
+   * Get session count (for monitoring)
+   */
+  public getSessionCount(): number {
+    return this.sessions.size;
+  }
+
+  /**
+   * Stop the cleanup interval (for graceful shutdown)
+   */
+  public destroy(): void {
+    if (this.cleanupIntervalId) {
+      clearInterval(this.cleanupIntervalId);
+      this.cleanupIntervalId = null;
+    }
+    this.sessions.clear();
+    console.log('[MCP Host] Destroyed - all sessions cleared');
   }
 
   /**
@@ -45,6 +123,7 @@ export class MCPHost {
 
   /**
    * Create a session from JWT claims
+   * ⚠️  Session is stored in-memory and will be lost on server restart
    */
   async createSession(claims: JWTClaims): Promise<MCPSession> {
     // Generate scopes based on user role
@@ -63,10 +142,14 @@ export class MCPHost {
       },
     };
 
-    // Store session
+    // Store session in-memory
+    // TODO: Replace with database-backed storage for production
     this.sessions.set(session.sessionId, session);
 
-    console.log(`[MCP Host] Created session ${session.sessionId} for user ${session.userId} (role: ${session.role})`);
+    console.log(
+      `[MCP Host] Created in-memory session ${session.sessionId} for user ${session.userId} (role: ${session.role}). ` +
+      `Active sessions: ${this.sessions.size}`
+    );
 
     return session;
   }
