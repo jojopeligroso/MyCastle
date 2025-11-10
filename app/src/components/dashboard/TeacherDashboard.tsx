@@ -75,22 +75,22 @@ export function TeacherDashboard({ teacherId, teacherName }: TeacherDashboardPro
             // Calculate stats
             const todayStr = today.toISOString().split('T')[0];
             const sessionsToday = sessions.filter(
-              (s: any) => s.session.sessionDate === todayStr
+              (s: { session: { sessionDate: string } }) => s.session.sessionDate === todayStr
             ).length;
 
             setStats({
               classes: classes.length,
               sessionsToday,
               sessionsThisWeek: sessions.length,
-              totalStudents: classes.reduce((sum: number, c: any) => sum + (c.enrolledCount || 0), 0),
+              totalStudents: classes.reduce((sum: number, c: { enrolledCount?: number }) => sum + (c.enrolledCount || 0), 0),
               pendingAssignments: 0, // TODO: fetch from assignments API
             });
 
             // Get upcoming sessions (today + next 3 days)
             const upcoming = sessions
-              .filter((s: any) => new Date(s.session.sessionDate) >= new Date(todayStr))
+              .filter((s: { session: { sessionDate: string } }) => new Date(s.session.sessionDate) >= new Date(todayStr))
               .slice(0, 5)
-              .map((s: any) => ({
+              .map((s: { session: { id: string; sessionDate: string; startTime: string; endTime: string }; class: { name: string; enrolledCount: number } }) => ({
                 id: s.session.id,
                 className: s.class.name,
                 startTime: `${s.session.sessionDate} ${s.session.startTime}`,
@@ -128,7 +128,7 @@ export function TeacherDashboard({ teacherId, teacherName }: TeacherDashboardPro
       {/* Welcome Header */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg shadow-lg p-6 text-white">
         <h1 className="text-2xl font-bold mb-2">Welcome back, {teacherName}!</h1>
-        <p className="text-blue-100">Here's your teaching overview for today</p>
+        <p className="text-blue-100">Here&apos;s your teaching overview for today</p>
       </div>
 
       {/* Error Display */}
@@ -171,7 +171,7 @@ export function TeacherDashboard({ teacherId, teacherName }: TeacherDashboardPro
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500">Today's Sessions</p>
+              <p className="text-sm text-gray-500">Today&apos;s Sessions</p>
               <p className="text-2xl font-bold text-gray-900">{stats.sessionsToday}</p>
             </div>
             <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">

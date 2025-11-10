@@ -149,7 +149,7 @@ export default async function LandingPage() {
               </h3>
               <p className="text-gray-600">
                 Organize class schedules, manage rooms and resources.
-                Students and teachers always know what's next.
+                Students and teachers always know what&apos;s next.
               </p>
             </div>
 

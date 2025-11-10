@@ -49,7 +49,7 @@ async function testConnection() {
 
     if (tables.length > 0) {
       console.log(`✅ Found ${tables.length} tables:`);
-      tables.forEach((table: any) => {
+      tables.forEach((table: { tablename: string }) => {
         console.log(`   - ${table.tablename}`);
       });
     } else {
@@ -66,7 +66,7 @@ async function testConnection() {
 
     if (rlsTables.length > 0) {
       console.log(`✅ RLS enabled on ${rlsTables.length} tables:`);
-      rlsTables.forEach((table: any) => {
+      rlsTables.forEach((table: { tablename: string }) => {
         console.log(`   - ${table.tablename}`);
       });
     } else {
