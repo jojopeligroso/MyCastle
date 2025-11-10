@@ -225,7 +225,7 @@ export function AttendanceExport({ classes }: AttendanceExportProps) {
                 <h4 className="text-sm font-medium text-blue-900 mb-1">Tamper-Evident Export</h4>
                 <p className="text-xs text-blue-800">
                   Exported CSV files include SHA256 hash columns for each attendance record. The hash
-                  chain ensures any modification to the data will be detected. Each record's hash is
+                  chain ensures any modification to the data will be detected. Each record&apos;s hash is
                   computed as: <code className="bg-blue-100 px-1 py-0.5 rounded">SHA256(payload || previous_hash)</code>
                 </p>
                 <div className="mt-3 text-xs text-blue-800">

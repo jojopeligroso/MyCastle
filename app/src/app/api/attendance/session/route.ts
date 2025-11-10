@@ -8,7 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { attendance, classSessions, classes, enrollments } from '@/db/schema';
 import { eq, and, sql } from 'drizzle-orm';
-import { getCurrentUser } from '@/lib/auth/utils';
+import { getCurrentUser, getTenantId } from '@/lib/auth/utils';
 import { z } from 'zod';
 
 /**
@@ -44,6 +44,19 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    const tenantId = await getTenantId();
+    if (!tenantId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'No tenant context',
+        },
+        { status: 403 }
+      );
+    }
+
+    const userRole = user.user_metadata?.role || user.app_metadata?.role || 'student';
+
     // Verify class belongs to teacher
     const [classRecord] = await db
       .select()
@@ -62,8 +75,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     const isAuthorized =
-      user.role === 'admin' ||
-      (user.role === 'teacher' && classRecord.teacher_id === user.id);
+      userRole === 'admin' ||
+      (userRole === 'teacher' && classRecord.teacher_id === user.id);
 
     if (!isAuthorized) {
       return NextResponse.json(
@@ -95,7 +108,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       [session] = await db
         .insert(classSessions)
         .values({
-          tenant_id: user.tenant_id,
+          tenant_id: tenantId,
           class_id: classId,
           session_date: date,
           start_time: startTime,
@@ -167,7 +180,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
               ? parseFloat(String(r.enrollment.attendanceRate))
               : undefined,
             currentGrade: r.enrollment.currentGrade,
-            attendance: r.attendance.id
+            attendance: r.attendance?.id
               ? {
                   id: r.attendance.id,
                   status: r.attendance.status,
@@ -224,7 +237,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         {
           success: false,
           error: 'Invalid input',
-          details: validation.error.errors,
+          details: validation.error.issues,
         },
         { status: 400 }
       );
@@ -244,6 +257,19 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    const tenantId = await getTenantId();
+    if (!tenantId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'No tenant context',
+        },
+        { status: 403 }
+      );
+    }
+
+    const userRole = user.user_metadata?.role || user.app_metadata?.role || 'student';
+
     // Verify class ownership
     const [classRecord] = await db
       .select()
@@ -262,8 +288,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     const isAuthorized =
-      user.role === 'admin' ||
-      (user.role === 'teacher' && classRecord.teacher_id === user.id);
+      userRole === 'admin' ||
+      (userRole === 'teacher' && classRecord.teacher_id === user.id);
 
     if (!isAuthorized) {
       return NextResponse.json(
@@ -279,7 +305,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const [session] = await db
       .insert(classSessions)
       .values({
-        tenant_id: user.tenant_id,
+        tenant_id: tenantId,
         class_id: classId,
         session_date: sessionDate,
         start_time: startTime,
