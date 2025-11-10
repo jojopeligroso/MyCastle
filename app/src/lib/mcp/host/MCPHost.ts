@@ -88,8 +88,14 @@ export class MCPHost {
       email: session.user.email,
       role: (session.user.app_metadata?.role as 'admin' | 'teacher' | 'student') || 'student',
       tenant_id: session.user.app_metadata?.tenant_id as string,
-      app_metadata: session.user.app_metadata,
-      user_metadata: session.user.user_metadata,
+      app_metadata: {
+        role: (session.user.app_metadata?.role as string) || 'student',
+        tenant_id: (session.user.app_metadata?.tenant_id as string) || '',
+      },
+      user_metadata: {
+        name: session.user.user_metadata?.name as string | undefined,
+        avatar_url: session.user.user_metadata?.avatar_url as string | undefined,
+      },
     };
 
     // Create session
@@ -164,7 +170,7 @@ export class MCPHost {
           error: {
             code: MCPErrorCode.INVALID_INPUT,
             message: 'Invalid input',
-            details: validationResult.error.errors,
+            details: validationResult.error.issues,
           },
         };
       }
