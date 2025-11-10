@@ -44,6 +44,20 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    // Extract role and tenant_id from metadata
+    const userRole = user.user_metadata?.role || user.app_metadata?.role;
+    const tenantId = user.user_metadata?.tenant_id || user.app_metadata?.tenant_id;
+
+    if (!tenantId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'No tenant context',
+        },
+        { status: 403 }
+      );
+    }
+
     // Verify class belongs to teacher
     const [classRecord] = await db
       .select()
@@ -62,8 +76,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     const isAuthorized =
-      user.role === 'admin' ||
-      (user.role === 'teacher' && classRecord.teacher_id === user.id);
+      userRole === 'admin' ||
+      (userRole === 'teacher' && classRecord.teacher_id === user.id);
 
     if (!isAuthorized) {
       return NextResponse.json(
@@ -95,7 +109,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       [session] = await db
         .insert(classSessions)
         .values({
-          tenant_id: user.tenant_id,
+          tenant_id: tenantId,
           class_id: classId,
           session_date: date,
           start_time: startTime,
@@ -244,6 +258,20 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    // Extract role and tenant_id from metadata
+    const userRole = user.user_metadata?.role || user.app_metadata?.role;
+    const tenantId = user.user_metadata?.tenant_id || user.app_metadata?.tenant_id;
+
+    if (!tenantId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'No tenant context',
+        },
+        { status: 403 }
+      );
+    }
+
     // Verify class ownership
     const [classRecord] = await db
       .select()
@@ -262,8 +290,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     const isAuthorized =
-      user.role === 'admin' ||
-      (user.role === 'teacher' && classRecord.teacher_id === user.id);
+      userRole === 'admin' ||
+      (userRole === 'teacher' && classRecord.teacher_id === user.id);
 
     if (!isAuthorized) {
       return NextResponse.json(
@@ -279,7 +307,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const [session] = await db
       .insert(classSessions)
       .values({
-        tenant_id: user.tenant_id,
+        tenant_id: tenantId,
         class_id: classId,
         session_date: sessionDate,
         start_time: startTime,

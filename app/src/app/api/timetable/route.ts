@@ -53,6 +53,19 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    // Extract tenant_id from metadata
+    const tenantId = user.user_metadata?.tenant_id || user.app_metadata?.tenant_id;
+
+    if (!tenantId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'No tenant context',
+        },
+        { status: 403 }
+      );
+    }
+
     // Optimized query using compound indexes
     // Uses idx_classes_teacher_status and idx_class_sessions_teacher_date
     const sessions = await db
@@ -81,7 +94,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .where(
         and(
           eq(classes.teacher_id, user.id),
-          eq(classes.tenant_id, user.tenant_id),
+          eq(classes.tenant_id, tenantId),
           eq(classes.status, 'active'),
           gte(classSessions.session_date, weekStart),
           lte(classSessions.session_date, weekEnd)

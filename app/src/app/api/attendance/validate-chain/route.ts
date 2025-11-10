@@ -41,6 +41,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    // Extract role from metadata
+    const userRole = user.user_metadata?.role || user.app_metadata?.role;
+
     // Verify session belongs to teacher (or admin)
     const [classSession] = await db
       .select({ session: classSessions, class: classes })
@@ -61,8 +64,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     // Check authorization (teacher or admin)
     const isAuthorized =
-      user.role === 'admin' ||
-      (user.role === 'teacher' && classSession.class.teacher_id === user.id);
+      userRole === 'admin' ||
+      (userRole === 'teacher' && classSession.class.teacher_id === user.id);
 
     if (!isAuthorized) {
       return NextResponse.json(

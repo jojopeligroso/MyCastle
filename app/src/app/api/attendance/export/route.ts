@@ -123,6 +123,21 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    // Extract role and tenant_id from metadata
+    const userRole = user.user_metadata?.role || user.app_metadata?.role;
+    const tenantId = user.user_metadata?.tenant_id || user.app_metadata?.tenant_id;
+    const userName = user.user_metadata?.name || user.email || 'Unknown';
+
+    if (!tenantId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'No tenant context',
+        },
+        { status: 403 }
+      );
+    }
+
     // Verify class belongs to teacher (or admin)
     const [classRecord] = await db
       .select()
@@ -140,8 +155,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const isAuthorized = user.role === 'admin' ||
-                         (user.role === 'teacher' && classRecord.teacher_id === user.id);
+    const isAuthorized = userRole === 'admin' ||
+                         (userRole === 'teacher' && classRecord.teacher_id === user.id);
 
     if (!isAuthorized) {
       return NextResponse.json(
@@ -202,7 +217,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       weekStart,
       weekEnd,
       exportedAt: new Date().toISOString(),
-      exportedBy: user.name,
+      exportedBy: userName,
     });
 
     const executionTime = Date.now() - startTime;
@@ -211,7 +226,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     await db.execute(sql`
       INSERT INTO audit_logs (tenant_id, user_id, action, entity_type, entity_id, changes, ip_address)
       VALUES (
-        ${user.tenant_id},
+        ${tenantId},
         ${user.id},
         'EXPORT',
         'attendance',

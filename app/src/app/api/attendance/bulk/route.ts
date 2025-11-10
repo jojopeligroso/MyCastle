@@ -59,6 +59,20 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    // Extract role and tenant_id from metadata
+    const userRole = user.user_metadata?.role || user.app_metadata?.role;
+    const tenantId = user.user_metadata?.tenant_id || user.app_metadata?.tenant_id;
+
+    if (!tenantId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'No tenant context',
+        },
+        { status: 403 }
+      );
+    }
+
     // Verify session belongs to teacher
     const [classSession] = await db
       .select({ session: classSessions, class: classes })
@@ -79,8 +93,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Check authorization (teacher or admin)
     const isAuthorized =
-      user.role === 'admin' ||
-      (user.role === 'teacher' && classSession.class.teacher_id === user.id);
+      userRole === 'admin' ||
+      (userRole === 'teacher' && classSession.class.teacher_id === user.id);
 
     if (!isAuthorized) {
       return NextResponse.json(
@@ -113,7 +127,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         // Compute hash for this record
         const hash = computeAttendanceHash(
           {
-            tenantId: user.tenant_id,
+            tenantId,
             classSessionId: sessionId,
             studentId: item.studentId,
             status: item.status,
@@ -128,7 +142,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         const [record] = await db
           .insert(attendance)
           .values({
-            tenant_id: user.tenant_id,
+            tenant_id: tenantId,
             class_session_id: sessionId,
             student_id: item.studentId,
             status: item.status,
