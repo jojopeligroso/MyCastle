@@ -41,6 +41,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    const userRole = user.user_metadata?.role || user.app_metadata?.role || 'student';
+
     // Verify session belongs to teacher (or admin)
     const [classSession] = await db
       .select({ session: classSessions, class: classes })
@@ -61,8 +63,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     // Check authorization (teacher or admin)
     const isAuthorized =
-      user.role === 'admin' ||
-      (user.role === 'teacher' && classSession.class.teacher_id === user.id);
+      userRole === 'admin' ||
+      (userRole === 'teacher' && classSession.class.teacher_id === user.id);
 
     if (!isAuthorized) {
       return NextResponse.json(
@@ -82,7 +84,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .orderBy(attendance.created_at);
 
     // Validate hash chain
-    const validation = validateHashChain(records);
+    // Map records to ensure recorded_by is non-null (fallback to empty string if null)
+    const validation = validateHashChain(
+      records.map((r) => ({
+        ...r,
+        recorded_by: r.recorded_by || '',
+      }))
+    );
 
     return NextResponse.json(
       {

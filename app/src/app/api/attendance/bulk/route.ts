@@ -10,7 +10,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { attendance, classSessions, classes } from '@/db/schema';
 import { eq, and, sql } from 'drizzle-orm';
-import { getCurrentUser } from '@/lib/auth/utils';
+import { getCurrentUser, getTenantId } from '@/lib/auth/utils';
 import { computeAttendanceHash, getLastHash } from '@/lib/hash-chain';
 import { z } from 'zod';
 
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         {
           success: false,
           error: 'Invalid input',
-          details: validation.error.errors,
+          details: validation.error.issues,
         },
         { status: 400 }
       );
@@ -56,6 +56,17 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           error: 'Unauthorized',
         },
         { status: 401 }
+      );
+    }
+
+    const tenantId = await getTenantId();
+    if (!tenantId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'No tenant context',
+        },
+        { status: 403 }
       );
     }
 
@@ -113,7 +124,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         // Compute hash for this record
         const hash = computeAttendanceHash(
           {
-            tenantId: user.tenant_id,
+            tenantId,
             classSessionId: sessionId,
             studentId: item.studentId,
             status: item.status,
@@ -128,7 +139,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         const [record] = await db
           .insert(attendance)
           .values({
-            tenant_id: user.tenant_id,
+            tenant_id: tenantId,
             class_session_id: sessionId,
             student_id: item.studentId,
             status: item.status,
