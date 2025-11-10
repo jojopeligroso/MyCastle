@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Redirect to login page after successful sign-out
-    return NextResponse.redirect(new URL('/login', request.url));
+    return NextResponse.redirect(new URL('/login', request.url), 303);
   } catch (error) {
     console.error('[Sign Out API] Unexpected error:', error);
     return NextResponse.json(
