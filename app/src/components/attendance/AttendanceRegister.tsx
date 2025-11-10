@@ -96,10 +96,34 @@ export function AttendanceRegister({ teacherId, classes: classesProp }: Attendan
 
   // Fetch classes on mount if not provided
   useEffect(() => {
-    if (!classesProp && teacherId) {
-      // TODO: Fetch teacher's classes from /api/mcp/resources?uri=mycastle://teacher/classes
-      // For now, this would be empty
-    }
+    const fetchClasses = async () => {
+      if (classesProp) return; // Already have classes as prop
+
+      try {
+        const response = await fetch('/api/mcp/resources?uri=mycastle://teacher/classes');
+
+        if (!response.ok) {
+          console.error('[AttendanceRegister] Failed to fetch classes');
+          return;
+        }
+
+        const data = await response.json();
+
+        if (data.success && data.data?.classes) {
+          // Map MCP resource format to component format
+          const mappedClasses = data.data.classes.map((c: any) => ({
+            id: c.id,
+            name: c.name,
+            enrolledCount: c.enrolledCount || 0,
+          }));
+          setClasses(mappedClasses);
+        }
+      } catch (err) {
+        console.error('[AttendanceRegister] Error fetching classes:', err);
+      }
+    };
+
+    fetchClasses();
   }, [teacherId, classesProp]);
 
   // Fetch session and roster when class/date/time changes
