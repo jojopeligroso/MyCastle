@@ -10,10 +10,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { classSessions, classes, enrollments } from '@/db/schema';
-import { eq, and, gte, lte, sql } from 'drizzle-orm';
+import { classSessions, classes } from '@/db/schema';
+import { eq, and, gte, lte } from 'drizzle-orm';
 import { getCurrentUser, getTenantId } from '@/lib/auth/utils';
-import { revalidateTag } from 'next/cache';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 300; // Cache for 5 minutes
@@ -161,7 +160,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
  * POST /api/timetable - Revalidate timetable cache
  * Called when timetable data changes (new sessions, updates, etc.)
  */
-export async function POST(request: NextRequest): Promise<NextResponse> {
+export async function POST(): Promise<NextResponse> {
   try {
     const user = await getCurrentUser();
 

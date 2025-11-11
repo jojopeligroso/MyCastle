@@ -56,6 +56,28 @@ interface AttendanceRegisterProps {
   classes?: { id: string; name: string; enrolledCount: number }[];
 }
 
+interface MCPClassResource {
+  id: string;
+  name: string;
+  enrolledCount?: number | null;
+}
+
+interface MCPClassResponse {
+  success: boolean;
+  data?: {
+    classes?: unknown;
+  };
+}
+
+function isValidMCPClass(value: unknown): value is MCPClassResource {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const candidate = value as Record<string, unknown>;
+  return typeof candidate.id === 'string' && typeof candidate.name === 'string';
+}
+
 const STATUS_COLORS = {
   present: 'bg-green-100 border-green-500 text-green-900',
   absent: 'bg-red-100 border-red-500 text-red-900',
@@ -107,15 +129,18 @@ export function AttendanceRegister({ teacherId, classes: classesProp }: Attendan
           return;
         }
 
-        const data = await response.json();
+        const data = (await response.json()) as MCPClassResponse;
+        const rawClasses = data.data?.classes;
 
-        if (data.success && data.data?.classes) {
-          // Map MCP resource format to component format
-          const mappedClasses = data.data.classes.map((c: any) => ({
-            id: c.id,
-            name: c.name,
-            enrolledCount: c.enrolledCount || 0,
-          }));
+        if (data.success && Array.isArray(rawClasses)) {
+          const mappedClasses = rawClasses
+            .filter(isValidMCPClass)
+            .map(resource => ({
+              id: resource.id,
+              name: resource.name,
+              enrolledCount: resource.enrolledCount ?? 0,
+            }));
+
           setClasses(mappedClasses);
         }
       } catch (err) {
@@ -127,13 +152,7 @@ export function AttendanceRegister({ teacherId, classes: classesProp }: Attendan
   }, [teacherId, classesProp]);
 
   // Fetch session and roster when class/date/time changes
-  useEffect(() => {
-    if (selectedClass && selectedDate && sessionTime) {
-      fetchSessionData();
-    }
-  }, [selectedClass, selectedDate, sessionTime]);
-
-  const fetchSessionData = async () => {
+  const fetchSessionData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
@@ -174,7 +193,13 @@ export function AttendanceRegister({ teacherId, classes: classesProp }: Attendan
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [selectedClass, selectedDate, sessionTime]);
+
+  useEffect(() => {
+    if (selectedClass && selectedDate && sessionTime) {
+      fetchSessionData();
+    }
+  }, [fetchSessionData, selectedClass, selectedDate, sessionTime]);
 
   const handleStatusChange = useCallback(
     (studentId: string, status: AttendanceStatus['status'], notes?: string) => {
@@ -245,7 +270,7 @@ export function AttendanceRegister({ teacherId, classes: classesProp }: Attendan
       setIsSaving(false);
       setOptimisticUpdates(new Set());
     }
-  }, [session, students]);
+  }, [session, students, fetchSessionData]);
 
   const handleSave = async () => {
     if (!session || attendances.size === 0) {

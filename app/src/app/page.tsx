@@ -4,9 +4,16 @@
  * Redirects authenticated users to dashboard
  */
 
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getCurrentUser } from '@/lib/auth/utils';
 import { redirect } from 'next/navigation';
+
+export const metadata: Metadata = {
+  title: 'MyCastle | ESL School Operations Platform',
+  description:
+    'Discover the modern operations platform for ESL schools. Streamline planning, attendance, and student progress with AI assistance.',
+};
 
 // Simple SVG icon components
 const AcademicCapIcon = ({ className }: { className?: string }) => (
