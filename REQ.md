@@ -360,10 +360,12 @@
 **Design Ref**: DESIGN §9
 **Tasks**: T-050 (rate limiter), T-052 (moderation queue)
 
-### 6.7 MCP Architecture (v3.0)
+### 6.7 MCP Architecture (v3.0) — ✅ APPROVED for Implementation
 **Module**: MCP Host + Domain-based Servers (8 MCPs, all ≤10 tools)
 
-**Architecture Principle**: Domain-driven MCP design for security, performance, and maintainability
+**Status**: ✅ **Architectural decision approved 2025-11-11**
+
+**Architecture Principle**: Domain-driven MCP design for security, performance, maintainability, and future extensibility
 
 #### 6.7.1 Identity & Access MCP (6 tools)
 - **Purpose**: User authentication, authorization, role management
@@ -434,10 +436,91 @@
 - ✅ Better security (least privilege, smaller attack surface per MCP)
 - ✅ Better performance (distributed load, domain-specific caching)
 - ✅ Easier maintenance (clear domain boundaries, focused responsibility)
+- ✅ Future-proof (seamless addition of new domain MCPs)
+
+#### 6.7.10 Future Extensibility Pattern
+
+**Design for Extension**: The 8-MCP architecture is designed to support seamless addition of future domain MCPs without modifying existing code.
+
+**Example Future MCPs:**
+
+1. **Parent MCP** (`parent:*`, ≤10 tools)
+   - Purpose: Parent portal for student progress, attendance, communications
+   - Tools: view_student_progress, request_meeting, update_emergency_contact, view_attendance_report, approve_absence, view_invoices, message_teacher, download_reports, manage_consent, view_calendar
+   - RLS: Parents see only their own students via parent_student_relationship table
+
+2. **Partner MCP** (`partner:*`, ≤10 tools)
+   - Purpose: Partner school integrations, referrals, co-teaching arrangements
+   - Tools: view_partner_students, initiate_referral, accept_transfer, view_shared_resources, schedule_joint_session, export_performance_report, manage_partnership_terms, sync_calendars, message_coordinator, track_referral_pipeline
+
+3. **Analytics MCP** (`analytics:*`, ≤10 tools)
+   - Purpose: Business intelligence, reporting, data visualization
+   - Tools: generate_cohort_report, track_retention_metrics, export_financial_dashboard, analyze_attendance_trends, benchmark_performance, forecast_enrollment, visualize_progress_distribution, create_custom_report, schedule_recurring_report, export_to_powerbi
+
+4. **Marketing MCP** (`marketing:*`, ≤10 tools)
+   - Purpose: Lead generation, CRM, campaigns, enrollment funnels
+   - Tools: capture_lead, track_inquiry, schedule_demo, send_campaign, segment_audience, track_conversion, manage_waitlist, generate_referral_code, analyze_channel_performance, export_crm_data
+
+**Extension Checklist** (for adding new MCP):
+- [ ] Define new authorization scope (e.g., `parent:*`)
+- [ ] Design ≤10 tools with clear domain responsibility
+- [ ] Implement MCP server following standard template (see DESIGN §1)
+- [ ] Add RLS policies for new role/scope
+- [ ] Register MCP with Host routing layer
+- [ ] Add scope to JWT claims (if new role)
+- [ ] Write integration tests for all tools
+- [ ] Document tools in spec/XX-{domain}-mcp.md
+- [ ] Update DESIGN.md C4 diagram (optional, for major MCPs)
+- [ ] Deploy independently (no changes to existing MCPs required)
+
+**Technical Requirements for Extension:**
+
+```typescript
+// Standard MCP Interface
+interface MCPServer {
+  scope: string;              // e.g., 'parent:*'
+  maxTools: 10;               // Hard constraint
+  tools: Tool[];              // ≤10 tools
+  resources?: Resource[];     // Optional resources
+  prompts?: Prompt[];         // Optional prompts
+
+  initialize(): Promise<void>;
+  shutdown(): Promise<void>;
+}
+
+// Tool Interface
+interface Tool {
+  name: string;               // e.g., 'view_student_progress'
+  description: string;
+  inputSchema: JSONSchema;    // Zod schema for validation
+  handler: (input: any, context: AuthContext) => Promise<any>;
+}
+
+// Authorization Context
+interface AuthContext {
+  userId: string;
+  orgId: string;
+  role: string;
+  scopes: string[];           // e.g., ['parent:read', 'parent:write']
+  tenantId: string;
+}
+```
+
+**Migration Path for New MCPs:**
+1. **Phase 1**: Design & specification (1-2 weeks)
+2. **Phase 2**: Implementation & testing (2-3 weeks)
+3. **Phase 3**: RLS policies & security review (1 week)
+4. **Phase 4**: Deployment & monitoring (1 week)
+
+**Constraints:**
+- **≤10 tools per MCP** (hard limit, architectural constraint)
+- **Single domain responsibility** (no cross-domain tools)
+- **No MCP-to-MCP communication** (Host mediates all interactions)
+- **Independent deployment** (zero downtime, no cascading changes)
 
 **REQ IDs**: All (cross-cutting)
-**Design Ref**: DESIGN §1 (v3.0 architecture), MCP-ARCHITECTURE-OPTIMIZATION.md
-**Tasks**: T-020 through T-023 (MCP servers), T-110 through T-143 (v3.0 migration)
+**Design Ref**: DESIGN §1 (v3.0 architecture with extensibility pattern)
+**Tasks**: T-020 through T-023 (core MCP servers), T-110 through T-143 (v3.0 migration)
 
 ---
 
@@ -738,7 +821,7 @@ THEN verification code sent to new email
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 3.0.0 | 2025-11-07 | Eoin Malone + Claude Code | 8-MCP architecture (≤10 tools per MCP): Split Admin into 6 domain MCPs, optimized Teacher/Student to 10 tools each |
+| 3.0.0 | 2025-11-11 | Eoin Malone + Claude Code | **APPROVED**: 8-MCP architecture (≤10 tools per MCP) with extensibility pattern for future domain MCPs (Parent, Partner, Analytics, Marketing). Complete technical requirements and migration path defined. Split Admin into 6 domain MCPs, optimized Teacher/Student to 10 tools each. |
 | 2.1.0 | 2025-11-07 | Eoin Malone + Claude Code | Integrated REQ structure with existing MCP specs |
 | 2.0.0 | 2025-10-31 | Eoin Malone + Claude Code | Complete MCP architecture restructure |
 | 1.0.0 | 2025-10-30 | Eoin Malone | Initial consolidated specification |

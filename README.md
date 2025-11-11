@@ -1,8 +1,8 @@
 # MyCastle – ESL Learning Platform Specification
 
-> **Version:** 3.0.0 | **Last Updated:** 2025-11-07
+> **Version:** 3.0.0 **APPROVED** | **Last Updated:** 2025-11-11
 
-This repository contains the **complete specifications** for MyCastle, an ESL school operations platform built on the Model Context Protocol (MCP) architecture. It covers timetable management, CEFR-driven lesson planning, attendance tracking, student profiles, and AI-assisted workflows.
+This repository contains the **complete specifications** for MyCastle, an ESL school operations platform built on the **8-MCP domain-driven architecture** with extensibility for future domain MCPs. It covers timetable management, CEFR-driven lesson planning, attendance tracking, student profiles, and AI-assisted workflows through role-specific MCP servers.
 
 ---
 
@@ -39,10 +39,13 @@ These three documents form the **authoritative spine** of the project and are up
 
 ```
 MyCastle/
-├── REQ.md                          # ✅ Requirements Specification (v2.1.0)
-├── DESIGN.md                       # ✅ Design Specification (v2.1.0)
-├── TASKS.md                        # ✅ Task Specification (v2.1.0)
+├── REQ.md                          # ✅ Requirements Specification (v3.0.0 APPROVED)
+├── DESIGN.md                       # ✅ Design Specification (v3.0.0 APPROVED)
+├── TASKS.md                        # ✅ Task Specification (v3.0.0 APPROVED)
 ├── README.md                       # This file
+├── MVP-SPRINT-PLAN.md              # 10-week sprint plan
+├── PROGRESS.md                     # Implementation progress
+├── SPECIFICATION-REVIEW.md         # Quality review
 │
 ├── spec/                           # Detailed MCP architecture specs
 │   ├── 01-overview.md              # Project objectives, stakeholders
@@ -81,19 +84,26 @@ MyCastle/
 4. Implement with traceability comments
 5. Update specs if design changes
 
-## 🎯 MVP Scope (Phase 1)
+## 🎯 8-MCP Architecture (v3.0 APPROVED)
 
-**Build First:**
-- ✅ Host service (Next.js/Node.js) - orchestration layer
-- ✅ Admin MCP server - administrative operations
-- ✅ Database schema (Drizzle + Supabase/PostgreSQL)
-- ✅ Authentication (Supabase Auth with JWT)
+**Core MCPs (all ≤10 tools):**
+1. ✅ **Identity & Access MCP** (6 tools) - User auth, roles, permissions
+2. ✅ **Academic Operations MCP** (10 tools) - Programmes, courses, scheduling
+3. ✅ **Attendance & Compliance MCP** (8 tools) - Registers, visa tracking
+4. ✅ **Finance MCP** (9 tools) - Invoicing, payments, reconciliation
+5. ✅ **Student Services MCP** (9 tools) - Accommodation, letters, certificates
+6. ✅ **Operations & Quality MCP** (8 tools) - Backups, QA, CPD
+7. ✅ **Teacher MCP** (10 tools) - Lesson planning, grading, attendance
+8. ✅ **Student MCP** (10 tools) - Timetable, AI tutor, progress tracking
 
-**Build Later:**
-- ⏳ Identity MCP - separate auth service
-- ⏳ Payments MCP - separate financial service
-- ⏳ Teacher MCP - teaching workflows
-- ⏳ Student MCP - learning workflows
+**Future Extensibility:**
+- ⏭️ **Parent MCP** - Parent portal (≤10 tools)
+- ⏭️ **Partner MCP** - School partnerships (≤10 tools)
+- ⏭️ **Analytics MCP** - BI and reporting (≤10 tools)
+- ⏭️ **Marketing MCP** - CRM and campaigns (≤10 tools)
+- ⏭️ **Custom domain MCPs** - Easy to add without modifying existing MCPs
+
+**Migration Strategy:** 4-phase rollout (see TASKS.md §4.3.1)
 
 ## 🏗️ Technology Stack
 
@@ -110,11 +120,14 @@ MyCastle/
 
 ## 📐 Architecture Principles
 
-1. **Host-Mediated Communication**: All MCP servers communicate through the Host (no direct MCP-to-MCP)
-2. **Role-Based Isolation**: Separate MCP servers for each user role with strict authorization
-3. **Tenant Isolation**: Multi-tenancy ready with `tenant_id` and RLS policies
-4. **Spec-First Development**: All changes documented before implementation
-5. **Security by Design**: JWT verification, RLS, audit logging throughout
+1. **Domain-Driven Design**: 8 focused MCPs (all ≤10 tools) vs bloated 3-MCP design
+2. **Host-Mediated Communication**: All MCP servers communicate through the Host (no direct MCP-to-MCP)
+3. **Scope-Based Routing**: Fine-grained authorization (identity:*, finance:*, academic:*, etc.)
+4. **Tenant Isolation**: Multi-tenancy ready with `tenant_id` and RLS policies
+5. **Extensibility by Design**: Add new domain MCPs without modifying existing ones
+6. **Spec-First Development**: All changes documented before implementation
+7. **Security by Design**: JWT verification, RLS, audit logging throughout
+8. **Performance**: Distributed load, domain-specific caching, simpler RLS per MCP
 
 ## 📚 Key Documents
 
@@ -213,15 +226,31 @@ This ensures **bidirectional traceability**: from requirements to implementation
 
 ## 📝 Version History
 
-### v3.0.0 (2025-11-07) — 8-MCP Domain-Driven Architecture
+### v3.0.0 **APPROVED** (2025-11-11) — 8-MCP Domain-Driven Architecture
+**Status:** ✅ Architectural decision finalized and approved for implementation
+
+**Core Changes:**
 - ✅ Split Admin MCP into 6 domain MCPs (Identity, Academic, Attendance, Finance, Student Services, Ops)
 - ✅ Optimized Teacher MCP (12 → 10 tools)
 - ✅ Optimized Student MCP (14 → 10 tools)
-- ✅ All 8 MCPs now ≤10 tools (compliance with constraint)
+- ✅ All 8 MCPs now ≤10 tools (compliance with architectural constraint)
 - ✅ Added 34 migration tasks (T-110 to T-143) with 4-phase rollout plan
 - ✅ Updated C4 architecture diagrams with scope-based routing
 - ✅ Fine-grained authorization scopes (identity:*, finance:*, academic:*, etc.)
 - ✅ Total: 76 tasks (42 core + 34 migration)
+
+**Extensibility:**
+- ✅ Clear pattern for adding future domain MCPs (Parent, Partner, Analytics, Marketing)
+- ✅ Standard MCP interface with maxTools=10 constraint
+- ✅ Independent deployment model (no cascading changes)
+- ✅ Extension guidelines and technical requirements documented
+- ✅ Example implementations provided (Parent MCP with 10 tools)
+
+**Benefits:**
+- ✅ Better security: least privilege, smaller attack surface per MCP
+- ✅ Better performance: distributed load, domain-specific caching
+- ✅ Easier maintenance: clear domain boundaries, focused responsibility
+- ✅ Future-proof: seamless addition of new domains without refactoring existing MCPs
 
 ### v2.1.0 (2025-11-07) — Specification Spine Integration
 - ✅ Added REQ.md, DESIGN.md, TASKS.md as project spine
@@ -253,7 +282,8 @@ This ensures **bidirectional traceability**: from requirements to implementation
 
 ---
 
-**Specification Status**: ✅ Complete and Aligned (REQ ↔ DESIGN ↔ TASKS)
-**Last Updated**: 2025-11-07
-**Version**: 2.1.0  
+**Specification Status**: ✅ v3.0.0 APPROVED - Complete and Aligned (REQ ↔ DESIGN ↔ TASKS)
+**Architectural Decision**: ✅ 8-MCP domain-driven architecture with extensibility approved 2025-11-11
+**Last Updated**: 2025-11-11
+**Version**: 3.0.0  
 

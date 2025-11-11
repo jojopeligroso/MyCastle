@@ -1,8 +1,34 @@
 # MyCastle Implementation Progress
 
-> **Session Date:** 2025-11-07
-> **Branch:** claude/review-mycastle-specs-011CUsa6G9CoyrJhPsbQfHVs
-> **Total Commits:** 6 major feature commits
+> **Last Updated:** 2025-11-11
+> **Architecture:** v3.0.0 8-MCP Domain-Driven (✅ APPROVED)
+> **Branch:** claude/project-status-review-011CV1Ka9f5i1LLrPwz4o7fp
+> **Total Commits:** 6 major feature commits + architecture finalization
+
+---
+
+## 🎯 Architectural Decision (2025-11-11)
+
+**Status:** ✅ **APPROVED** - 8-MCP domain-driven architecture finalized
+
+**Decision:**
+Migrate from v2.0 (3-MCP) to v3.0 (8-MCP) architecture to:
+- Meet ≤10 tools per MCP constraint
+- Enable future extensibility (Parent, Partner, Analytics, Marketing MCPs)
+- Improve security, performance, and maintainability
+- Support independent MCP deployment
+
+**Documentation Updates:**
+- ✅ DESIGN.md: Updated C4 diagrams with 8 MCPs + future extension points
+- ✅ REQ.md: Added §6.7.10 extensibility pattern with 4 example future MCPs
+- ✅ TASKS.md: Activated migration tasks T-110 to T-143 (4-phase rollout)
+- ✅ README.md: Updated to v3.0.0 APPROVED with extensibility benefits
+- ✅ PROGRESS.md: This file updated with architectural decision
+
+**Next Steps:**
+- Begin Phase 1 migration: T-110 (Identity MCP), T-111 (Finance MCP)
+- Update MCP Host to support scope-based routing
+- Implement extensibility interfaces for future MCPs
 
 ---
 
@@ -195,27 +221,51 @@ MyCastle/
 
 ---
 
-## ⏭️ Next Steps (Not Yet Implemented)
+## ⏭️ Next Steps (v3.0 8-MCP Migration)
 
-### Sprint 1 Remaining:
+### Sprint 1 Remaining (Foundation):
 - ⏳ T-011: RLS Policies (requires database access)
-- ⏳ T-020: MCP Host Service (XL task, 1-2 weeks)
-- ⏳ T-022: Teacher MCP Server (depends on T-020)
+- ⏳ T-020: MCP Host Service (XL task, 1-2 weeks) - **Update for scope-based routing**
+- ⏳ T-022: Teacher MCP Server (depends on T-020) - **10 tools, ready for v3.0**
 - ⏳ T-034: Seed CEFR Descriptors (requires database access)
 
-### Sprint 2 Remaining:
-- ⏳ Timetable display component
-- ⏳ Attendance register UI
+### Phase 1: Identity & Finance MCPs (2-3 weeks)
+- ⏳ T-110: Create Identity & Access MCP (6 tools)
+- ⏳ T-111: Create Finance MCP (9 tools)
+- ⏳ T-112: Update Host routing for identity:*, finance:* scopes
+- ⏳ T-113: Migrate authorization scopes to fine-grained model
+- ⏳ T-114: E2E tests for Identity & Finance MCPs
 
-### Sprint 3+:
-- ⏳ Full teacher workflows
-- ⏳ Student features
-- ⏳ Admin features
+### Phase 2: Academic & Attendance MCPs (2-3 weeks)
+- ⏳ T-120: Create Academic Operations MCP (10 tools)
+- ⏳ T-121: Create Attendance & Compliance MCP (8 tools)
+- ⏳ T-122: Update Host routing for academic:*, attendance:*, compliance:* scopes
+- ⏳ T-123: Migrate RLS policies for domain-specific access
+- ⏳ T-124: E2E tests for Academic & Attendance MCPs
+
+### Phase 3: Services & Operations MCPs (2-3 weeks)
+- ⏳ T-130: Create Student Services MCP (9 tools)
+- ⏳ T-131: Create Operations & Quality MCP (8 tools)
+- ⏳ T-132: Update Host routing for student_services:*, ops:*, quality:* scopes
+- ⏳ T-133: E2E tests for Student Services & Ops MCPs
+
+### Phase 4: Optimize Teacher & Student MCPs (1-2 weeks)
+- ⏳ T-140: Optimize Teacher MCP to 10 tools
+- ⏳ T-141: Optimize Student MCP to 10 tools
+- ⏳ T-142: Update Host routing for optimized MCPs
+- ⏳ T-143: Final E2E tests for complete 8-MCP architecture
+
+### Future Extensibility (Post-MVP):
+- ⏭️ Parent MCP: Parent portal with ≤10 tools
+- ⏭️ Partner MCP: School partnerships with ≤10 tools
+- ⏭️ Analytics MCP: BI and reporting with ≤10 tools
+- ⏭️ Marketing MCP: CRM and campaigns with ≤10 tools
 
 ---
 
 ## 🎯 Key Achievements
 
+### Foundation (Completed)
 1. **Solid Foundation:** Complete project setup with Next.js 16, React 19, TypeScript, Tailwind
 2. **Database Architecture:** 19-table schema with multi-tenancy, RLS-ready
 3. **Authentication:** Full Supabase Auth integration with role-based access
@@ -224,17 +274,33 @@ MyCastle/
 6. **CI/CD:** GitHub Actions pipeline ready
 7. **Production-Ready:** Build succeeds, no errors, performance monitoring in place
 
+### Architecture (Approved 2025-11-11)
+8. **8-MCP Architecture:** Domain-driven design with extensibility for future MCPs
+9. **Scope-Based Authorization:** Fine-grained scopes (identity:*, finance:*, academic:*, etc.)
+10. **Extensibility Pattern:** Clear guidelines for adding Parent, Partner, Analytics, Marketing MCPs
+11. **Migration Plan:** 4-phase rollout with 34 tasks (T-110 to T-143)
+12. **Complete Documentation:** All specs updated to v3.0.0 APPROVED
+
 ---
 
 ## 📈 Metrics
 
-- **Story Points Completed:** 42 (Sprint 0: 21, Sprint 2: 21)
+### Implementation Progress
+- **Story Points Completed:** 42/104 (40% - Sprint 0: 21, Sprint 2: 21)
+- **Story Points Planned:** 62 additional (34 migration tasks across 4 phases)
+- **Total Tasks:** 76 (42 core + 34 migration)
 - **Files Created:** 50+
 - **Lines of Code:** ~5000+
 - **Test Coverage:** 40 tests across 3 suites
 - **Build Time:** ~4s
 - **Test Runtime:** ~4s
-- **Commits:** 6 major features
+- **Commits:** 6 major features + architecture finalization
+
+### Architecture
+- **MCPs Designed:** 8 core + 4 future extensibility examples
+- **Total Tools:** 70 across 8 MCPs (all ≤10 tools per MCP)
+- **Authorization Scopes:** 12+ fine-grained scopes defined
+- **Extension Points:** Unlimited future domain MCPs supported
 
 ---
 
@@ -254,4 +320,17 @@ MyCastle/
 
 ---
 
-**Status:** Ready for user review and continuation of Sprint 1/2 tasks.
+## 📋 Documentation Status
+
+| Document | Version | Status | Last Updated |
+|----------|---------|--------|--------------|
+| README.md | 3.0.0 | ✅ APPROVED | 2025-11-11 |
+| REQ.md | 3.0.0 | ✅ APPROVED | 2025-11-11 |
+| DESIGN.md | 3.0.0 | ✅ APPROVED | 2025-11-11 |
+| TASKS.md | 3.0.0 | ✅ APPROVED | 2025-11-11 |
+| PROGRESS.md | 3.0.0 | ✅ CURRENT | 2025-11-11 |
+| MVP-SPRINT-PLAN.md | 1.0.0 | ⏳ Needs update | 2025-11-07 |
+
+---
+
+**Status:** ✅ **Architecture approved and documented. Ready for Phase 1 implementation (T-110-T-114).**

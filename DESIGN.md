@@ -6,63 +6,86 @@
 
 ## 1. Architecture Overview
 
-### 1.1 Context (C4-C1) — v3.0 Architecture
+### 1.1 Context (C4-C1) — v3.0 8-MCP Architecture
 
 ```
-┌────────────────────────────────────────────────────────────────────────┐
-│                              USERS                                      │
-│           (Teacher / Admin / Student)                                   │
-└─────────────────────────────┬──────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────┐
+│                              USERS                                     │
+│           (Teacher / Admin / Student / Future Roles)                   │
+└─────────────────────────────┬─────────────────────────────────────────┘
                               │ HTTPS/WebSocket
                               ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│                    Next.js 15 App (Frontend)                            │
-│       • React 19 UI • Tailwind CSS • RHF + Zod                         │
-└─────────────────────────────┬──────────────────────────────────────────┘
-                              │ API Routes
+┌───────────────────────────────────────────────────────────────────────┐
+│                    Next.js 16 App (Frontend)                           │
+│       • React 19 UI • Tailwind CSS 4 • RHF + Zod                      │
+└─────────────────────────────┬─────────────────────────────────────────┘
+                              │ API Routes (JSON-RPC 2.0)
                               ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│                     MCP Host (Orchestrator)                             │
-│  • Session management • Scope-based routing • Context aggregation      │
-│  • Routes to 8 domain MCPs (all ≤10 tools)                             │
-└─────────────────────────────┬──────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────┐
+│                     MCP Host (Orchestrator)                            │
+│  • Session management • Scope-based routing • Context aggregation     │
+│  • Routes to 8 domain MCPs (all ≤10 tools) + extensible for future   │
+│  • Authorization enforcement • Load balancing • Circuit breakers      │
+└─────────────────────────────┬─────────────────────────────────────────┘
                               │
        ┌──────────────────────┼──────────────────────┐
        │                      │                      │
        ▼                      ▼                      ▼
-┌─────────────┐      ┌─────────────┐      ┌─────────────┐
-│ Identity &  │      │  Academic   │      │ Attendance  │
-│  Access MCP │      │   Ops MCP   │      │& Compliance │
-│  (6 tools)  │      │ (10 tools)  │      │   MCP       │
-└──────┬──────┘      └──────┬──────┘      │ (8 tools)   │
-       │                    │              └──────┬──────┘
+┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│  Identity &  │     │   Academic   │     │  Attendance  │
+│  Access MCP  │     │   Ops MCP    │     │ & Compliance │
+│  (6 tools)   │     │  (10 tools)  │     │     MCP      │
+│              │     │              │     │  (8 tools)   │
+│ Scope:       │     │ Scope:       │     │              │
+│ identity:*   │     │ academic:*   │     │ Scope:       │
+└──────┬───────┘     └──────┬───────┘     │ attendance:* │
+       │                    │              │ compliance:* │
+       │                    │              └──────┬───────┘
        │                    │                     │
        ▼                    ▼                     ▼
-┌─────────────┐      ┌─────────────┐      ┌─────────────┐
-│  Finance    │      │  Student    │      │ Operations  │
-│   MCP       │      │ Services MCP│      │  & Quality  │
-│ (9 tools)   │      │ (9 tools)   │      │   MCP       │
-└──────┬──────┘      └──────┬──────┘      │ (8 tools)   │
-       │                    │              └──────┬──────┘
+┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│   Finance    │     │   Student    │     │  Operations  │
+│     MCP      │     │  Services    │     │  & Quality   │
+│  (9 tools)   │     │     MCP      │     │     MCP      │
+│              │     │  (9 tools)   │     │  (8 tools)   │
+│ Scope:       │     │              │     │              │
+│ finance:*    │     │ Scope:       │     │ Scope:       │
+└──────┬───────┘     │ student_     │     │ ops:*        │
+       │             │ services:*   │     │ quality:*    │
+       │             └──────┬───────┘     └──────┬───────┘
        │                    │                     │
        ▼                    ▼                     ▼
-┌─────────────┐                         ┌─────────────┐
-│  Teacher    │                         │  Student    │
-│   MCP       │                         │   MCP       │
-│ (10 tools)  │                         │ (10 tools)  │
-└──────┬──────┘                         └──────┬──────┘
-       │                                       │
-       └───────────────────┬───────────────────┘
-                           ▼
-              ┌────────────────────────┐
-              │  Supabase/PostgreSQL   │
-              │  • RLS enforcement     │
-              │  • Drizzle ORM         │
-              │  • Domain isolation    │
-              └────────────────────────┘
+┌──────────────┐                         ┌──────────────┐
+│   Teacher    │                         │   Student    │
+│     MCP      │                         │     MCP      │
+│  (10 tools)  │                         │  (10 tools)  │
+│              │                         │              │
+│ Scope:       │                         │ Scope:       │
+│ teacher:*    │                         │ student:*    │
+└──────┬───────┘                         └──────┬───────┘
+       │                                        │
+       │  ┌─────────────────────────────────────┤
+       │  │  Future extensibility:              │
+       │  │  • Parent MCP (parent:*)            │
+       │  │  • Partner MCP (partner:*)          │
+       │  │  • Analytics MCP (analytics:*)      │
+       │  │  • Custom domain MCPs...            │
+       │  └─────────────────────────────────────┘
+       │                                        │
+       └────────────────────┬───────────────────┘
+                            ▼
+               ┌────────────────────────┐
+               │  Supabase/PostgreSQL   │
+               │  • RLS enforcement     │
+               │  • Drizzle ORM         │
+               │  • Domain isolation    │
+               │  • Tenant isolation    │
+               └────────────────────────┘
 ```
 
-**Key Design Decision**: **Domain-Driven MCP Architecture (v3.0)**
+**Key Design Decision**: **Domain-Driven 8-MCP Architecture (v3.0)**
+
+**Architecture Principles:**
 - **8 focused MCPs** (all ≤10 tools) vs v2.0 (3 bloated MCPs with 50+ tools)
 - **Domain-specific MCP servers** isolate context and enforce security boundaries
 - **Scope-based routing**: Host routes by authorization scope (e.g., `finance:*`, `academic:*`)
@@ -70,26 +93,135 @@
 - **Fine-grained authorization**: Different scopes for different domains
 - **Performance**: Distributed load, domain-specific caching, simpler RLS per MCP
 - **Security**: Smaller attack surface per MCP, least privilege enforcement
+- **Extensibility**: Clear pattern for adding new domain MCPs without modifying existing ones
 
-### 1.2 Containers (C4-C2) — v3.0 Architecture
+**The 8 Core MCPs:**
+
+1. **Identity & Access MCP** (6 tools, scope: `identity:*`)
+   - User authentication, authorization, role management
+   - Highest security tier, minimal change frequency
+   - Tools: create_user, update_user_role, set_permissions, revoke_session, rotate_api_key, audit_access
+
+2. **Academic Operations MCP** (10 tools, scope: `academic:*`)
+   - Programme, course, scheduling, lesson planning
+   - High cohesion domain with shared data model
+   - Tools: create_programme, create_course, map_cefr_level, schedule_class, assign_teacher, allocate_room, register_lesson_template, approve_lesson_plan, link_cefr_descriptor, publish_materials
+
+3. **Attendance & Compliance MCP** (8 tools, scope: `attendance:*`, `compliance:*`)
+   - Attendance tracking, visa compliance, register exports
+   - Legally coupled operations with strict audit requirements
+   - Tools: prepare_register, record_attendance, correct_attendance, export_attendance, visa_compliance_report, compile_compliance_pack, anonymise_dataset, policy_check
+
+4. **Finance MCP** (9 tools, scope: `finance:*`)
+   - Invoicing, payments, reconciliation, financial reporting
+   - Strictest audit trail, external integrations
+   - Tools: create_booking, edit_booking, issue_invoice, apply_discount, refund_payment, reconcile_payouts, ledger_export, aging_report, confirm_intake
+
+5. **Student Services MCP** (9 tools, scope: `student_services:*`)
+   - Accommodation, letters, certificates, lifecycle events
+   - Student welfare and pastoral care
+   - Tools: register_host, allocate_accommodation, swap_accommodation, export_placements, issue_letter, approve_deferral, award_certificate, track_visa_status, record_pastoral_note
+
+6. **Operations & Quality MCP** (8 tools, scope: `ops:*`, `quality:*`)
+   - System operations, backups, quality assurance, CPD
+   - Operational tools requiring highest privileges
+   - Tools: backup_db, restore_snapshot, record_observation, assign_cpd, export_quality_report, bulk_email, notify_stakeholders, mail_merge_pdf
+
+7. **Teacher MCP** (10 tools, scope: `teacher:*`)
+   - Lesson planning, attendance marking, grading, classroom management
+   - Optimized for teacher workflows
+   - Tools: view_timetable, create_lesson_plan, attach_materials, map_cefr_objectives, mark_attendance, record_progress_note, assign_homework, grade_submission, export_class_data, raise_support_ticket
+
+8. **Student MCP** (10 tools, scope: `student:*`)
+   - Timetable, materials, AI tutor, progress tracking, self-service
+   - Student-facing tools with CEFR-adaptive AI
+   - Tools: view_timetable, download_materials, submit_homework, view_grades, ask_tutor, track_progress, attendance_summary, request_letter, raise_support_request, view_invoice
+
+**Future Extensibility Pattern:**
+
+The architecture supports seamless addition of new domain MCPs without modifying existing ones:
+
+**Example: Adding Parent MCP**
+```typescript
+// 1. Define new scope in authorization system
+const PARENT_SCOPE = 'parent:*';
+
+// 2. Create MCP server following standard template
+class ParentMCP implements MCPServer {
+  scope = 'parent:*';
+  maxTools = 10;
+
+  tools = [
+    'view_student_progress',      // 1
+    'request_parent_teacher_meeting', // 2
+    'update_emergency_contact',   // 3
+    'view_attendance_report',     // 4
+    'approve_absence',            // 5
+    'view_invoices',              // 6
+    'message_teacher',            // 7
+    'download_reports',           // 8
+    'manage_consent',             // 9
+    'view_calendar'               // 10
+  ];
+}
+
+// 3. Register with Host
+mcpHost.register(new ParentMCP());
+
+// 4. Add RLS policies for parent role
+CREATE POLICY parent_student_access ON student
+  FOR SELECT
+  USING (
+    id IN (
+      SELECT student_id FROM parent_student_relationship
+      WHERE parent_user_id = auth.uid()
+    )
+  );
+```
+
+**Extension Guidelines:**
+- **≤10 tools per MCP** (hard constraint)
+- **Single domain responsibility** (high cohesion)
+- **Scope-based isolation** (no cross-domain access)
+- **Standard tool interface** (name, schema, handler)
+- **RLS policies per domain** (security by default)
+- **Independent deployment** (no cascading changes)
+
+**Benefits of 8-MCP vs 3-MCP:**
+- ✅ Meets ≤10 tool constraint for all MCPs
+- ✅ Better security: least privilege, smaller attack surface per MCP
+- ✅ Better performance: distributed load, domain-specific caching
+- ✅ Easier maintenance: clear domain boundaries, focused responsibility
+- ✅ Future-proof: easy to add new domains without refactoring existing MCPs
+
+### 1.2 Containers (C4-C2) — v3.0 8-MCP Architecture
 
 ```mermaid
 graph TD
-    A[Browser: React 19] -->|HTTPS| B[Next.js 15 App Router]
+    A[Browser: React 19] -->|HTTPS| B[Next.js 16 App Router]
     B -->|JWT| C[Supabase Auth]
     B -->|SQL over pool| D[(Postgres + RLS)]
     B -->|Signed URLs| E[Supabase Storage]
     B -->|MCP JSON-RPC 2.0| F[MCP Host Service]
 
-    F -->|identity:*| G1[Identity & Access MCP<br/>6 tools]
-    F -->|academic:*| G2[Academic Ops MCP<br/>10 tools]
-    F -->|attendance:*, compliance:*| G3[Attendance & Compliance MCP<br/>8 tools]
-    F -->|finance:*| G4[Finance MCP<br/>9 tools]
-    F -->|student_services:*| G5[Student Services MCP<br/>9 tools]
-    F -->|ops:*, quality:*| G6[Operations & Quality MCP<br/>8 tools]
-    F -->|teacher:*| H[Teacher MCP<br/>10 tools]
-    F -->|student:*| I[Student MCP<br/>10 tools]
+    %% Core Admin Domain MCPs
+    F -->|identity:*| G1[Identity & Access MCP<br/>6 tools<br/>User auth, roles, permissions]
+    F -->|academic:*| G2[Academic Ops MCP<br/>10 tools<br/>Programmes, courses, scheduling]
+    F -->|attendance:*<br/>compliance:*| G3[Attendance & Compliance MCP<br/>8 tools<br/>Registers, visa tracking]
+    F -->|finance:*| G4[Finance MCP<br/>9 tools<br/>Invoicing, payments]
+    F -->|student_services:*| G5[Student Services MCP<br/>9 tools<br/>Accommodation, letters]
+    F -->|ops:*<br/>quality:*| G6[Operations & Quality MCP<br/>8 tools<br/>Backups, QA, CPD]
 
+    %% Role-based MCPs
+    F -->|teacher:*| H[Teacher MCP<br/>10 tools<br/>Lesson planning, grading]
+    F -->|student:*| I[Student MCP<br/>10 tools<br/>Timetable, AI tutor]
+
+    %% Future extensibility (dotted lines)
+    F -.->|parent:*| J[Future: Parent MCP<br/>≤10 tools]
+    F -.->|partner:*| K[Future: Partner MCP<br/>≤10 tools]
+    F -.->|analytics:*| L[Future: Analytics MCP<br/>≤10 tools]
+
+    %% Database connections
     G1 --> D
     G2 --> D
     G3 --> D
@@ -99,9 +231,23 @@ graph TD
     H --> D
     I --> D
 
-    B -->|HTTP| J[OpenAI API]
-    B -->|OTel| K[Observability Stack]
+    %% External services
+    H -->|LLM calls| M[OpenAI API]
+    I -->|LLM calls| M
+    B -->|Metrics| N[Observability Stack<br/>OpenTelemetry]
+
+    %% Style for future MCPs
+    style J stroke-dasharray: 5 5
+    style K stroke-dasharray: 5 5
+    style L stroke-dasharray: 5 5
 ```
+
+**Architecture Notes:**
+- **8 Core MCPs** (solid lines): Fully specified, all ≤10 tools
+- **Future MCPs** (dotted lines): Extension points for new domains
+- **MCP Host**: Single routing layer, no MCP-to-MCP communication
+- **Database**: All MCPs use same Postgres instance with domain-specific RLS policies
+- **Observability**: Centralized metrics, traces, and logs with PII scrubbing
 
 ---
 
@@ -1426,7 +1572,7 @@ All design decisions reference REQ IDs. See comprehensive mapping in REQ §15 an
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 3.0.0 | 2025-11-07 | Eoin Malone + Claude Code | 8-MCP domain-driven architecture with C4 diagrams updated, all MCPs ≤10 tools |
+| 3.0.0 | 2025-11-11 | Eoin Malone + Claude Code | **APPROVED**: 8-MCP domain-driven architecture finalized with extensibility pattern for future MCPs (Parent, Partner, Analytics, etc.). All MCPs ≤10 tools. Complete C4 diagrams with future extension points. Migration tasks T-110 to T-143 integrated. |
 | 2.1.0 | 2025-11-07 | Eoin Malone + Claude Code | Integrated DESIGN structure with MCP architecture |
 | 2.0.0 | 2025-10-31 | Eoin Malone + Claude Code | Complete MCP architecture restructure |
 | 1.0.0 | 2025-10-30 | Eoin Malone | Initial consolidated specification |
