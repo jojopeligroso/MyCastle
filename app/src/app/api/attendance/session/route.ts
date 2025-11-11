@@ -61,7 +61,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const [classRecord] = await db
       .select()
       .from(classes)
-      .where(eq(classes.id, classId))
+      .where(and(eq(classes.id, classId), eq(classes.tenant_id, tenantId)))
       .limit(1);
 
     if (!classRecord) {
@@ -96,7 +96,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         and(
           eq(classSessions.class_id, classId),
           eq(classSessions.session_date, date),
-          eq(classSessions.start_time, startTime)
+          eq(classSessions.start_time, startTime),
+          eq(classSessions.tenant_id, tenantId)
         )
       )
       .limit(1);
@@ -145,10 +146,17 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         attendance,
         and(
           eq(attendance.student_id, sql`users.id`),
-          eq(attendance.class_session_id, session.id)
+          eq(attendance.class_session_id, session.id),
+          eq(attendance.tenant_id, tenantId)
         )
       )
-      .where(and(eq(enrollments.class_id, classId), eq(enrollments.status, 'active')))
+      .where(
+        and(
+          eq(enrollments.class_id, classId),
+          eq(enrollments.status, 'active'),
+          eq(enrollments.tenant_id, tenantId)
+        )
+      )
       .orderBy(sql`users.name`);
 
     return NextResponse.json(
@@ -274,7 +282,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const [classRecord] = await db
       .select()
       .from(classes)
-      .where(eq(classes.id, classId))
+      .where(and(eq(classes.id, classId), eq(classes.tenant_id, tenantId)))
       .limit(1);
 
     if (!classRecord) {

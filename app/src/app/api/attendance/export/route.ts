@@ -11,7 +11,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { attendance, classSessions, classes, enrollments } from '@/db/schema';
+import { attendance, classSessions, classes } from '@/db/schema';
 import { eq, and, gte, lte, sql } from 'drizzle-orm';
 import { getCurrentUser, getTenantId } from '@/lib/auth/utils';
 
@@ -141,7 +141,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const [classRecord] = await db
       .select()
       .from(classes)
-      .where(eq(classes.id, classId))
+      .where(and(eq(classes.id, classId), eq(classes.tenant_id, tenantId)))
       .limit(1);
 
     if (!classRecord) {
@@ -188,6 +188,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .where(
         and(
           eq(classSessions.class_id, classId),
+          eq(classSessions.tenant_id, tenantId),
+          eq(attendance.tenant_id, tenantId),
           gte(classSessions.session_date, weekStart),
           lte(classSessions.session_date, weekEnd)
         )

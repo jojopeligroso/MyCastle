@@ -9,7 +9,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { attendance, classSessions, classes } from '@/db/schema';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, sql, and } from 'drizzle-orm';
 import { getCurrentUser, getTenantId } from '@/lib/auth/utils';
 import { computeAttendanceHash, getLastHash } from '@/lib/hash-chain';
 import { z } from 'zod';
@@ -75,7 +75,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       .select({ session: classSessions, class: classes })
       .from(classSessions)
       .innerJoin(classes, eq(classSessions.class_id, classes.id))
-      .where(eq(classSessions.id, sessionId))
+      .where(
+        and(
+          eq(classSessions.id, sessionId),
+          eq(classSessions.tenant_id, tenantId),
+          eq(classes.tenant_id, tenantId)
+        )
+      )
       .limit(1);
 
     if (!classSession) {
@@ -107,7 +113,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const sessionRecords = await db
       .select({ hash: attendance.hash, created_at: attendance.created_at })
       .from(attendance)
-      .where(eq(attendance.class_session_id, sessionId))
+      .where(
+        and(
+          eq(attendance.class_session_id, sessionId),
+          eq(attendance.tenant_id, tenantId)
+        )
+      )
       .orderBy(sql`${attendance.created_at} DESC`)
       .limit(1);
 
