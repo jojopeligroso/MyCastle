@@ -107,16 +107,67 @@ MyCastle/
 
 ## 🏗️ Technology Stack
 
+### Core Framework & Language
+| Technology | Version | Purpose |
+|-----------|---------|---------|
+| **TypeScript** | ^5 | Type-safe development across entire stack |
+| **Next.js** | 16.0.1 | Full-stack React framework with API routes |
+| **Node.js** | ^20 | Server runtime for MCP orchestration |
+
+### Frontend
+| Technology | Version | Purpose |
+|-----------|---------|---------|
+| **React** | 19.2.0 | UI component library |
+| **React DOM** | 19.2.0 | React rendering for web |
+| **Tailwind CSS** | ^4 | Utility-first CSS framework |
+
+### Backend & API
+| Technology | Version | Purpose |
+|-----------|---------|---------|
+| **Next.js API Routes** | 16.0.1 | RESTful endpoints and MCP orchestration |
+| **MCP SDK** | ^1.21.1 | Model Context Protocol implementation |
+| **Zod** | ^4.1.12 | Runtime schema validation |
+
+### Database & ORM
+| Technology | Version | Purpose |
+|-----------|---------|---------|
+| **Supabase** | ^2.80.0 | Primary database platform with RLS |
+| **PostgreSQL** | - | Underlying relational database |
+| **Drizzle ORM** | ^0.44.7 | Type-safe SQL query builder |
+| **Drizzle Kit** | ^0.31.6 | Schema migrations and management |
+| **postgres** | ^3.4.7 | PostgreSQL client for Node.js |
+
+### Authentication
+| Technology | Version | Purpose |
+|-----------|---------|---------|
+| **Supabase Auth** | ^2.80.0 | JWT-based authentication |
+| **Supabase SSR** | ^0.7.0 | Server-side rendering auth support |
+
+### AI & LLM
+| Technology | Version | Purpose |
+|-----------|---------|---------|
+| **OpenAI API** | ^6.8.1 | LLM integration (model-agnostic design) |
+
+### Testing
+| Technology | Version | Purpose |
+|-----------|---------|---------|
+| **Jest** | ^30.2.0 | Unit and integration testing |
+| **Testing Library** | ^16.3.0 | React component testing |
+| **jest-dom** | ^6.9.1 | Custom Jest matchers for DOM |
+
+### Code Quality & Development Tools
+| Technology | Version | Purpose |
+|-----------|---------|---------|
+| **ESLint** | ^9 | Code linting and quality checks |
+| **Prettier** | ^3.6.2 | Code formatting |
+| **tsx** | ^4.20.6 | TypeScript execution for scripts |
+| **Archon** | - | MCP inspector for development |
+
+### Transport & Deployment
 | Layer | Technology | Notes |
 |-------|-----------|-------|
-| **Frontend** | Next.js, React, Tailwind CSS | Web-first UI |
-| **Host** | Next.js API routes / Node.js (TypeScript) | MCP orchestration |
-| **Database** | Supabase (primary) / PostgreSQL | RLS for multi-tenancy |
-| **ORM** | Drizzle ORM | Type-safe queries |
-| **Auth** | Supabase Auth | JWT issuer |
-| **MCP** | TypeScript (JSON-RPC 2.0) | stdio (dev), HTTPS (prod) |
-| **LLM** | OpenAI API | Model-agnostic design |
-| **Inspector** | Archon | Dev-only MCP testing |
+| **MCP Protocol** | JSON-RPC 2.0 over stdio/HTTPS | stdio (dev), HTTPS (prod) |
+| **Multi-tenancy** | Row-Level Security (RLS) | Database-enforced tenant isolation |
 
 ## 📐 Architecture Principles
 
