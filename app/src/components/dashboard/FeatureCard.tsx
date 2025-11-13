@@ -31,7 +31,7 @@ export function FeatureCard({
 }: FeatureCardProps) {
   return (
     <Link href={href} className="block group">
-      <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-200 overflow-hidden">
+      <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100/50">
         {/* Color bar */}
         <div className={`h-2 ${colorClasses[color]}`}></div>
 

@@ -149,7 +149,7 @@ export function TeacherDashboard({ teacherId, teacherName }: TeacherDashboardPro
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100/50">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500">Classes</p>
@@ -168,7 +168,7 @@ export function TeacherDashboard({ teacherId, teacherName }: TeacherDashboardPro
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100/50">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500">Today&apos;s Sessions</p>
@@ -187,7 +187,7 @@ export function TeacherDashboard({ teacherId, teacherName }: TeacherDashboardPro
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100/50">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500">This Week</p>
@@ -206,7 +206,7 @@ export function TeacherDashboard({ teacherId, teacherName }: TeacherDashboardPro
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100/50">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500">Total Students</p>
@@ -225,7 +225,7 @@ export function TeacherDashboard({ teacherId, teacherName }: TeacherDashboardPro
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-100/50">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500">Pending</p>
@@ -247,7 +247,7 @@ export function TeacherDashboard({ teacherId, teacherName }: TeacherDashboardPro
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Upcoming Sessions */}
-        <div className="lg:col-span-2 bg-white rounded-lg shadow">
+        <div className="lg:col-span-2 bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-gray-100/50">
           <div className="px-6 py-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900">Upcoming Sessions</h2>
           </div>
@@ -284,7 +284,7 @@ export function TeacherDashboard({ teacherId, teacherName }: TeacherDashboardPro
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-lg shadow">
+        <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-gray-100/50">
           <div className="px-6 py-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900">Quick Actions</h2>
           </div>
