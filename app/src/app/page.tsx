@@ -72,7 +72,7 @@ export default async function LandingPage() {
           </div>
           <Link
             href="/login"
-            className="px-6 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+            className="px-6 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-medium rounded-lg hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105"
           >
             Sign In
           </Link>
@@ -101,7 +101,7 @@ export default async function LandingPage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/login"
-              className="px-8 py-3 bg-indigo-600 text-white text-lg font-semibold rounded-lg hover:bg-indigo-700 transition-colors shadow-lg hover:shadow-xl"
+              className="px-8 py-3 bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-600 text-white text-lg font-semibold rounded-lg hover:from-indigo-700 hover:via-purple-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-2xl hover:scale-105 ring-2 ring-indigo-300 ring-offset-2"
             >
               Get Started
             </Link>
@@ -216,7 +216,7 @@ export default async function LandingPage() {
             </p>
             <Link
               href="/login"
-              className="inline-block px-8 py-3 bg-white text-indigo-600 text-lg font-semibold rounded-lg hover:bg-gray-50 transition-colors shadow-lg hover:shadow-xl"
+              className="inline-block px-8 py-3 bg-white text-indigo-600 text-lg font-semibold rounded-lg hover:bg-gray-50 transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105 ring-2 ring-white/50"
             >
               Sign In to Your Account
             </Link>
