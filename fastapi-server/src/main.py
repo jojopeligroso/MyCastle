@@ -10,8 +10,14 @@ from fastapi.responses import JSONResponse
 from .config import settings
 from .core.database import init_db, close_db
 from .mcp.host import MCPHost
-from .mcp.servers.finance import FinanceMCP
-from .mcp.servers.academic import AcademicMCP
+from .mcp.servers import (
+    FinanceMCP,
+    AcademicMCP,
+    AttendanceMCP,
+    StudentServicesMCP,
+    OperationsMCP,
+    StudentMCP,
+)
 from .api import mcp, health
 
 # Configure logging
@@ -41,12 +47,20 @@ async def lifespan(app: FastAPI):
         version=settings.mcp_server_version
     )
 
-    # Register MCP servers
+    # Register all 6 MCP servers
     finance_mcp = FinanceMCP()
     academic_mcp = AcademicMCP()
+    attendance_mcp = AttendanceMCP()
+    student_services_mcp = StudentServicesMCP()
+    operations_mcp = OperationsMCP()
+    student_mcp = StudentMCP()
 
     mcp_host.register_server(finance_mcp)
     mcp_host.register_server(academic_mcp)
+    mcp_host.register_server(attendance_mcp)
+    mcp_host.register_server(student_services_mcp)
+    mcp_host.register_server(operations_mcp)
+    mcp_host.register_server(student_mcp)
 
     # Initialize MCP Host
     await mcp_host.initialize()
