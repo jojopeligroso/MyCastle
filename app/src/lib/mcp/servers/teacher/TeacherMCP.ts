@@ -38,7 +38,7 @@ import {
   lessonPlans,
 } from '@/db/schema';
 import { eq, and, gte, lte, desc, sql } from 'drizzle-orm';
-import { MCPServerConfig, MCPTool, MCPResource, MCPPrompt, MCPSession } from '../../types';
+import { MCPServerConfig, MCPTool, MCPResource, MCPPrompt } from '../../types';
 import { computeAttendanceHash, getLastHash, isWithinEditWindow } from '@/lib/hash-chain';
 
 /**
@@ -745,7 +745,7 @@ const timetableResource: MCPResource = {
   description: 'Current week\'s timetable for the teacher',
   requiredScopes: ['teacher:view_timetable'],
   mimeType: 'application/json',
-  handler: async (session, params) => {
+  handler: async (session, _params) => {
     // Get current week
     const now = new Date();
     const weekStart = new Date(now.setDate(now.getDate() - now.getDay() + 1)); // Monday
@@ -767,7 +767,7 @@ const lessonPlansResource: MCPResource = {
   description: 'Teacher\'s lesson plans',
   requiredScopes: ['teacher:view_lesson_plans'],
   mimeType: 'application/json',
-  handler: async (session, params) => {
+  handler: async (session, _params) => {
     const plans = await db
       .select()
       .from(lessonPlans)
@@ -797,7 +797,7 @@ const classesResource: MCPResource = {
   description: 'Classes taught by the teacher',
   requiredScopes: ['teacher:view_classes'],
   mimeType: 'application/json',
-  handler: async (session, params) => {
+  handler: async (session, _params) => {
     const teacherClasses = await db
       .select()
       .from(classes)

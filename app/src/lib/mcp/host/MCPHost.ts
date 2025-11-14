@@ -11,7 +11,6 @@
 import {
   MCPSession,
   MCPServerConfig,
-  MCPRequest,
   MCPResponse,
   MCPTool,
   MCPResource,
@@ -132,7 +131,7 @@ export class MCPHost {
       let tool: MCPTool | null = null;
       let serverName: string | null = null;
 
-      for (const [prefix, server] of this.servers.entries()) {
+      for (const [_prefix, server] of this.servers.entries()) {
         const foundTool = server.tools.find(t => t.name === toolName);
         if (foundTool) {
           tool = foundTool;
@@ -217,7 +216,7 @@ export class MCPHost {
       let resource: MCPResource | null = null;
       let serverName: string | null = null;
 
-      for (const [prefix, server] of this.servers.entries()) {
+      for (const [_prefix, server] of this.servers.entries()) {
         const foundResource = server.resources.find(r => r.uri === resourceUri);
         if (foundResource) {
           resource = foundResource;
@@ -283,7 +282,7 @@ export class MCPHost {
       let prompt: MCPPrompt | null = null;
       let serverName: string | null = null;
 
-      for (const [prefix, server] of this.servers.entries()) {
+      for (const [_prefix, server] of this.servers.entries()) {
         if (server.prompts) {
           const foundPrompt = server.prompts.find(p => p.name === promptName);
           if (foundPrompt) {
@@ -374,7 +373,7 @@ export class MCPHost {
     );
 
     // Process results
-    results.forEach((result, index) => {
+    results.forEach((result) => {
       if (result.status === 'fulfilled') {
         const { type, target, response } = result.value;
 
@@ -408,7 +407,7 @@ export class MCPHost {
   listTools(session: MCPSession): MCPTool[] {
     const tools: MCPTool[] = [];
 
-    for (const [prefix, server] of this.servers.entries()) {
+    for (const [_prefix, server] of this.servers.entries()) {
       for (const tool of server.tools) {
         if (ScopeMatcher.hasScope(session.scopes, tool.requiredScopes)) {
           tools.push(tool);
@@ -425,7 +424,7 @@ export class MCPHost {
   listResources(session: MCPSession): MCPResource[] {
     const resources: MCPResource[] = [];
 
-    for (const [prefix, server] of this.servers.entries()) {
+    for (const [_prefix, server] of this.servers.entries()) {
       for (const resource of server.resources) {
         if (ScopeMatcher.hasScope(session.scopes, resource.requiredScopes)) {
           resources.push(resource);
