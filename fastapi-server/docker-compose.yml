@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  fastapi-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mycastle-fastapi-mcp
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - ENV=development
+      - DEBUG=true
+    volumes:
+      - ./src:/app/src:ro
+      - ./logs:/app/logs
+    networks:
+      - mycastle-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: mycastle-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-mycastle}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mycastle_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-mycastle}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - mycastle-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mycastle}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  mycastle-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
