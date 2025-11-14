@@ -49,8 +49,9 @@ async function testConnection() {
 
     if (tables.length > 0) {
       console.log(`✅ Found ${tables.length} tables:`);
-      tables.forEach((table: { tablename: string }) => {
-        console.log(`   - ${table.tablename}`);
+      tables.forEach((table) => {
+        const typedTable = table as { tablename: string };
+        console.log(`   - ${typedTable.tablename}`);
       });
     } else {
       console.log('⚠️  No tables found. Run migrations with: npm run db:push');
@@ -66,8 +67,9 @@ async function testConnection() {
 
     if (rlsTables.length > 0) {
       console.log(`✅ RLS enabled on ${rlsTables.length} tables:`);
-      rlsTables.forEach((table: { tablename: string }) => {
-        console.log(`   - ${table.tablename}`);
+      rlsTables.forEach((table) => {
+        const typedTable = table as { tablename: string };
+        console.log(`   - ${typedTable.tablename}`);
       });
     } else {
       console.log('⚠️  No tables have RLS enabled yet (expected for new setup)');
