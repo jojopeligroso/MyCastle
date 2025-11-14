@@ -3,6 +3,9 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --gradient-from: #f0f4ff;
+  --gradient-via: #fdf2f8;
+  --gradient-to: #f0fdfa;
 }
 
 @theme inline {
@@ -16,11 +19,16 @@
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --gradient-from: #1e1b4b;
+    --gradient-via: #1e293b;
+    --gradient-to: #134e4a;
   }
 }
 
 body {
-  background: var(--background);
+  background: linear-gradient(135deg, var(--gradient-from) 0%, var(--gradient-via) 50%, var(--gradient-to) 100%);
+  background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-sans);
+  min-height: 100vh;
 }
