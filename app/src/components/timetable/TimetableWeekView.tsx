@@ -47,7 +47,7 @@ const TIME_SLOTS = [
   '18:00',
 ] as const;
 
-export function TimetableWeekView({ teacherId }: TimetableWeekViewProps) {
+export function TimetableWeekView({ teacherId: _teacherId }: TimetableWeekViewProps) {
   const [sessions, setSessions] = useState<TimetableSession[]>([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isLoading, setIsLoading] = useState(false);
