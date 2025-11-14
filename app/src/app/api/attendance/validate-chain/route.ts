@@ -9,7 +9,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { attendance, classSessions, classes } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { validateHashChain } from '@/lib/hash-chain';
 import { getCurrentUser } from '@/lib/auth/utils';
 
