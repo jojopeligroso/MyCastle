@@ -90,7 +90,7 @@ export default function MagicLinkLoginPage() {
               Check your email
             </h2>
             <p className="text-gray-600 mb-6">
-              If an account exists with <strong>{email}</strong>, we've sent you a magic link.
+              If an account exists with <strong>{email}</strong>, we&apos;ve sent you a magic link.
             </p>
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
               <p className="text-sm text-blue-800">
@@ -99,7 +99,7 @@ export default function MagicLinkLoginPage() {
               </p>
             </div>
             <p className="text-sm text-gray-500 mb-4">
-              Didn't receive an email? Check your spam folder or try again.
+              Didn&apos;t receive an email? Check your spam folder or try again.
             </p>
             <button
               onClick={() => {
@@ -160,7 +160,7 @@ export default function MagicLinkLoginPage() {
               disabled={loading}
             />
             <p className="mt-2 text-xs text-gray-500">
-              We'll send you a magic link to sign in instantly
+              We&apos;ll send you a magic link to sign in instantly
             </p>
           </div>
 

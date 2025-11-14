@@ -121,7 +121,7 @@ export default function LoginPage() {
             Sign in with magic link
           </Link>
           <p className="text-center text-xs text-gray-500">
-            No password required - we'll email you a secure link
+            No password required - we&apos;ll email you a secure link
           </p>
         </div>
       </div>
