@@ -17,11 +17,6 @@ const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
 const MAX_REQUESTS_PER_WINDOW = 3; // 3 requests per minute per IP/email
 
-interface RateLimitEntry {
-  count: number;
-  resetAt: number;
-}
-
 function checkRateLimit(key: string): { allowed: boolean; retryAfter?: number } {
   const now = Date.now();
   const entry = rateLimitStore.get(key);
@@ -126,7 +121,7 @@ export async function POST(request: NextRequest) {
 
     // Check if user exists in our database
     // This prevents sending magic links to random emails
-    const { data: userData, error: userCheckError } = await supabase
+    const { data: userData } = await supabase
       .from('users')
       .select('id, email, status, auth_id')
       .eq('email', email.toLowerCase())

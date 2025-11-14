@@ -5,7 +5,6 @@
  */
 
 import { requireAuth } from '@/lib/auth/utils';
-import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { Navigation } from '@/components/layout/Navigation';
 import { FeatureCard } from '@/components/dashboard/FeatureCard';
@@ -14,13 +13,6 @@ export default async function DashboardPage() {
   const user = await requireAuth().catch(() => {
     redirect('/login');
   });
-
-  const handleSignOut = async () => {
-    'use server';
-    const supabase = await createClient();
-    await supabase.auth.signOut();
-    redirect('/login');
-  };
 
   const userRole = user.user_metadata?.role || 'student';
 

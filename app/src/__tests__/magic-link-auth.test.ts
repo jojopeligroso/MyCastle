@@ -8,7 +8,7 @@
  * - Timing attack prevention
  */
 
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { describe, it, expect, jest } from '@jest/globals';
 
 // Mock the Next.js modules
 jest.mock('next/headers', () => ({

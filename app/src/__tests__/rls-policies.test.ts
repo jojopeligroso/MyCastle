@@ -14,7 +14,7 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
 import { db } from '../db';
 import { sql } from 'drizzle-orm';
-import { tenants, users, classes, enrollments, classSessions, attendance } from '../db/schema';
+import { tenants, users, classes, enrollments } from '../db/schema';
 
 // Test data IDs
 let tenant1Id: string;
@@ -526,7 +526,7 @@ describe('RLS Policies - Rollback Safety', () => {
           start_date: new Date('2025-01-01'),
         });
       });
-    } catch (error) {
+    } catch {
       // Expected to fail
     }
 

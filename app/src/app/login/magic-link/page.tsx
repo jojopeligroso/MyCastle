@@ -8,7 +8,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 export default function MagicLinkLoginPage() {
@@ -16,7 +16,6 @@ export default function MagicLinkLoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   // Show any error from URL params (e.g., from auth callback)
