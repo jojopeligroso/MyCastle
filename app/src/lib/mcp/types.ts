@@ -18,12 +18,52 @@ import { z } from 'zod';
 export const ScopeSchema = z.string().regex(/^[a-z]+:[a-z_*]+$/);
 
 /**
+ * User roles in the system (v3.0 architecture)
+ *
+ * Admin roles hierarchy (all require super_admin to assign):
+ * - super_admin: Full system access including identity management
+ * - admin: Legacy full operational access (gradually being replaced by specialized roles)
+ * - admin_dos: Director of Studies - academic oversight and curriculum management
+ * - admin_reception: Front desk operations, student check-in, basic info
+ * - admin_student_operations: Student services, accommodations, enrollment management
+ * - admin_sales: Financial operations, invoice creation, payment tracking
+ * - admin_marketing: Marketing campaigns, lead management, demographics
+ * - admin_agent: Limited partner/agent role - can request invoices only (requires approval)
+ *
+ * Teacher roles:
+ * - teacher: Standard teaching staff
+ * - teacher_dos: Director of Studies (teaching + academic leadership)
+ * - teacher_assistant_dos: Assistant Director of Studies (teaching + limited academic admin)
+ *
+ * Other roles:
+ * - student: Students
+ * - guest: No access
+ *
+ * NOTE: Multi-role support planned for v3.1 - users will be able to hold multiple roles
+ * Currently: Single primary role per user
+ */
+export type UserRole =
+  | 'super_admin'
+  | 'admin'
+  | 'admin_dos'
+  | 'admin_reception'
+  | 'admin_student_operations'
+  | 'admin_sales'
+  | 'admin_marketing'
+  | 'admin_agent'
+  | 'teacher'
+  | 'teacher_dos'
+  | 'teacher_assistant_dos'
+  | 'student'
+  | 'guest';
+
+/**
  * JWT Claims extracted from Supabase session
  */
 export interface JWTClaims {
   sub: string; // User ID
   email?: string;
-  role: 'admin' | 'teacher' | 'student';
+  role: UserRole;
   tenant_id: string;
   scopes?: string[]; // e.g., ['teacher:*', 'student:view_grades']
   app_metadata?: {
@@ -43,7 +83,7 @@ export interface MCPSession {
   sessionId: string;
   userId: string;
   tenantId: string;
-  role: 'admin' | 'teacher' | 'student';
+  role: UserRole;
   scopes: string[];
   expiresAt: Date;
   metadata?: Record<string, unknown>;
@@ -180,17 +220,62 @@ export class ScopeMatcher {
   }
 
   /**
-   * Generate scopes from user role
-   * Admin gets all scopes, teacher gets teacher:*, student gets student:*
+   * Generate scopes from user role (v3.0 architecture)
    */
-  static generateScopes(role: 'admin' | 'teacher' | 'student'): string[] {
+  static generateScopes(role: UserRole): string[] {
     switch (role) {
+      case 'super_admin':
+        // Full system access including identity management and student profiles
+        return ['identity:*', 'academic:*', 'attendance:*', 'finance:*', 'student_services:*', 'operations:*', 'marketing:*', 'student:profile:*'];
+
       case 'admin':
-        return ['admin:*', 'teacher:*', 'student:*'];
+        // Legacy full admin role - all operational scopes except identity:*
+        return ['academic:*', 'attendance:*', 'finance:*', 'student_services:*', 'operations:read', 'student:profile:read'];
+
+      case 'admin_dos':
+        // Director of Studies: academic operations, curriculum, quality assurance, full student profile access
+        return ['academic:*', 'attendance:read', 'teacher:view_all', 'operations:quality_assurance', 'student:profile:*'];
+
+      case 'admin_reception':
+        // Front desk: view students, check attendance, view schedules
+        return ['academic:read', 'attendance:read', 'student_services:read', 'student:view_info'];
+
+      case 'admin_student_operations':
+        // Student services: manage accommodations, enrollments, student records, full student profile access
+        return ['student_services:*', 'academic:read', 'academic:enroll_students', 'attendance:write', 'student:profile:*'];
+
+      case 'admin_sales':
+        // Sales & invoicing: full finance access, view academic offerings
+        return ['finance:*', 'academic:read', 'student:view_info', 'marketing:read'];
+
+      case 'admin_marketing':
+        // Marketing: campaigns, leads, demographics
+        return ['marketing:*', 'academic:read', 'student:view_demographics', 'finance:read'];
+
+      case 'admin_agent':
+        // Limited partner/agent role: request invoices only (requires approval)
+        return ['finance:request_invoice', 'academic:read', 'student:view_public_info'];
+
       case 'teacher':
-        return ['teacher:*', 'student:view_grades', 'student:view_attendance'];
+        // Standard teaching: lessons, attendance, grading, full student profile access
+        return ['teacher:*', 'academic:read', 'attendance:write', 'student:profile:*'];
+
+      case 'teacher_dos':
+        // Director of Studies (teacher): teaching + academic leadership + teacher oversight + student profiles
+        return ['teacher:*', 'academic:write', 'academic:curriculum_design', 'attendance:*', 'teacher:view_all', 'operations:quality_assurance', 'student:profile:*'];
+
+      case 'teacher_assistant_dos':
+        // Assistant Director of Studies: teaching + limited academic admin + student profiles
+        return ['teacher:*', 'academic:read', 'academic:suggest_changes', 'attendance:write', 'teacher:view_all', 'student:profile:*'];
+
       case 'student':
+        // Student portal access
         return ['student:*'];
+
+      case 'guest':
+        // No access
+        return [];
+
       default:
         return [];
     }

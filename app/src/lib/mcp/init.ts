@@ -4,6 +4,7 @@
 
 import { getMCPHost } from './host/MCPHost';
 import { teacherMCPConfig } from './servers/teacher/TeacherMCP';
+import { identityAccessMCPConfig } from './servers/identity/IdentityAccessMCP';
 
 /**
  * Initialize all MCP servers
@@ -14,13 +15,18 @@ export function initializeMCP(): void {
 
   console.log('[MCP] Initializing MCP servers...');
 
-  // Register Teacher MCP Server
+  // Register v3.0 MCP Servers
+  // Priority order: Identity first (foundation), then Teacher
+  host.registerServer(identityAccessMCPConfig);
   host.registerServer(teacherMCPConfig);
 
-  // Future servers can be registered here:
-  // host.registerServer(adminMCPConfig);
+  // Future servers to be registered:
+  // host.registerServer(academicOperationsMCPConfig);
+  // host.registerServer(attendanceComplianceMCPConfig);
+  // host.registerServer(financeMCPConfig);
+  // host.registerServer(studentServicesMCPConfig);
+  // host.registerServer(operationsQualityMCPConfig);
   // host.registerServer(studentMCPConfig);
-  // host.registerServer(identityMCPConfig);
 
   console.log(`[MCP] Registered ${host.listServers().length} MCP servers`);
 }
