@@ -7,6 +7,7 @@ import { teacherMCPConfig } from './servers/teacher/TeacherMCP';
 import { identityAccessMCPConfig } from './servers/identity/IdentityAccessMCP';
 import { financeMCPConfig } from './servers/finance/FinanceMCP';
 import { academicOperationsMCPConfig } from './servers/academic/AcademicOperationsMCP';
+import { attendanceComplianceMCPConfig } from './servers/attendance/AttendanceComplianceMCP';
 
 /**
  * Initialize all MCP servers
@@ -22,10 +23,10 @@ export function initializeMCP(): void {
   host.registerServer(identityAccessMCPConfig);
   host.registerServer(financeMCPConfig);
   host.registerServer(academicOperationsMCPConfig);
+  host.registerServer(attendanceComplianceMCPConfig);
   host.registerServer(teacherMCPConfig);
 
   // Future servers to be registered:
-  // host.registerServer(attendanceComplianceMCPConfig);
   // host.registerServer(studentServicesMCPConfig);
   // host.registerServer(operationsQualityMCPConfig);
   // host.registerServer(studentMCPConfig);
