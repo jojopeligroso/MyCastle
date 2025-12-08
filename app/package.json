@@ -29,7 +29,7 @@
     "@supabase/supabase-js": "^2.80.0",
     "drizzle-orm": "^0.44.7",
     "next": "16.0.1",
-    "openai": "^6.8.1",
+    "openai": "^6.9.1",
     "postgres": "^3.4.7",
     "react": "19.2.0",
     "react-dom": "19.2.0",
