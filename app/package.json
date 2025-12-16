@@ -21,7 +21,12 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "mcp:identity": "tsx src/lib/mcp/servers/identity/server.ts",
+    "mcp:finance": "tsx src/lib/mcp/servers/finance/server.ts",
+    "mcp:academic": "tsx src/lib/mcp/servers/academic/server.ts",
+    "mcp:attendance": "tsx src/lib/mcp/servers/attendance/server.ts",
+    "mcp:teacher": "tsx src/lib/mcp/servers/teacher/server.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.21.1",
