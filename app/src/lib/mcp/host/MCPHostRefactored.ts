@@ -390,6 +390,26 @@ export class MCPHost {
   }
 
   /**
+   * List all available prompts across all servers
+   */
+  async listPrompts(session: MCPSession): Promise<any[]> {
+    const allPrompts: any[] = [];
+
+    for (const [_prefix, server] of this.servers.entries()) {
+      try {
+        const result = await server.client.listPrompts();
+        if (result.prompts) {
+          allPrompts.push(...result.prompts);
+        }
+      } catch (error) {
+        console.error(`[MCP Host] Failed to list prompts from ${server.config.name}:`, error);
+      }
+    }
+
+    return allPrompts;
+  }
+
+  /**
    * Health check
    */
   async healthCheck(): Promise<{

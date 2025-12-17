@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getMCPHostInstance } from '@/lib/mcp/initRefactored';
+import { getMCPHostInstance } from '@/lib/mcp/init';
 import { createClient } from '@/lib/supabase/server';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -70,8 +70,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json(response, { status: 200 });
     } else {
       const statusCode = response.error?.code === 'UNAUTHORIZED' ? 401 :
-                         response.error?.code === 'FORBIDDEN' ? 403 :
-                         response.error?.code === 'RESOURCE_NOT_FOUND' ? 404 : 500;
+        response.error?.code === 'FORBIDDEN' ? 403 :
+          response.error?.code === 'RESOURCE_NOT_FOUND' ? 404 : 500;
 
       return NextResponse.json(response, { status: statusCode });
     }

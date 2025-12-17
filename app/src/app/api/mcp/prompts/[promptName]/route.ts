@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getMCPHostInstance } from '@/lib/mcp/init';
+import { createClient } from '@/lib/supabase/server';
 
 export async function GET(
   request: NextRequest,
@@ -13,10 +14,27 @@ export async function GET(
   try {
     const { promptName } = await params;
 
-    const host = getMCPHostInstance();
+    const host = await getMCPHostInstance();
 
-    // Verify session
-    const session = await host.verifyAndCreateSession();
+    // Verify session via Supabase
+    const supabase = await createClient();
+    const { data: { session: supabaseSession }, error } = await supabase.auth.getSession();
+
+    if (error || !supabaseSession) {
+      return NextResponse.json(
+        { success: false, error: { code: 'UNAUTHORIZED', message: 'Not authenticated' } },
+        { status: 401 }
+      );
+    }
+
+    // Create MCP session
+    const session = await host.createSession({
+      sub: supabaseSession.user.id,
+      email: supabaseSession.user.email,
+      role: (supabaseSession.user.app_metadata?.role as string) || 'student',
+      tenant_id: (supabaseSession.user.app_metadata?.tenant_id as string) || 'default',
+      scopes: supabaseSession.user.app_metadata?.scopes,
+    });
 
     // Get prompt
     const response = await host.getPrompt(promptName, session);
@@ -25,8 +43,8 @@ export async function GET(
       return NextResponse.json(response, { status: 200 });
     } else {
       const statusCode = response.error?.code === 'UNAUTHORIZED' ? 401 :
-                         response.error?.code === 'FORBIDDEN' ? 403 :
-                         response.error?.code === 'RESOURCE_NOT_FOUND' ? 404 : 500;
+        response.error?.code === 'FORBIDDEN' ? 403 :
+          response.error?.code === 'PROMPT_NOT_FOUND' ? 404 : 500;
 
       return NextResponse.json(response, { status: statusCode });
     }

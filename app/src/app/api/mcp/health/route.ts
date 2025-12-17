@@ -8,7 +8,7 @@ import { getMCPHostInstance } from '@/lib/mcp/init';
 
 export async function GET(_request: NextRequest): Promise<NextResponse> {
   try {
-    const host = getMCPHostInstance();
+    const host = await getMCPHostInstance();
 
     const health = await host.healthCheck();
 

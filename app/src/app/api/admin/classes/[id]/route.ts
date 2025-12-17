@@ -26,10 +26,12 @@ const updateClassSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     // Verify authentication
+
     const user = await requireAuth();
     const tenantId = await getTenantId();
 
@@ -59,7 +61,7 @@ export async function PATCH(
     const [existingClass] = await db
       .select()
       .from(classes)
-      .where(and(eq(classes.id, params.id), eq(classes.tenant_id, tenantId)))
+      .where(and(eq(classes.id, id), eq(classes.tenant_id, tenantId)))
       .limit(1);
 
     if (!existingClass) {
@@ -76,7 +78,7 @@ export async function PATCH(
         ...validatedData,
         updated_at: new Date(),
       })
-      .where(and(eq(classes.id, params.id), eq(classes.tenant_id, tenantId)))
+      .where(and(eq(classes.id, id), eq(classes.tenant_id, tenantId)))
       .returning();
 
     return NextResponse.json({
@@ -102,10 +104,12 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     // Verify authentication
+
     const user = await requireAuth();
     const tenantId = await getTenantId();
 
@@ -131,7 +135,7 @@ export async function DELETE(
     const [existingClass] = await db
       .select()
       .from(classes)
-      .where(and(eq(classes.id, params.id), eq(classes.tenant_id, tenantId)))
+      .where(and(eq(classes.id, id), eq(classes.tenant_id, tenantId)))
       .limit(1);
 
     if (!existingClass) {
@@ -148,7 +152,7 @@ export async function DELETE(
         status: 'cancelled',
         updated_at: new Date(),
       })
-      .where(and(eq(classes.id, params.id), eq(classes.tenant_id, tenantId)));
+      .where(and(eq(classes.id, id), eq(classes.tenant_id, tenantId)));
 
     return NextResponse.json({
       success: true,

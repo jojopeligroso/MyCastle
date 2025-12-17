@@ -1,49 +1,129 @@
 /**
- * MCP Initialization - Register all MCP servers with the host
+ * MCP Initialization - Register MCP servers as separate processes
+ *
+ * Each server runs as a standalone process and communicates via stdio using JSON-RPC 2.0
  */
 
-import { getMCPHost } from './host/MCPHost';
-import { teacherMCPConfig } from './servers/teacher/TeacherMCP';
-import { identityAccessMCPConfig } from './servers/identity/IdentityAccessMCP';
-import { financeMCPConfig } from './servers/finance/FinanceMCP';
-import { academicOperationsMCPConfig } from './servers/academic/AcademicOperationsMCP';
-import { attendanceComplianceMCPConfig } from './servers/attendance/AttendanceComplianceMCP';
+import { getMCPHost } from './host/MCPHostRefactored';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 /**
- * Initialize all MCP servers
+ * Initialize all MCP servers as separate processes
  * Called on application startup
  */
-export function initializeMCP(): void {
+export async function initializeMCP(): Promise<void> {
   const host = getMCPHost();
 
-  console.log('[MCP] Initializing MCP servers...');
+  console.log('[MCP] Initializing MCP servers as separate processes...');
 
-  // Register v3.0 MCP Servers
-  // Priority order: Identity first (foundation), then domain-specific MCPs
-  host.registerServer(identityAccessMCPConfig);
-  host.registerServer(financeMCPConfig);
-  host.registerServer(academicOperationsMCPConfig);
-  host.registerServer(attendanceComplianceMCPConfig);
-  host.registerServer(teacherMCPConfig);
+  // Get the path to the servers directory
+  const serversDir = path.join(process.cwd(), 'src/lib/mcp/servers');
 
-  // Future servers to be registered:
-  // host.registerServer(studentServicesMCPConfig);
-  // host.registerServer(operationsQualityMCPConfig);
-  // host.registerServer(studentMCPConfig);
+  try {
+    // Register Identity MCP Server
+    await host.registerServer({
+      name: 'Identity & Access MCP',
+      version: '3.0.0',
+      scopePrefix: 'identity',
+      command: 'tsx', // Use tsx to run TypeScript directly
+      args: [path.join(serversDir, 'identity/server.ts')],
+      env: {
+        // Pass any necessary environment variables
+        DATABASE_URL: process.env.DATABASE_URL || '',
+        SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+        SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+      },
+    });
 
-  console.log(`[MCP] Registered ${host.listServers().length} MCP servers`);
+    console.log('[MCP] Successfully initialized Identity MCP server');
+
+    // Register Finance MCP Server
+    await host.registerServer({
+      name: 'Finance MCP',
+      version: '3.0.0',
+      scopePrefix: 'finance',
+      command: 'tsx',
+      args: [path.join(serversDir, 'finance/server.ts')],
+      env: {
+        DATABASE_URL: process.env.DATABASE_URL || '',
+        SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+        SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+      },
+    });
+
+    // Register Academic Operations MCP Server
+    await host.registerServer({
+      name: 'Academic Operations MCP',
+      version: '3.0.0',
+      scopePrefix: 'academic',
+      command: 'tsx',
+      args: [path.join(serversDir, 'academic/server.ts')],
+      env: {
+        DATABASE_URL: process.env.DATABASE_URL || '',
+        SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+        SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+      },
+    });
+
+    // Register Attendance & Compliance MCP Server
+    await host.registerServer({
+      name: 'Attendance & Compliance MCP',
+      version: '3.0.0',
+      scopePrefix: 'attendance',
+      command: 'tsx',
+      args: [path.join(serversDir, 'attendance/server.ts')],
+      env: {
+        DATABASE_URL: process.env.DATABASE_URL || '',
+        SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+        SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+      },
+    });
+
+    // Register Teacher MCP Server
+    await host.registerServer({
+      name: 'Teacher MCP',
+      version: '3.0.0',
+      scopePrefix: 'teacher',
+      command: 'tsx',
+      args: [path.join(serversDir, 'teacher/server.ts')],
+      env: {
+        DATABASE_URL: process.env.DATABASE_URL || '',
+        SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+        SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+      },
+    });
+
+    console.log(`[MCP] All 5 servers registered and connected`);
+  } catch (error) {
+    console.error('[MCP] Failed to initialize MCP servers:', error);
+    throw error;
+  }
 }
 
 /**
  * Get initialized MCP Host instance
  */
-export function getMCPHostInstance() {
+export async function getMCPHostInstance() {
   const host = getMCPHost();
 
-  // Ensure servers are registered
-  if (host.listServers().length === 0) {
-    initializeMCP();
+  // Check if servers are registered
+  const health = await host.healthCheck();
+
+  if (health.servers.length === 0) {
+    console.log('[MCP] No servers registered, initializing...');
+    await initializeMCP();
   }
 
   return host;
+}
+
+/**
+ * Cleanup function to close all server connections
+ */
+export async function shutdownMCP(): Promise<void> {
+  console.log('[MCP] Shutting down MCP servers...');
+  const host = getMCPHost();
+  await host.close();
+  console.log('[MCP] All servers shut down');
 }
