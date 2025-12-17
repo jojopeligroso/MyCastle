@@ -32,9 +32,10 @@ const supabaseAdmin = createClient(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     // Verify authentication
     const user = await requireAuth();
     const tenantId = await getTenantId();
@@ -65,7 +66,7 @@ export async function PATCH(
     const [existingUser] = await db
       .select()
       .from(users)
-      .where(and(eq(users.id, params.id), eq(users.tenant_id, tenantId)))
+      .where(and(eq(users.id, id), eq(users.tenant_id, tenantId)))
       .limit(1);
 
     if (!existingUser) {
@@ -92,7 +93,7 @@ export async function PATCH(
       }
 
       const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(
-        params.id,
+        id,
         authUpdates
       );
 
@@ -112,7 +113,7 @@ export async function PATCH(
         ...validatedData,
         updated_at: new Date(),
       })
-      .where(and(eq(users.id, params.id), eq(users.tenant_id, tenantId)))
+      .where(and(eq(users.id, id), eq(users.tenant_id, tenantId)))
       .returning();
 
     return NextResponse.json({

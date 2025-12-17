@@ -7,11 +7,11 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-export default function MagicLinkLoginPage() {
+function MagicLinkContent() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -235,5 +235,13 @@ export default function MagicLinkLoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function MagicLinkLoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50">Loading...</div>}>
+      <MagicLinkContent />
+    </Suspense>
   );
 }

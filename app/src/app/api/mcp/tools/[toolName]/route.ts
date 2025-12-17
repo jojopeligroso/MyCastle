@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getMCPHostInstance } from '@/lib/mcp/initRefactored';
+import { getMCPHostInstance } from '@/lib/mcp/init';
 import { createClient } from '@/lib/supabase/server';
 
 export async function POST(
@@ -52,9 +52,9 @@ export async function POST(
       return NextResponse.json(response, { status: 200 });
     } else {
       const statusCode = response.error?.code === 'UNAUTHORIZED' ? 401 :
-                         response.error?.code === 'FORBIDDEN' ? 403 :
-                         response.error?.code === 'TOOL_NOT_FOUND' ? 404 :
-                         response.error?.code === 'INVALID_INPUT' ? 400 : 500;
+        response.error?.code === 'FORBIDDEN' ? 403 :
+          response.error?.code === 'TOOL_NOT_FOUND' ? 404 :
+            response.error?.code === 'INVALID_INPUT' ? 400 : 500;
 
       return NextResponse.json(response, { status: statusCode });
     }

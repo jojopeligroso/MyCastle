@@ -2,11 +2,11 @@
 /**
  * Finance MCP Server - Standalone Process
  *
- * Provides 9 tools for financial management
+ * Provides tools for financial management
  * Communicates via stdio using JSON-RPC 2.0
  */
 
-import { McpServer } from '@modelcontextprotocol/sdk/server/index.js';
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
 import { db } from '@/db';
@@ -29,15 +29,21 @@ function generateInvoiceNumber(tenantId: string): string {
 }
 
 async function logFinanceAudit(params: any) {
-  await db.insert(auditLogs).values({
-    tenant_id: params.tenantId,
-    user_id: params.userId,
-    action: params.action,
-    resource_type: params.resourceType,
-    resource_id: params.resourceId,
-    changes: params.changes,
-    metadata: params.metadata,
-  });
+  try {
+    const insertData: any = {
+      tenant_id: params.tenantId,
+      user_id: params.userId,
+      action: params.action,
+      resource_type: params.resourceType,
+      resource_id: params.resourceId,
+      changes: params.changes,
+      metadata: params.metadata,
+    };
+
+    await db.insert(auditLogs).values(insertData);
+  } catch (err) {
+    console.error('Audit Log Failed:', err);
+  }
 }
 
 async function main() {
@@ -56,17 +62,14 @@ async function main() {
   );
 
   // Tool: create_booking
-  server.registerTool(
+  server.tool(
     'create_booking',
     {
-      description: 'Create a course booking for a student (generates invoice)',
-      inputSchema: {
-        student_id: z.string().uuid().describe('Student user ID'),
-        class_id: z.string().uuid().describe('Class to book'),
-        amount: z.number().positive().describe('Booking amount'),
-        currency: z.string().length(3).default('USD'),
-        due_date: z.string().optional().describe('Invoice due date (ISO 8601)'),
-      },
+      student_id: z.string().uuid().describe('Student user ID'),
+      class_id: z.string().uuid().describe('Class to book'),
+      amount: z.number().positive().describe('Booking amount'),
+      currency: z.string().length(3).default('USD'),
+      due_date: z.string().optional().describe('Invoice due date (ISO 8601)'),
     },
     async (args, extra) => {
       const session = getSessionFromContext(extra);
@@ -75,18 +78,21 @@ async function main() {
       const invoiceNumber = generateInvoiceNumber(session.tenantId);
       const dueDate = due_date ? new Date(due_date) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
+      const insertData: any = {
+        tenant_id: session.tenantId,
+        invoice_number: invoiceNumber,
+        student_id,
+        amount: amount.toString(),
+        currency,
+        status: 'pending',
+        due_date: dueDate,
+        issue_date: new Date(),
+        description: `Booking for class ${class_id}`,
+      };
+
       const [invoice] = await db
         .insert(invoices)
-        .values({
-          tenant_id: session.tenantId,
-          invoice_number: invoiceNumber,
-          student_id,
-          amount,
-          currency,
-          status: 'pending',
-          due_date: dueDate,
-          issued_by: session.userId,
-        })
+        .values(insertData)
         .returning();
 
       await logFinanceAudit({
@@ -110,14 +116,11 @@ async function main() {
   );
 
   // Tool: issue_invoice
-  server.registerTool(
+  server.tool(
     'issue_invoice',
     {
-      description: 'Generate and issue an invoice',
-      inputSchema: {
-        booking_id: z.string().uuid().describe('Booking ID'),
-        send_email: z.boolean().default(true).describe('Send invoice via email'),
-      },
+      booking_id: z.string().uuid().describe('Booking ID'),
+      send_email: z.boolean().default(true).describe('Send invoice via email'),
     },
     async (args, extra) => {
       const session = getSessionFromContext(extra);
@@ -136,11 +139,10 @@ async function main() {
   );
 
   // Resource: finance://invoices
-  server.registerResource(
+  server.resource(
     'invoices',
     'finance://invoices',
     {
-      description: 'All invoices with status',
       mimeType: 'application/json',
     },
     async (uri, extra) => {
@@ -156,7 +158,7 @@ async function main() {
       return {
         contents: [
           {
-            uri,
+            uri: uri.toString(),
             mimeType: 'application/json',
             text: JSON.stringify({ invoices: allInvoices, total: allInvoices.length }, null, 2),
           },
@@ -166,11 +168,9 @@ async function main() {
   );
 
   // Prompt: finance_persona
-  server.registerPrompt(
+  server.prompt(
     'finance_persona',
-    {
-      description: 'Finance-focused AI assistant persona',
-    },
+    'Finance-focused AI assistant persona',
     async () => {
       return {
         messages: [

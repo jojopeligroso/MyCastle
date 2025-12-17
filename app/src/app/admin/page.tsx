@@ -4,17 +4,14 @@
 
 import { db } from '@/db';
 import { users, classes, invoices, enrollments } from '@/db/schema';
-import { eq, and, count, sum, sql } from 'drizzle-orm';
+import { eq, and, count, sum } from 'drizzle-orm';
 import { requireAuth, getTenantId } from '@/lib/auth/utils';
 import Link from 'next/link';
 
 async function getDashboardStats(tenantId: string) {
   // Get total users by role
   const userStats = await db
-    .select({
-      role: users.role,
-      count: count(),
-    })
+    .select({ role: users.role, count: count() })
     .from(users)
     .where(and(eq(users.tenant_id, tenantId), eq(users.status, 'active')))
     .groupBy(users.role);
@@ -49,183 +46,139 @@ async function getDashboardStats(tenantId: string) {
 }
 
 export default async function AdminDashboard() {
-  await requireAuth();
+  const user = await requireAuth();
   const tenantId = await getTenantId();
 
   if (!tenantId) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500">Unable to load dashboard. Please contact support.</p>
+        <p className="text-gray-500">Unable to load dashboard. Contact support.</p>
       </div>
     );
   }
 
-  const stats = await getDashboardStats(tenantId);
+  // Graceful fallback if DB fails
+  let stats = { users: [], activeClasses: 0, pendingInvoices: { count: 0, total: '0' }, totalEnrollments: 0 };
+  let dbError = false;
 
-  const userCounts = stats.users.reduce((acc, u) => {
+  try {
+    stats = await getDashboardStats(tenantId);
+  } catch (err) {
+    console.error("Dashboard stats failed:", err);
+    dbError = true;
+  }
+
+  const userCounts = (stats.users || []).reduce((acc: any, u: any) => {
     acc[u.role] = u.count;
     return acc;
   }, {} as Record<string, number>);
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="mt-2 text-gray-600">Overview of your school operations</p>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {/* Total Students */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Students</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">
-                {userCounts['student'] || 0}
-              </p>
-            </div>
-            <div className="p-3 bg-blue-100 rounded-full">
-              <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-            </div>
-          </div>
-          <div className="mt-4">
-            <Link href="/admin/users?role=student" className="text-sm text-blue-600 hover:text-blue-800">
-              View all students →
-            </Link>
-          </div>
+      <div className="mb-8 flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Welcome back, {user.user_metadata?.name || 'Admin'}!</h1>
+          <p className="mt-2 text-gray-600">Here is your improved command center.</p>
         </div>
-
-        {/* Total Teachers */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Teachers</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">
-                {userCounts['teacher'] || 0}
-              </p>
-            </div>
-            <div className="p-3 bg-green-100 rounded-full">
-              <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-            </div>
-          </div>
-          <div className="mt-4">
-            <Link href="/admin/users?role=teacher" className="text-sm text-green-600 hover:text-green-800">
-              View all teachers →
-            </Link>
-          </div>
-        </div>
-
-        {/* Active Classes */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Active Classes</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">{stats.activeClasses}</p>
-            </div>
-            <div className="p-3 bg-purple-100 rounded-full">
-              <svg className="w-6 h-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-              </svg>
-            </div>
-          </div>
-          <div className="mt-4">
-            <Link href="/admin/classes" className="text-sm text-purple-600 hover:text-purple-800">
-              Manage classes →
-            </Link>
-          </div>
-        </div>
-
-        {/* Pending Invoices */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Pending Invoices</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">
-                {stats.pendingInvoices.count}
-              </p>
-              <p className="text-sm text-gray-500 mt-1">
-                ${parseFloat(stats.pendingInvoices.total).toFixed(2)}
-              </p>
-            </div>
-            <div className="p-3 bg-orange-100 rounded-full">
-              <svg className="w-6 h-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-          </div>
-          <div className="mt-4">
-            <Link href="/admin/finance" className="text-sm text-orange-600 hover:text-orange-800">
-              View invoices →
-            </Link>
-          </div>
+        <div>
+          {dbError && (
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+              ⚠️ Data sync issues detected
+            </span>
+          )}
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="bg-white rounded-lg shadow mb-8">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Quick Actions</h2>
-        </div>
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Link
-              href="/admin/users?action=create"
-              className="flex items-center p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors"
-            >
-              <svg className="w-8 h-8 text-blue-600 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-              </svg>
-              <div>
-                <p className="font-medium text-gray-900">Create User</p>
-                <p className="text-sm text-gray-500">Add new student or teacher</p>
-              </div>
-            </Link>
-
-            <Link
-              href="/admin/classes?action=create"
-              className="flex items-center p-4 border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-colors"
-            >
-              <svg className="w-8 h-8 text-purple-600 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              <div>
-                <p className="font-medium text-gray-900">Schedule Class</p>
-                <p className="text-sm text-gray-500">Create new class schedule</p>
-              </div>
-            </Link>
-
-            <Link
-              href="/admin/finance?action=create_invoice"
-              className="flex items-center p-4 border border-gray-200 rounded-lg hover:border-green-300 hover:bg-green-50 transition-colors"
-            >
-              <svg className="w-8 h-8 text-green-600 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <div>
-                <p className="font-medium text-gray-900">Create Invoice</p>
-                <p className="text-sm text-gray-500">Issue new invoice</p>
-              </div>
-            </Link>
-          </div>
-        </div>
+      {/* KPI Tiles */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <StatsTile
+          title="Total Students"
+          value={userCounts['student'] || 0}
+          icon="users"
+          color="blue"
+          link="/admin/students"
+        />
+        <StatsTile
+          title="Active Teachers"
+          value={userCounts['teacher'] || 0}
+          icon="academic-cap"
+          color="green"
+          link="/admin/teachers"
+        />
+        <StatsTile
+          title="Active Classes"
+          value={stats.activeClasses}
+          icon="book-open"
+          color="purple"
+          link="/admin/classes"
+        />
+        <StatsTile
+          title="Pending Revenue"
+          value={`$${stats.pendingInvoices.total}`}
+          icon="currency-dollar"
+          color="yellow"
+          link="/admin/finance"
+        />
       </div>
 
-      {/* Recent Activity */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
-        </div>
-        <div className="p-6">
-          <p className="text-gray-500 text-center py-8">
-            Activity feed coming soon...
-          </p>
-        </div>
+      <h2 className="text-xl font-semibold text-gray-800 mb-4">Management Modules</h2>
+
+      {/* Module Navigation Tiles */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+        {/* Registry */}
+        <NavTile title="User Management" desc="Manage accounts & roles" href="/admin/users" icon="user-group" />
+        <NavTile title="Student Registry" desc="Profiles & enrollments" href="/admin/students" icon="user" />
+        <NavTile title="Class Management" desc="Cohorts & scheduling" href="/admin/classes" icon="library" />
+
+        {/* Academic */}
+        <NavTile title="Timetables" desc="Weekly schedules" href="/admin/timetable" icon="calendar" />
+        <NavTile title="Attendance" desc="Verify registers" href="/admin/attendance" icon="clipboard-check" />
+        <NavTile title="Progress Tracking" desc="CEFR & grades" href="/admin/progress" icon="chart-bar" />
+
+        {/* Compliance */}
+        <NavTile title="Visa Compliance" desc="Immigration status" href="/admin/compliance/visa" icon="passport" />
+        <NavTile title="Regulatory Reports" desc="Standard exports" href="/admin/compliance/regulatory" icon="document-report" />
+        <NavTile title="Audit Logs" desc="Security trail" href="/admin/audit-log" icon="shield-check" />
+
+        {/* System */}
+        <NavTile title="System Settings" desc="Configuration" href="/admin/settings" icon="cog" />
+        <NavTile title="Bulk Uploads" desc="CSV/Excel import" href="/admin/data/bulk-upload" icon="upload" />
+        <NavTile title="Help Center" desc="Diagnostics & support" href="/admin/help" icon="question-mark-circle" />
+
       </div>
     </div>
+  );
+}
+
+function StatsTile({ title, value, icon, color, link }: any) {
+  return (
+    <Link href={link} className={`bg-white rounded-xl shadow-sm p-6 border-l-4 border-${color}-500 hover:shadow-md transition-shadow`}>
+      <div className="flex justify-between items-start">
+        <div>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{title}</p>
+          <p className="mt-2 text-2xl font-bold text-gray-900">{value}</p>
+        </div>
+        <div className={`p-2 bg-${color}-50 rounded-lg`}>
+          <span className={`text-${color}-600 font-bold text-xl`}>#</span>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function NavTile({ title, desc, href, icon }: any) {
+  return (
+    <Link href={href} className="flex flex-col p-5 bg-white rounded-xl shadow-sm border border-gray-100 hover:border-blue-300 hover:shadow-md transition-all group">
+      <div className="flex items-center mb-3">
+        <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-blue-50 transition-colors mr-3">
+          <span className="text-gray-500 group-hover:text-blue-600">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+          </span>
+        </div>
+        <h3 className="font-semibold text-gray-900 group-hover:text-blue-700">{title}</h3>
+      </div>
+      <p className="text-sm text-gray-500">{desc}</p>
+    </Link>
   );
 }

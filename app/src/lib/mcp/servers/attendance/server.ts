@@ -2,15 +2,15 @@
 /**
  * Attendance & Compliance MCP Server - Standalone Process
  *
- * Provides 8 tools for attendance tracking and compliance
+ * Provides tools for attendance tracking and compliance
  * Communicates via stdio using JSON-RPC 2.0
  */
 
-import { McpServer } from '@modelcontextprotocol/sdk/server/index.js';
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
 import { db } from '@/db';
-import { attendanceRecords, auditLogs } from '@/db/schema';
+import { attendance, auditLogs } from '@/db/schema';
 import { eq, and, gte, lte, desc } from 'drizzle-orm';
 
 function getSessionFromContext(extra?: any) {
@@ -38,76 +38,69 @@ async function main() {
   );
 
   // Tool: record_attendance
-  server.registerTool(
+  server.tool(
     'record_attendance',
     {
-      description: 'Record student attendance for a class session',
-      inputSchema: {
-        class_id: z.string().uuid().describe('Class ID'),
-        student_id: z.string().uuid().describe('Student ID'),
-        date: z.string().describe('Attendance date (ISO 8601)'),
-        status: z.enum(['present', 'absent', 'late', 'excused']).describe('Attendance status'),
-        notes: z.string().optional().describe('Additional notes'),
-      },
+      class_session_id: z.string().uuid().describe('Class Session ID'),
+      student_id: z.string().uuid().describe('Student ID'),
+      status: z.enum(['present', 'absent', 'late', 'excused']).describe('Attendance status'),
+      notes: z.string().optional().describe('Additional notes'),
     },
     async (args, extra) => {
       const session = getSessionFromContext(extra);
-      const { class_id, student_id, date, status, notes } = args;
+      const { class_session_id, student_id, status, notes } = args;
+
+      const insertData: any = {
+        tenant_id: session.tenantId,
+        class_session_id,
+        student_id,
+        status,
+        notes,
+        recorded_by: session.userId,
+        recorded_at: new Date(),
+      };
 
       const [record] = await db
-        .insert(attendanceRecords)
-        .values({
-          tenant_id: session.tenantId,
-          class_id,
-          student_id,
-          date: new Date(date),
-          status,
-          notes,
-          recorded_by: session.userId,
-        })
+        .insert(attendance)
+        .values(insertData)
         .returning();
 
       return {
         content: [
           {
             type: 'text',
-            text: `Attendance recorded: ${status} for student on ${date}`,
+            text: `Attendance recorded: ${status} for student in session ${class_session_id}`,
           },
         ],
       };
     }
   );
 
-  // Tool: get_attendance_report
-  server.registerTool(
+  // Tool: get_attendance Report
+  server.tool(
     'get_attendance_report',
     {
-      description: 'Generate attendance report for a student or class',
-      inputSchema: {
-        class_id: z.string().uuid().optional().describe('Filter by class'),
-        student_id: z.string().uuid().optional().describe('Filter by student'),
-        start_date: z.string().describe('Report start date'),
-        end_date: z.string().describe('Report end date'),
-      },
+      student_id: z.string().uuid().optional().describe('Filter by student'),
+      start_date: z.string().describe('Report start date'),
+      end_date: z.string().describe('Report end date'),
     },
     async (args, extra) => {
       const session = getSessionFromContext(extra);
-      const { class_id, student_id, start_date, end_date } = args;
+      const { student_id, start_date, end_date } = args;
 
       const conditions = [
-        eq(attendanceRecords.tenant_id, session.tenantId),
-        gte(attendanceRecords.date, new Date(start_date)),
-        lte(attendanceRecords.date, new Date(end_date)),
+        eq(attendance.tenant_id, session.tenantId),
+        gte(attendance.recorded_at, new Date(start_date)),
+        lte(attendance.recorded_at, new Date(end_date)),
       ];
 
-      if (class_id) conditions.push(eq(attendanceRecords.class_id, class_id));
-      if (student_id) conditions.push(eq(attendanceRecords.student_id, student_id));
+      if (student_id) conditions.push(eq(attendance.student_id, student_id));
 
       const records = await db
         .select()
-        .from(attendanceRecords)
+        .from(attendance)
         .where(and(...conditions))
-        .orderBy(desc(attendanceRecords.date));
+        .orderBy(desc(attendance.recorded_at));
 
       const summary = {
         total: records.length,
@@ -121,7 +114,7 @@ async function main() {
         content: [
           {
             type: 'text',
-            text: `Attendance Report (${start_date} to ${end_date})\n\nTotal: ${summary.total}\nPresent: ${summary.present}\nAbsent: ${summary.absent}\nLate: ${summary.late}\nExcused: ${summary.excused}\n\nAttendance Rate: ${((summary.present / summary.total) * 100).toFixed(1)}%`,
+            text: `Attendance Report (${start_date} to ${end_date})\n\nTotal: ${summary.total}\nPresent: ${summary.present}\nAbsent: ${summary.absent}\nLate: ${summary.late}\nExcused: ${summary.excused}\n\nAttendance Rate: ${summary.total > 0 ? ((summary.present / summary.total) * 100).toFixed(1) : '0'}%`,
           },
         ],
       };
@@ -129,11 +122,10 @@ async function main() {
   );
 
   // Resource: attendance://records
-  server.registerResource(
+  server.resource(
     'records',
     'attendance://records',
     {
-      description: 'Recent attendance records',
       mimeType: 'application/json',
     },
     async (uri, extra) => {
@@ -141,15 +133,15 @@ async function main() {
 
       const records = await db
         .select()
-        .from(attendanceRecords)
-        .where(eq(attendanceRecords.tenant_id, session.tenantId))
-        .orderBy(desc(attendanceRecords.date))
+        .from(attendance)
+        .where(eq(attendance.tenant_id, session.tenantId))
+        .orderBy(desc(attendance.recorded_at))
         .limit(100);
 
       return {
         contents: [
           {
-            uri,
+            uri: uri.toString(),
             mimeType: 'application/json',
             text: JSON.stringify({ records }, null, 2),
           },
@@ -159,11 +151,9 @@ async function main() {
   );
 
   // Prompt: attendance_persona
-  server.registerPrompt(
+  server.prompt(
     'attendance_persona',
-    {
-      description: 'Attendance tracking assistant persona',
-    },
+    'Attendance tracking assistant persona',
     async () => {
       return {
         messages: [
