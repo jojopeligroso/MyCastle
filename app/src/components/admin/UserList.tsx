@@ -6,6 +6,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { UserActions } from './UserActions';
 
 interface User {
   id: string;
@@ -194,19 +195,29 @@ export function UserList({ users }: Props) {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(user.created_at).toLocaleDateString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <Link
-                      href={`/admin/users/${user.id}`}
-                      className="text-purple-600 hover:text-purple-900 mr-4"
-                    >
-                      View
-                    </Link>
-                    <Link
-                      href={`/admin/users/${user.id}/edit`}
-                      className="text-blue-600 hover:text-blue-900"
-                    >
-                      Edit
-                    </Link>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex flex-col gap-2">
+                      <div className="flex gap-3">
+                        <Link
+                          href={`/admin/users/${user.id}`}
+                          className="text-purple-600 hover:text-purple-900 text-sm"
+                        >
+                          View
+                        </Link>
+                        <Link
+                          href={`/admin/users/${user.id}/edit`}
+                          className="text-blue-600 hover:text-blue-900 text-sm"
+                        >
+                          Edit
+                        </Link>
+                      </div>
+                      <UserActions
+                        userId={user.id}
+                        currentRole={user.role}
+                        currentStatus={user.status}
+                        userName={user.name}
+                      />
+                    </div>
                   </td>
                 </tr>
               ))
