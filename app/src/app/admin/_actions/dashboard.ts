@@ -29,7 +29,7 @@ export async function getAdminAlerts() {
       LIMIT 20
     `);
 
-    return result.rows as Array<{
+    return result as unknown as Array<{
       alert_id: string;
       alert_type: string;
       priority: number;
@@ -68,7 +68,7 @@ export async function getAdminKPIs() {
       FROM v_admin_kpis_daily
     `);
 
-    const row = result.rows[0] as any;
+    const row = result[0] as any;
 
     return {
       activeStudents: Number(row?.active_students || 0),
@@ -113,7 +113,7 @@ export async function getAdminWorkQueue() {
       LIMIT 20
     `);
 
-    return result.rows as Array<{
+    return result as unknown as Array<{
       item_type: string;
       item_label: string;
       entity_id: string;
@@ -149,7 +149,7 @@ export async function getRecentAuditEvents() {
       FROM v_audit_events_recent
     `);
 
-    return result.rows as Array<{
+    return result as unknown as Array<{
       id: string;
       action: string;
       resource_type: string | null;

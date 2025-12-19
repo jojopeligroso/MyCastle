@@ -30,7 +30,7 @@ describe('Auth Utilities', () => {
         user_metadata: { role: 'teacher', tenant_id: 'test-tenant' },
       };
 
-      mockGetUser.mockResolvedValue({
+      (mockGetUser as any).mockResolvedValue({
         data: { user: mockUser },
         error: null,
       });
@@ -43,7 +43,7 @@ describe('Auth Utilities', () => {
     });
 
     it('should return null when not authenticated', async () => {
-      mockGetUser.mockResolvedValue({
+      (mockGetUser as any).mockResolvedValue({
         data: { user: null },
         error: null,
       });
@@ -63,7 +63,7 @@ describe('Auth Utilities', () => {
         user_metadata: { role: 'teacher', tenant_id: 'test-tenant' },
       };
 
-      mockGetUser.mockResolvedValue({
+      (mockGetUser as any).mockResolvedValue({
         data: { user: mockUser },
         error: null,
       });
@@ -75,7 +75,7 @@ describe('Auth Utilities', () => {
     });
 
     it('should throw when not authenticated', async () => {
-      mockGetUser.mockResolvedValue({
+      (mockGetUser as any).mockResolvedValue({
         data: { user: null },
         error: null,
       });
@@ -94,7 +94,7 @@ describe('Auth Utilities', () => {
         user_metadata: { tenant_id: 'test-tenant-123' },
       };
 
-      mockGetUser.mockResolvedValue({
+      (mockGetUser as any).mockResolvedValue({
         data: { user: mockUser },
         error: null,
       });
@@ -112,7 +112,7 @@ describe('Auth Utilities', () => {
         user_metadata: {},
       };
 
-      mockGetUser.mockResolvedValue({
+      (mockGetUser as any).mockResolvedValue({
         data: { user: mockUser },
         error: null,
       });
@@ -124,7 +124,7 @@ describe('Auth Utilities', () => {
     });
 
     it('should return null when not authenticated', async () => {
-      mockGetUser.mockResolvedValue({
+      (mockGetUser as any).mockResolvedValue({
         data: { user: null },
         error: null,
       });
