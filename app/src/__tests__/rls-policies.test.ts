@@ -162,7 +162,7 @@ describe('RLS Policies - Setup', () => {
         name: 'Math 101',
         code: 'MATH-101',
         teacher_id: teacher1Id,
-        start_date: new Date('2025-01-01'),
+        start_date: '2025-01-01',
       })
       .returning();
     class1Id = class1.id;
@@ -174,7 +174,7 @@ describe('RLS Policies - Setup', () => {
         name: 'English 101',
         code: 'ENG-101',
         teacher_id: teacher2Id, // Teacher from different tenant!
-        start_date: new Date('2025-01-01'),
+        start_date: '2025-01-01',
       })
       .returning();
     class2Id = class2.id;
@@ -184,7 +184,7 @@ describe('RLS Policies - Setup', () => {
       tenant_id: tenant1Id,
       student_id: student1Id,
       class_id: class1Id,
-      enrollment_date: new Date('2025-01-01'),
+      enrollment_date: '2025-01-01',
     });
 
     await db.execute(sql`SET session_replication_role = 'origin'`);
@@ -397,7 +397,7 @@ describe('RLS Policies - Negative Cases', () => {
         tenant_id: tenant1Id,
         name: 'Unauthorized Class',
         code: 'HACK-101',
-        start_date: new Date('2025-01-01'),
+        start_date: '2025-01-01',
       });
     }).rejects.toThrow();
   });
@@ -472,7 +472,7 @@ describe('RLS Policies - Admin Privileges', () => {
         tenant_id: tenant1Id,
         name: 'Science 101',
         code: 'SCI-101',
-        start_date: new Date('2025-01-01'),
+        start_date: '2025-01-01',
       })
       .returning();
 
@@ -523,7 +523,7 @@ describe('RLS Policies - Rollback Safety', () => {
           tenant_id: tenant1Id,
           name: 'Unauthorized Class',
           code: 'HACK-101',
-          start_date: new Date('2025-01-01'),
+          start_date: '2025-01-01',
         });
       });
     } catch {

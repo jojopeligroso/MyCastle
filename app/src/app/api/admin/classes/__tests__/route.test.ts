@@ -20,16 +20,16 @@ describe('POST /api/admin/classes', () => {
     jest.clearAllMocks();
 
     mockRequest = {
-      json: jest.fn(),
+      json: jest.fn() as any,
     };
 
     // Mock auth functions
-    (requireAuth as jest.Mock).mockResolvedValue({
+    (requireAuth as any).mockResolvedValue({
       id: 'user-123',
       user_metadata: { role: 'admin' },
     });
 
-    (getTenantId as jest.Mock).mockResolvedValue('tenant-123');
+    (getTenantId as any).mockResolvedValue('tenant-123');
   });
 
   it('should create a class with valid data', async () => {
@@ -45,7 +45,7 @@ describe('POST /api/admin/classes', () => {
       end_date: '2025-05-01',
     };
 
-    (mockRequest.json as jest.Mock).mockResolvedValue(validData);
+    (mockRequest.json as any).mockResolvedValue(validData);
 
     const mockInsertedClass = {
       id: 'class-123',
@@ -57,9 +57,9 @@ describe('POST /api/admin/classes', () => {
       updated_at: new Date(),
     };
 
-    (db.insert as jest.Mock).mockReturnValue({
+    (db.insert as any).mockReturnValue({
       values: jest.fn().mockReturnThis(),
-      returning: jest.fn().mockResolvedValue([mockInsertedClass]),
+      returning: (jest.fn() as any).mockResolvedValue([mockInsertedClass]),
     });
 
     const response = await POST(mockRequest as NextRequest);
@@ -81,7 +81,7 @@ describe('POST /api/admin/classes', () => {
       start_date: '2025-02-01',
     };
 
-    (mockRequest.json as jest.Mock).mockResolvedValue(dataWithoutCode);
+    (mockRequest.json as any).mockResolvedValue(dataWithoutCode);
 
     const mockInsertedClass = {
       id: 'class-123',
@@ -94,9 +94,9 @@ describe('POST /api/admin/classes', () => {
       updated_at: new Date(),
     };
 
-    (db.insert as jest.Mock).mockReturnValue({
+    (db.insert as any).mockReturnValue({
       values: jest.fn().mockReturnThis(),
-      returning: jest.fn().mockResolvedValue([mockInsertedClass]),
+      returning: (jest.fn() as any).mockResolvedValue([mockInsertedClass]),
     });
 
     const response = await POST(mockRequest as NextRequest);
@@ -107,7 +107,7 @@ describe('POST /api/admin/classes', () => {
   });
 
   it('should reject request without authentication', async () => {
-    (requireAuth as jest.Mock).mockRejectedValue(new Error('Unauthorized'));
+    (requireAuth as any).mockRejectedValue(new Error('Unauthorized'));
 
     const response = await POST(mockRequest as NextRequest);
 
@@ -115,7 +115,7 @@ describe('POST /api/admin/classes', () => {
   });
 
   it('should reject request from non-admin user', async () => {
-    (requireAuth as jest.Mock).mockResolvedValue({
+    (requireAuth as any).mockResolvedValue({
       id: 'user-123',
       user_metadata: { role: 'student' },
     });
@@ -128,7 +128,7 @@ describe('POST /api/admin/classes', () => {
   });
 
   it('should reject request without tenant', async () => {
-    (getTenantId as jest.Mock).mockResolvedValue(null);
+    (getTenantId as any).mockResolvedValue(null);
 
     const response = await POST(mockRequest as NextRequest);
     const data = await response.json();
@@ -143,7 +143,7 @@ describe('POST /api/admin/classes', () => {
       capacity: 20,
     };
 
-    (mockRequest.json as jest.Mock).mockResolvedValue(invalidData);
+    (mockRequest.json as any).mockResolvedValue(invalidData);
 
     const response = await POST(mockRequest as NextRequest);
     const data = await response.json();
@@ -162,7 +162,7 @@ describe('POST /api/admin/classes', () => {
       start_date: '2025-02-01',
     };
 
-    (mockRequest.json as jest.Mock).mockResolvedValue(invalidData);
+    (mockRequest.json as any).mockResolvedValue(invalidData);
 
     const response = await POST(mockRequest as NextRequest);
     const data = await response.json();
@@ -181,7 +181,7 @@ describe('POST /api/admin/classes', () => {
       start_date: '2025-02-01',
     };
 
-    (mockRequest.json as jest.Mock).mockResolvedValue(invalidData);
+    (mockRequest.json as any).mockResolvedValue(invalidData);
 
     const response = await POST(mockRequest as NextRequest);
     const data = await response.json();
@@ -199,11 +199,11 @@ describe('POST /api/admin/classes', () => {
       start_date: '2025-02-01',
     };
 
-    (mockRequest.json as jest.Mock).mockResolvedValue(validData);
+    (mockRequest.json as any).mockResolvedValue(validData);
 
-    (db.insert as jest.Mock).mockReturnValue({
-      values: jest.fn().mockReturnThis(),
-      returning: jest.fn().mockRejectedValue(new Error('Database error')),
+    (db.insert as any).mockReturnValue({
+      values: (jest.fn() as any).mockReturnThis(),
+      returning: (jest.fn() as any).mockRejectedValue(new Error('Database error')),
     });
 
     const response = await POST(mockRequest as NextRequest);
@@ -214,7 +214,7 @@ describe('POST /api/admin/classes', () => {
   });
 
   it('should allow admin_* roles', async () => {
-    (requireAuth as jest.Mock).mockResolvedValue({
+    (requireAuth as any).mockResolvedValue({
       id: 'user-123',
       user_metadata: { role: 'admin_academic' },
     });
@@ -228,11 +228,11 @@ describe('POST /api/admin/classes', () => {
       start_date: '2025-02-01',
     };
 
-    (mockRequest.json as jest.Mock).mockResolvedValue(validData);
+    (mockRequest.json as any).mockResolvedValue(validData);
 
-    (db.insert as jest.Mock).mockReturnValue({
+    (db.insert as any).mockReturnValue({
       values: jest.fn().mockReturnThis(),
-      returning: jest.fn().mockResolvedValue([{ id: 'class-123', ...validData }]),
+      returning: (jest.fn() as any).mockResolvedValue([{ id: 'class-123', ...validData }]),
     });
 
     const response = await POST(mockRequest as NextRequest);
@@ -241,7 +241,7 @@ describe('POST /api/admin/classes', () => {
   });
 
   it('should allow super_admin role', async () => {
-    (requireAuth as jest.Mock).mockResolvedValue({
+    (requireAuth as any).mockResolvedValue({
       id: 'user-123',
       user_metadata: { role: 'super_admin' },
     });
@@ -255,11 +255,11 @@ describe('POST /api/admin/classes', () => {
       start_date: '2025-02-01',
     };
 
-    (mockRequest.json as jest.Mock).mockResolvedValue(validData);
+    (mockRequest.json as any).mockResolvedValue(validData);
 
-    (db.insert as jest.Mock).mockReturnValue({
+    (db.insert as any).mockReturnValue({
       values: jest.fn().mockReturnThis(),
-      returning: jest.fn().mockResolvedValue([{ id: 'class-123', ...validData }]),
+      returning: (jest.fn() as any).mockResolvedValue([{ id: 'class-123', ...validData }]),
     });
 
     const response = await POST(mockRequest as NextRequest);

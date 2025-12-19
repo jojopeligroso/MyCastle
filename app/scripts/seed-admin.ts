@@ -60,7 +60,7 @@ async function seed() {
             console.log(`✅ Created Auth user. ID: ${authUid}`);
         }
     } catch (err) {
-        console.error('❌ Auth Creation Failed:', err.message || err);
+        console.error('❌ Auth Creation Failed:', err instanceof Error ? err.message : err);
         process.exit(1);
     }
 
@@ -121,7 +121,7 @@ async function seed() {
         console.warn('\n⚠️  DB Connection Failed (Expected if IPv6/Network issues).');
         console.warn('The Admin User credentials above ARE VALID for login.');
         console.warn('However, the Dashboard may show empty data or errors until DB connectivity is fixed.');
-        console.warn(`Error: ${err.message}`);
+        console.warn(`Error: ${err instanceof Error ? err.message : err}`);
     } finally {
         if (sql) await sql.end();
     }

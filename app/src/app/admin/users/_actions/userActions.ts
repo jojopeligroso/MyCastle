@@ -32,7 +32,7 @@ export async function getUsersWithMetadata() {
       FROM v_users_with_metadata
     `);
 
-    return result.rows as Array<{
+    return result as unknown as Array<{
       id: string;
       tenant_id: string;
       auth_id: string | null;
@@ -330,7 +330,7 @@ export async function getOrphanedAuthUsers() {
       LIMIT 50
     `);
 
-    return result.rows as Array<{
+    return result as unknown as Array<{
       auth_id: string;
       email: string;
       created_at: Date;

@@ -97,6 +97,7 @@ async function main() {
   );
 
   // Tool: create_assignment
+  // @ts-expect-error - MCP SDK type inference issue with zod schemas
   server.tool(
     'create_assignment',
     {
@@ -107,7 +108,7 @@ async function main() {
       max_score: z.number().int().positive().default(100).describe('Maximum score'),
       type: z.enum(['homework', 'quiz', 'exam', 'project']).describe('Assignment type'),
     },
-    async (args, extra) => {
+    async (args: any, extra: any) => {
       const session = getSessionFromContext(extra);
       const { class_id, title, description, due_date, max_score, type } = args;
 

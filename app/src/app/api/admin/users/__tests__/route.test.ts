@@ -23,22 +23,22 @@ describe('POST /api/admin/users', () => {
     jest.clearAllMocks();
 
     mockRequest = {
-      json: jest.fn(),
+      json: jest.fn() as any,
     };
 
     // Mock auth functions
-    (requireAuth as jest.Mock).mockResolvedValue({
+    (requireAuth as any).mockResolvedValue({
       id: 'user-123',
       user_metadata: { role: 'admin' },
     });
 
-    (getTenantId as jest.Mock).mockResolvedValue('tenant-123');
+    (getTenantId as any).mockResolvedValue('tenant-123');
 
     // Mock Supabase Admin client
     mockSupabaseAdmin = {
       auth: {
         admin: {
-          createUser: jest.fn().mockResolvedValue({
+          createUser: (jest.fn() as any).mockResolvedValue({
             data: { user: { id: 'new-user-id', email: 'test@example.com' } },
             error: null,
           }),
@@ -46,7 +46,7 @@ describe('POST /api/admin/users', () => {
       },
     };
 
-    (createClient as jest.Mock).mockReturnValue(mockSupabaseAdmin);
+    (createClient as any).mockReturnValue(mockSupabaseAdmin);
   });
 
   it('should create a user with valid data', async () => {
@@ -58,7 +58,7 @@ describe('POST /api/admin/users', () => {
       status: 'active',
     };
 
-    (mockRequest.json as jest.Mock).mockResolvedValue(validData);
+    (mockRequest.json as any).mockResolvedValue(validData);
 
     const mockInsertedUser = {
       id: 'new-user-id',
@@ -71,9 +71,9 @@ describe('POST /api/admin/users', () => {
       updated_at: new Date(),
     };
 
-    (db.insert as jest.Mock).mockReturnValue({
+    (db.insert as any).mockReturnValue({
       values: jest.fn().mockReturnThis(),
-      returning: jest.fn().mockResolvedValue([mockInsertedUser]),
+      returning: (jest.fn() as any).mockResolvedValue([mockInsertedUser]),
     });
 
     const response = await POST(mockRequest as NextRequest);
@@ -94,11 +94,11 @@ describe('POST /api/admin/users', () => {
       status: 'active',
     };
 
-    (mockRequest.json as jest.Mock).mockResolvedValue(dataWithoutPassword);
+    (mockRequest.json as any).mockResolvedValue(dataWithoutPassword);
 
-    (db.insert as jest.Mock).mockReturnValue({
+    (db.insert as any).mockReturnValue({
       values: jest.fn().mockReturnThis(),
-      returning: jest.fn().mockResolvedValue([{
+      returning: (jest.fn() as any).mockResolvedValue([{
         id: 'new-user-id',
         ...dataWithoutPassword,
         tenant_id: 'tenant-123',
@@ -120,7 +120,7 @@ describe('POST /api/admin/users', () => {
       role: 'student',
     };
 
-    (mockRequest.json as jest.Mock).mockResolvedValue(invalidData);
+    (mockRequest.json as any).mockResolvedValue(invalidData);
 
     const response = await POST(mockRequest as NextRequest);
     const data = await response.json();
@@ -136,7 +136,7 @@ describe('POST /api/admin/users', () => {
       role: 'invalid-role',
     };
 
-    (mockRequest.json as jest.Mock).mockResolvedValue(invalidData);
+    (mockRequest.json as any).mockResolvedValue(invalidData);
 
     const response = await POST(mockRequest as NextRequest);
     const data = await response.json();
@@ -152,7 +152,7 @@ describe('POST /api/admin/users', () => {
       password: 'short',
     };
 
-    (mockRequest.json as jest.Mock).mockResolvedValue(invalidData);
+    (mockRequest.json as any).mockResolvedValue(invalidData);
 
     const response = await POST(mockRequest as NextRequest);
     const data = await response.json();
@@ -161,7 +161,7 @@ describe('POST /api/admin/users', () => {
   });
 
   it('should reject request from non-admin user', async () => {
-    (requireAuth as jest.Mock).mockResolvedValue({
+    (requireAuth as any).mockResolvedValue({
       id: 'user-123',
       user_metadata: { role: 'student' },
     });
@@ -180,9 +180,9 @@ describe('POST /api/admin/users', () => {
       role: 'student',
     };
 
-    (mockRequest.json as jest.Mock).mockResolvedValue(validData);
+    (mockRequest.json as any).mockResolvedValue(validData);
 
-    mockSupabaseAdmin.auth.admin.createUser.mockResolvedValue({
+    (mockSupabaseAdmin.auth.admin.createUser as any).mockResolvedValue({
       data: null,
       error: { message: 'Email already exists' },
     });
@@ -204,11 +204,11 @@ describe('POST /api/admin/users', () => {
         role,
       };
 
-      (mockRequest.json as jest.Mock).mockResolvedValue(validData);
+      (mockRequest.json as any).mockResolvedValue(validData);
 
-      (db.insert as jest.Mock).mockReturnValue({
+      (db.insert as any).mockReturnValue({
         values: jest.fn().mockReturnThis(),
-        returning: jest.fn().mockResolvedValue([{
+        returning: (jest.fn() as any).mockResolvedValue([{
           id: 'user-id',
           ...validData,
           tenant_id: 'tenant-123',
@@ -227,11 +227,11 @@ describe('POST /api/admin/users', () => {
       role: 'teacher',
     };
 
-    (mockRequest.json as jest.Mock).mockResolvedValue(validData);
+    (mockRequest.json as any).mockResolvedValue(validData);
 
-    (db.insert as jest.Mock).mockReturnValue({
+    (db.insert as any).mockReturnValue({
       values: jest.fn().mockReturnThis(),
-      returning: jest.fn().mockResolvedValue([{
+      returning: (jest.fn() as any).mockResolvedValue([{
         id: 'user-id',
         ...validData,
         tenant_id: 'tenant-123',
@@ -258,11 +258,11 @@ describe('POST /api/admin/users', () => {
       role: 'student',
     };
 
-    (mockRequest.json as jest.Mock).mockResolvedValue(validData);
+    (mockRequest.json as any).mockResolvedValue(validData);
 
-    (db.insert as jest.Mock).mockReturnValue({
+    (db.insert as any).mockReturnValue({
       values: jest.fn().mockReturnThis(),
-      returning: jest.fn().mockResolvedValue([{
+      returning: (jest.fn() as any).mockResolvedValue([{
         id: 'user-id',
         ...validData,
         tenant_id: 'tenant-123',
@@ -285,11 +285,11 @@ describe('POST /api/admin/users', () => {
       role: 'student',
     };
 
-    (mockRequest.json as jest.Mock).mockResolvedValue(validData);
+    (mockRequest.json as any).mockResolvedValue(validData);
 
-    (db.insert as jest.Mock).mockReturnValue({
-      values: jest.fn().mockReturnThis(),
-      returning: jest.fn().mockRejectedValue(new Error('Database error')),
+    (db.insert as any).mockReturnValue({
+      values: (jest.fn() as any).mockReturnThis(),
+      returning: (jest.fn() as any).mockRejectedValue(new Error('Database error')),
     });
 
     const response = await POST(mockRequest as NextRequest);
@@ -307,7 +307,7 @@ describe('POST /api/admin/users', () => {
       status: 'invalid-status',
     };
 
-    (mockRequest.json as jest.Mock).mockResolvedValue(invalidData);
+    (mockRequest.json as any).mockResolvedValue(invalidData);
 
     const response = await POST(mockRequest as NextRequest);
     const data = await response.json();
@@ -322,11 +322,11 @@ describe('POST /api/admin/users', () => {
       role: 'student',
     };
 
-    (mockRequest.json as jest.Mock).mockResolvedValue(dataWithoutStatus);
+    (mockRequest.json as any).mockResolvedValue(dataWithoutStatus);
 
-    (db.insert as jest.Mock).mockReturnValue({
+    (db.insert as any).mockReturnValue({
       values: jest.fn().mockReturnThis(),
-      returning: jest.fn().mockResolvedValue([{
+      returning: (jest.fn() as any).mockResolvedValue([{
         id: 'user-id',
         ...dataWithoutStatus,
         status: 'active',

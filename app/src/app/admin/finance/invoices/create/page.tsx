@@ -5,7 +5,7 @@
 import { requireAuth, getTenantId } from '@/lib/auth/utils';
 import { db } from '@/db';
 import { users } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { CreateInvoiceForm } from '@/components/admin/CreateInvoiceForm';
 
 async function getStudents(tenantId: string) {
@@ -16,9 +16,11 @@ async function getStudents(tenantId: string) {
       email: users.email,
     })
     .from(users)
-    .where(eq(users.tenant_id, tenantId))
-    .where(eq(users.role, 'student'))
-    .where(eq(users.status, 'active'))
+    .where(and(
+      eq(users.tenant_id, tenantId),
+      eq(users.role, 'student'),
+      eq(users.status, 'active')
+    ))
     .orderBy(users.name);
 
   return students;

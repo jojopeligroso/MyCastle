@@ -79,8 +79,8 @@ describe('LessonPlannerForm Component', () => {
 
   it('should submit form with correct data', async () => {
     const mockPlan: LessonPlan = {
-      id: 'plan-123',
       title: 'Daily Routines',
+      topic: 'Daily Routines',
       cefr_level: 'B1',
       duration_minutes: 60,
       objectives: [{ description: 'Learn daily routine vocabulary' }],
@@ -197,8 +197,8 @@ describe('LessonPlannerForm Component', () => {
 
   it('should display generated lesson plan', async () => {
     const mockPlan: LessonPlan = {
-      id: 'plan-123',
       title: 'Food and Cooking',
+      topic: 'Food and Cooking',
       cefr_level: 'A2',
       duration_minutes: 60,
       objectives: [
@@ -306,10 +306,12 @@ describe('LessonPlannerForm Component', () => {
 
   it('should call onPlanGenerated callback when provided', async () => {
     const mockPlan: LessonPlan = {
-      id: 'plan-123',
       title: 'Test Plan',
+      topic: 'Test Topic',
       cefr_level: 'B1',
       duration_minutes: 60,
+      objectives: [{ description: 'Test objective' }],
+      activities: [{ name: 'Test activity', description: 'Test description', duration_minutes: 10 }],
     };
 
     const onPlanGenerated = jest.fn();
@@ -394,10 +396,12 @@ describe('LessonPlannerForm Component', () => {
 
   it('should display materials list when present', async () => {
     const mockPlan: LessonPlan = {
-      id: 'plan-123',
       title: 'Test Plan',
+      topic: 'Test Topic',
       cefr_level: 'B1',
       duration_minutes: 60,
+      objectives: [{ description: 'Test objective' }],
+      activities: [{ name: 'Test activity', description: 'Test description', duration_minutes: 10 }],
       materials: ['Whiteboard', 'Markers', 'Handouts', 'Audio player'],
     };
 
@@ -428,10 +432,12 @@ describe('LessonPlannerForm Component', () => {
 
   it('should display assessment methods when present', async () => {
     const mockPlan: LessonPlan = {
-      id: 'plan-123',
       title: 'Test Plan',
+      topic: 'Test Topic',
       cefr_level: 'B1',
       duration_minutes: 60,
+      objectives: [{ description: 'Test objective' }],
+      activities: [{ name: 'Test activity', description: 'Test description', duration_minutes: 10 }],
       assessment: [
         { type: 'formative', description: 'Peer evaluation' },
         { type: 'summative', description: 'Written quiz' },
