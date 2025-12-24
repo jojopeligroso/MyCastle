@@ -18,6 +18,7 @@
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:report": "playwright show-report",
     "seed:cefr": "tsx scripts/seed-cefr-descriptors.ts",
+    "seed:students": "tsx scripts/seed-students.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",

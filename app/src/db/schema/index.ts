@@ -14,3 +14,6 @@ export * from './curriculum';
 
 // System tables
 export * from './system';
+
+// Programmes and courses
+export * from './programmes';

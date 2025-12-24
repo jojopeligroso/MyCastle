@@ -16,8 +16,10 @@ import {
   jsonb,
   index,
   uniqueIndex,
+  boolean,
 } from 'drizzle-orm/pg-core';
 import { tenants, users } from './core';
+import { courses } from './programmes';
 
 /**
  * Classes Table
@@ -88,7 +90,16 @@ export const enrollments = pgTable(
     enrollment_date: date('enrollment_date').notNull().defaultNow(),
     completion_date: date('completion_date'),
 
+    // Flexible duration fields (Migration 0008)
+    expected_end_date: date('expected_end_date'), // Booked end date (can differ from class end_date)
+    booked_weeks: integer('booked_weeks'), // Number of weeks booked (can differ from course standard)
+    original_course_id: uuid('original_course_id'), // Reference to course for standard duration
+
     status: varchar('status', { length: 50 }).notNull().default('active'), // active, completed, dropped
+
+    // Amendment tracking (Migration 0008)
+    extensions_count: integer('extensions_count').default(0), // Number of extensions
+    is_amended: boolean('is_amended').default(false), // Whether enrollment has been modified
 
     // Performance tracking
     attendance_rate: decimal('attendance_rate', { precision: 5, scale: 2 }), // 0.00 to 100.00
@@ -101,6 +112,61 @@ export const enrollments = pgTable(
   table => [
     // Unique active enrollment per student per class
     uniqueIndex('idx_enrollments_student_class').on(table.student_id, table.class_id),
+  ],
+);
+
+/**
+ * Enrollment Amendments Table
+ * Tracks changes to enrollments (extensions, reductions, transfers)
+ * Ref: Migration 0008 - Flexible enrollment durations
+ */
+export const enrollmentAmendments = pgTable(
+  'enrollment_amendments',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenant_id: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id, { onDelete: 'cascade' }),
+    enrollment_id: uuid('enrollment_id')
+      .notNull()
+      .references(() => enrollments.id, { onDelete: 'cascade' }),
+
+    // Amendment details
+    amendment_type: varchar('amendment_type', { length: 50 }).notNull(), // extension, reduction, transfer, level_change, cancellation
+    amendment_date: date('amendment_date').notNull().defaultNow(),
+
+    // Previous values (for audit trail)
+    previous_end_date: date('previous_end_date'),
+    previous_weeks: integer('previous_weeks'),
+    previous_class_id: uuid('previous_class_id').references(() => classes.id),
+
+    // New values
+    new_end_date: date('new_end_date'),
+    new_weeks: integer('new_weeks'),
+    new_class_id: uuid('new_class_id').references(() => classes.id),
+
+    // Financial impact
+    fee_adjustment: decimal('fee_adjustment', { precision: 10, scale: 2 }), // Positive for fees, negative for refunds
+
+    // Reason and approval
+    reason: text('reason'),
+    requested_by: uuid('requested_by').references(() => users.id),
+    approved_by: uuid('approved_by').references(() => users.id),
+    status: varchar('status', { length: 50 }).notNull().default('pending'), // pending, approved, rejected
+
+    // Metadata
+    metadata: jsonb('metadata').$type<Record<string, any>>().default({}),
+
+    // Timestamps
+    created_at: timestamp('created_at').defaultNow().notNull(),
+    updated_at: timestamp('updated_at').defaultNow().notNull(),
+  },
+  table => [
+    index('idx_enrollment_amendments_enrollment').on(table.enrollment_id),
+    index('idx_enrollment_amendments_tenant').on(table.tenant_id),
+    index('idx_enrollment_amendments_status').on(table.status),
+    index('idx_enrollment_amendments_type').on(table.amendment_type),
+    index('idx_enrollment_amendments_date').on(table.amendment_date),
   ],
 );
 

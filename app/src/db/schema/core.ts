@@ -12,6 +12,7 @@ import {
   jsonb,
   index,
   uniqueIndex,
+  date,
 } from 'drizzle-orm/pg-core';
 
 /**
@@ -67,6 +68,13 @@ export const users = pgTable(
     metadata: jsonb('metadata').default({}), // Custom fields per role
     preferences: jsonb('preferences').default({}), // User preferences
 
+    // Student-specific fields (hybrid data model)
+    current_level: varchar('current_level', { length: 2 }), // A1, A2, B1, B2, C1, C2
+    initial_level: varchar('initial_level', { length: 2 }), // A1, A2, B1, B2, C1, C2
+    level_status: varchar('level_status', { length: 20 }), // confirmed, provisional, pending_approval
+    visa_type: varchar('visa_type', { length: 50 }),
+    visa_expiry: date('visa_expiry'),
+
     // Timestamps
     created_at: timestamp('created_at').defaultNow().notNull(),
     updated_at: timestamp('updated_at').defaultNow().notNull(),
@@ -80,3 +88,13 @@ export const users = pgTable(
     index('idx_users_status').on(table.status),
   ],
 );
+
+// Type exports
+export type Tenant = typeof tenants.$inferSelect;
+export type NewTenant = typeof tenants.$inferInsert;
+
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
+
+// Student type helper (user with role='student')
+export type Student = User & { role: 'student' };
