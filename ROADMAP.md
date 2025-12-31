@@ -754,7 +754,7 @@ THEN I see compliance checklist (GDPR, ISO27001)
 
 ### 1.7 Programmes & Courses
 
-#### Task 1.7.1: Create Programmes List Page
+#### Task 1.7.1: Create Programmes List Page ✅ (API Complete)
 **Estimate:** 20 minutes
 **User Story:**
 ```gherkin
@@ -769,12 +769,14 @@ THEN I see all programmes (General English, Business English, etc.)
 - Create `ProgrammeList.tsx`
 
 **Acceptance:**
+- [x] API endpoint created (`/api/admin/programmes`)
+- [x] Includes course count per programme
 - [ ] List programmes from database
 - [ ] Display name, description, duration
 - [ ] Create button
 - [ ] Edit links
 
-#### Task 1.7.2: Implement Create Programme Form
+#### Task 1.7.2: Implement Create Programme Form ✅ (API Complete)
 **Estimate:** 25 minutes
 **User Story:**
 ```gherkin
@@ -788,11 +790,13 @@ THEN a new programme is created
 - `/api/admin/programmes/route.ts`
 
 **Acceptance:**
+- [x] API endpoint with validation
+- [x] Auto-generates programme code
 - [ ] Form fields: name, description, duration, CEFR levels
-- [ ] Validation
-- [ ] Save to database
+- [x] Validation
+- [x] Save to database
 
-#### Task 1.7.3: Create Courses List Page
+#### Task 1.7.3: Create Courses List Page ✅ (API Complete)
 **Estimate:** 20 minutes
 **User Story:**
 ```gherkin
@@ -807,12 +811,14 @@ THEN I see all courses mapped to programmes
 - Create `CourseList.tsx`
 
 **Acceptance:**
+- [x] API endpoint created (`/api/admin/courses`)
+- [x] Includes programme relationship
 - [ ] List courses
 - [ ] Show programme relationship
 - [ ] CEFR level displayed
 - [ ] Create/edit buttons
 
-#### Task 1.7.4: Implement Create Course Form
+#### Task 1.7.4: Implement Create Course Form ✅ (API Complete)
 **Estimate:** 25 minutes
 **User Story:**
 ```gherkin
@@ -826,9 +832,11 @@ THEN a new course is created
 - `/api/admin/courses/route.ts`
 
 **Acceptance:**
+- [x] API endpoint with validation
+- [x] Auto-generates course code
 - [ ] Form fields: name, programme (dropdown), CEFR level, objectives
-- [ ] Descriptor linking (multi-select)
-- [ ] Save to database
+- [x] Descriptor linking (multi-select)
+- [x] Save to database
 
 ---
 
@@ -1053,7 +1061,7 @@ THEN I see organization-wide timetable
 
 ### 1.13 Teachers Management
 
-#### Task 1.13.1: Create Teachers List Page
+#### Task 1.13.1: Create Teachers List Page ✅ (API Complete)
 **Estimate:** 20 minutes
 **User Story:**
 ```gherkin
@@ -1067,11 +1075,13 @@ THEN I see all teachers with name, email, assigned classes
 - Create `TeacherList.tsx`
 
 **Acceptance:**
+- [x] API endpoint created (`/api/admin/teachers`)
+- [x] Includes assigned classes count
 - [ ] List teachers
 - [ ] Show assigned classes count
 - [ ] Search/filter functionality
 
-#### Task 1.13.2: Implement Teacher Detail View
+#### Task 1.13.2: Implement Teacher Detail View ✅ (API Complete)
 **Estimate:** 25 minutes
 **User Story:**
 ```gherkin
@@ -1084,6 +1094,8 @@ THEN I see teacher profile, qualifications, assigned classes, schedule
 - Create `TeacherDetail.tsx`
 
 **Acceptance:**
+- [x] API endpoint created (`/api/admin/teachers/[id]`)
+- [x] Fetches assigned classes
 - [ ] Display teacher info
 - [ ] List assigned classes
 - [ ] Show timetable
@@ -1093,7 +1105,7 @@ THEN I see teacher profile, qualifications, assigned classes, schedule
 
 ### 1.14 Search Functionality
 
-#### Task 1.14.1: Implement Global Search Page
+#### Task 1.14.1: Implement Global Search Page ✅ (API Complete)
 **Estimate:** 30 minutes
 **User Story:**
 ```gherkin
@@ -1108,6 +1120,9 @@ THEN I see results across students, teachers, classes
 - Create `/api/admin/search/route.ts`
 
 **Acceptance:**
+- [x] API endpoint created (multi-entity search)
+- [x] Searches students, teachers, classes
+- [x] Returns categorized results
 - [ ] Search input with debounce
 - [ ] Multi-entity search (students, teachers, classes)
 - [ ] Categorized results
@@ -1170,7 +1185,7 @@ THEN email configuration is saved
 
 ### 1.16 Audit Log Viewer
 
-#### Task 1.16.1: Create Audit Log Page
+#### Task 1.16.1: Create Audit Log Page ✅ (API Complete)
 **Estimate:** 25 minutes
 **User Story:**
 ```gherkin
@@ -1184,12 +1199,16 @@ THEN I see all audit log entries with timestamp, actor, action, entity
 - Create `AuditLogViewer.tsx`
 
 **Acceptance:**
+- [x] API endpoint created (`/api/admin/audit-log`)
+- [x] Includes user relationship
+- [x] Supports all filters
+- [x] Pagination implemented
 - [ ] List audit logs from auditLogs table
 - [ ] Display timestamp, user, action, entity
 - [ ] Filters (date range, user, action)
 - [ ] Pagination
 
-#### Task 1.16.2: Implement Audit Log Detail View
+#### Task 1.16.2: Implement Audit Log Detail View ✅ (API Complete)
 **Estimate:** 20 minutes
 **User Story:**
 ```gherkin
@@ -1202,6 +1221,8 @@ THEN I see full context including before/after values
 - Create `AuditLogDetail.tsx`
 
 **Acceptance:**
+- [x] API endpoint created (`/api/admin/audit-log/[id]`)
+- [x] Fetches related logs for same entity
 - [ ] Display diff JSON
 - [ ] Show before/after comparison
 - [ ] Related entries timeline
