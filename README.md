@@ -37,16 +37,43 @@ These three documents form the **authoritative spine** of the project and are up
 
 ## 🗂️ Repository Structure
 
+**Updated:** 2026-01-02 - Consolidated from 27 → 12 core documents
+
 ```
 MyCastle/
-├── REQ.md                          # ✅ Requirements Specification (v3.0.0 APPROVED)
-├── DESIGN.md                       # ✅ Design Specification (v3.0.0 APPROVED)
-├── TASKS.md                        # ✅ Task Specification (v3.0.0 APPROVED)
-├── README.md                       # This file
-├── MVP-SPRINT-PLAN.md              # 10-week sprint plan
-├── PROGRESS.md                     # Implementation progress
-├── SPECIFICATION-REVIEW.md         # Quality review
+├── README.md                       # This file - Navigation hub
 │
+├── Core Specification ("The Spine")
+├── REQ.md                          # ✅ Requirements Specification (v3.0.0)
+├── DESIGN.md                       # ✅ Design Specification (v3.0.0)
+├── TASKS.md                        # ✅ Task Specification (v3.0.0)
+│
+├── Living Documents (Updated Weekly)
+├── STATUS.md                       # ⭐ Current sprint tasks with 20-min subtasks
+├── ROADMAP.md                      # Phases 1-4 (105 tasks)
+│
+├── Operational Guides
+├── GETTING-STARTED.md              # Quick start + detailed setup + overview
+├── TESTING.md                      # All testing procedures (unit, E2E, RLS)
+├── DEPLOYMENT.md                   # Production deployment guide
+│
+├── Reference Documents
+├── docs/
+│   ├── reference/
+│   │   ├── 8-MCP-IMPLEMENTATION-PLAN.md
+│   │   ├── BUSINESS_VALUE_PRIORITIES.md
+│   │   └── FLEXIBLE_ENROLLMENTS.md
+│   │
+│   ├── archive/                    # Historical documents
+│   │   ├── sprints/                # Sprint retrospectives
+│   │   ├── analyses/               # Gap analyses and reviews
+│   │   ├── PROGRESS.md             # Old progress tracking
+│   │   └── NEXT_STEPS_GUIDE.md     # Old setup guide
+│   │
+│   └── migration/
+│       └── MIGRATION_GUIDE.md
+│
+├── Technical Specifications
 ├── spec/                           # Detailed MCP architecture specs
 │   ├── 01-overview.md              # Project objectives, stakeholders
 │   ├── 02-system-architecture.md   # System architecture details
@@ -56,11 +83,11 @@ MyCastle/
 │   ├── 06-student-mcp.md           # Student MCP specification
 │   ├── 07-agents.md                # Host orchestration patterns
 │   ├── 08-database.md              # Complete database schema
-│   ├── 09-mcp-interaction-patterns.md  # MCP interaction patterns
-│   ├── table-of-contents.md        # Navigation index
-│   └── shared-services/            # Shared service MCPs
+│   ├── 09-mcp-interaction-patterns.md
+│   └── table-of-contents.md
 │
-└── .gitignore
+└── Implementation
+    └── app/                        # Next.js application code
 ```
 
 ---
@@ -68,21 +95,28 @@ MyCastle/
 ## 🚀 Quick Start
 
 ### For Product/Business
-1. **[REQ.md](./REQ.md)** — Understand what we're building and why
-2. **spec/01-overview.md** — See stakeholder personas and use cases
+1. **[GETTING-STARTED.md](./GETTING-STARTED.md)** - Project overview and current status
+2. **[STATUS.md](./STATUS.md)** - Current sprint progress (updated weekly)
+3. **[REQ.md](./REQ.md)** - Complete requirements specification
+
+### For New Developers
+1. **[GETTING-STARTED.md](./GETTING-STARTED.md)** - 5-minute quick start or detailed setup
+2. **[STATUS.md](./STATUS.md)** - See current sprint tasks with 20-min subtasks
+3. **[TESTING.md](./TESTING.md)** - Run tests and verify setup
 
 ### For Engineering
-1. **[DESIGN.md](./DESIGN.md)** — Understand technical architecture
-2. **[TASKS.md](./TASKS.md)** — See work breakdown and acceptance criteria
-3. **spec/03-mcp.md** — Deep-dive into MCP protocol
-4. **spec/08-database.md** — Review database schema
+1. **[DESIGN.md](./DESIGN.md)** - Technical architecture and patterns
+2. **[TASKS.md](./TASKS.md)** - Work breakdown structure (42 tasks)
+3. **spec/** - Detailed MCP architecture specifications
 
 ### For Implementation
-1. Pick a task from **[TASKS.md](./TASKS.md)**
-2. Check linked requirements in **[REQ.md](./REQ.md)**
-3. Review design in **[DESIGN.md](./DESIGN.md)**
-4. Implement with traceability comments
-5. Update specs if design changes
+1. Check **[STATUS.md](./STATUS.md)** for current sprint tasks
+2. Each task has 20-minute subtasks for easy tracking
+3. Link to requirements in **[REQ.md](./REQ.md)**
+4. Review design in **[DESIGN.md](./DESIGN.md)**
+5. Implement with traceability comments
+6. Run `npm run check` before committing
+7. Update STATUS.md with progress
 
 ## 🎯 8-MCP Architecture (v3.0 APPROVED)
 
