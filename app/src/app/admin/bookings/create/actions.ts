@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/db';
-import { bookings } from '@/db/schema';
+import { bookings, payments } from '@/db/schema';
 import { sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
@@ -33,8 +33,8 @@ export async function createBooking(data: CreateBookingData) {
     const year = new Date().getFullYear();
     const bookingNumber = `BK-${year}-${String(Date.now()).slice(-6)}`;
 
-    // Insert booking
-    await db.insert(bookings).values({
+    // Insert booking (with total_paid_eur = 0 initially)
+    const result = await db.insert(bookings).values({
       tenantId: data.tenantId,
       bookingNumber,
       saleDate: new Date().toISOString().split('T')[0], // Today's date
@@ -54,9 +54,24 @@ export async function createBooking(data: CreateBookingData) {
       medicalInsuranceFeeEur: data.medicalInsuranceFeeEur,
       totalBookingEur: data.totalBookingEur,
       depositPaidEur: data.depositPaidEur,
-      totalPaidEur: data.depositPaidEur, // Initial payment = deposit
+      totalPaidEur: '0', // Will be updated by trigger when payment is inserted
       status: 'pending',
-    });
+    }).returning({ id: bookings.id });
+
+    const bookingId = result[0].id;
+
+    // If deposit was paid, create a payment record
+    // The database trigger will automatically update bookings.total_paid_eur
+    if (parseFloat(data.depositPaidEur) > 0) {
+      await db.insert(payments).values({
+        tenantId: data.tenantId,
+        bookingId,
+        paymentDate: new Date().toISOString().split('T')[0],
+        amountEur: data.depositPaidEur,
+        paymentMethod: 'Bank Transfer',
+        referenceNumber: `DEPOSIT-${bookingNumber}`,
+      });
+    }
 
     // Revalidate bookings page
     revalidatePath('/admin/bookings');
