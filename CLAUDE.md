@@ -187,6 +187,7 @@ npm run mcp:teacher     # Teacher MCP
 | Skill | Purpose | When to Use |
 |-------|---------|-------------|
 | `/MyCastle` | Navigate + git pull | Start of session |
+| `/MyCastle-next-task` | **Minimal task focus** | **Daily work (FASTEST)** |
 | `/MyCastle-standup` | Daily standup view | Start of workday |
 | `/MyCastle-status` | Quick health check | After milestones |
 | `/MyCastle-context` | Full project context | Before new epic |
@@ -250,7 +251,12 @@ npm run mcp:teacher     # Teacher MCP
 **Start of Session:**
 ```bash
 /MyCastle              # Navigate + git pull
-/MyCastle-standup      # Review next tasks
+/MyCastle-next-task    # Load ONLY the current task (minimal context)
+```
+
+**Alternative (for broader context):**
+```bash
+/MyCastle-standup      # Review entire sprint (heavier context)
 ```
 
 **During Work:**
@@ -262,8 +268,10 @@ npm test               # Unit tests as you go
 **End of Session / Task Completion:**
 ```bash
 npm run check          # Verify quality
-# Update STATUS.md     # Mark task complete
+# Update STATUS.md     # Mark task ✅, update progress %
 /commit                # Orchestrated commit
+/clear                 # Clear context
+/MyCastle-next-task    # Load next task
 ```
 
 ---
