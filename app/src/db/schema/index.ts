@@ -1,19 +1,17 @@
 /**
  * Database Schema Index
  * Exports all schema tables for Drizzle ORM
+ * Updated: 2026-01-13 - Fresh schema aligned with database
  */
 
-// Core tables
+// Core tables (UPDATED - matches fresh database)
 export * from './core';
 
-// Academic tables
-export * from './academic';
+// Business tables (NEW - Ireland ESL school logic)
+export * from './business';
 
-// Curriculum tables
-export * from './curriculum';
-
-// System tables
-export * from './system';
-
-// Programmes and courses
-export * from './programmes';
+// Old schemas - commenting out until updated to match new database
+// export * from './academic';
+// export * from './curriculum';
+// export * from './system';
+// export * from './programmes';
