@@ -305,26 +305,53 @@ graph TD
 
 ## 3. Domain Model & ERD
 
-### 3.1 Entity Relationship Diagram
+### 3.1 Entity Relationship Diagram (Dual-System Architecture)
+
+**MyCastle uses two parallel systems: Finance (bookings/payments) and Academic (classes/attendance).**
 
 ```mermaid
 erDiagram
+    %% Core Entities
     Organisation ||--o{ User : has
     User ||--o| Teacher : may_be
     User ||--o| Student : may_be
+
+    %% Finance System (Existing - Operational)
+    Organisation ||--o{ Booking : owns
+    Student ||--o{ Booking : has
+    Booking ||--o{ Payment : receives
+    Booking }o--|| Course : references
+    Booking }o--o| Agency : sourced_from
+    Booking }o--o| AccommodationType : includes
+
+    %% Academic System (New - To Be Built)
     Organisation ||--o{ Class : owns
-    Class ||--o{ Session : has
-    Class ||--o{ Enrolment : binds
-    Student ||--o{ Enrolment : has
+    Class ||--o{ Session : schedules
+    Class }o--|| Teacher : taught_by
+    Class ||--o{ Enrolment : has
+    Student ||--o{ Enrolment : enrolled_in
+    Enrolment }o--o| Booking : linked_to
     Session ||--o{ RegisterEntry : records
+    Student ||--o{ RegisterEntry : has
+
+    %% Teaching Resources
     Class ||--o{ Plan : plans_for
     Plan ||--o{ Material : attaches
+    CEFRDescriptor ||--o{ Plan : describes
+
+    %% Communication
     Class ||--o{ ForumPost : threads
     User ||--o{ ForumPost : authors
+
+    %% Audit
     RegisterEntry }o--|| User : marked_by
     AuditLog }o--|| User : actor
-    CEFRDescriptor ||--o{ Plan : describes
 ```
+
+**Key Relationships:**
+- **Finance → Academic Bridge**: `Enrolment.booking_id` → `Booking.id` (optional link)
+- **Shared Entity**: `Student` table is used by both finance (bookings) and academic (enrollments)
+- **One-to-Many**: One booking can spawn multiple enrollments (e.g., 24-week booking = 3 x 8-week class enrollments)
 
 ### 3.2 Key Entities
 

@@ -24,7 +24,37 @@
 - **Compliance**: ISO 27001/27002 aligned, GDPR-compliant
 - **Scale**: Multi-tenant platform supporting multiple organisations
 
-### 2.2 Pain Points (Current State)
+### 2.2 System Architecture
+
+**MyCastle uses a dual-system design with strict separation of concerns:**
+
+#### Finance System (Primary - Operational ✅)
+- **Purpose**: Revenue tracking, bookings, payments, financial reporting
+- **Core Tables**: `bookings`, `payments`, `agencies`, `courses`, `accommodation_types`
+- **Status**: Implemented and operational (Phase 1 - 43% complete)
+- **Key Flows**: Student books course → Payments recorded → Finance dashboard shows revenue
+- **Principle**: DO NOT MODIFY - this system is working and represents 26 completed tasks
+
+#### Academic System (Secondary - In Development)
+- **Purpose**: Class management, enrollment, attendance, progress tracking, teaching operations
+- **Core Tables**: `classes`, `class_sessions`, `enrollments`, `attendance`, `assessments`, `grades`, `cefr_descriptors`
+- **Status**: Planned (migrations to be created)
+- **Key Flows**: Admin creates class → Students enrolled → Attendance marked → Progress tracked
+- **Principle**: Additive architecture - new tables do not affect existing finance system
+
+#### Bridge Layer (Linking Finance and Academics)
+- **Shared Entity**: `students` table (used by both systems)
+- **Optional Link**: `enrollments.booking_id` → `bookings.id` (connects class enrollment to financial booking)
+- **Key Principle**: **Finance ≠ Academic** (strict separation, seamless DB interaction)
+- **Example**: One 24-week booking can spawn three 8-week class enrollments as student progresses through levels (A2 → B1 → B2)
+
+**Rationale**:
+- Finance system drives operations (booking-first model for Irish ESL schools)
+- Academic system enables teaching operations (class rosters, attendance, compliance)
+- Students exist in both domains but serve different purposes
+- Systems are independent but can be linked when needed (e.g., linking enrollment to booking for visa compliance reporting)
+
+### 2.3 Pain Points (Current State)
 - High administrative load for routine operations
 - Fragmented records across multiple systems
 - Slow manual export processes
