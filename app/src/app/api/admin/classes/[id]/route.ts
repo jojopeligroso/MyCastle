@@ -24,10 +24,7 @@ const updateClassSchema = z.object({
   status: z.enum(['active', 'completed', 'cancelled']).optional(),
 });
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     // Verify authentication
@@ -36,21 +33,16 @@ export async function PATCH(
     const tenantId = await getTenantId();
 
     if (!tenantId) {
-      return NextResponse.json(
-        { error: 'Tenant not found' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Tenant not found' }, { status: 400 });
     }
 
     // Verify admin role
     const userRole = user.user_metadata?.role || user.app_metadata?.role;
-    const isAdmin = userRole === 'admin' || userRole === 'super_admin' || userRole?.startsWith('admin_');
+    const isAdmin =
+      userRole === 'admin' || userRole === 'super_admin' || userRole?.startsWith('admin_');
 
     if (!isAdmin) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Admin access required' },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 403 });
     }
 
     // Parse and validate request body
@@ -65,10 +57,7 @@ export async function PATCH(
       .limit(1);
 
     if (!existingClass) {
-      return NextResponse.json(
-        { error: 'Class not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Class not found' }, { status: 404 });
     }
 
     // Update class
@@ -95,10 +84,7 @@ export async function PATCH(
       );
     }
 
-    return NextResponse.json(
-      { error: error.message || 'Failed to update class' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message || 'Failed to update class' }, { status: 500 });
   }
 }
 
@@ -114,21 +100,16 @@ export async function DELETE(
     const tenantId = await getTenantId();
 
     if (!tenantId) {
-      return NextResponse.json(
-        { error: 'Tenant not found' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Tenant not found' }, { status: 400 });
     }
 
     // Verify admin role
     const userRole = user.user_metadata?.role || user.app_metadata?.role;
-    const isAdmin = userRole === 'admin' || userRole === 'super_admin' || userRole?.startsWith('admin_');
+    const isAdmin =
+      userRole === 'admin' || userRole === 'super_admin' || userRole?.startsWith('admin_');
 
     if (!isAdmin) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Admin access required' },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 403 });
     }
 
     // Check if class exists and belongs to tenant
@@ -139,10 +120,7 @@ export async function DELETE(
       .limit(1);
 
     if (!existingClass) {
-      return NextResponse.json(
-        { error: 'Class not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Class not found' }, { status: 404 });
     }
 
     // Soft delete by setting status to cancelled
@@ -161,9 +139,6 @@ export async function DELETE(
   } catch (error: any) {
     console.error('Error deleting class:', error);
 
-    return NextResponse.json(
-      { error: error.message || 'Failed to delete class' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message || 'Failed to delete class' }, { status: 500 });
   }
 }

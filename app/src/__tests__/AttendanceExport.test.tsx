@@ -125,20 +125,21 @@ describe('AttendanceExport Component', () => {
   });
 
   it('should display loading state during export', async () => {
-    (global.fetch as jest.Mock).mockImplementation(() =>
-      new Promise((resolve) => {
-        setTimeout(() => {
-          resolve({
-            ok: true,
-            headers: new Headers({
-              'X-Execution-Time-Ms': '150',
-              'X-Record-Count': '50',
-              'Content-Disposition': 'attachment; filename="export.csv"',
-            }),
-            blob: async () => new Blob(['csv'], { type: 'text/csv' }),
-          });
-        }, 100);
-      })
+    (global.fetch as jest.Mock).mockImplementation(
+      () =>
+        new Promise(resolve => {
+          setTimeout(() => {
+            resolve({
+              ok: true,
+              headers: new Headers({
+                'X-Execution-Time-Ms': '150',
+                'X-Record-Count': '50',
+                'Content-Disposition': 'attachment; filename="export.csv"',
+              }),
+              blob: async () => new Blob(['csv'], { type: 'text/csv' }),
+            });
+          }, 100);
+        })
     );
 
     render(<AttendanceExport classes={mockClasses} />);
@@ -279,20 +280,21 @@ describe('AttendanceExport Component', () => {
   });
 
   it('should disable form controls during export', async () => {
-    (global.fetch as jest.Mock).mockImplementation(() =>
-      new Promise((resolve) => {
-        setTimeout(() => {
-          resolve({
-            ok: true,
-            headers: new Headers({
-              'X-Execution-Time-Ms': '150',
-              'X-Record-Count': '50',
-              'Content-Disposition': 'attachment; filename="export.csv"',
-            }),
-            blob: async () => new Blob(['csv'], { type: 'text/csv' }),
-          });
-        }, 100);
-      })
+    (global.fetch as jest.Mock).mockImplementation(
+      () =>
+        new Promise(resolve => {
+          setTimeout(() => {
+            resolve({
+              ok: true,
+              headers: new Headers({
+                'X-Execution-Time-Ms': '150',
+                'X-Record-Count': '50',
+                'Content-Disposition': 'attachment; filename="export.csv"',
+              }),
+              blob: async () => new Blob(['csv'], { type: 'text/csv' }),
+            });
+          }, 100);
+        })
     );
 
     render(<AttendanceExport classes={mockClasses} />);

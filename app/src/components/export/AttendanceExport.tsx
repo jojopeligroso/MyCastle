@@ -111,7 +111,10 @@ export function AttendanceExport({ classes }: AttendanceExportProps) {
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="export-class" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="export-class"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Class
               </label>
               <select
@@ -195,7 +198,9 @@ export function AttendanceExport({ classes }: AttendanceExportProps) {
                 </div>
                 <div>
                   <div className="text-green-700 font-medium">Records</div>
-                  <div className="text-green-900 mt-1">{lastExport.recordCount} attendance records</div>
+                  <div className="text-green-900 mt-1">
+                    {lastExport.recordCount} attendance records
+                  </div>
                 </div>
                 <div>
                   <div className="text-green-700 font-medium">Performance</div>
@@ -213,7 +218,12 @@ export function AttendanceExport({ classes }: AttendanceExportProps) {
         <div className="mt-6 pt-6 border-t border-gray-200">
           <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
             <div className="flex items-start gap-3">
-              <svg className="w-6 h-6 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-6 h-6 text-blue-600 mt-0.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -224,9 +234,12 @@ export function AttendanceExport({ classes }: AttendanceExportProps) {
               <div className="flex-1">
                 <h4 className="text-sm font-medium text-blue-900 mb-1">Tamper-Evident Export</h4>
                 <p className="text-xs text-blue-800">
-                  Exported CSV files include SHA256 hash columns for each attendance record. The hash
-                  chain ensures any modification to the data will be detected. Each record&apos;s hash is
-                  computed as: <code className="bg-blue-100 px-1 py-0.5 rounded">SHA256(payload || previous_hash)</code>
+                  Exported CSV files include SHA256 hash columns for each attendance record. The
+                  hash chain ensures any modification to the data will be detected. Each
+                  record&apos;s hash is computed as:{' '}
+                  <code className="bg-blue-100 px-1 py-0.5 rounded">
+                    SHA256(payload || previous_hash)
+                  </code>
                 </p>
                 <div className="mt-3 text-xs text-blue-800">
                   <strong>Columns included:</strong> Student Name, Email, Date, Time, Status, Notes,

@@ -2,7 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
@@ -49,19 +55,16 @@ export function SimpleQueryBuilder() {
   // Load schema on mount
   useEffect(() => {
     fetch('/api/admin/query/schema')
-      .then((res) => res.json())
-      .then((data) => setTables(data.tables))
+      .then(res => res.json())
+      .then(data => setTables(data.tables))
       .catch(console.error);
   }, []);
 
-  const currentTable = tables.find((t) => t.name === selectedTable);
+  const currentTable = tables.find(t => t.name === selectedTable);
 
   const handleAddFilter = () => {
     if (!currentTable || currentTable.columns.length === 0) return;
-    setFilters([
-      ...filters,
-      { column: currentTable.columns[0].name, operator: '=', value: '' },
-    ]);
+    setFilters([...filters, { column: currentTable.columns[0].name, operator: '=', value: '' }]);
   };
 
   const handleRemoveFilter = (index: number) => {
@@ -116,9 +119,7 @@ export function SimpleQueryBuilder() {
     const headers = Object.keys(result.data[0]);
     const csvContent = [
       headers.join(','),
-      ...result.data.map((row) =>
-        headers.map((h) => JSON.stringify(row[h] || '')).join(',')
-      ),
+      ...result.data.map(row => headers.map(h => JSON.stringify(row[h] || '')).join(',')),
     ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -143,7 +144,7 @@ export function SimpleQueryBuilder() {
               <SelectValue placeholder="Choose a table..." />
             </SelectTrigger>
             <SelectContent>
-              {tables.map((table) => (
+              {tables.map(table => (
                 <SelectItem key={table.name} value={table.name}>
                   {table.name} {table.description && `- ${table.description}`}
                 </SelectItem>
@@ -159,16 +160,16 @@ export function SimpleQueryBuilder() {
               2. Select Columns (leave empty for all)
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {currentTable.columns.map((col) => (
+              {currentTable.columns.map(col => (
                 <label key={col.name} className="flex items-center gap-2 text-sm">
                   <input
                     type="checkbox"
                     checked={selectedColumns.includes(col.name)}
-                    onChange={(e) => {
+                    onChange={e => {
                       if (e.target.checked) {
                         setSelectedColumns([...selectedColumns, col.name]);
                       } else {
-                        setSelectedColumns(selectedColumns.filter((c) => c !== col.name));
+                        setSelectedColumns(selectedColumns.filter(c => c !== col.name));
                       }
                     }}
                     className="rounded border-gray-300"
@@ -185,7 +186,9 @@ export function SimpleQueryBuilder() {
         {currentTable && (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="block text-sm font-medium text-gray-700">3. Add Filters (optional)</label>
+              <label className="block text-sm font-medium text-gray-700">
+                3. Add Filters (optional)
+              </label>
               <Button variant="outline" size="sm" onClick={handleAddFilter}>
                 + Add Filter
               </Button>
@@ -197,13 +200,13 @@ export function SimpleQueryBuilder() {
                   <div key={index} className="flex gap-2 items-start">
                     <Select
                       value={filter.column}
-                      onValueChange={(value) => handleUpdateFilter(index, 'column', value)}
+                      onValueChange={value => handleUpdateFilter(index, 'column', value)}
                     >
                       <SelectTrigger className="w-40">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {currentTable.columns.map((col) => (
+                        {currentTable.columns.map(col => (
                           <SelectItem key={col.name} value={col.name}>
                             {col.name}
                           </SelectItem>
@@ -213,13 +216,13 @@ export function SimpleQueryBuilder() {
 
                     <Select
                       value={filter.operator}
-                      onValueChange={(value) => handleUpdateFilter(index, 'operator', value)}
+                      onValueChange={value => handleUpdateFilter(index, 'operator', value)}
                     >
                       <SelectTrigger className="w-32">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {OPERATORS.map((op) => (
+                        {OPERATORS.map(op => (
                           <SelectItem key={op.value} value={op.value}>
                             {op.label}
                           </SelectItem>
@@ -229,16 +232,12 @@ export function SimpleQueryBuilder() {
 
                     <Input
                       value={filter.value}
-                      onChange={(e) => handleUpdateFilter(index, 'value', e.target.value)}
+                      onChange={e => handleUpdateFilter(index, 'value', e.target.value)}
                       placeholder="Value"
                       className="flex-1"
                     />
 
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRemoveFilter(index)}
-                    >
+                    <Button variant="ghost" size="sm" onClick={() => handleRemoveFilter(index)}>
                       ✖️
                     </Button>
                   </div>
@@ -255,7 +254,7 @@ export function SimpleQueryBuilder() {
             <Input
               type="number"
               value={limit}
-              onChange={(e) => setLimit(e.target.value)}
+              onChange={e => setLimit(e.target.value)}
               placeholder="100"
               className="w-32"
             />
@@ -264,11 +263,7 @@ export function SimpleQueryBuilder() {
 
         {/* Execute Button */}
         <div className="pt-4 border-t">
-          <Button
-            onClick={handleExecute}
-            disabled={!selectedTable || isLoading}
-            className="w-full"
-          >
+          <Button onClick={handleExecute} disabled={!selectedTable || isLoading} className="w-full">
             {isLoading ? 'Executing...' : '▶️ Run Query'}
           </Button>
         </div>
@@ -285,9 +280,7 @@ export function SimpleQueryBuilder() {
       {result?.sql && (
         <div className="border rounded-lg p-4 bg-gray-50">
           <h4 className="font-semibold text-sm text-gray-700 mb-2">Generated SQL</h4>
-          <pre className="bg-white p-3 rounded border text-sm overflow-x-auto">
-            {result.sql}
-          </pre>
+          <pre className="bg-white p-3 rounded border text-sm overflow-x-auto">{result.sql}</pre>
         </div>
       )}
 
@@ -308,7 +301,7 @@ export function SimpleQueryBuilder() {
               <thead className="bg-gray-50 border-b">
                 <tr>
                   {result.data[0] &&
-                    Object.keys(result.data[0]).map((key) => (
+                    Object.keys(result.data[0]).map(key => (
                       <th key={key} className="px-4 py-2 text-left font-medium text-gray-700">
                         {key}
                       </th>

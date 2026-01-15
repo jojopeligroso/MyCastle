@@ -18,11 +18,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navigation
-        userEmail={user.email}
-        userRole={userRole}
-        currentPath="/dashboard"
-      />
+      <Navigation userEmail={user.email} userRole={userRole} currentPath="/dashboard" />
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         {/* Welcome Section */}
@@ -49,12 +45,7 @@ export default async function DashboardPage() {
                   badge="AI Powered"
                   color="purple"
                   icon={
-                    <svg
-                      className="w-8 h-8"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
+                    <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -74,12 +65,7 @@ export default async function DashboardPage() {
                   href="/teacher/timetable"
                   color="blue"
                   icon={
-                    <svg
-                      className="w-8 h-8"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
+                    <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -99,12 +85,7 @@ export default async function DashboardPage() {
                   href="/teacher/attendance"
                   color="green"
                   icon={
-                    <svg
-                      className="w-8 h-8"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
+                    <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -124,12 +105,7 @@ export default async function DashboardPage() {
                   href="/student/classes"
                   color="blue"
                   icon={
-                    <svg
-                      className="w-8 h-8"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
+                    <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -150,12 +126,7 @@ export default async function DashboardPage() {
                   color="orange"
                   badge="Admin Only"
                   icon={
-                    <svg
-                      className="w-8 h-8"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
+                    <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -190,9 +161,7 @@ export default async function DashboardPage() {
               <div className="flex justify-between">
                 <dt className="text-sm text-gray-500">Role:</dt>
                 <dd className="text-sm font-medium text-gray-900">
-                  <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded">
-                    {userRole}
-                  </span>
+                  <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded">{userRole}</span>
                 </dd>
               </div>
               {user.user_metadata?.tenant_id && (

@@ -298,7 +298,10 @@ export class MCPHost {
   /**
    * Get a prompt via MCP protocol
    */
-  async getPrompt(promptName: string, session: MCPSession): Promise<{
+  async getPrompt(
+    promptName: string,
+    session: MCPSession
+  ): Promise<{
     success: boolean;
     data?: any;
     error?: any;

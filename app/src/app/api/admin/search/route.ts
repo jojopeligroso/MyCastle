@@ -38,10 +38,7 @@ export async function GET(request: NextRequest) {
         and(
           eq(users.role, 'student'),
           isNull(users.deleted_at),
-          or(
-            ilike(users.name, searchPattern),
-            ilike(users.email, searchPattern)
-          )
+          or(ilike(users.name, searchPattern), ilike(users.email, searchPattern))
         )
       )
       .limit(limit);
@@ -60,10 +57,7 @@ export async function GET(request: NextRequest) {
         and(
           eq(users.role, 'teacher'),
           isNull(users.deleted_at),
-          or(
-            ilike(users.name, searchPattern),
-            ilike(users.email, searchPattern)
-          )
+          or(ilike(users.name, searchPattern), ilike(users.email, searchPattern))
         )
       )
       .limit(limit);
@@ -82,25 +76,19 @@ export async function GET(request: NextRequest) {
       .where(
         and(
           isNull(classes.deleted_at),
-          or(
-            ilike(classes.name, searchPattern),
-            ilike(classes.code, searchPattern)
-          )
+          or(ilike(classes.name, searchPattern), ilike(classes.code, searchPattern))
         )
       )
       .limit(limit);
 
     return NextResponse.json({
-      students: students.map((s) => ({ ...s, type: 'student' })),
-      teachers: teachers.map((t) => ({ ...t, type: 'teacher' })),
-      classes: searchClasses.map((c) => ({ ...c, type: 'class' })),
+      students: students.map(s => ({ ...s, type: 'student' })),
+      teachers: teachers.map(t => ({ ...t, type: 'teacher' })),
+      classes: searchClasses.map(c => ({ ...c, type: 'class' })),
       query,
     });
   } catch (error) {
     console.error('Error performing search:', error);
-    return NextResponse.json(
-      { error: 'Search failed' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Search failed' }, { status: 500 });
   }
 }

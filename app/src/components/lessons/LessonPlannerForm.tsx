@@ -61,17 +61,12 @@ export function LessonPlannerForm({ onPlanGenerated }: LessonPlannerFormProps) {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">
-          AI-Assisted Lesson Planner
-        </h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">AI-Assisted Lesson Planner</h2>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* CEFR Level */}
           <div>
-            <label
-              htmlFor="cefr-level"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
+            <label htmlFor="cefr-level" className="block text-sm font-medium text-gray-700 mb-2">
               CEFR Level
             </label>
             <select
@@ -92,10 +87,7 @@ export function LessonPlannerForm({ onPlanGenerated }: LessonPlannerFormProps) {
 
           {/* Topic */}
           <div>
-            <label
-              htmlFor="topic"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
+            <label htmlFor="topic" className="block text-sm font-medium text-gray-700 mb-2">
               Lesson Topic
             </label>
             <input
@@ -111,10 +103,7 @@ export function LessonPlannerForm({ onPlanGenerated }: LessonPlannerFormProps) {
 
           {/* Duration */}
           <div>
-            <label
-              htmlFor="duration"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
+            <label htmlFor="duration" className="block text-sm font-medium text-gray-700 mb-2">
               Duration (minutes)
             </label>
             <input
@@ -132,10 +121,7 @@ export function LessonPlannerForm({ onPlanGenerated }: LessonPlannerFormProps) {
 
           {/* Additional Context */}
           <div>
-            <label
-              htmlFor="context"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
+            <label htmlFor="context" className="block text-sm font-medium text-gray-700 mb-2">
               Additional Context (Optional)
             </label>
             <textarea
@@ -195,9 +181,7 @@ export function LessonPlannerForm({ onPlanGenerated }: LessonPlannerFormProps) {
         {generatedPlan && (
           <div className="mt-8 border-t pt-6">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold text-gray-900">
-                Generated Lesson Plan
-              </h3>
+              <h3 className="text-xl font-bold text-gray-900">Generated Lesson Plan</h3>
               {generationTime && (
                 <span className="text-sm text-gray-500">
                   Generated in {(generationTime / 1000).toFixed(2)}s
@@ -208,9 +192,7 @@ export function LessonPlannerForm({ onPlanGenerated }: LessonPlannerFormProps) {
             <div className="bg-gray-50 rounded-lg p-6 space-y-6">
               {/* Title and Basics */}
               <div>
-                <h4 className="text-lg font-semibold text-gray-900">
-                  {generatedPlan.title}
-                </h4>
+                <h4 className="text-lg font-semibold text-gray-900">{generatedPlan.title}</h4>
                 <p className="text-sm text-gray-600 mt-1">
                   {generatedPlan.cefr_level} • {generatedPlan.duration_minutes} minutes
                 </p>
@@ -219,9 +201,7 @@ export function LessonPlannerForm({ onPlanGenerated }: LessonPlannerFormProps) {
               {/* Objectives */}
               {generatedPlan.objectives && generatedPlan.objectives.length > 0 && (
                 <div>
-                  <h5 className="font-medium text-gray-900 mb-2">
-                    Learning Objectives
-                  </h5>
+                  <h5 className="font-medium text-gray-900 mb-2">Learning Objectives</h5>
                   <ul className="list-disc list-inside space-y-1">
                     {generatedPlan.objectives.map((obj, idx) => (
                       <li key={idx} className="text-sm text-gray-700">
@@ -240,16 +220,12 @@ export function LessonPlannerForm({ onPlanGenerated }: LessonPlannerFormProps) {
                     {generatedPlan.activities.map((activity, idx) => (
                       <div key={idx} className="bg-white rounded p-4">
                         <div className="flex justify-between items-start mb-2">
-                          <h6 className="font-medium text-gray-900">
-                            {activity.name}
-                          </h6>
+                          <h6 className="font-medium text-gray-900">{activity.name}</h6>
                           <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
                             {activity.duration_minutes} min
                           </span>
                         </div>
-                        <p className="text-sm text-gray-600 mb-2">
-                          {activity.description}
-                        </p>
+                        <p className="text-sm text-gray-600 mb-2">{activity.description}</p>
                         {activity.materials && activity.materials.length > 0 && (
                           <p className="text-xs text-gray-500">
                             Materials: {activity.materials.join(', ')}

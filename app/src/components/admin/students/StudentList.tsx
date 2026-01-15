@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { type User } from '@/db/schema/core';
 
 interface StudentWithMetadata extends User {
@@ -40,7 +41,9 @@ export function StudentList({ students, onStudentClick }: StudentListProps) {
 
     return (
       <div className="flex items-center gap-1.5">
-        <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded ${getLevelBadgeColor(student.current_level)}`}>
+        <span
+          className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded ${getLevelBadgeColor(student.current_level)}`}
+        >
           {student.current_level}
         </span>
         {isProvisional && (
@@ -67,16 +70,12 @@ export function StudentList({ students, onStudentClick }: StudentListProps) {
       percentage >= 90
         ? 'text-green-700'
         : percentage >= 80
-        ? 'text-blue-700'
-        : percentage >= 70
-        ? 'text-amber-700'
-        : 'text-red-700';
+          ? 'text-blue-700'
+          : percentage >= 70
+            ? 'text-amber-700'
+            : 'text-red-700';
 
-    return (
-      <span className={`font-medium ${color}`}>
-        {percentage}%
-      </span>
-    );
+    return <span className={`font-medium ${color}`}>{percentage}%</span>;
   };
 
   const getVisaStatusBadge = (student: StudentWithMetadata): JSX.Element | null => {
@@ -84,7 +83,9 @@ export function StudentList({ students, onStudentClick }: StudentListProps) {
 
     const expiryDate = new Date(student.visa_expiry);
     const today = new Date();
-    const daysUntilExpiry = Math.floor((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    const daysUntilExpiry = Math.floor(
+      (expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+    );
 
     if (daysUntilExpiry < 0) {
       return (
@@ -117,7 +118,9 @@ export function StudentList({ students, onStudentClick }: StudentListProps) {
     };
 
     return (
-      <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${colors[status] || 'bg-gray-100 text-gray-800'}`}>
+      <span
+        className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${colors[status] || 'bg-gray-100 text-gray-800'}`}
+      >
         {status.charAt(0).toUpperCase() + status.slice(1)}
       </span>
     );
@@ -126,11 +129,23 @@ export function StudentList({ students, onStudentClick }: StudentListProps) {
   if (students.length === 0) {
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-        <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+        <svg
+          className="mx-auto h-12 w-12 text-gray-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+          />
         </svg>
         <h3 className="mt-2 text-sm font-semibold text-gray-900">No students found</h3>
-        <p className="mt-1 text-sm text-gray-500">Try adjusting your filters or create a new student.</p>
+        <p className="mt-1 text-sm text-gray-500">
+          Try adjusting your filters or create a new student.
+        </p>
       </div>
     );
   }
@@ -141,28 +156,52 @@ export function StudentList({ students, onStudentClick }: StudentListProps) {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 Student
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 Level
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 Enrollments
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 Attendance
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 Visa Status
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 Status
+              </th>
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Actions
               </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {students.map((student) => (
+            {students.map(student => (
               <tr
                 key={student.id}
                 onClick={() => onStudentClick(student.id)}
@@ -187,9 +226,7 @@ export function StudentList({ students, onStudentClick }: StudentListProps) {
                     </div>
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {getLevelDisplay(student)}
-                </td>
+                <td className="px-6 py-4 whitespace-nowrap">{getLevelDisplay(student)}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className="text-sm text-gray-900">
                     {student.active_enrollments !== undefined ? student.active_enrollments : '-'}
@@ -198,11 +235,16 @@ export function StudentList({ students, onStudentClick }: StudentListProps) {
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                   {getAttendanceDisplay(student.attendance_rate)}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {getVisaStatusBadge(student)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {getStatusBadge(student.status)}
+                <td className="px-6 py-4 whitespace-nowrap">{getVisaStatusBadge(student)}</td>
+                <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(student.status)}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                  <Link
+                    href={`/admin/students/${student.id}`}
+                    className="text-purple-600 hover:text-purple-900 font-medium"
+                    onClick={e => e.stopPropagation()}
+                  >
+                    View Details
+                  </Link>
                 </td>
               </tr>
             ))}
@@ -212,7 +254,7 @@ export function StudentList({ students, onStudentClick }: StudentListProps) {
 
       {/* Mobile view - Hidden on desktop */}
       <div className="sm:hidden space-y-4 p-4">
-        {students.map((student) => (
+        {students.map(student => (
           <div
             key={student.id}
             onClick={() => onStudentClick(student.id)}
@@ -252,7 +294,9 @@ export function StudentList({ students, onStudentClick }: StudentListProps) {
               </div>
               <div>
                 <span className="text-gray-500">Visa:</span>
-                <div className="mt-1">{getVisaStatusBadge(student) || <span className="text-gray-400">N/A</span>}</div>
+                <div className="mt-1">
+                  {getVisaStatusBadge(student) || <span className="text-gray-400">N/A</span>}
+                </div>
               </div>
             </div>
           </div>

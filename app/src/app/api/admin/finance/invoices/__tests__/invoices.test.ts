@@ -28,7 +28,9 @@ describe('Invoice Management APIs', () => {
 
   describe('GET /api/admin/finance/invoices', () => {
     it('should return list of invoices with pagination', async () => {
-      const mockRequest = new NextRequest('http://localhost/api/admin/finance/invoices?limit=10&offset=0');
+      const mockRequest = new NextRequest(
+        'http://localhost/api/admin/finance/invoices?limit=10&offset=0'
+      );
 
       const response = await GET(mockRequest);
       const data = await response.json();
@@ -42,7 +44,9 @@ describe('Invoice Management APIs', () => {
 
     it('should filter invoices by student', async () => {
       const studentId = 'student-123';
-      const mockRequest = new NextRequest(`http://localhost/api/admin/finance/invoices?student_id=${studentId}`);
+      const mockRequest = new NextRequest(
+        `http://localhost/api/admin/finance/invoices?student_id=${studentId}`
+      );
 
       const response = await GET(mockRequest);
 
@@ -50,7 +54,9 @@ describe('Invoice Management APIs', () => {
     });
 
     it('should filter invoices by status', async () => {
-      const mockRequest = new NextRequest('http://localhost/api/admin/finance/invoices?status=pending');
+      const mockRequest = new NextRequest(
+        'http://localhost/api/admin/finance/invoices?status=pending'
+      );
 
       const response = await GET(mockRequest);
 
@@ -281,7 +287,9 @@ describe('Invoice Management APIs', () => {
   describe('GET /api/admin/finance/invoices/[id]', () => {
     it('should return invoice detail with payment history', async () => {
       const invoiceId = 'invoice-123';
-      const mockRequest = new NextRequest(`http://localhost/api/admin/finance/invoices/${invoiceId}`);
+      const mockRequest = new NextRequest(
+        `http://localhost/api/admin/finance/invoices/${invoiceId}`
+      );
       const mockParams = { params: { id: invoiceId } };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
@@ -303,7 +311,9 @@ describe('Invoice Management APIs', () => {
         limit: jest.fn().mockResolvedValueOnce([]),
       });
 
-      const mockRequest = new NextRequest('http://localhost/api/admin/finance/invoices/non-existent');
+      const mockRequest = new NextRequest(
+        'http://localhost/api/admin/finance/invoices/non-existent'
+      );
       const mockParams = { params: { id: 'non-existent' } };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
@@ -315,7 +325,9 @@ describe('Invoice Management APIs', () => {
 
     it('should include line items in detail view', async () => {
       const invoiceId = 'invoice-123';
-      const mockRequest = new NextRequest(`http://localhost/api/admin/finance/invoices/${invoiceId}`);
+      const mockRequest = new NextRequest(
+        `http://localhost/api/admin/finance/invoices/${invoiceId}`
+      );
       const mockParams = { params: { id: invoiceId } };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
@@ -326,7 +338,9 @@ describe('Invoice Management APIs', () => {
 
     it('should include student information', async () => {
       const invoiceId = 'invoice-123';
-      const mockRequest = new NextRequest(`http://localhost/api/admin/finance/invoices/${invoiceId}`);
+      const mockRequest = new NextRequest(
+        `http://localhost/api/admin/finance/invoices/${invoiceId}`
+      );
       const mockParams = { params: { id: invoiceId } };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
@@ -338,7 +352,9 @@ describe('Invoice Management APIs', () => {
 
     it('should show payment history in chronological order', async () => {
       const invoiceId = 'invoice-123';
-      const mockRequest = new NextRequest(`http://localhost/api/admin/finance/invoices/${invoiceId}`);
+      const mockRequest = new NextRequest(
+        `http://localhost/api/admin/finance/invoices/${invoiceId}`
+      );
       const mockParams = { params: { id: invoiceId } };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
@@ -352,9 +368,12 @@ describe('Invoice Management APIs', () => {
   describe('DELETE /api/admin/finance/invoices/[id]', () => {
     it('should soft delete an invoice', async () => {
       const invoiceId = 'invoice-123';
-      const mockRequest = new NextRequest(`http://localhost/api/admin/finance/invoices/${invoiceId}`, {
-        method: 'DELETE',
-      });
+      const mockRequest = new NextRequest(
+        `http://localhost/api/admin/finance/invoices/${invoiceId}`,
+        {
+          method: 'DELETE',
+        }
+      );
       const mockParams = { params: { id: invoiceId } };
 
       const response = await DELETE_BY_ID(mockRequest, mockParams);
@@ -372,9 +391,12 @@ describe('Invoice Management APIs', () => {
         returning: jest.fn().mockResolvedValueOnce([]),
       });
 
-      const mockRequest = new NextRequest('http://localhost/api/admin/finance/invoices/non-existent', {
-        method: 'DELETE',
-      });
+      const mockRequest = new NextRequest(
+        'http://localhost/api/admin/finance/invoices/non-existent',
+        {
+          method: 'DELETE',
+        }
+      );
       const mockParams = { params: { id: 'non-existent' } };
 
       const response = await DELETE_BY_ID(mockRequest, mockParams);
@@ -386,9 +408,12 @@ describe('Invoice Management APIs', () => {
 
     it('should preserve invoice data (soft delete)', async () => {
       const invoiceId = 'invoice-123';
-      const mockRequest = new NextRequest(`http://localhost/api/admin/finance/invoices/${invoiceId}`, {
-        method: 'DELETE',
-      });
+      const mockRequest = new NextRequest(
+        `http://localhost/api/admin/finance/invoices/${invoiceId}`,
+        {
+          method: 'DELETE',
+        }
+      );
       const mockParams = { params: { id: invoiceId } };
 
       const { db } = await import('@/db');

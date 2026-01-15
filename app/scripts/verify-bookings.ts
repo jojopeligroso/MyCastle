@@ -36,13 +36,17 @@ async function verifyBookings() {
     console.log(`Found ${bookings.length} active bookings:\n`);
 
     bookings.forEach((booking, index) => {
-      const balance = (parseFloat(booking.total_booking_eur) - parseFloat(booking.total_paid_eur)).toFixed(2);
+      const balance = (
+        parseFloat(booking.total_booking_eur) - parseFloat(booking.total_paid_eur)
+      ).toFixed(2);
 
       console.log(`${index + 1}. ${booking.booking_number} - ${booking.student_name}`);
       console.log(`   Student: ${booking.student_number}`);
       console.log(`   Course: ${booking.course_name} (${booking.course_level})`);
       console.log(`   Accommodation: ${booking.accommodation_name || 'None'}`);
-      console.log(`   Duration: ${booking.weeks} weeks starting ${booking.course_start_date.toISOString().split('T')[0]}`);
+      console.log(
+        `   Duration: ${booking.weeks} weeks starting ${booking.course_start_date.toISOString().split('T')[0]}`
+      );
       console.log(`   Status: ${booking.status}`);
       console.log(`   Total: €${booking.total_booking_eur}`);
       console.log(`   Paid: €${booking.total_paid_eur}`);

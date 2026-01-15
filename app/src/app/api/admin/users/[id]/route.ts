@@ -30,10 +30,7 @@ const supabaseAdmin = createClient(
   }
 );
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     // Verify authentication
@@ -41,21 +38,16 @@ export async function PATCH(
     const tenantId = await getTenantId();
 
     if (!tenantId) {
-      return NextResponse.json(
-        { error: 'Tenant not found' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Tenant not found' }, { status: 400 });
     }
 
     // Verify admin role
     const userRole = user.user_metadata?.role || user.app_metadata?.role;
-    const isAdmin = userRole === 'admin' || userRole === 'super_admin' || userRole?.startsWith('admin_');
+    const isAdmin =
+      userRole === 'admin' || userRole === 'super_admin' || userRole?.startsWith('admin_');
 
     if (!isAdmin) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Admin access required' },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 403 });
     }
 
     // Parse and validate request body
@@ -70,10 +62,7 @@ export async function PATCH(
       .limit(1);
 
     if (!existingUser) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     // Update user metadata in Supabase Auth if email or role changed
@@ -92,10 +81,7 @@ export async function PATCH(
         };
       }
 
-      const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(
-        id,
-        authUpdates
-      );
+      const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(id, authUpdates);
 
       if (authError) {
         console.error('Supabase auth error:', authError);
@@ -130,9 +116,6 @@ export async function PATCH(
       );
     }
 
-    return NextResponse.json(
-      { error: error.message || 'Failed to update user' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message || 'Failed to update user' }, { status: 500 });
   }
 }

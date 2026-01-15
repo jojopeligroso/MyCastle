@@ -98,11 +98,13 @@ describe('POST /api/admin/users', () => {
 
     (db.insert as any).mockReturnValue({
       values: jest.fn().mockReturnThis(),
-      returning: (jest.fn() as any).mockResolvedValue([{
-        id: 'new-user-id',
-        ...dataWithoutPassword,
-        tenant_id: 'tenant-123',
-      }]),
+      returning: (jest.fn() as any).mockResolvedValue([
+        {
+          id: 'new-user-id',
+          ...dataWithoutPassword,
+          tenant_id: 'tenant-123',
+        },
+      ]),
     });
 
     const response = await POST(mockRequest as NextRequest);
@@ -208,11 +210,13 @@ describe('POST /api/admin/users', () => {
 
       (db.insert as any).mockReturnValue({
         values: jest.fn().mockReturnThis(),
-        returning: (jest.fn() as any).mockResolvedValue([{
-          id: 'user-id',
-          ...validData,
-          tenant_id: 'tenant-123',
-        }]),
+        returning: (jest.fn() as any).mockResolvedValue([
+          {
+            id: 'user-id',
+            ...validData,
+            tenant_id: 'tenant-123',
+          },
+        ]),
       });
 
       const response = await POST(mockRequest as NextRequest);
@@ -231,11 +235,13 @@ describe('POST /api/admin/users', () => {
 
     (db.insert as any).mockReturnValue({
       values: jest.fn().mockReturnThis(),
-      returning: (jest.fn() as any).mockResolvedValue([{
-        id: 'user-id',
-        ...validData,
-        tenant_id: 'tenant-123',
-      }]),
+      returning: (jest.fn() as any).mockResolvedValue([
+        {
+          id: 'user-id',
+          ...validData,
+          tenant_id: 'tenant-123',
+        },
+      ]),
     });
 
     await POST(mockRequest as NextRequest);
@@ -262,11 +268,13 @@ describe('POST /api/admin/users', () => {
 
     (db.insert as any).mockReturnValue({
       values: jest.fn().mockReturnThis(),
-      returning: (jest.fn() as any).mockResolvedValue([{
-        id: 'user-id',
-        ...validData,
-        tenant_id: 'tenant-123',
-      }]),
+      returning: (jest.fn() as any).mockResolvedValue([
+        {
+          id: 'user-id',
+          ...validData,
+          tenant_id: 'tenant-123',
+        },
+      ]),
     });
 
     await POST(mockRequest as NextRequest);
@@ -326,12 +334,14 @@ describe('POST /api/admin/users', () => {
 
     (db.insert as any).mockReturnValue({
       values: jest.fn().mockReturnThis(),
-      returning: (jest.fn() as any).mockResolvedValue([{
-        id: 'user-id',
-        ...dataWithoutStatus,
-        status: 'active',
-        tenant_id: 'tenant-123',
-      }]),
+      returning: (jest.fn() as any).mockResolvedValue([
+        {
+          id: 'user-id',
+          ...dataWithoutStatus,
+          status: 'active',
+          tenant_id: 'tenant-123',
+        },
+      ]),
     });
 
     const response = await POST(mockRequest as NextRequest);

@@ -5,7 +5,7 @@
 
 ---
 
-## ⚠️  Important Notes
+## ⚠️ Important Notes
 
 - **This is a destructive operation** - All existing tables will be dropped
 - Your test user (eoinmaleoin@gmail.com) will be recreated with proper multi-role support
@@ -42,6 +42,7 @@ Go to: https://app.supabase.com/project/pdeornivbyfvpqabgscr/sql/new
 5. Wait for completion (should take 5-10 seconds)
 
 **Expected Output:**
+
 ```
 Migration FRESH_0001 completed successfully!
 Next steps:
@@ -51,6 +52,7 @@ Next steps:
 ```
 
 **What this does:**
+
 - Drops all existing tables (fresh start)
 - Creates 9 core tables (tenants, users, user_roles, agencies, courses, accommodation_types, students, bookings, payments)
 - Sets up indexes for performance
@@ -70,6 +72,7 @@ Next steps:
 5. Wait for completion (should take 3-5 seconds)
 
 **Expected Output:**
+
 ```
 ======================================
 Migration FRESH_0002 completed successfully!
@@ -96,6 +99,7 @@ Next steps:
 ```
 
 **What this does:**
+
 - Creates default tenant
 - Seeds 6 courses (General English A1-C1 + IELTS)
 - Seeds 4 accommodation types (Host Family, Residence, Student House, Studio)
@@ -117,6 +121,7 @@ npm run verify:schema
 ```
 
 **Expected Output:**
+
 ```
 🔍 Verifying Fresh Schema Migrations...
 
@@ -192,16 +197,16 @@ Once migrations are verified:
 
 ### Old Schema → New Schema
 
-| Aspect | Old | New |
-|--------|-----|-----|
-| **User Roles** | Single role per user | Multi-role support (user_roles table) |
-| **Enrollments** | Generic enrollments table | Business-specific bookings table |
-| **Financial Tracking** | Limited | Full breakdown: course, accommodation, fees, payments |
-| **Visa Tracking** | Basic | Ireland-specific (First Time/Renewal 1/Renewal 2) |
-| **Payments** | ❌ No history | ✅ Full payment history with auto-totals |
-| **Agencies** | ❌ Not tracked | ✅ Sales source tracking |
-| **Accommodation** | Basic | Catalog with pricing |
-| **Proxy Booking** | ❌ Not supported | ✅ One person can book for others |
+| Aspect                 | Old                       | New                                                   |
+| ---------------------- | ------------------------- | ----------------------------------------------------- |
+| **User Roles**         | Single role per user      | Multi-role support (user_roles table)                 |
+| **Enrollments**        | Generic enrollments table | Business-specific bookings table                      |
+| **Financial Tracking** | Limited                   | Full breakdown: course, accommodation, fees, payments |
+| **Visa Tracking**      | Basic                     | Ireland-specific (First Time/Renewal 1/Renewal 2)     |
+| **Payments**           | ❌ No history             | ✅ Full payment history with auto-totals              |
+| **Agencies**           | ❌ Not tracked            | ✅ Sales source tracking                              |
+| **Accommodation**      | Basic                     | Catalog with pricing                                  |
+| **Proxy Booking**      | ❌ Not supported          | ✅ One person can book for others                     |
 
 ---
 
@@ -214,6 +219,7 @@ Once migrations are verified:
 **Sample Booking:** BK-2026-001 (12 weeks B1 course + Host Family)
 
 **Sample Data:**
+
 - 2 additional students: Maria Silva (visa student), John Mueller (EU student)
 - 3 bookings with various statuses
 - 1 payment recorded
@@ -223,22 +229,27 @@ Once migrations are verified:
 ## 🆘 Troubleshooting
 
 ### Migration 0001 fails with "relation already exists"
+
 - Expected! The migration drops tables first with `DROP TABLE IF EXISTS`
 - If it still fails, manually drop problematic tables in Supabase SQL Editor
 
 ### Migration 0002 fails with "duplicate key value"
+
 - Tables may already have data from previous runs
 - Solution: Re-run Migration 0001 first to get clean slate
 
 ### Verification script fails with "DATABASE_URL not found"
+
 - Check `.env.local` exists and has correct DATABASE_URL
 - Try: `cat ~/Work/MyCastle/app/.env.local | grep DATABASE_URL`
 
 ### RLS tests fail
+
 - RLS policies may not have been created
 - Check Supabase logs for errors during Migration 0001
 
 ### Can't connect to database after migration
+
 - Connection string may be wrong
 - Verify: `npm run test:db`
 
@@ -247,6 +258,7 @@ Once migrations are verified:
 ## 📞 Need Help?
 
 If migrations fail or verification doesn't pass:
+
 1. Check Supabase SQL Editor logs for specific errors
 2. Review migration file syntax
 3. Verify database credentials in `.env.local`
@@ -257,6 +269,7 @@ If migrations fail or verification doesn't pass:
 ## 🔄 Rolling Back (If Needed)
 
 To revert to previous state:
+
 1. Restore from Supabase backup (if created)
 2. Or re-run old migrations from `app/migrations/0001-0008` folder
 

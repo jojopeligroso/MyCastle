@@ -50,9 +50,10 @@ async function getEnrolmentStats(tenantId: string) {
   const attendanceRates = allEnrolments
     .map(e => parseFloat(e.attendance_rate || '0'))
     .filter(rate => rate > 0);
-  const avgAttendance = attendanceRates.length > 0
-    ? (attendanceRates.reduce((a, b) => a + b, 0) / attendanceRates.length).toFixed(2)
-    : '0.00';
+  const avgAttendance =
+    attendanceRates.length > 0
+      ? (attendanceRates.reduce((a, b) => a + b, 0) / attendanceRates.length).toFixed(2)
+      : '0.00';
 
   return {
     totalEnrolments,
@@ -189,8 +190,8 @@ export default async function EnrolmentsPage() {
                         enrolment.status === 'active'
                           ? 'bg-green-100 text-green-800'
                           : enrolment.status === 'completed'
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-gray-100 text-gray-800'
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-gray-100 text-gray-800'
                       }`}
                     >
                       {enrolment.status}

@@ -21,9 +21,7 @@ export const ActivitySchema = z.object({
   duration_minutes: z.number().int().min(1).max(120),
   description: z.string().min(1),
   materials: z.array(z.string()).optional(),
-  interaction_pattern: z
-    .enum(['individual', 'pairs', 'small_groups', 'whole_class'])
-    .optional(),
+  interaction_pattern: z.enum(['individual', 'pairs', 'small_groups', 'whole_class']).optional(),
 });
 
 export type Activity = z.infer<typeof ActivitySchema>;

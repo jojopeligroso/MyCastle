@@ -48,7 +48,9 @@ describe('Audit Log APIs', () => {
     });
 
     it('should filter logs by entity_type', async () => {
-      const mockRequest = new NextRequest('http://localhost/api/admin/audit-log?entity_type=student');
+      const mockRequest = new NextRequest(
+        'http://localhost/api/admin/audit-log?entity_type=student'
+      );
 
       const response = await GET(mockRequest);
 
@@ -120,7 +122,9 @@ describe('Audit Log APIs', () => {
       ];
 
       for (const entityType of entityTypes) {
-        const mockRequest = new NextRequest(`http://localhost/api/admin/audit-log?entity_type=${entityType}`);
+        const mockRequest = new NextRequest(
+          `http://localhost/api/admin/audit-log?entity_type=${entityType}`
+        );
 
         const response = await GET(mockRequest);
 
@@ -132,7 +136,9 @@ describe('Audit Log APIs', () => {
       const actions = ['create', 'update', 'delete'];
 
       for (const action of actions) {
-        const mockRequest = new NextRequest(`http://localhost/api/admin/audit-log?action=${action}`);
+        const mockRequest = new NextRequest(
+          `http://localhost/api/admin/audit-log?action=${action}`
+        );
 
         const response = await GET(mockRequest);
 
@@ -160,7 +166,9 @@ describe('Audit Log APIs', () => {
         offset: jest.fn().mockResolvedValueOnce([]), // No logs found
       });
 
-      const mockRequest = new NextRequest('http://localhost/api/admin/audit-log?user_id=nonexistent');
+      const mockRequest = new NextRequest(
+        'http://localhost/api/admin/audit-log?user_id=nonexistent'
+      );
 
       const response = await GET(mockRequest);
       const data = await response.json();
@@ -308,7 +316,9 @@ describe('Audit Log APIs', () => {
     });
 
     it('should validate date format', async () => {
-      const mockRequest = new NextRequest('http://localhost/api/admin/audit-log?start_date=invalid-date');
+      const mockRequest = new NextRequest(
+        'http://localhost/api/admin/audit-log?start_date=invalid-date'
+      );
 
       const response = await GET(mockRequest);
 
@@ -358,7 +368,9 @@ describe('Audit Log APIs', () => {
       const sensitiveEntities = ['student', 'invoice', 'payment', 'enrollment'];
 
       for (const entityType of sensitiveEntities) {
-        const mockRequest = new NextRequest(`http://localhost/api/admin/audit-log?entity_type=${entityType}`);
+        const mockRequest = new NextRequest(
+          `http://localhost/api/admin/audit-log?entity_type=${entityType}`
+        );
 
         const response = await GET(mockRequest);
 

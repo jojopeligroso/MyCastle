@@ -23,11 +23,7 @@ describe('FeatureCard Component', () => {
 
     it('should render as a clickable link', () => {
       render(
-        <FeatureCard
-          title="Test Feature"
-          description="Test description"
-          href="/test-route"
-        />
+        <FeatureCard title="Test Feature" description="Test description" href="/test-route" />
       );
 
       const link = screen.getByRole('link');
@@ -35,13 +31,7 @@ describe('FeatureCard Component', () => {
     });
 
     it('should render "Get started" call-to-action', () => {
-      render(
-        <FeatureCard
-          title="Test Feature"
-          description="Test description"
-          href="/test"
-        />
-      );
+      render(<FeatureCard title="Test Feature" description="Test description" href="/test" />);
 
       expect(screen.getByText('Get started')).toBeInTheDocument();
     });
@@ -50,11 +40,7 @@ describe('FeatureCard Component', () => {
   describe('Color Variants', () => {
     it('should apply blue color class by default', () => {
       const { container } = render(
-        <FeatureCard
-          title="Test Feature"
-          description="Test description"
-          href="/test"
-        />
+        <FeatureCard title="Test Feature" description="Test description" href="/test" />
       );
 
       const colorBar = container.querySelector('.bg-blue-500');
@@ -120,11 +106,7 @@ describe('FeatureCard Component', () => {
 
     it('should not render badge when not provided', () => {
       const { container } = render(
-        <FeatureCard
-          title="Test Feature"
-          description="Test description"
-          href="/test"
-        />
+        <FeatureCard title="Test Feature" description="Test description" href="/test" />
       );
 
       const badge = container.querySelector('.bg-blue-100');
@@ -154,11 +136,7 @@ describe('FeatureCard Component', () => {
 
     it('should not render icon container when icon not provided', () => {
       const { container } = render(
-        <FeatureCard
-          title="Test Feature"
-          description="Test description"
-          href="/test"
-        />
+        <FeatureCard title="Test Feature" description="Test description" href="/test" />
       );
 
       // Icon container has specific classes
@@ -219,13 +197,7 @@ describe('FeatureCard Component', () => {
 
   describe('Accessibility', () => {
     it('should be keyboard navigable', () => {
-      render(
-        <FeatureCard
-          title="Test Feature"
-          description="Test description"
-          href="/test"
-        />
-      );
+      render(<FeatureCard title="Test Feature" description="Test description" href="/test" />);
 
       const link = screen.getByRole('link');
       expect(link).toBeInTheDocument();
@@ -233,13 +205,7 @@ describe('FeatureCard Component', () => {
     });
 
     it('should have proper semantic structure', () => {
-      render(
-        <FeatureCard
-          title="Test Feature"
-          description="Test description"
-          href="/test"
-        />
-      );
+      render(<FeatureCard title="Test Feature" description="Test description" href="/test" />);
 
       // Title should be in heading structure
       const title = screen.getByText('Test Feature');

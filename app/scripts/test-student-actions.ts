@@ -4,7 +4,13 @@
  * Run with: tsx scripts/test-student-actions.ts
  */
 
-import { createStudent, updateStudent, approveLevelStatus, archiveStudent, getDuplicateCandidates } from '../src/app/admin/students/_actions/studentActions';
+import {
+  createStudent,
+  updateStudent,
+  approveLevelStatus,
+  archiveStudent,
+  getDuplicateCandidates,
+} from '../src/app/admin/students/_actions/studentActions';
 
 async function testStudentActions() {
   console.log('🧪 Testing Student Server Actions\n');

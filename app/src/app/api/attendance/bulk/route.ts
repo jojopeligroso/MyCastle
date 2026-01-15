@@ -113,12 +113,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const sessionRecords = await db
       .select({ hash: attendance.hash, created_at: attendance.created_at })
       .from(attendance)
-      .where(
-        and(
-          eq(attendance.class_session_id, sessionId),
-          eq(attendance.tenant_id, tenantId)
-        )
-      )
+      .where(and(eq(attendance.class_session_id, sessionId), eq(attendance.tenant_id, tenantId)))
       .orderBy(sql`${attendance.created_at} DESC`)
       .limit(1);
 

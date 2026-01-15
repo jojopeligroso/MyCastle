@@ -280,7 +280,7 @@ async function seedStudents() {
     for (const student of sampleStudents) {
       // Check if student already exists
       const existing = await db.execute(
-        sql`SELECT id FROM users WHERE email = ${student.email} AND tenant_id = ${tenantId}`,
+        sql`SELECT id FROM users WHERE email = ${student.email} AND tenant_id = ${tenantId}`
       );
 
       if (existing && existing.length > 0) {
@@ -307,9 +307,7 @@ async function seedStudents() {
       });
 
       createdCount++;
-      console.log(
-        `✓ Created: ${student.name} (${student.current_level}, ${student.level_status})`,
-      );
+      console.log(`✓ Created: ${student.name} (${student.current_level}, ${student.level_status})`);
     }
 
     console.log(`\n🎉 Seeding complete!`);
@@ -320,10 +318,16 @@ async function seedStudents() {
     console.log('📊 Sample Data Summary:');
     console.log(`   - Active: ${sampleStudents.filter(s => s.status === 'active').length}`);
     console.log(`   - Suspended: ${sampleStudents.filter(s => s.status === 'suspended').length}`);
-    console.log(`   - Provisional levels: ${sampleStudents.filter(s => s.level_status === 'provisional').length}`);
-    console.log(`   - Confirmed levels: ${sampleStudents.filter(s => s.level_status === 'confirmed').length}`);
+    console.log(
+      `   - Provisional levels: ${sampleStudents.filter(s => s.level_status === 'provisional').length}`
+    );
+    console.log(
+      `   - Confirmed levels: ${sampleStudents.filter(s => s.level_status === 'confirmed').length}`
+    );
     console.log(`   - With visa: ${sampleStudents.filter(s => s.visa_type).length}`);
-    console.log(`   - CEFR levels: A1(${sampleStudents.filter(s => s.current_level === 'A1').length}), A2(${sampleStudents.filter(s => s.current_level === 'A2').length}), B1(${sampleStudents.filter(s => s.current_level === 'B1').length}), B2(${sampleStudents.filter(s => s.current_level === 'B2').length}), C1(${sampleStudents.filter(s => s.current_level === 'C1').length}), C2(${sampleStudents.filter(s => s.current_level === 'C2').length})`);
+    console.log(
+      `   - CEFR levels: A1(${sampleStudents.filter(s => s.current_level === 'A1').length}), A2(${sampleStudents.filter(s => s.current_level === 'A2').length}), B1(${sampleStudents.filter(s => s.current_level === 'B1').length}), B2(${sampleStudents.filter(s => s.current_level === 'B2').length}), C1(${sampleStudents.filter(s => s.current_level === 'C1').length}), C2(${sampleStudents.filter(s => s.current_level === 'C2').length})`
+    );
 
     process.exit(0);
   } catch (error) {

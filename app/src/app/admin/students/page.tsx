@@ -82,16 +82,12 @@ async function getStudents(): Promise<StudentWithDetails[]> {
       .from(students)
       .innerJoin(users, eq(students.userId, users.id))
       .where(
-        and(
-          eq(students.tenantId, tenantId),
-          eq(students.status, 'active'),
-          isNull(users.deletedAt)
-        )
+        and(eq(students.tenantId, tenantId), eq(students.status, 'active'), isNull(users.deletedAt))
       )
       .orderBy(users.name);
 
     // Map to legacy format for component compatibility
-    return result.map((row) => ({
+    return result.map(row => ({
       ...row,
       // Legacy field mappings
       visa_expiry: row.visa_expiry_date,
@@ -107,10 +103,10 @@ async function getStudents(): Promise<StudentWithDetails[]> {
 
 async function getStudentStats(students: StudentWithDetails[]): Promise<StudentStats> {
   const total = students.length;
-  const active = students.filter((s) => s.status === 'active').length;
+  const active = students.filter(s => s.status === 'active').length;
 
   // Count visa expiring soon (within 30 days)
-  const visaExpiring = students.filter((s) => {
+  const visaExpiring = students.filter(s => {
     if (!s.visa_expiry_date) return false;
     const expiryDate = new Date(s.visa_expiry_date);
     const today = new Date();

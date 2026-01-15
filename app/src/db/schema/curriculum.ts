@@ -27,10 +27,7 @@ export const cefrDescriptors = pgTable(
     created_at: timestamp('created_at').defaultNow().notNull(),
     updated_at: timestamp('updated_at').defaultNow().notNull(),
   },
-  table => [
-    index('idx_cefr_level').on(table.level),
-    index('idx_cefr_category').on(table.category),
-  ],
+  table => [index('idx_cefr_level').on(table.level), index('idx_cefr_category').on(table.category)]
 );
 
 /**
@@ -78,7 +75,7 @@ export const lessonPlans = pgTable(
     index('idx_plans_teacher').on(table.teacher_id),
     index('idx_plans_cefr').on(table.cefr_level),
     index('idx_plans_cache_key').on(table.cache_key),
-  ],
+  ]
 );
 
 /**
@@ -119,7 +116,7 @@ export const materials = pgTable(
     index('idx_materials_tenant').on(table.tenant_id),
     index('idx_materials_cefr').on(table.cefr_level),
     index('idx_materials_type').on(table.type),
-  ],
+  ]
 );
 
 /**

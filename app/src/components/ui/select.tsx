@@ -29,7 +29,13 @@ export function Select({
   );
 }
 
-export function SelectTrigger({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+export function SelectTrigger({
+  children,
+  className = '',
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   const context = useContext(SelectContext);
   if (!context) throw new Error('SelectTrigger must be used within Select');
 

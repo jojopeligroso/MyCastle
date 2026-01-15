@@ -154,8 +154,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const isAuthorized = userRole === 'admin' ||
-                         (userRole === 'teacher' && classRecord.teacher_id === user.id);
+    const isAuthorized =
+      userRole === 'admin' || (userRole === 'teacher' && classRecord.teacher_id === user.id);
 
     if (!isAuthorized) {
       return NextResponse.json(
@@ -184,7 +184,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .from(attendance)
       .innerJoin(classSessions, eq(attendance.class_session_id, classSessions.id))
       .innerJoin(sql`users`, eq(attendance.student_id, sql`users.id`))
-      .leftJoin(sql`users AS recorded_by_user`, eq(attendance.recorded_by, sql`recorded_by_user.id`))
+      .leftJoin(
+        sql`users AS recorded_by_user`,
+        eq(attendance.recorded_by, sql`recorded_by_user.id`)
+      )
       .where(
         and(
           eq(classSessions.class_id, classId),
@@ -237,7 +240,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       )
     `);
 
-    console.log(`[Attendance Export] Generated CSV in ${executionTime}ms (${csvRecords.length} records)`);
+    console.log(
+      `[Attendance Export] Generated CSV in ${executionTime}ms (${csvRecords.length} records)`
+    );
 
     // Return CSV with appropriate headers
     return new NextResponse(csv, {

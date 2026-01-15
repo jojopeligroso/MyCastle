@@ -65,7 +65,9 @@ test.describe('Teacher Lesson Planner', () => {
     await expect(page.getByText(/generating/i)).toBeVisible();
 
     // Should display generated plan within 5 seconds (T-031)
-    await expect(page.getByRole('heading', { name: /lesson plan/i })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: /lesson plan/i })).toBeVisible({
+      timeout: 5000,
+    });
   });
 
   test('should display lesson plan sections', async ({ page }) => {
@@ -78,7 +80,9 @@ test.describe('Teacher Lesson Planner', () => {
     await page.getByRole('button', { name: /generate/i }).click();
 
     // Wait for plan
-    await expect(page.getByRole('heading', { name: /lesson plan/i })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: /lesson plan/i })).toBeVisible({
+      timeout: 5000,
+    });
 
     // Should have all required sections (T-032)
     await expect(page.getByText(/objectives/i)).toBeVisible();
@@ -101,7 +105,9 @@ test.describe('Teacher Lesson Planner', () => {
 
     const firstGenStart = Date.now();
     await page.getByRole('button', { name: /generate/i }).click();
-    await expect(page.getByRole('heading', { name: /lesson plan/i })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: /lesson plan/i })).toBeVisible({
+      timeout: 5000,
+    });
     const firstGenTime = Date.now() - firstGenStart;
 
     // Generate again with same params
@@ -112,7 +118,9 @@ test.describe('Teacher Lesson Planner', () => {
 
     const secondGenStart = Date.now();
     await page.getByRole('button', { name: /generate/i }).click();
-    await expect(page.getByRole('heading', { name: /lesson plan/i })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: /lesson plan/i })).toBeVisible({
+      timeout: 5000,
+    });
     const secondGenTime = Date.now() - secondGenStart;
 
     // T-033: Second generation should be faster (cached)
@@ -141,7 +149,9 @@ test.describe('Teacher Lesson Planner', () => {
     await page.getByRole('button', { name: /generate/i }).click();
 
     // Wait for plan
-    await expect(page.getByRole('heading', { name: /lesson plan/i })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: /lesson plan/i })).toBeVisible({
+      timeout: 5000,
+    });
 
     // Should have save button
     const saveButton = page.getByRole('button', { name: /save/i });

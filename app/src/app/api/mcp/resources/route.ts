@@ -31,7 +31,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     // Verify session via Supabase
     const supabase = await createClient();
-    const { data: { session: supabaseSession }, error } = await supabase.auth.getSession();
+    const {
+      data: { session: supabaseSession },
+      error,
+    } = await supabase.auth.getSession();
 
     if (error || !supabaseSession) {
       return NextResponse.json(
@@ -69,9 +72,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     if (response.success) {
       return NextResponse.json(response, { status: 200 });
     } else {
-      const statusCode = response.error?.code === 'UNAUTHORIZED' ? 401 :
-        response.error?.code === 'FORBIDDEN' ? 403 :
-          response.error?.code === 'RESOURCE_NOT_FOUND' ? 404 : 500;
+      const statusCode =
+        response.error?.code === 'UNAUTHORIZED'
+          ? 401
+          : response.error?.code === 'FORBIDDEN'
+            ? 403
+            : response.error?.code === 'RESOURCE_NOT_FOUND'
+              ? 404
+              : 500;
 
       return NextResponse.json(response, { status: statusCode });
     }

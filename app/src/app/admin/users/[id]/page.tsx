@@ -90,7 +90,10 @@ export default async function UserDetailPage({ params }: { params: { id: string 
       {/* Header */}
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <Link href="/admin/users" className="text-sm text-gray-600 hover:text-gray-900 mb-2 inline-block">
+          <Link
+            href="/admin/users"
+            className="text-sm text-gray-600 hover:text-gray-900 mb-2 inline-block"
+          >
             ← Back to Users
           </Link>
           <h1 className="text-3xl font-bold text-gray-900">{user.name}</h1>
@@ -114,7 +117,9 @@ export default async function UserDetailPage({ params }: { params: { id: string 
               <div>
                 <dt className="text-sm font-medium text-gray-500">Role</dt>
                 <dd className="mt-1">
-                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getRoleBadge(user.role)}`}>
+                  <span
+                    className={`px-2 py-1 text-xs font-semibold rounded-full ${getRoleBadge(user.role)}`}
+                  >
                     {user.role?.replace('_', ' ')}
                   </span>
                 </dd>
@@ -122,7 +127,9 @@ export default async function UserDetailPage({ params }: { params: { id: string 
               <div>
                 <dt className="text-sm font-medium text-gray-500">Status</dt>
                 <dd className="mt-1">
-                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadge(user.status)}`}>
+                  <span
+                    className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadge(user.status)}`}
+                  >
                     {user.status}
                   </span>
                 </dd>
@@ -178,9 +185,7 @@ export default async function UserDetailPage({ params }: { params: { id: string 
                             </Link>
                             <div className="text-sm text-gray-500">{cls.code}</div>
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-900">
-                            {enrollment.status}
-                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900">{enrollment.status}</td>
                           <td className="px-4 py-3 text-sm text-gray-500">
                             {new Date(enrollment.enrollment_date).toLocaleDateString()}
                           </td>
@@ -217,7 +222,7 @@ export default async function UserDetailPage({ params }: { params: { id: string 
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
-                      {teacherClasses.map((cls) => (
+                      {teacherClasses.map(cls => (
                         <tr key={cls.id}>
                           <td className="px-4 py-3">
                             <Link

@@ -226,15 +226,37 @@ export class ScopeMatcher {
     switch (role) {
       case 'super_admin':
         // Full system access including identity management and student profiles
-        return ['identity:*', 'academic:*', 'attendance:*', 'finance:*', 'student_services:*', 'operations:*', 'marketing:*', 'student:profile:*'];
+        return [
+          'identity:*',
+          'academic:*',
+          'attendance:*',
+          'finance:*',
+          'student_services:*',
+          'operations:*',
+          'marketing:*',
+          'student:profile:*',
+        ];
 
       case 'admin':
         // Legacy full admin role - all operational scopes except identity:*
-        return ['academic:*', 'attendance:*', 'finance:*', 'student_services:*', 'operations:read', 'student:profile:read'];
+        return [
+          'academic:*',
+          'attendance:*',
+          'finance:*',
+          'student_services:*',
+          'operations:read',
+          'student:profile:read',
+        ];
 
       case 'admin_dos':
         // Director of Studies: academic operations, curriculum, quality assurance, full student profile access
-        return ['academic:*', 'attendance:read', 'teacher:view_all', 'operations:quality_assurance', 'student:profile:*'];
+        return [
+          'academic:*',
+          'attendance:read',
+          'teacher:view_all',
+          'operations:quality_assurance',
+          'student:profile:*',
+        ];
 
       case 'admin_reception':
         // Front desk: view students, check attendance, view schedules
@@ -242,7 +264,13 @@ export class ScopeMatcher {
 
       case 'admin_student_operations':
         // Student services: manage accommodations, enrollments, student records, full student profile access
-        return ['student_services:*', 'academic:read', 'academic:enroll_students', 'attendance:write', 'student:profile:*'];
+        return [
+          'student_services:*',
+          'academic:read',
+          'academic:enroll_students',
+          'attendance:write',
+          'student:profile:*',
+        ];
 
       case 'admin_sales':
         // Sales & invoicing: full finance access, view academic offerings
@@ -262,11 +290,26 @@ export class ScopeMatcher {
 
       case 'teacher_dos':
         // Director of Studies (teacher): teaching + academic leadership + teacher oversight + student profiles
-        return ['teacher:*', 'academic:write', 'academic:curriculum_design', 'attendance:*', 'teacher:view_all', 'operations:quality_assurance', 'student:profile:*'];
+        return [
+          'teacher:*',
+          'academic:write',
+          'academic:curriculum_design',
+          'attendance:*',
+          'teacher:view_all',
+          'operations:quality_assurance',
+          'student:profile:*',
+        ];
 
       case 'teacher_assistant_dos':
         // Assistant Director of Studies: teaching + limited academic admin + student profiles
-        return ['teacher:*', 'academic:read', 'academic:suggest_changes', 'attendance:write', 'teacher:view_all', 'student:profile:*'];
+        return [
+          'teacher:*',
+          'academic:read',
+          'academic:suggest_changes',
+          'attendance:write',
+          'teacher:view_all',
+          'student:profile:*',
+        ];
 
       case 'student':
         // Student portal access
@@ -296,4 +339,4 @@ export const MCPErrorCode = {
   TENANT_MISMATCH: 'TENANT_MISMATCH',
 } as const;
 
-export type MCPErrorCodeType = typeof MCPErrorCode[keyof typeof MCPErrorCode];
+export type MCPErrorCodeType = (typeof MCPErrorCode)[keyof typeof MCPErrorCode];

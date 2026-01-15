@@ -165,18 +165,19 @@ describe('LessonPlannerForm Component', () => {
   });
 
   it('should show loading state during generation', async () => {
-    (global.fetch as jest.Mock).mockImplementation(() =>
-      new Promise((resolve) => {
-        setTimeout(() => {
-          resolve({
-            ok: true,
-            json: async () => ({
-              plan: { id: 'plan-123', title: 'Test', cefr_level: 'B1', duration_minutes: 60 },
-              generation_time_ms: 1000,
-            }),
-          });
-        }, 100);
-      })
+    (global.fetch as jest.Mock).mockImplementation(
+      () =>
+        new Promise(resolve => {
+          setTimeout(() => {
+            resolve({
+              ok: true,
+              json: async () => ({
+                plan: { id: 'plan-123', title: 'Test', cefr_level: 'B1', duration_minutes: 60 },
+                generation_time_ms: 1000,
+              }),
+            });
+          }, 100);
+        })
     );
 
     render(<LessonPlannerForm />);
@@ -311,7 +312,9 @@ describe('LessonPlannerForm Component', () => {
       cefr_level: 'B1',
       duration_minutes: 60,
       objectives: [{ description: 'Test objective' }],
-      activities: [{ name: 'Test activity', description: 'Test description', duration_minutes: 10 }],
+      activities: [
+        { name: 'Test activity', description: 'Test description', duration_minutes: 10 },
+      ],
     };
 
     const onPlanGenerated = jest.fn();
@@ -401,7 +404,9 @@ describe('LessonPlannerForm Component', () => {
       cefr_level: 'B1',
       duration_minutes: 60,
       objectives: [{ description: 'Test objective' }],
-      activities: [{ name: 'Test activity', description: 'Test description', duration_minutes: 10 }],
+      activities: [
+        { name: 'Test activity', description: 'Test description', duration_minutes: 10 },
+      ],
       materials: ['Whiteboard', 'Markers', 'Handouts', 'Audio player'],
     };
 
@@ -437,7 +442,9 @@ describe('LessonPlannerForm Component', () => {
       cefr_level: 'B1',
       duration_minutes: 60,
       objectives: [{ description: 'Test objective' }],
-      activities: [{ name: 'Test activity', description: 'Test description', duration_minutes: 10 }],
+      activities: [
+        { name: 'Test activity', description: 'Test description', duration_minutes: 10 },
+      ],
       assessment: [
         { type: 'formative', description: 'Peer evaluation' },
         { type: 'summative', description: 'Written quiz' },

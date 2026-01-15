@@ -11,15 +11,13 @@ export function Alert({ className = '', variant = 'default', ...props }: AlertPr
   };
 
   return (
-    <div
-      className={`rounded-lg border p-4 ${variantStyles[variant]} ${className}`}
-      {...props}
-    />
+    <div className={`rounded-lg border p-4 ${variantStyles[variant]} ${className}`} {...props} />
   );
 }
 
-export function AlertDescription({ className = '', ...props }: React.HTMLAttributes<HTMLParagraphElement>) {
-  return (
-    <p className={`text-sm ${className}`} {...props} />
-  );
+export function AlertDescription({
+  className = '',
+  ...props
+}: React.HTMLAttributes<HTMLParagraphElement>) {
+  return <p className={`text-sm ${className}`} {...props} />;
 }

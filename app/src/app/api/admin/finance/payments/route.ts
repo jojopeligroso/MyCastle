@@ -53,10 +53,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ payments: results });
   } catch (error) {
     console.error('Error fetching payments:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch payments' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch payments' }, { status: 500 });
   }
 }
 
@@ -112,7 +109,8 @@ export async function POST(request: NextRequest) {
     // Update invoice amounts
     const newAmountPaid = invoice.amount_paid + data.amount;
     const newAmountDue = invoice.amount - newAmountPaid;
-    const newStatus = newAmountDue <= 0 ? 'paid' : newAmountDue < invoice.amount ? 'partial' : 'pending';
+    const newStatus =
+      newAmountDue <= 0 ? 'paid' : newAmountDue < invoice.amount ? 'partial' : 'pending';
 
     await db
       .update(invoices)
@@ -127,9 +125,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(newPayment, { status: 201 });
   } catch (error) {
     console.error('Error creating payment:', error);
-    return NextResponse.json(
-      { error: 'Failed to create payment' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to create payment' }, { status: 500 });
   }
 }

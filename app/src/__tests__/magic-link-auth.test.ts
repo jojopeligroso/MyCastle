@@ -12,9 +12,7 @@ import { describe, it, expect, jest } from '@jest/globals';
 
 // Mock the Next.js modules
 jest.mock('next/headers', () => ({
-  headers: jest.fn(() =>
-    Promise.resolve(new Map([['x-forwarded-for', '127.0.0.1']]))
-  ),
+  headers: jest.fn(() => Promise.resolve(new Map([['x-forwarded-for', '127.0.0.1']]))),
 }));
 
 jest.mock('@/lib/supabase/server', () => ({

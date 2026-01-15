@@ -15,10 +15,7 @@ const updateCourseSchema = z.object({
   cefr_descriptor_ids: z.array(z.string().uuid()).optional(),
 });
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     await requireAuth(['admin']);
     const courseId = params.id;
@@ -36,17 +33,11 @@ export async function GET(
     return NextResponse.json(course);
   } catch (error) {
     console.error('Error fetching course:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch course' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch course' }, { status: 500 });
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     await requireAuth(['admin']);
     const courseId = params.id;
@@ -63,7 +54,7 @@ export async function PATCH(
     const data = validationResult.data;
     const updateData: Record<string, any> = { updated_at: new Date() };
 
-    Object.keys(data).forEach((key) => {
+    Object.keys(data).forEach(key => {
       if (data[key as keyof typeof data] !== undefined) {
         updateData[key] = data[key as keyof typeof data];
       }
@@ -82,17 +73,11 @@ export async function PATCH(
     return NextResponse.json(updatedCourse);
   } catch (error) {
     console.error('Error updating course:', error);
-    return NextResponse.json(
-      { error: 'Failed to update course' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to update course' }, { status: 500 });
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     await requireAuth(['admin']);
     const courseId = params.id;
@@ -113,9 +98,6 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting course:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete course' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to delete course' }, { status: 500 });
   }
 }

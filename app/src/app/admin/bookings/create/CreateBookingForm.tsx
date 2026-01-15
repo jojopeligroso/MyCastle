@@ -76,7 +76,7 @@ export function CreateBookingForm({
   // Auto-calculate course fee when course/weeks change
   const handleCourseChange = (newCourseId: string) => {
     setCourseId(newCourseId);
-    const course = courses.find((c) => c.id === newCourseId);
+    const course = courses.find(c => c.id === newCourseId);
     if (course && course.pricePerWeekEur) {
       const fee = (parseFloat(course.pricePerWeekEur) * parseFloat(weeks || '1')).toFixed(2);
       setCourseFee(fee);
@@ -85,7 +85,7 @@ export function CreateBookingForm({
 
   const handleWeeksChange = (newWeeks: string) => {
     setWeeks(newWeeks);
-    const course = courses.find((c) => c.id === courseId);
+    const course = courses.find(c => c.id === courseId);
     if (course && course.pricePerWeekEur && newWeeks) {
       const fee = (parseFloat(course.pricePerWeekEur) * parseFloat(newWeeks)).toFixed(2);
       setCourseFee(fee);
@@ -99,7 +99,7 @@ export function CreateBookingForm({
       setAccommodationFee('0');
       return;
     }
-    const accom = accommodationTypes.find((a) => a.id === newAccomId);
+    const accom = accommodationTypes.find(a => a.id === newAccomId);
     if (accom && accom.pricePerWeekEur) {
       const fee = (parseFloat(accom.pricePerWeekEur) * parseFloat(weeks || '1')).toFixed(2);
       setAccommodationFee(fee);
@@ -159,11 +159,11 @@ export function CreateBookingForm({
             <select
               required
               value={studentId}
-              onChange={(e) => setStudentId(e.target.value)}
+              onChange={e => setStudentId(e.target.value)}
               className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
             >
               <option value="">Select a student</option>
-              {students.map((s) => (
+              {students.map(s => (
                 <option key={s.id} value={s.id}>
                   {s.name} {s.studentNumber && `(${s.studentNumber})`}
                 </option>
@@ -176,11 +176,11 @@ export function CreateBookingForm({
             <select
               required
               value={courseId}
-              onChange={(e) => handleCourseChange(e.target.value)}
+              onChange={e => handleCourseChange(e.target.value)}
               className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
             >
               <option value="">Select a course</option>
-              {courses.map((c) => (
+              {courses.map(c => (
                 <option key={c.id} value={c.id}>
                   {c.name} ({c.level}) - €{c.pricePerWeekEur}/week
                 </option>
@@ -193,10 +193,10 @@ export function CreateBookingForm({
             <select
               required
               value={agencyId}
-              onChange={(e) => setAgencyId(e.target.value)}
+              onChange={e => setAgencyId(e.target.value)}
               className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
             >
-              {agencies.map((a) => (
+              {agencies.map(a => (
                 <option key={a.id} value={a.id}>
                   {a.name}
                 </option>
@@ -210,11 +210,11 @@ export function CreateBookingForm({
             </label>
             <select
               value={accommodationTypeId}
-              onChange={(e) => handleAccommodationChange(e.target.value)}
+              onChange={e => handleAccommodationChange(e.target.value)}
               className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
             >
               <option value="">None</option>
-              {accommodationTypes.map((a) => (
+              {accommodationTypes.map(a => (
                 <option key={a.id} value={a.id}>
                   {a.name} - €{a.pricePerWeekEur}/week
                 </option>
@@ -235,7 +235,7 @@ export function CreateBookingForm({
               required
               min="1"
               value={weeks}
-              onChange={(e) => handleWeeksChange(e.target.value)}
+              onChange={e => handleWeeksChange(e.target.value)}
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
@@ -246,7 +246,7 @@ export function CreateBookingForm({
               type="date"
               required
               value={courseStartDate}
-              onChange={(e) => setCourseStartDate(e.target.value)}
+              onChange={e => setCourseStartDate(e.target.value)}
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
@@ -257,7 +257,7 @@ export function CreateBookingForm({
               type="date"
               required
               value={courseEndDate}
-              onChange={(e) => setCourseEndDate(e.target.value)}
+              onChange={e => setCourseEndDate(e.target.value)}
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
@@ -274,7 +274,7 @@ export function CreateBookingForm({
               type="number"
               step="0.01"
               value={courseFee}
-              onChange={(e) => setCourseFee(e.target.value)}
+              onChange={e => setCourseFee(e.target.value)}
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
@@ -285,7 +285,7 @@ export function CreateBookingForm({
               type="number"
               step="0.01"
               value={accommodationFee}
-              onChange={(e) => setAccommodationFee(e.target.value)}
+              onChange={e => setAccommodationFee(e.target.value)}
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
@@ -296,7 +296,7 @@ export function CreateBookingForm({
               type="number"
               step="0.01"
               value={registrationFee}
-              onChange={(e) => setRegistrationFee(e.target.value)}
+              onChange={e => setRegistrationFee(e.target.value)}
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
@@ -309,20 +309,18 @@ export function CreateBookingForm({
               type="number"
               step="0.01"
               value={learnerProtectionFee}
-              onChange={(e) => setLearnerProtectionFee(e.target.value)}
+              onChange={e => setLearnerProtectionFee(e.target.value)}
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Medical Insurance Fee
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Medical Insurance Fee</label>
             <input
               type="number"
               step="0.01"
               value={medicalInsuranceFee}
-              onChange={(e) => setMedicalInsuranceFee(e.target.value)}
+              onChange={e => setMedicalInsuranceFee(e.target.value)}
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
@@ -333,7 +331,7 @@ export function CreateBookingForm({
               type="number"
               step="0.01"
               value={depositPaid}
-              onChange={(e) => setDepositPaid(e.target.value)}
+              onChange={e => setDepositPaid(e.target.value)}
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
             />
           </div>

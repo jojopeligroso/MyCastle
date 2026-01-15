@@ -22,9 +22,7 @@ describe('TimetableWeekView Component', () => {
       render(<TimetableWeekView teacherId={mockTeacherId} />);
 
       // Should at least show week header or loading state
-      expect(
-        screen.getByText(/Week of/i) || screen.getByText(/Loading/i)
-      ).toBeTruthy();
+      expect(screen.getByText(/Week of/i) || screen.getByText(/Loading/i)).toBeTruthy();
     });
   });
 

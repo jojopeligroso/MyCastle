@@ -56,11 +56,7 @@ async function getFormData() {
     .from(students)
     .innerJoin(users, eq(students.userId, users.id))
     .where(
-      and(
-        eq(students.tenantId, tenantId),
-        eq(students.status, 'active'),
-        isNull(users.deletedAt)
-      )
+      and(eq(students.tenantId, tenantId), eq(students.status, 'active'), isNull(users.deletedAt))
     )
     .orderBy(users.name);
 
@@ -85,9 +81,7 @@ async function getFormData() {
       pricePerWeekEur: accommodationTypes.pricePerWeekEur,
     })
     .from(accommodationTypes)
-    .where(
-      and(eq(accommodationTypes.tenantId, tenantId), eq(accommodationTypes.status, 'active'))
-    )
+    .where(and(eq(accommodationTypes.tenantId, tenantId), eq(accommodationTypes.status, 'active')))
     .orderBy(accommodationTypes.name);
 
   // Fetch agencies

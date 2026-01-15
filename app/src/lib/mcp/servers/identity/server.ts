@@ -49,8 +49,24 @@ const PERMISSION_SCOPES = [
  */
 function getDefaultScopesForRole(role: string): string[] {
   const scopeMap: Record<string, string[]> = {
-    super_admin: ['identity:*', 'academic:*', 'attendance:*', 'finance:*', 'student_services:*', 'operations:*', 'marketing:*', 'student:profile:*'],
-    admin: ['academic:*', 'attendance:*', 'finance:*', 'student_services:*', 'operations:read', 'student:profile:read'],
+    super_admin: [
+      'identity:*',
+      'academic:*',
+      'attendance:*',
+      'finance:*',
+      'student_services:*',
+      'operations:*',
+      'marketing:*',
+      'student:profile:*',
+    ],
+    admin: [
+      'academic:*',
+      'attendance:*',
+      'finance:*',
+      'student_services:*',
+      'operations:read',
+      'student:profile:read',
+    ],
   };
   return scopeMap[role] || [];
 }
@@ -140,7 +156,8 @@ async function main() {
         resources: {},
         prompts: {},
       },
-      instructions: 'Identity & Access Management MCP Server - Provides user management, roles, permissions, and audit logging',
+      instructions:
+        'Identity & Access Management MCP Server - Provides user management, roles, permissions, and audit logging',
     }
   );
 
@@ -170,7 +187,10 @@ async function main() {
       scopes: z.array(z.string()).optional().describe('Fine-grained permission scopes (optional)'),
       password: z.string().min(12).optional().describe('Initial password (optional)'),
       require_mfa: z.boolean().default(false).describe('Require multi-factor authentication'),
-      send_welcome_email: z.boolean().default(true).describe('Send welcome email with login instructions'),
+      send_welcome_email: z
+        .boolean()
+        .default(true)
+        .describe('Send welcome email with login instructions'),
     },
     async (args, extra) => {
       const session = getSessionFromContext(extra);
@@ -216,10 +236,7 @@ async function main() {
       };
 
       // Create user
-      const [newUser] = await db
-        .insert(users)
-        .values(insertData)
-        .returning();
+      const [newUser] = await db.insert(users).values(insertData).returning();
 
       // Log audit event
       await logAuditEvent({
@@ -333,7 +350,7 @@ YOUR ROLE:
 }
 
 // Run the server
-main().catch((error) => {
+main().catch(error => {
   console.error('[Identity MCP] Fatal error:', error);
   process.exit(1);
 });

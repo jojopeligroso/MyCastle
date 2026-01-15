@@ -48,20 +48,13 @@ async function getPaymentStats(tenantId: string) {
   // Payments by method
   const stripeCount = allPayments.filter(p => p.payment_method === 'stripe').length;
   const cashCount = allPayments.filter(p => p.payment_method === 'cash').length;
-  const bankTransferCount = allPayments.filter(
-    p => p.payment_method === 'bank_transfer'
-  ).length;
+  const bankTransferCount = allPayments.filter(p => p.payment_method === 'bank_transfer').length;
 
   // This month's payments
   const now = new Date();
   const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const thisMonthPayments = allPayments.filter(
-    p => new Date(p.payment_date) >= firstDayOfMonth
-  );
-  const thisMonthAmount = thisMonthPayments.reduce(
-    (sum, p) => sum + Number(p.amount),
-    0
-  );
+  const thisMonthPayments = allPayments.filter(p => new Date(p.payment_date) >= firstDayOfMonth);
+  const thisMonthAmount = thisMonthPayments.reduce((sum, p) => sum + Number(p.amount), 0);
 
   return {
     totalPayments,
@@ -144,9 +137,7 @@ export default async function PaymentsPage() {
         </div>
         <div className="bg-white rounded-lg shadow p-6">
           <div className="text-sm font-medium text-gray-500">Bank Transfer</div>
-          <div className="mt-2 text-3xl font-bold text-blue-600">
-            {stats.bankTransferCount}
-          </div>
+          <div className="mt-2 text-3xl font-bold text-blue-600">{stats.bankTransferCount}</div>
         </div>
       </div>
 
@@ -259,9 +250,7 @@ export default async function PaymentsPage() {
       {/* Payment Method Breakdown */}
       <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4">
-            Payment Methods Distribution
-          </h3>
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">Payment Methods Distribution</h3>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Stripe</span>

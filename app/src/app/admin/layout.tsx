@@ -8,11 +8,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import Sidebar from '@/components/admin/Sidebar';
 
-export default async function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const user = await requireAuth().catch(() => {
     redirect('/login');
   });
@@ -20,7 +16,8 @@ export default async function AdminLayout({
   const userRole = user.user_metadata?.role || user.app_metadata?.role || 'student';
 
   // Check admin authorization
-  const isAdmin = userRole === 'admin' || userRole === 'super_admin' || userRole.startsWith('admin_');
+  const isAdmin =
+    userRole === 'admin' || userRole === 'super_admin' || userRole.startsWith('admin_');
 
   if (!isAdmin) {
     redirect('/dashboard');
@@ -60,9 +57,7 @@ export default async function AdminLayout({
         <Sidebar />
 
         {/* Main Content */}
-        <main className="flex-1 p-8 overflow-y-auto h-[calc(100vh-4rem)]">
-          {children}
-        </main>
+        <main className="flex-1 p-8 overflow-y-auto h-[calc(100vh-4rem)]">{children}</main>
       </div>
     </div>
   );

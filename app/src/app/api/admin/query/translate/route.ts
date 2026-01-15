@@ -31,10 +31,7 @@ export async function POST(request: NextRequest) {
     const { query } = await request.json();
 
     if (!query || typeof query !== 'string') {
-      return NextResponse.json(
-        { error: 'Query is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Query is required' }, { status: 400 });
     }
 
     // Use OpenAI to translate natural language to SQL
@@ -72,20 +69,29 @@ Return a JSON object with:
     const result = JSON.parse(completion.choices[0].message.content || '{}');
 
     if (!result.sql) {
-      return NextResponse.json(
-        { error: 'Failed to generate SQL query' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Failed to generate SQL query' }, { status: 500 });
     }
 
     // Basic SQL injection prevention - check for dangerous keywords
-    const dangerousKeywords = ['DROP', 'DELETE', 'INSERT', 'UPDATE', 'ALTER', 'CREATE', 'TRUNCATE', 'GRANT', 'REVOKE'];
+    const dangerousKeywords = [
+      'DROP',
+      'DELETE',
+      'INSERT',
+      'UPDATE',
+      'ALTER',
+      'CREATE',
+      'TRUNCATE',
+      'GRANT',
+      'REVOKE',
+    ];
     const upperSQL = result.sql.toUpperCase();
 
     for (const keyword of dangerousKeywords) {
       if (upperSQL.includes(keyword)) {
         return NextResponse.json(
-          { error: `Query contains forbidden keyword: ${keyword}. Only SELECT queries are allowed.` },
+          {
+            error: `Query contains forbidden keyword: ${keyword}. Only SELECT queries are allowed.`,
+          },
           { status: 400 }
         );
       }
@@ -95,7 +101,6 @@ Return a JSON object with:
       sql: result.sql,
       explanation: result.explanation || 'Query generated successfully',
     });
-
   } catch (error) {
     console.error('Error translating query:', error);
     return NextResponse.json(

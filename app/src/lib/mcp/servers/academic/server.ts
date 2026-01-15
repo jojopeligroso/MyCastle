@@ -64,7 +64,7 @@ async function main() {
         level,
         subject,
         schedule,
-        max_students
+        max_students,
       } = args;
 
       const insertData: any = {
@@ -82,10 +82,7 @@ async function main() {
         status: 'active',
       };
 
-      const [newClass] = await db
-        .insert(classes)
-        .values(insertData)
-        .returning();
+      const [newClass] = await db.insert(classes).values(insertData).returning();
 
       return {
         content: [
@@ -118,10 +115,7 @@ async function main() {
         status: 'active',
       };
 
-      const [enrollment] = await db
-        .insert(enrollments)
-        .values(insertData)
-        .returning();
+      const [enrollment] = await db.insert(enrollments).values(insertData).returning();
 
       return {
         content: [
@@ -135,30 +129,26 @@ async function main() {
   );
 
   // Prompt: academic_persona
-  server.prompt(
-    'academic_persona',
-    'Academic operations assistant persona',
-    async () => {
-      return {
-        messages: [
-          {
-            role: 'user',
-            content: {
-              type: 'text',
-              text: 'You are an academic operations assistant for an ESL school. Help with classes and student enrollments.',
-            },
+  server.prompt('academic_persona', 'Academic operations assistant persona', async () => {
+    return {
+      messages: [
+        {
+          role: 'user',
+          content: {
+            type: 'text',
+            text: 'You are an academic operations assistant for an ESL school. Help with classes and student enrollments.',
           },
-        ],
-      };
-    }
-  );
+        },
+      ],
+    };
+  });
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error('[Academic MCP] Server started on stdio');
 }
 
-main().catch((error) => {
+main().catch(error => {
   console.error('[Academic MCP] Fatal error:', error);
   process.exit(1);
 });

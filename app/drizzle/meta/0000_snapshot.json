@@ -165,12 +165,8 @@
           "tableFrom": "learner",
           "tableTo": "country",
           "schemaTo": "public",
-          "columnsFrom": [
-            "citizenship_code"
-          ],
-          "columnsTo": [
-            "iso2"
-          ],
+          "columnsFrom": ["citizenship_code"],
+          "columnsTo": ["iso2"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -178,16 +174,12 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "learner_student_number_key": {
-          "columns": [
-            "student_number"
-          ],
+          "columns": ["student_number"],
           "nullsNotDistinct": false,
           "name": "learner_student_number_key"
         },
         "learner_email_key": {
-          "columns": [
-            "email"
-          ],
+          "columns": ["email"],
           "nullsNotDistinct": false,
           "name": "learner_email_key"
         }
@@ -250,9 +242,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "course_code_key": {
-          "columns": [
-            "code"
-          ],
+          "columns": ["code"],
           "nullsNotDistinct": false,
           "name": "course_code_key"
         }
@@ -448,12 +438,8 @@
           "tableFrom": "booking",
           "tableTo": "course",
           "schemaTo": "public",
-          "columnsFrom": [
-            "course_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["course_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -462,12 +448,8 @@
           "tableFrom": "booking",
           "tableTo": "learner",
           "schemaTo": "public",
-          "columnsFrom": [
-            "learner_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["learner_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -601,12 +583,8 @@
           "tableFrom": "payments",
           "tableTo": "booking",
           "schemaTo": "public",
-          "columnsFrom": [
-            "booking_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["booking_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -615,12 +593,8 @@
           "tableFrom": "payments",
           "tableTo": "currency",
           "schemaTo": "public",
-          "columnsFrom": [
-            "currency_code"
-          ],
-          "columnsTo": [
-            "code"
-          ],
+          "columnsFrom": ["currency_code"],
+          "columnsTo": ["code"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -784,12 +758,8 @@
           "tableFrom": "programmes",
           "tableTo": "tenants",
           "schemaTo": "public",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tenant_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -797,10 +767,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "uk_programmes_tenant_code": {
-          "columns": [
-            "tenant_id",
-            "code"
-          ],
+          "columns": ["tenant_id", "code"],
           "nullsNotDistinct": false,
           "name": "uk_programmes_tenant_code"
         }
@@ -811,34 +778,26 @@
           "name": "programmes_delete_admin",
           "as": "PERMISSIVE",
           "for": "DELETE",
-          "to": [
-            "public"
-          ],
+          "to": ["public"],
           "using": "((tenant_id = (current_setting('app.current_tenant_id'::text))::uuid) AND (current_setting('app.current_user_role'::text) = ANY (ARRAY['admin'::text, 'super_admin'::text])))"
         },
         "programmes_insert_admin": {
           "name": "programmes_insert_admin",
           "as": "PERMISSIVE",
           "for": "INSERT",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         },
         "programmes_select_tenant": {
           "name": "programmes_select_tenant",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         },
         "programmes_update_admin": {
           "name": "programmes_update_admin",
           "as": "PERMISSIVE",
           "for": "UPDATE",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         }
       },
       "isRLSEnabled": true
@@ -952,12 +911,8 @@
           "tableFrom": "accommodation",
           "tableTo": "booking",
           "schemaTo": "public",
-          "columnsFrom": [
-            "booking_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["booking_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -966,12 +921,8 @@
           "tableFrom": "accommodation",
           "tableTo": "currency",
           "schemaTo": "public",
-          "columnsFrom": [
-            "currency_code"
-          ],
-          "columnsTo": [
-            "code"
-          ],
+          "columnsFrom": ["currency_code"],
+          "columnsTo": ["code"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1055,12 +1006,8 @@
           "tableFrom": "attendance_day",
           "tableTo": "course",
           "schemaTo": "public",
-          "columnsFrom": [
-            "course_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["course_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1068,10 +1015,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "attendance_day_course_id_class_date_key": {
-          "columns": [
-            "course_id",
-            "class_date"
-          ],
+          "columns": ["course_id", "class_date"],
           "nullsNotDistinct": false,
           "name": "attendance_day_course_id_class_date_key"
         }
@@ -1157,12 +1101,8 @@
           "tableFrom": "attendance_mark",
           "tableTo": "attendance_day",
           "schemaTo": "public",
-          "columnsFrom": [
-            "attendance_day_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["attendance_day_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1171,12 +1111,8 @@
           "tableFrom": "attendance_mark",
           "tableTo": "learner",
           "schemaTo": "public",
-          "columnsFrom": [
-            "learner_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["learner_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1184,10 +1120,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "attendance_mark_attendance_day_id_learner_id_key": {
-          "columns": [
-            "attendance_day_id",
-            "learner_id"
-          ],
+          "columns": ["attendance_day_id", "learner_id"],
           "nullsNotDistinct": false,
           "name": "attendance_mark_attendance_day_id_learner_id_key"
         }
@@ -1393,12 +1326,8 @@
           "tableFrom": "courses",
           "tableTo": "programmes",
           "schemaTo": "public",
-          "columnsFrom": [
-            "programme_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["programme_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1407,12 +1336,8 @@
           "tableFrom": "courses",
           "tableTo": "tenants",
           "schemaTo": "public",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tenant_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1420,10 +1345,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "uk_courses_tenant_code": {
-          "columns": [
-            "tenant_id",
-            "code"
-          ],
+          "columns": ["tenant_id", "code"],
           "nullsNotDistinct": false,
           "name": "uk_courses_tenant_code"
         }
@@ -1439,34 +1361,26 @@
           "name": "courses_delete_admin",
           "as": "PERMISSIVE",
           "for": "DELETE",
-          "to": [
-            "public"
-          ],
+          "to": ["public"],
           "using": "((tenant_id = (current_setting('app.current_tenant_id'::text))::uuid) AND (current_setting('app.current_user_role'::text) = ANY (ARRAY['admin'::text, 'super_admin'::text])))"
         },
         "courses_insert_admin": {
           "name": "courses_insert_admin",
           "as": "PERMISSIVE",
           "for": "INSERT",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         },
         "courses_select_tenant": {
           "name": "courses_select_tenant",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         },
         "courses_update_admin": {
           "name": "courses_update_admin",
           "as": "PERMISSIVE",
           "for": "UPDATE",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         }
       },
       "isRLSEnabled": true
@@ -1530,16 +1444,12 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "admin_user_supabase_uid_key": {
-          "columns": [
-            "supabase_uid"
-          ],
+          "columns": ["supabase_uid"],
           "nullsNotDistinct": false,
           "name": "admin_user_supabase_uid_key"
         },
         "admin_user_email_key": {
-          "columns": [
-            "email"
-          ],
+          "columns": ["email"],
           "nullsNotDistinct": false,
           "name": "admin_user_email_key"
         }
@@ -1774,12 +1684,8 @@
           "tableFrom": "users",
           "tableTo": "tenants",
           "schemaTo": "public",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tenant_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1893,9 +1799,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "tenants_subdomain_key": {
-          "columns": [
-            "subdomain"
-          ],
+          "columns": ["subdomain"],
           "nullsNotDistinct": false,
           "name": "tenants_subdomain_key"
         }
@@ -2096,12 +2000,8 @@
           "tableFrom": "classes",
           "tableTo": "users",
           "schemaTo": "public",
-          "columnsFrom": [
-            "teacher_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["teacher_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2110,12 +2010,8 @@
           "tableFrom": "classes",
           "tableTo": "tenants",
           "schemaTo": "public",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tenant_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2232,12 +2128,8 @@
           "tableFrom": "class_sessions",
           "tableTo": "classes",
           "schemaTo": "public",
-          "columnsFrom": [
-            "class_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["class_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2246,12 +2138,8 @@
           "tableFrom": "class_sessions",
           "tableTo": "tenants",
           "schemaTo": "public",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tenant_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2362,12 +2250,8 @@
           "tableFrom": "attendance",
           "tableTo": "class_sessions",
           "schemaTo": "public",
-          "columnsFrom": [
-            "class_session_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["class_session_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2376,12 +2260,8 @@
           "tableFrom": "attendance",
           "tableTo": "users",
           "schemaTo": "public",
-          "columnsFrom": [
-            "recorded_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["recorded_by"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2390,12 +2270,8 @@
           "tableFrom": "attendance",
           "tableTo": "users",
           "schemaTo": "public",
-          "columnsFrom": [
-            "student_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["student_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2404,12 +2280,8 @@
           "tableFrom": "attendance",
           "tableTo": "tenants",
           "schemaTo": "public",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tenant_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2520,12 +2392,8 @@
           "tableFrom": "assignments",
           "tableTo": "classes",
           "schemaTo": "public",
-          "columnsFrom": [
-            "class_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["class_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2534,12 +2402,8 @@
           "tableFrom": "assignments",
           "tableTo": "tenants",
           "schemaTo": "public",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tenant_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2627,12 +2491,8 @@
           "tableFrom": "submissions",
           "tableTo": "assignments",
           "schemaTo": "public",
-          "columnsFrom": [
-            "assignment_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["assignment_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2641,12 +2501,8 @@
           "tableFrom": "submissions",
           "tableTo": "users",
           "schemaTo": "public",
-          "columnsFrom": [
-            "student_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["student_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2655,12 +2511,8 @@
           "tableFrom": "submissions",
           "tableTo": "tenants",
           "schemaTo": "public",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tenant_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2810,12 +2662,8 @@
           "tableFrom": "enrollments",
           "tableTo": "classes",
           "schemaTo": "public",
-          "columnsFrom": [
-            "class_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["class_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2824,12 +2672,8 @@
           "tableFrom": "enrollments",
           "tableTo": "courses",
           "schemaTo": "public",
-          "columnsFrom": [
-            "original_course_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["original_course_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2838,12 +2682,8 @@
           "tableFrom": "enrollments",
           "tableTo": "users",
           "schemaTo": "public",
-          "columnsFrom": [
-            "student_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["student_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2852,12 +2692,8 @@
           "tableFrom": "enrollments",
           "tableTo": "tenants",
           "schemaTo": "public",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tenant_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2944,12 +2780,8 @@
           "tableFrom": "grades",
           "tableTo": "users",
           "schemaTo": "public",
-          "columnsFrom": [
-            "graded_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["graded_by"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2958,12 +2790,8 @@
           "tableFrom": "grades",
           "tableTo": "submissions",
           "schemaTo": "public",
-          "columnsFrom": [
-            "submission_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["submission_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2972,12 +2800,8 @@
           "tableFrom": "grades",
           "tableTo": "tenants",
           "schemaTo": "public",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tenant_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2985,9 +2809,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "grades_submission_id_key": {
-          "columns": [
-            "submission_id"
-          ],
+          "columns": ["submission_id"],
           "nullsNotDistinct": false,
           "name": "grades_submission_id_key"
         }
@@ -3209,12 +3031,8 @@
           "tableFrom": "enrollment_amendments",
           "tableTo": "users",
           "schemaTo": "public",
-          "columnsFrom": [
-            "approved_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["approved_by"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -3223,12 +3041,8 @@
           "tableFrom": "enrollment_amendments",
           "tableTo": "enrollments",
           "schemaTo": "public",
-          "columnsFrom": [
-            "enrollment_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["enrollment_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -3237,12 +3051,8 @@
           "tableFrom": "enrollment_amendments",
           "tableTo": "classes",
           "schemaTo": "public",
-          "columnsFrom": [
-            "new_class_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["new_class_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -3251,12 +3061,8 @@
           "tableFrom": "enrollment_amendments",
           "tableTo": "classes",
           "schemaTo": "public",
-          "columnsFrom": [
-            "previous_class_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["previous_class_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -3265,12 +3071,8 @@
           "tableFrom": "enrollment_amendments",
           "tableTo": "users",
           "schemaTo": "public",
-          "columnsFrom": [
-            "requested_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["requested_by"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -3279,12 +3081,8 @@
           "tableFrom": "enrollment_amendments",
           "tableTo": "tenants",
           "schemaTo": "public",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tenant_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -3302,34 +3100,26 @@
           "name": "enrollment_amendments_insert_admin",
           "as": "PERMISSIVE",
           "for": "INSERT",
-          "to": [
-            "public"
-          ],
+          "to": ["public"],
           "withCheck": "((tenant_id = (current_setting('app.current_tenant_id'::text))::uuid) AND (current_setting('app.current_user_role'::text) = ANY (ARRAY['admin'::text, 'super_admin'::text])))"
         },
         "enrollment_amendments_select_admin": {
           "name": "enrollment_amendments_select_admin",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         },
         "enrollment_amendments_select_student": {
           "name": "enrollment_amendments_select_student",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         },
         "enrollment_amendments_update_admin": {
           "name": "enrollment_amendments_update_admin",
           "as": "PERMISSIVE",
           "for": "UPDATE",
-          "to": [
-            "public"
-          ]
+          "to": ["public"]
         }
       },
       "isRLSEnabled": true
@@ -3555,12 +3345,8 @@
           "tableFrom": "lesson_plans",
           "tableTo": "classes",
           "schemaTo": "public",
-          "columnsFrom": [
-            "class_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["class_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -3569,12 +3355,8 @@
           "tableFrom": "lesson_plans",
           "tableTo": "users",
           "schemaTo": "public",
-          "columnsFrom": [
-            "teacher_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["teacher_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -3583,12 +3365,8 @@
           "tableFrom": "lesson_plans",
           "tableTo": "tenants",
           "schemaTo": "public",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tenant_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -3723,12 +3501,8 @@
           "tableFrom": "audit_log",
           "tableTo": "tenants",
           "schemaTo": "public",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tenant_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -3737,12 +3511,8 @@
           "tableFrom": "audit_log",
           "tableTo": "users",
           "schemaTo": "public",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -3856,12 +3626,8 @@
           "tableFrom": "feedback",
           "tableTo": "tenants",
           "schemaTo": "public",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tenant_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -3870,12 +3636,8 @@
           "tableFrom": "feedback",
           "tableTo": "users",
           "schemaTo": "public",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -3890,23 +3652,12 @@
   "enums": {
     "public.attendance_status": {
       "name": "attendance_status",
-      "values": [
-        "present",
-        "absent",
-        "late",
-        "excused"
-      ],
+      "values": ["present", "absent", "late", "excused"],
       "schema": "public"
     },
     "public.payment_method": {
       "name": "payment_method",
-      "values": [
-        "cash",
-        "card",
-        "bank_transfer",
-        "online",
-        "other"
-      ],
+      "values": ["cash", "card", "bank_transfer", "online", "other"],
       "schema": "public"
     }
   },

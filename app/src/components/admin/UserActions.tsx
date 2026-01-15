@@ -102,10 +102,7 @@ export function UserActions({ userId, currentRole, currentStatus, userName }: Us
         </button>
 
         {currentStatus === 'active' ? (
-          <button
-            onClick={handleDeactivate}
-            className="text-sm text-red-600 hover:text-red-800"
-          >
+          <button onClick={handleDeactivate} className="text-sm text-red-600 hover:text-red-800">
             Deactivate
           </button>
         ) : (
@@ -124,10 +121,7 @@ export function UserActions({ userId, currentRole, currentStatus, userName }: Us
           Revoke Sessions
         </button>
 
-        <button
-          onClick={handleResetMFA}
-          className="text-sm text-purple-600 hover:text-purple-800"
-        >
+        <button onClick={handleResetMFA} className="text-sm text-purple-600 hover:text-purple-800">
           Reset MFA
         </button>
       </div>
@@ -140,12 +134,10 @@ export function UserActions({ userId, currentRole, currentStatus, userName }: Us
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  New Role
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">New Role</label>
                 <select
                   value={newRole}
-                  onChange={(e) => setNewRole(e.target.value)}
+                  onChange={e => setNewRole(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 >
                   <option value="student">Student</option>
@@ -161,7 +153,7 @@ export function UserActions({ userId, currentRole, currentStatus, userName }: Us
                 </label>
                 <textarea
                   value={reason}
-                  onChange={(e) => setReason(e.target.value)}
+                  onChange={e => setReason(e.target.value)}
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                   placeholder="Explain why this role change is necessary..."

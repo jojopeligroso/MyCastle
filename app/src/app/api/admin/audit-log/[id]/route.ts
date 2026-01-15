@@ -4,10 +4,7 @@ import { auditLogs, users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { requireAuth } from '@/lib/auth/utils';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     await requireAuth(['admin']);
     const logId = params.id;
@@ -51,9 +48,6 @@ export async function GET(
     });
   } catch (error) {
     console.error('Error fetching audit log:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch audit log' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch audit log' }, { status: 500 });
   }
 }

@@ -40,7 +40,7 @@ describe('AttendanceRegister Component', () => {
       expect(screen.getByLabelText(/session time/i)).toBeInTheDocument();
     });
 
-    it('should default to today\'s date', () => {
+    it("should default to today's date", () => {
       render(<AttendanceRegister teacherId={mockTeacherId} />);
 
       const dateInput = screen.getByLabelText(/date/i) as HTMLInputElement;

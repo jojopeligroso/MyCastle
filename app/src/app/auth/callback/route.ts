@@ -117,7 +117,6 @@ export async function GET(request: NextRequest) {
     redirectUrl.searchParams.set('auth', 'success');
 
     return NextResponse.redirect(redirectUrl);
-
   } catch (error) {
     console.error('Auth callback error:', error);
 

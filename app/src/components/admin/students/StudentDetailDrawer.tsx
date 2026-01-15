@@ -117,9 +117,7 @@ export function StudentDetailDrawer({
                 />
               ) : (
                 <div className="h-16 w-16 rounded-full bg-white/20 flex items-center justify-center border-2 border-white">
-                  <span className="text-2xl font-bold">
-                    {student.name.charAt(0).toUpperCase()}
-                  </span>
+                  <span className="text-2xl font-bold">{student.name.charAt(0).toUpperCase()}</span>
                 </div>
               )}
               <div>
@@ -141,7 +139,12 @@ export function StudentDetailDrawer({
               aria-label="Close drawer"
             >
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
@@ -150,7 +153,7 @@ export function StudentDetailDrawer({
         {/* Tab Navigation */}
         <div className="border-b border-gray-200 bg-white">
           <nav className="flex overflow-x-auto -mb-px px-6" aria-label="Tabs">
-            {TABS.map((tab) => (
+            {TABS.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}

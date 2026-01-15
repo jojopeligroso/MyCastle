@@ -67,8 +67,6 @@ export function useUser() {
  */
 export function useRole(allowedRoles: string[]) {
   const { user, loading } = useAuth();
-  const hasRole = user
-    ? allowedRoles.includes(user.user_metadata?.role)
-    : false;
+  const hasRole = user ? allowedRoles.includes(user.user_metadata?.role) : false;
   return { hasRole, loading };
 }

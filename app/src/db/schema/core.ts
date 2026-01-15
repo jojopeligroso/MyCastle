@@ -35,7 +35,7 @@ export const tenants = pgTable(
   table => [
     index('idx_tenants_subdomain').on(table.subdomain),
     index('idx_tenants_status').on(table.status),
-  ],
+  ]
 );
 
 /**
@@ -72,7 +72,7 @@ export const users = pgTable(
     index('idx_users_auth_id').on(table.authId),
     index('idx_users_primary_role').on(table.primaryRole),
     index('idx_users_status').on(table.status),
-  ],
+  ]
 );
 
 /**
@@ -99,7 +99,7 @@ export const userRoles = pgTable(
     uniqueIndex('idx_user_roles_active').on(table.userId, table.tenantId, table.role),
     index('idx_user_roles_user').on(table.userId),
     index('idx_user_roles_tenant').on(table.tenantId),
-  ],
+  ]
 );
 
 /**
@@ -136,7 +136,7 @@ export const students = pgTable(
     index('idx_students_tenant').on(table.tenantId),
     index('idx_students_visa').on(table.tenantId, table.isVisaStudent),
     index('idx_students_visa_expiry').on(table.visaExpiryDate),
-  ],
+  ]
 );
 
 // Type exports

@@ -63,8 +63,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     // Check authorization (teacher or admin)
     const isAuthorized =
-      userRole === 'admin' ||
-      (userRole === 'teacher' && classSession.class.teacher_id === user.id);
+      userRole === 'admin' || (userRole === 'teacher' && classSession.class.teacher_id === user.id);
 
     if (!isAuthorized) {
       return NextResponse.json(
@@ -86,7 +85,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     // Validate hash chain
     // Map records to ensure recorded_by is non-null (fallback to empty string if null)
     const validation = validateHashChain(
-      records.map((r) => ({
+      records.map(r => ({
         ...r,
         recorded_by: r.recorded_by || '',
       }))

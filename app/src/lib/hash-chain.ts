@@ -46,7 +46,10 @@ export interface HashChainValidation {
  * @param previousHash - Hash of the previous record in the chain (null for first record)
  * @returns SHA256 hash (hex string)
  */
-export function computeAttendanceHash(payload: AttendanceHashPayload, previousHash: string | null = null): string {
+export function computeAttendanceHash(
+  payload: AttendanceHashPayload,
+  previousHash: string | null = null
+): string {
   // Normalize the payload to ensure consistent hashing
   const normalizedPayload = {
     tenantId: payload.tenantId,
@@ -54,7 +57,8 @@ export function computeAttendanceHash(payload: AttendanceHashPayload, previousHa
     studentId: payload.studentId,
     status: payload.status,
     recordedBy: payload.recordedBy,
-    recordedAt: payload.recordedAt instanceof Date ? payload.recordedAt.toISOString() : payload.recordedAt,
+    recordedAt:
+      payload.recordedAt instanceof Date ? payload.recordedAt.toISOString() : payload.recordedAt,
     notes: payload.notes || '',
   };
 

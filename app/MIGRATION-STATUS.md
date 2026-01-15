@@ -5,6 +5,7 @@
 ### ✅ What's Been Done
 
 **Migration 0001 ran partially** - Created 12 tables:
+
 - ✅ tenants
 - ✅ users
 - ✅ classes
@@ -21,6 +22,7 @@
 ### ❌ What's Missing
 
 **Still need to create 6 tables:**
+
 - ❌ audit_logs
 - ❌ invoices
 - ❌ conversations
@@ -51,6 +53,7 @@ Run the missing table creation SQL manually in Supabase SQL Editor.
 **Lines to copy:** Lines 179-252 (just the missing tables)
 
 **Tables to create:**
+
 1. audit_logs (lines 179-194)
 2. invoices (lines 196-210)
 3. payments (lines 212-227) - **Already exists, skip this**
@@ -62,6 +65,7 @@ Run the missing table creation SQL manually in Supabase SQL Editor.
 ### Option B: Create Clean Migration File (Better - 15 minutes)
 
 I can create a new migration file with:
+
 - Only the missing tables
 - No problematic `\i` commands
 - Ready to copy/paste into Supabase
@@ -92,6 +96,7 @@ You should see the 12 tables listed above.
 ### Step 2: Choose Your Approach
 
 Tell Claude Code:
+
 - "Create the missing tables migration file" (Option B - Recommended)
 - "Guide me through manual fix" (Option A)
 - "Help me use psql" (Option C)
@@ -99,6 +104,7 @@ Tell Claude Code:
 ### Step 3: Complete Remaining Migrations
 
 After fixing 0001, still need to run:
+
 - ✅ 0002_admin_dashboard_views.sql
 - ✅ 0003_user_management_views.sql
 - ✅ 0004_add_programmes_table.sql
@@ -129,12 +135,14 @@ After fixing 0001, still need to run:
 ## ✅ When Complete
 
 After all migrations run successfully, you'll have:
+
 - ✅ 18 core tables
 - ✅ All database views
 - ✅ Programmes and courses seeded
 - ✅ Student registry ready to use
 
 Then run:
+
 ```bash
 cd /home/eoin/Work/MyCastle/app
 npm run db:generate

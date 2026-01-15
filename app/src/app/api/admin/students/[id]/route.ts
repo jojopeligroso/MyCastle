@@ -1,13 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { users, enrollments, enrollmentAmendments, attendance, grades, submissions, classes } from '@/db/schema';
+import {
+  users,
+  enrollments,
+  enrollmentAmendments,
+  attendance,
+  grades,
+  submissions,
+  classes,
+} from '@/db/schema';
 import { eq, and, isNull, sql, desc } from 'drizzle-orm';
 import { requireAuth } from '@/lib/auth/utils';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     await requireAuth(['admin']);
     const studentId = params.id;
@@ -41,14 +46,15 @@ export async function GET(
       .orderBy(desc(enrollments.start_date));
 
     // Fetch amendments for each enrollment
-    const enrollmentIds = enrollmentHistory.map((e) => e.id);
-    const amendments = enrollmentIds.length > 0
-      ? await db
-          .select()
-          .from(enrollmentAmendments)
-          .where(sql`${enrollmentAmendments.enrollment_id} IN ${enrollmentIds}`)
-          .orderBy(desc(enrollmentAmendments.created_at))
-      : [];
+    const enrollmentIds = enrollmentHistory.map(e => e.id);
+    const amendments =
+      enrollmentIds.length > 0
+        ? await db
+            .select()
+            .from(enrollmentAmendments)
+            .where(sql`${enrollmentAmendments.enrollment_id} IN ${enrollmentIds}`)
+            .orderBy(desc(enrollmentAmendments.created_at))
+        : [];
 
     // Fetch attendance summary
     const attendanceRecords = await db
@@ -61,10 +67,10 @@ export async function GET(
       .groupBy(attendance.status);
 
     const attendanceSummary = {
-      present: attendanceRecords.find((r) => r.status === 'present')?.count || 0,
-      absent: attendanceRecords.find((r) => r.status === 'absent')?.count || 0,
-      late: attendanceRecords.find((r) => r.status === 'late')?.count || 0,
-      excused: attendanceRecords.find((r) => r.status === 'excused')?.count || 0,
+      present: attendanceRecords.find(r => r.status === 'present')?.count || 0,
+      absent: attendanceRecords.find(r => r.status === 'absent')?.count || 0,
+      late: attendanceRecords.find(r => r.status === 'late')?.count || 0,
+      excused: attendanceRecords.find(r => r.status === 'excused')?.count || 0,
     };
 
     const totalSessions =
@@ -72,9 +78,10 @@ export async function GET(
       attendanceSummary.absent +
       attendanceSummary.late +
       attendanceSummary.excused;
-    const attendanceRate = totalSessions > 0
-      ? ((attendanceSummary.present + attendanceSummary.late) / totalSessions) * 100
-      : null;
+    const attendanceRate =
+      totalSessions > 0
+        ? ((attendanceSummary.present + attendanceSummary.late) / totalSessions) * 100
+        : null;
 
     // Fetch grades and submissions
     const studentGrades = await db
@@ -96,19 +103,20 @@ export async function GET(
       .orderBy(desc(grades.graded_at));
 
     // Calculate average grade
-    const averageGrade = studentGrades.length > 0
-      ? studentGrades.reduce((acc, g) => {
-          const percentage = g.maxScore ? (g.score / g.maxScore) * 100 : 0;
-          return acc + percentage;
-        }, 0) / studentGrades.length
-      : null;
+    const averageGrade =
+      studentGrades.length > 0
+        ? studentGrades.reduce((acc, g) => {
+            const percentage = g.maxScore ? (g.score / g.maxScore) * 100 : 0;
+            return acc + percentage;
+          }, 0) / studentGrades.length
+        : null;
 
     // Combine all data
     const studentDetail = {
       ...student,
-      enrollments: enrollmentHistory.map((e) => ({
+      enrollments: enrollmentHistory.map(e => ({
         ...e,
-        amendments: amendments.filter((a) => a.enrollment_id === e.id),
+        amendments: amendments.filter(a => a.enrollment_id === e.id),
       })),
       attendance: {
         summary: attendanceSummary,
@@ -122,17 +130,11 @@ export async function GET(
     return NextResponse.json(studentDetail);
   } catch (error) {
     console.error('Error fetching student details:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch student details' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch student details' }, { status: 500 });
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const user = await requireAuth(['admin']);
     const studentId = params.id;
@@ -191,17 +193,11 @@ export async function PATCH(
     return NextResponse.json(updatedStudent);
   } catch (error) {
     console.error('Error updating student:', error);
-    return NextResponse.json(
-      { error: 'Failed to update student' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to update student' }, { status: 500 });
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     await requireAuth(['admin']);
     const studentId = params.id;
@@ -223,9 +219,6 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting student:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete student' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to delete student' }, { status: 500 });
   }
 }

@@ -12,21 +12,13 @@ import Link from 'next/link';
 
 async function getFinanceStats(tenantId: string) {
   // Set RLS context first
-  await db.execute(
-    sql`SELECT set_config('app.tenant_id', ${tenantId}, false)`
-  );
+  await db.execute(sql`SELECT set_config('app.tenant_id', ${tenantId}, false)`);
 
   // Get all bookings
-  const allBookings = await db
-    .select()
-    .from(bookings)
-    .where(eq(bookings.tenantId, tenantId));
+  const allBookings = await db.select().from(bookings).where(eq(bookings.tenantId, tenantId));
 
   // Get all payments
-  const allPayments = await db
-    .select()
-    .from(payments)
-    .where(eq(payments.tenantId, tenantId));
+  const allPayments = await db.select().from(payments).where(eq(payments.tenantId, tenantId));
 
   const totalRevenue = allBookings.reduce(
     (sum, b) => sum + parseFloat(b.totalBookingEur?.toString() || '0'),
@@ -38,15 +30,12 @@ async function getFinanceStats(tenantId: string) {
     0
   );
 
-  const outstanding = allBookings.reduce(
-    (sum, b) => {
-      const total = parseFloat(b.totalBookingEur?.toString() || '0');
-      const paid = parseFloat(b.totalPaidEur?.toString() || '0');
-      const balance = total - paid;
-      return balance > 0 ? sum + balance : sum;
-    },
-    0
-  );
+  const outstanding = allBookings.reduce((sum, b) => {
+    const total = parseFloat(b.totalBookingEur?.toString() || '0');
+    const paid = parseFloat(b.totalPaidEur?.toString() || '0');
+    const balance = total - paid;
+    return balance > 0 ? sum + balance : sum;
+  }, 0);
 
   const confirmedBookings = allBookings.filter(b => b.status === 'confirmed');
   const pendingBookings = allBookings.filter(b => b.status === 'pending');
@@ -62,14 +51,11 @@ async function getFinanceStats(tenantId: string) {
     return balance > 0 && startDate && startDate < now;
   });
 
-  const overdue = overdueBookings.reduce(
-    (sum, b) => {
-      const total = parseFloat(b.totalBookingEur?.toString() || '0');
-      const paid = parseFloat(b.totalPaidEur?.toString() || '0');
-      return sum + (total - paid);
-    },
-    0
-  );
+  const overdue = overdueBookings.reduce((sum, b) => {
+    const total = parseFloat(b.totalBookingEur?.toString() || '0');
+    const paid = parseFloat(b.totalPaidEur?.toString() || '0');
+    return sum + (total - paid);
+  }, 0);
 
   // Get this month's payment revenue
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -97,9 +83,7 @@ async function getFinanceStats(tenantId: string) {
 
 async function getRecentTransactions(tenantId: string) {
   // Set RLS context first
-  await db.execute(
-    sql`SELECT set_config('app.tenant_id', ${tenantId}, false)`
-  );
+  await db.execute(sql`SELECT set_config('app.tenant_id', ${tenantId}, false)`);
 
   const recentPayments = await db
     .select({
@@ -133,9 +117,7 @@ interface MonthlyRevenue {
 
 async function getMonthlyRevenue(tenantId: string): Promise<MonthlyRevenue[]> {
   // Set RLS context first
-  await db.execute(
-    sql`SELECT set_config('app.tenant_id', ${tenantId}, false)`
-  );
+  await db.execute(sql`SELECT set_config('app.tenant_id', ${tenantId}, false)`);
 
   const allPayments = await db
     .select()
@@ -179,7 +161,9 @@ export default async function FinancePage() {
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Finance Dashboard</h1>
-          <p className="mt-2 text-gray-600">Revenue overview, outstanding balances, and payment tracking</p>
+          <p className="mt-2 text-gray-600">
+            Revenue overview, outstanding balances, and payment tracking
+          </p>
         </div>
         <div className="flex space-x-3">
           <Link
@@ -202,9 +186,7 @@ export default async function FinancePage() {
         </div>
         <div className="bg-white rounded-lg shadow p-6">
           <div className="text-sm font-medium text-gray-500">Total Paid</div>
-          <div className="mt-2 text-3xl font-bold text-blue-600">
-            €{stats.totalPaid.toFixed(2)}
-          </div>
+          <div className="mt-2 text-3xl font-bold text-blue-600">€{stats.totalPaid.toFixed(2)}</div>
           <div className="mt-1 text-sm text-gray-500">
             {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
           </div>
@@ -218,9 +200,7 @@ export default async function FinancePage() {
         </div>
         <div className="bg-white rounded-lg shadow p-6">
           <div className="text-sm font-medium text-gray-500">Overdue</div>
-          <div className="mt-2 text-3xl font-bold text-red-600">
-            €{stats.overdue.toFixed(2)}
-          </div>
+          <div className="mt-2 text-3xl font-bold text-red-600">€{stats.overdue.toFixed(2)}</div>
           <div className="mt-1 text-sm text-gray-500">{stats.overdueCount} overdue</div>
         </div>
       </div>
@@ -234,7 +214,10 @@ export default async function FinancePage() {
               const maxRevenue = Math.max(...monthlyRevenue.map(m => m.revenue));
               const percentage = (revenue / maxRevenue) * 100;
               const date = new Date(month + '-01');
-              const monthLabel = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+              const monthLabel = date.toLocaleDateString('en-US', {
+                month: 'short',
+                year: 'numeric',
+              });
 
               return (
                 <div key={month} className="flex items-center gap-4">
@@ -373,10 +356,14 @@ export default async function FinancePage() {
                 recentTransactions.map(({ payment, booking, student, user }) => (
                   <tr key={payment.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {payment.paymentDate ? new Date(payment.paymentDate).toLocaleDateString() : 'N/A'}
+                      {payment.paymentDate
+                        ? new Date(payment.paymentDate).toLocaleDateString()
+                        : 'N/A'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{student?.fullName || 'Unknown'}</div>
+                      <div className="text-sm font-medium text-gray-900">
+                        {student?.fullName || 'Unknown'}
+                      </div>
                       <div className="text-sm text-gray-500">{user?.email || ''}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">

@@ -63,17 +63,12 @@ export async function POST(request: NextRequest) {
 
     // Validate email
     if (!email || typeof email !== 'string' || !email.includes('@')) {
-      return NextResponse.json(
-        { error: 'Invalid email address' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid email address' }, { status: 400 });
     }
 
     // Get client IP for rate limiting
     const headersList = await headers();
-    const ip = headersList.get('x-forwarded-for') ||
-               headersList.get('x-real-ip') ||
-               'unknown';
+    const ip = headersList.get('x-forwarded-for') || headersList.get('x-real-ip') || 'unknown';
 
     // Rate limit by IP
     const ipRateLimit = checkRateLimit(`ip:${ip}`);
@@ -81,13 +76,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: 'Too many requests. Please try again later.',
-          retryAfter: ipRateLimit.retryAfter
+          retryAfter: ipRateLimit.retryAfter,
         },
         {
           status: 429,
           headers: {
-            'Retry-After': String(ipRateLimit.retryAfter || 60)
-          }
+            'Retry-After': String(ipRateLimit.retryAfter || 60),
+          },
         }
       );
     }
@@ -99,7 +94,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: true,
-          message: 'If an account exists with this email, a magic link has been sent.'
+          message: 'If an account exists with this email, a magic link has been sent.',
         },
         { status: 200 }
       );
@@ -110,10 +105,7 @@ export async function POST(request: NextRequest) {
     const finalRedirectTo = redirectTo || `${origin}/dashboard`;
 
     if (!isValidRedirectUrl(finalRedirectTo, origin)) {
-      return NextResponse.json(
-        { error: 'Invalid redirect URL' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid redirect URL' }, { status: 400 });
     }
 
     // Create Supabase client
@@ -151,24 +143,18 @@ export async function POST(request: NextRequest) {
     const elapsedTime = Date.now() - startTime;
     const minResponseTime = 200; // Minimum 200ms response time
     if (elapsedTime < minResponseTime) {
-      await new Promise(resolve =>
-        setTimeout(resolve, minResponseTime - elapsedTime)
-      );
+      await new Promise(resolve => setTimeout(resolve, minResponseTime - elapsedTime));
     }
 
     return NextResponse.json(
       {
         success: true,
-        message: 'If an account exists with this email, a magic link has been sent.'
+        message: 'If an account exists with this email, a magic link has been sent.',
       },
       { status: 200 }
     );
-
   } catch (error) {
     console.error('Magic link request error:', error);
-    return NextResponse.json(
-      { error: 'An error occurred. Please try again.' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'An error occurred. Please try again.' }, { status: 500 });
   }
 }

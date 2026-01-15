@@ -44,11 +44,7 @@ async function getInvoicePayments(invoiceId: string) {
   return invoicePayments;
 }
 
-export default async function InvoiceDetailPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default async function InvoiceDetailPage({ params }: { params: { id: string } }) {
   await requireAuth();
   const tenantId = await getTenantId();
 
@@ -65,10 +61,7 @@ export default async function InvoiceDetailPage({
   const { invoice, student } = result;
   const invoicePayments = await getInvoicePayments(params.id);
 
-  const totalPaid = invoicePayments.reduce(
-    (sum, p) => sum + Number(p.payment.amount),
-    0
-  );
+  const totalPaid = invoicePayments.reduce((sum, p) => sum + Number(p.payment.amount), 0);
 
   const amountDue = Number(invoice.amount) - totalPaid;
 
@@ -106,9 +99,7 @@ export default async function InvoiceDetailPage({
           >
             ← Back to Invoices
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Invoice {invoice.invoice_number}
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900">Invoice {invoice.invoice_number}</h1>
           <p className="mt-2 text-gray-600">
             Issued to {student.name} on {new Date(invoice.issue_date).toLocaleDateString()}
           </p>
@@ -129,9 +120,7 @@ export default async function InvoiceDetailPage({
         <div className="lg:col-span-2 space-y-6">
           {/* Invoice Details Card */}
           <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Invoice Details
-            </h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Invoice Details</h2>
 
             <dl className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div>
@@ -212,9 +201,7 @@ export default async function InvoiceDetailPage({
                     <tbody className="bg-white divide-y divide-gray-200">
                       {lineItems.map((item, index) => (
                         <tr key={index}>
-                          <td className="px-4 py-3 text-sm text-gray-900">
-                            {item.description}
-                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900">{item.description}</td>
                           <td className="px-4 py-3 text-sm text-gray-900 text-right">
                             {item.quantity}
                           </td>
@@ -222,10 +209,7 @@ export default async function InvoiceDetailPage({
                             {formatCurrency(item.unit_price, invoice.currency)}
                           </td>
                           <td className="px-4 py-3 text-sm font-semibold text-gray-900 text-right">
-                            {formatCurrency(
-                              item.quantity * item.unit_price,
-                              invoice.currency
-                            )}
+                            {formatCurrency(item.quantity * item.unit_price, invoice.currency)}
                           </td>
                         </tr>
                       ))}
@@ -342,9 +326,7 @@ export default async function InvoiceDetailPage({
 
           {/* Invoice Info */}
           <div className="bg-white shadow rounded-lg p-6">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">
-              Additional Info
-            </h3>
+            <h3 className="text-sm font-semibold text-gray-900 mb-4">Additional Info</h3>
             <dl className="space-y-3">
               <div>
                 <dt className="text-xs font-medium text-gray-500">Created</dt>

@@ -12,38 +12,34 @@ The database has been rebuilt from scratch with Ireland ESL school business logi
 
 ### Core Migrations (Apply in order)
 
-| File | Description | Status |
-|------|-------------|--------|
-| `FRESH_0000_drop_all.sql` | Nuclear reset (DROP SCHEMA public CASCADE) | ✅ Applied |
-| `FRESH_0001_core_schema.sql` | Complete schema: 9 tables with RLS enabled | ✅ Applied |
+| File                          | Description                                         | Status     |
+| ----------------------------- | --------------------------------------------------- | ---------- |
+| `FRESH_0000_drop_all.sql`     | Nuclear reset (DROP SCHEMA public CASCADE)          | ✅ Applied |
+| `FRESH_0001_core_schema.sql`  | Complete schema: 9 tables with RLS enabled          | ✅ Applied |
 | `FRESH_0002_rls_policies.sql` | Comprehensive RLS policies (role-based + superuser) | ✅ Applied |
 
 ### Seed Data
 
 Seed data is managed via TypeScript scripts (not SQL files):
 
-| Script | Description |
-|--------|-------------|
-| `scripts/seed-fresh-data.ts` | Initial seed data (tenant, courses, test user, booking) |
-| `scripts/seed-cefr-descriptors.ts` | CEFR language level descriptors |
-| `scripts/seed-students.ts` | Sample student data |
+| Script                             | Description                                             |
+| ---------------------------------- | ------------------------------------------------------- |
+| `scripts/seed-fresh-data.ts`       | Initial seed data (tenant, courses, test user, booking) |
+| `scripts/seed-cefr-descriptors.ts` | CEFR language level descriptors                         |
+| `scripts/seed-students.ts`         | Sample student data                                     |
 
 ## Database Structure
 
 ### 9 Core Tables
 
 **Multi-tenancy & Users:**
+
 1. **tenants** - School branches (multi-tenancy support)
 2. **users** - Base table for all people (students, teachers, admins)
 3. **user_roles** - Multi-role support (one user can be admin + teacher + student)
 4. **students** - Student-specific data (visa tracking, emergency contacts)
 
-**Business Tables:**
-5. **agencies** - Sales sources (Direct vs Agency bookings)
-6. **courses** - Course catalog (GE A1-C1, IELTS, etc.)
-7. **accommodation_types** - Host Family, Residence, Student House, Studio
-8. **bookings** - Core business transactions with full financial breakdown (EUR)
-9. **payments** - Payment history with auto-calculated balances
+**Business Tables:** 5. **agencies** - Sales sources (Direct vs Agency bookings) 6. **courses** - Course catalog (GE A1-C1, IELTS, etc.) 7. **accommodation_types** - Host Family, Residence, Student House, Studio 8. **bookings** - Core business transactions with full financial breakdown (EUR) 9. **payments** - Payment history with auto-calculated balances
 
 ### Key Features
 
@@ -211,7 +207,7 @@ When the schema needs to evolve:
 
 ## Deprecated Files (Removed)
 
-- Old numbered migrations (0001-0008, 001-004) - superseded by FRESH_* schema
+- Old numbered migrations (0001-0008, 001-004) - superseded by FRESH\_\* schema
 - `FRESH_0002_seed_data.sql` - replaced by TypeScript seeder
 - Debug scripts (`check-tenants.ts`, `examine-database.ts`, etc.)
 

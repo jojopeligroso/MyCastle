@@ -14,10 +14,7 @@ const updateProgrammeSchema = z.object({
   is_active: z.boolean().optional(),
 });
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     await requireAuth(['admin']);
     const programmeId = params.id;
@@ -42,17 +39,11 @@ export async function GET(
     return NextResponse.json({ ...programme, courses: programmeCourses });
   } catch (error) {
     console.error('Error fetching programme:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch programme' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch programme' }, { status: 500 });
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     await requireAuth(['admin']);
     const programmeId = params.id;
@@ -69,7 +60,7 @@ export async function PATCH(
     const data = validationResult.data;
     const updateData: Record<string, any> = { updated_at: new Date() };
 
-    Object.keys(data).forEach((key) => {
+    Object.keys(data).forEach(key => {
       if (data[key as keyof typeof data] !== undefined) {
         updateData[key] = data[key as keyof typeof data];
       }
@@ -88,17 +79,11 @@ export async function PATCH(
     return NextResponse.json(updatedProgramme);
   } catch (error) {
     console.error('Error updating programme:', error);
-    return NextResponse.json(
-      { error: 'Failed to update programme' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to update programme' }, { status: 500 });
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     await requireAuth(['admin']);
     const programmeId = params.id;
@@ -119,9 +104,6 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting programme:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete programme' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to delete programme' }, { status: 500 });
   }
 }

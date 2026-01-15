@@ -10,11 +10,7 @@ describe('Navigation Component', () => {
   describe('Basic Rendering', () => {
     it('should render navigation with user email', () => {
       render(
-        <Navigation
-          userEmail="teacher@example.com"
-          userRole="teacher"
-          currentPath="/dashboard"
-        />
+        <Navigation userEmail="teacher@example.com" userRole="teacher" currentPath="/dashboard" />
       );
 
       expect(screen.getByText('teacher@example.com')).toBeInTheDocument();
@@ -22,11 +18,7 @@ describe('Navigation Component', () => {
 
     it('should display user role badge', () => {
       render(
-        <Navigation
-          userEmail="admin@example.com"
-          userRole="admin"
-          currentPath="/dashboard"
-        />
+        <Navigation userEmail="admin@example.com" userRole="admin" currentPath="/dashboard" />
       );
 
       expect(screen.getByText('admin')).toBeInTheDocument();
@@ -34,11 +26,7 @@ describe('Navigation Component', () => {
 
     it('should highlight current page in navigation', () => {
       render(
-        <Navigation
-          userEmail="teacher@example.com"
-          userRole="teacher"
-          currentPath="/dashboard"
-        />
+        <Navigation userEmail="teacher@example.com" userRole="teacher" currentPath="/dashboard" />
       );
 
       const dashboardLink = screen.getByRole('link', { name: /^dashboard$/i });
@@ -50,11 +38,7 @@ describe('Navigation Component', () => {
   describe('Role-Based Navigation', () => {
     it('should show teacher-only links for teacher role', () => {
       render(
-        <Navigation
-          userEmail="teacher@example.com"
-          userRole="teacher"
-          currentPath="/dashboard"
-        />
+        <Navigation userEmail="teacher@example.com" userRole="teacher" currentPath="/dashboard" />
       );
 
       expect(screen.getByText('Lesson Planner')).toBeInTheDocument();
@@ -64,11 +48,7 @@ describe('Navigation Component', () => {
 
     it('should show admin links for admin role', () => {
       render(
-        <Navigation
-          userEmail="admin@example.com"
-          userRole="admin"
-          currentPath="/dashboard"
-        />
+        <Navigation userEmail="admin@example.com" userRole="admin" currentPath="/dashboard" />
       );
 
       expect(screen.getByText('Lesson Planner')).toBeInTheDocument();
@@ -77,11 +57,7 @@ describe('Navigation Component', () => {
 
     it('should not show teacher links for student role', () => {
       render(
-        <Navigation
-          userEmail="student@example.com"
-          userRole="student"
-          currentPath="/dashboard"
-        />
+        <Navigation userEmail="student@example.com" userRole="student" currentPath="/dashboard" />
       );
 
       expect(screen.queryByText('Lesson Planner')).not.toBeInTheDocument();
@@ -92,13 +68,9 @@ describe('Navigation Component', () => {
     it('should show dashboard link for all roles', () => {
       const roles = ['student', 'teacher', 'admin'];
 
-      roles.forEach((role) => {
+      roles.forEach(role => {
         const { unmount } = render(
-          <Navigation
-            userEmail={`${role}@example.com`}
-            userRole={role}
-            currentPath="/dashboard"
-          />
+          <Navigation userEmail={`${role}@example.com`} userRole={role} currentPath="/dashboard" />
         );
 
         expect(screen.getByText('Dashboard')).toBeInTheDocument();
@@ -110,11 +82,7 @@ describe('Navigation Component', () => {
   describe('Mobile Menu', () => {
     it('should toggle mobile menu when hamburger button is clicked', () => {
       render(
-        <Navigation
-          userEmail="teacher@example.com"
-          userRole="teacher"
-          currentPath="/dashboard"
-        />
+        <Navigation userEmail="teacher@example.com" userRole="teacher" currentPath="/dashboard" />
       );
 
       const menuButton = screen.getByRole('button', { name: /open main menu/i });
@@ -140,11 +108,7 @@ describe('Navigation Component', () => {
   describe('Navigation Links', () => {
     it('should render correct href for navigation items', () => {
       render(
-        <Navigation
-          userEmail="teacher@example.com"
-          userRole="teacher"
-          currentPath="/dashboard"
-        />
+        <Navigation userEmail="teacher@example.com" userRole="teacher" currentPath="/dashboard" />
       );
 
       const dashboardLink = screen.getByRole('link', { name: /dashboard/i });
@@ -158,11 +122,7 @@ describe('Navigation Component', () => {
   describe('Edge Cases', () => {
     it('should handle undefined userRole gracefully', () => {
       render(
-        <Navigation
-          userEmail="user@example.com"
-          userRole={undefined}
-          currentPath="/dashboard"
-        />
+        <Navigation userEmail="user@example.com" userRole={undefined} currentPath="/dashboard" />
       );
 
       // Should show dashboard but not role-specific items
@@ -170,13 +130,7 @@ describe('Navigation Component', () => {
     });
 
     it('should handle missing userEmail', () => {
-      render(
-        <Navigation
-          userEmail={undefined}
-          userRole="teacher"
-          currentPath="/dashboard"
-        />
-      );
+      render(<Navigation userEmail={undefined} userRole="teacher" currentPath="/dashboard" />);
 
       // Should still render navigation structure
       expect(screen.getByText('Dashboard')).toBeInTheDocument();

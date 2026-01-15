@@ -61,7 +61,10 @@ export default async function ClassDetailPage({ params }: { params: { id: string
       {/* Header */}
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <Link href="/admin/classes" className="text-sm text-gray-600 hover:text-gray-900 mb-2 inline-block">
+          <Link
+            href="/admin/classes"
+            className="text-sm text-gray-600 hover:text-gray-900 mb-2 inline-block"
+          >
             ← Back to Classes
           </Link>
           <h1 className="text-3xl font-bold text-gray-900">{cls.name}</h1>
@@ -97,9 +100,13 @@ export default async function ClassDetailPage({ params }: { params: { id: string
               <div>
                 <dt className="text-sm font-medium text-gray-500">Status</dt>
                 <dd className="mt-1">
-                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                    cls.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                  }`}>
+                  <span
+                    className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                      cls.status === 'active'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-gray-100 text-gray-800'
+                    }`}
+                  >
                     {cls.status}
                   </span>
                 </dd>
@@ -149,9 +156,7 @@ export default async function ClassDetailPage({ params }: { params: { id: string
                         <td className="px-4 py-3 text-sm font-medium text-gray-900">
                           {student.name}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-500">
-                          {student.email}
-                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-500">{student.email}</td>
                         <td className="px-4 py-3 text-sm text-gray-500">
                           {new Date(enrollment.enrollment_date).toLocaleDateString()}
                         </td>
@@ -185,14 +190,18 @@ export default async function ClassDetailPage({ params }: { params: { id: string
             <div className="mb-2">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-600">Capacity</span>
-                <span className="font-medium">{students.length} / {cls.capacity}</span>
+                <span className="font-medium">
+                  {students.length} / {cls.capacity}
+                </span>
               </div>
               <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
                 <div
                   className={`h-2 rounded-full ${
-                    enrollmentPercentage >= 90 ? 'bg-red-600' :
-                    enrollmentPercentage >= 75 ? 'bg-orange-600' :
-                    'bg-green-600'
+                    enrollmentPercentage >= 90
+                      ? 'bg-red-600'
+                      : enrollmentPercentage >= 75
+                        ? 'bg-orange-600'
+                        : 'bg-green-600'
                   }`}
                   style={{ width: `${enrollmentPercentage}%` }}
                 />

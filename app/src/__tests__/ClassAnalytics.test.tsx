@@ -16,10 +16,11 @@ describe('ClassAnalytics Component', () => {
   });
 
   it('should render loading state initially', () => {
-    (global.fetch as jest.Mock).mockImplementation(() =>
-      new Promise(() => {
-        /* never resolves */
-      })
+    (global.fetch as jest.Mock).mockImplementation(
+      () =>
+        new Promise(() => {
+          /* never resolves */
+        })
     );
 
     render(<ClassAnalytics classId="class-123" />);

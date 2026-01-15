@@ -42,7 +42,7 @@ export const auditLogs = pgTable(
     index('idx_audit_logs_user').on(table.user_id),
     index('idx_audit_logs_timestamp').on(table.timestamp),
     index('idx_audit_logs_action').on(table.action),
-  ],
+  ]
 );
 
 /**

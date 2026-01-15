@@ -29,10 +29,14 @@ describe('WorkQueue', () => {
     expect(screen.getByText('Items requiring review')).toBeInTheDocument();
 
     expect(screen.getByText('Register Anomaly')).toBeInTheDocument();
-    expect(screen.getByText('Missing attendance data for session on 2025-12-17')).toBeInTheDocument();
+    expect(
+      screen.getByText('Missing attendance data for session on 2025-12-17')
+    ).toBeInTheDocument();
 
     expect(screen.getByText('Pending User Invite')).toBeInTheDocument();
-    expect(screen.getByText('User invited but not yet activated: john@example.com')).toBeInTheDocument();
+    expect(
+      screen.getByText('User invited but not yet activated: john@example.com')
+    ).toBeInTheDocument();
   });
 
   it('shows "All caught up" message when no items', () => {

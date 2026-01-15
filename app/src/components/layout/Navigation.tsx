@@ -31,7 +31,7 @@ export function Navigation({ userEmail, userRole, currentPath }: NavigationProps
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const filteredNavItems = navItems.filter(
-    item => !item.roles || !userRole || item.roles.includes(userRole),
+    item => !item.roles || !userRole || item.roles.includes(userRole)
   );
 
   return (
@@ -155,9 +155,7 @@ export function Navigation({ userEmail, userRole, currentPath }: NavigationProps
                 </div>
                 <div className="ml-3">
                   <div className="text-base font-medium text-gray-800">{userEmail}</div>
-                  {userRole && (
-                    <div className="text-sm font-medium text-gray-500">{userRole}</div>
-                  )}
+                  {userRole && <div className="text-sm font-medium text-gray-500">{userRole}</div>}
                 </div>
               </div>
               <div className="mt-3 px-2">

@@ -60,10 +60,7 @@ async function main() {
         recorded_at: new Date(),
       };
 
-      const [record] = await db
-        .insert(attendance)
-        .values(insertData)
-        .returning();
+      const [record] = await db.insert(attendance).values(insertData).returning();
 
       return {
         content: [
@@ -151,30 +148,26 @@ async function main() {
   );
 
   // Prompt: attendance_persona
-  server.prompt(
-    'attendance_persona',
-    'Attendance tracking assistant persona',
-    async () => {
-      return {
-        messages: [
-          {
-            role: 'user',
-            content: {
-              type: 'text',
-              text: 'You are an attendance tracking assistant for an ESL school. Help teachers record attendance, generate reports, and ensure compliance.',
-            },
+  server.prompt('attendance_persona', 'Attendance tracking assistant persona', async () => {
+    return {
+      messages: [
+        {
+          role: 'user',
+          content: {
+            type: 'text',
+            text: 'You are an attendance tracking assistant for an ESL school. Help teachers record attendance, generate reports, and ensure compliance.',
           },
-        ],
-      };
-    }
-  );
+        },
+      ],
+    };
+  });
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error('[Attendance MCP] Server started on stdio');
 }
 
-main().catch((error) => {
+main().catch(error => {
   console.error('[Attendance MCP] Fatal error:', error);
   process.exit(1);
 });

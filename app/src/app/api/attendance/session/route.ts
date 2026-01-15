@@ -75,8 +75,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     const isAuthorized =
-      userRole === 'admin' ||
-      (userRole === 'teacher' && classRecord.teacher_id === user.id);
+      userRole === 'admin' || (userRole === 'teacher' && classRecord.teacher_id === user.id);
 
     if (!isAuthorized) {
       return NextResponse.json(
@@ -296,8 +295,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     const isAuthorized =
-      userRole === 'admin' ||
-      (userRole === 'teacher' && classRecord.teacher_id === user.id);
+      userRole === 'admin' || (userRole === 'teacher' && classRecord.teacher_id === user.id);
 
     if (!isAuthorized) {
       return NextResponse.json(

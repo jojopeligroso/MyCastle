@@ -64,8 +64,18 @@ export function AlertsPanel({ alerts }: AlertsPanelProps) {
       <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Alerts</h2>
         <div className="text-center py-8 text-gray-500">
-          <svg className="w-12 h-12 mx-auto mb-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            className="w-12 h-12 mx-auto mb-3 text-green-500"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
           <p className="font-medium">All clear!</p>
           <p className="text-sm">No active alerts at this time</p>
@@ -86,7 +96,8 @@ export function AlertsPanel({ alerts }: AlertsPanelProps) {
       </div>
       <div className="divide-y divide-gray-200">
         {activeAlerts.map(alert => {
-          const priority = PRIORITY_LABELS[alert.priority as keyof typeof PRIORITY_LABELS] || PRIORITY_LABELS[4];
+          const priority =
+            PRIORITY_LABELS[alert.priority as keyof typeof PRIORITY_LABELS] || PRIORITY_LABELS[4];
           const isAcknowledging = acknowledging === alert.alert_id;
 
           return (

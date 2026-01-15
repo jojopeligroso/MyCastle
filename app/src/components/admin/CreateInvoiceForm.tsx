@@ -49,9 +49,10 @@ export function CreateInvoiceForm({ students }: { students: Student[] }) {
         item => item.description && item.quantity > 0 && item.unit_price > 0
       );
 
-      const calculatedAmount = validLineItems.length > 0
-        ? validLineItems.reduce((sum, item) => sum + item.quantity * item.unit_price, 0)
-        : Number(formData.amount);
+      const calculatedAmount =
+        validLineItems.length > 0
+          ? validLineItems.reduce((sum, item) => sum + item.quantity * item.unit_price, 0)
+          : Number(formData.amount);
 
       const response = await fetch('/api/admin/invoices', {
         method: 'POST',
@@ -97,11 +98,7 @@ export function CreateInvoiceForm({ students }: { students: Student[] }) {
     setLineItems(lineItems.filter((_, i) => i !== index));
   };
 
-  const updateLineItem = (
-    index: number,
-    field: keyof LineItem,
-    value: string | number
-  ) => {
+  const updateLineItem = (index: number, field: keyof LineItem, value: string | number) => {
     const updated = [...lineItems];
     updated[index] = { ...updated[index], [field]: value };
     setLineItems(updated);
@@ -216,7 +213,8 @@ export function CreateInvoiceForm({ students }: { students: Student[] }) {
 
         <div className="mt-3 text-right">
           <div className="text-sm text-gray-600">
-            Total: <span className="font-semibold text-gray-900">${calculateTotal().toFixed(2)}</span>
+            Total:{' '}
+            <span className="font-semibold text-gray-900">${calculateTotal().toFixed(2)}</span>
           </div>
         </div>
       </div>

@@ -67,7 +67,10 @@ async function runMigrations() {
 
     // Import and run seed function
     const { execSync } = require('child_process');
-    execSync('npx tsx scripts/seed-fresh-data.ts', { cwd: resolve(__dirname, '..'), stdio: 'inherit' });
+    execSync('npx tsx scripts/seed-fresh-data.ts', {
+      cwd: resolve(__dirname, '..'),
+      stdio: 'inherit',
+    });
 
     // Reconnect for verification
     const sql2 = postgres(DATABASE_URL, { max: 1 });
@@ -116,7 +119,6 @@ async function runMigrations() {
 
     await sql2.end();
     process.exit(0);
-
   } catch (error) {
     console.error('\n❌ Migration failed:', error);
     process.exit(1);

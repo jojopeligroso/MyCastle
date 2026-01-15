@@ -95,9 +95,7 @@ const STATUS_LABELS = {
 
 export function AttendanceRegister({ teacherId, classes: classesProp }: AttendanceRegisterProps) {
   const [selectedClass, setSelectedClass] = useState<string>('');
-  const [selectedDate, setSelectedDate] = useState<string>(
-    new Date().toISOString().split('T')[0]
-  );
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [sessionTime, setSessionTime] = useState<string>('09:00');
 
   // Backend data
@@ -133,13 +131,11 @@ export function AttendanceRegister({ teacherId, classes: classesProp }: Attendan
         const rawClasses = data.data?.classes;
 
         if (data.success && Array.isArray(rawClasses)) {
-          const mappedClasses = rawClasses
-            .filter(isValidMCPClass)
-            .map(resource => ({
-              id: resource.id,
-              name: resource.name,
-              enrolledCount: resource.enrolledCount ?? 0,
-            }));
+          const mappedClasses = rawClasses.filter(isValidMCPClass).map(resource => ({
+            id: resource.id,
+            name: resource.name,
+            enrolledCount: resource.enrolledCount ?? 0,
+          }));
 
           setClasses(mappedClasses);
         }
@@ -360,9 +356,7 @@ export function AttendanceRegister({ teacherId, classes: classesProp }: Attendan
   };
 
   const visaAbsences = Array.from(attendances.values()).filter(
-    a =>
-      a.status === 'absent' &&
-      students.find(s => s.id === a.studentId)?.visaStudent
+    a => a.status === 'absent' && students.find(s => s.id === a.studentId)?.visaStudent
   ).length;
 
   return (

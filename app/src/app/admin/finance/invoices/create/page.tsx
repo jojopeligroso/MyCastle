@@ -16,11 +16,9 @@ async function getStudents(tenantId: string) {
       email: users.email,
     })
     .from(users)
-    .where(and(
-      eq(users.tenant_id, tenantId),
-      eq(users.role, 'student'),
-      eq(users.status, 'active')
-    ))
+    .where(
+      and(eq(users.tenant_id, tenantId), eq(users.role, 'student'), eq(users.status, 'active'))
+    )
     .orderBy(users.name);
 
   return students;
