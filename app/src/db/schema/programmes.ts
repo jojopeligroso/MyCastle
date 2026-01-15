@@ -61,7 +61,7 @@ export const programmes = pgTable(
     index('idx_programmes_tenant').on(table.tenant_id),
     index('idx_programmes_status').on(table.status),
     index('idx_programmes_deleted').on(table.deleted_at),
-  ],
+  ]
 );
 
 /**
@@ -113,7 +113,7 @@ export const courses = pgTable(
     index('idx_courses_cefr').on(table.cefr_level),
     index('idx_courses_status').on(table.status),
     index('idx_courses_deleted').on(table.deleted_at),
-  ],
+  ]
 );
 
 /**

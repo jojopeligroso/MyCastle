@@ -28,21 +28,16 @@ export async function POST(request: NextRequest) {
     const tenantId = await getTenantId();
 
     if (!tenantId) {
-      return NextResponse.json(
-        { error: 'Tenant not found' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Tenant not found' }, { status: 400 });
     }
 
     // Verify admin role
     const userRole = user.user_metadata?.role || user.app_metadata?.role;
-    const isAdmin = userRole === 'admin' || userRole === 'super_admin' || userRole?.startsWith('admin_');
+    const isAdmin =
+      userRole === 'admin' || userRole === 'super_admin' || userRole?.startsWith('admin_');
 
     if (!isAdmin) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Admin access required' },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 403 });
     }
 
     // Parse and validate request body
@@ -50,7 +45,8 @@ export async function POST(request: NextRequest) {
     const validatedData = createClassSchema.parse(body);
 
     // Generate class code if not provided
-    const classCode = validatedData.code || generateClassCode(validatedData.subject, validatedData.level);
+    const classCode =
+      validatedData.code || generateClassCode(validatedData.subject, validatedData.level);
 
     // Create class
     const [newClass] = await db
@@ -86,10 +82,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json(
-      { error: error.message || 'Failed to create class' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message || 'Failed to create class' }, { status: 500 });
   }
 }
 

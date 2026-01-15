@@ -94,13 +94,21 @@ const createBookingTool: MCPTool = {
     amount: z.number().positive().describe('Booking amount'),
     currency: z.string().length(3).default('USD').describe('Currency code (ISO 4217)'),
     description: z.string().optional().describe('Booking description'),
-    line_items: z.array(z.object({
-      description: z.string(),
-      quantity: z.number().positive(),
-      unit_price: z.number().positive(),
-    })).optional().describe('Detailed line items'),
+    line_items: z
+      .array(
+        z.object({
+          description: z.string(),
+          quantity: z.number().positive(),
+          unit_price: z.number().positive(),
+        })
+      )
+      .optional()
+      .describe('Detailed line items'),
     due_date: z.string().describe('Payment due date (YYYY-MM-DD)'),
-    auto_confirm_enrollment: z.boolean().default(true).describe('Automatically enroll student in class'),
+    auto_confirm_enrollment: z
+      .boolean()
+      .default(true)
+      .describe('Automatically enroll student in class'),
   }),
   handler: async (input, session) => {
     const {
@@ -240,11 +248,16 @@ const editBookingTool: MCPTool = {
     amount: z.number().positive().optional().describe('New amount'),
     due_date: z.string().optional().describe('New due date (YYYY-MM-DD)'),
     description: z.string().optional().describe('Updated description'),
-    line_items: z.array(z.object({
-      description: z.string(),
-      quantity: z.number().positive(),
-      unit_price: z.number().positive(),
-    })).optional().describe('Updated line items'),
+    line_items: z
+      .array(
+        z.object({
+          description: z.string(),
+          quantity: z.number().positive(),
+          unit_price: z.number().positive(),
+        })
+      )
+      .optional()
+      .describe('Updated line items'),
     reason: z.string().describe('Reason for modification (required for audit)'),
   }),
   handler: async (input, session) => {
@@ -337,11 +350,15 @@ const issueInvoiceTool: MCPTool = {
     amount: z.number().positive().describe('Invoice amount'),
     currency: z.string().length(3).default('USD').describe('Currency code'),
     description: z.string().describe('Invoice description'),
-    line_items: z.array(z.object({
-      description: z.string(),
-      quantity: z.number().positive(),
-      unit_price: z.number().positive(),
-    })).describe('Invoice line items'),
+    line_items: z
+      .array(
+        z.object({
+          description: z.string(),
+          quantity: z.number().positive(),
+          unit_price: z.number().positive(),
+        })
+      )
+      .describe('Invoice line items'),
     issue_date: z.string().optional().describe('Issue date (defaults to today)'),
     due_date: z.string().describe('Payment due date (YYYY-MM-DD)'),
     send_email: z.boolean().default(true).describe('Send invoice email to student'),
@@ -548,7 +565,8 @@ const refundPaymentTool: MCPTool = {
         student_id: payment.student_id,
         amount: (-finalRefundAmount).toFixed(2),
         currency: payment.currency,
-        payment_method: refund_method === 'original_method' ? payment.payment_method : refund_method,
+        payment_method:
+          refund_method === 'original_method' ? payment.payment_method : refund_method,
         payment_date: new Date().toISOString().split('T')[0],
         notes: `Refund for payment ${payment_id}. Reason: ${reason}`,
         recorded_by: session.userId,
@@ -644,7 +662,9 @@ const reconcilePayoutsTool: MCPTool = {
     response += `Payment Method: ${payment_method}\n`;
     response += `Total Transactions: ${paymentRecords.length}\n\n`;
 
-    response += `Total Amount: ${Object.entries(byCurrency).map(([curr, amt]) => `${curr} ${amt.toFixed(2)}`).join(', ')}\n\n`;
+    response += `Total Amount: ${Object.entries(byCurrency)
+      .map(([curr, amt]) => `${curr} ${amt.toFixed(2)}`)
+      .join(', ')}\n\n`;
 
     response += `Breakdown by Method:\n`;
     Object.entries(byMethod).forEach(([method, amount]) => {
@@ -698,8 +718,8 @@ const ledgerExportTool: MCPTool = {
         and(
           eq(payments.tenant_id, session.tenantId),
           gte(payments.payment_date, start_date),
-          lte(payments.payment_date, end_date),
-        ),
+          lte(payments.payment_date, end_date)
+        )
       )
       .orderBy(payments.payment_date);
 
@@ -747,12 +767,7 @@ const agingReportTool: MCPTool = {
       })
       .from(invoices)
       .innerJoin(users, eq(invoices.student_id, users.id))
-      .where(
-        and(
-          eq(invoices.tenant_id, session.tenantId),
-          eq(invoices.status, 'pending'),
-        ),
-      );
+      .where(and(eq(invoices.tenant_id, session.tenantId), eq(invoices.status, 'pending')));
 
     // Categorize by age
     const aging = {
@@ -765,7 +780,9 @@ const agingReportTool: MCPTool = {
 
     unpaidInvoices.forEach(({ invoice, student }) => {
       const dueDate = new Date(invoice.due_date);
-      const daysOverdue = Math.floor((reportDate.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
+      const daysOverdue = Math.floor(
+        (reportDate.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24)
+      );
 
       const item = { invoice, student, daysOverdue };
 
@@ -968,17 +985,12 @@ const outstandingResource: MCPResource = {
       })
       .from(invoices)
       .innerJoin(users, eq(invoices.student_id, users.id))
-      .where(
-        and(
-          eq(invoices.tenant_id, session.tenantId),
-          eq(invoices.status, 'pending'),
-        ),
-      )
+      .where(and(eq(invoices.tenant_id, session.tenantId), eq(invoices.status, 'pending')))
       .orderBy(invoices.due_date);
 
     const totalOutstanding = unpaid.reduce(
       (sum, { invoice }) => sum + parseFloat(invoice.amount),
-      0,
+      0
     );
 
     return {
@@ -990,9 +1002,7 @@ const outstandingResource: MCPResource = {
         due_date: invoice.due_date,
         days_overdue: Math.max(
           0,
-          Math.floor(
-            (Date.now() - new Date(invoice.due_date).getTime()) / (1000 * 60 * 60 * 24),
-          ),
+          Math.floor((Date.now() - new Date(invoice.due_date).getTime()) / (1000 * 60 * 60 * 24))
         ),
       })),
       total_outstanding: totalOutstanding.toFixed(2),
@@ -1035,14 +1045,11 @@ const revenueSummaryResource: MCPResource = {
         and(
           eq(invoices.tenant_id, session.tenantId),
           eq(invoices.status, 'paid'),
-          gte(invoices.issue_date, startDate.toISOString().split('T')[0]),
-        ),
+          gte(invoices.issue_date, startDate.toISOString().split('T')[0])
+        )
       );
 
-    const totalRevenue = paidInvoices.reduce(
-      (sum, inv) => sum + parseFloat(inv.amount),
-      0,
-    );
+    const totalRevenue = paidInvoices.reduce((sum, inv) => sum + parseFloat(inv.amount), 0);
 
     return {
       period,
@@ -1169,15 +1176,6 @@ export const financeMCPConfig: MCPServerConfig = {
     agingReportTool,
     confirmIntakeTool,
   ],
-  resources: [
-    invoicesResource,
-    paymentsResource,
-    outstandingResource,
-    revenueSummaryResource,
-  ],
-  prompts: [
-    financePersonaPrompt,
-    paymentFollowUpPrompt,
-    reconciliationCheckPrompt,
-  ],
+  resources: [invoicesResource, paymentsResource, outstandingResource, revenueSummaryResource],
+  prompts: [financePersonaPrompt, paymentFollowUpPrompt, reconciliationCheckPrompt],
 };

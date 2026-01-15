@@ -25,10 +25,11 @@ describe('TeacherDashboard Component', () => {
   });
 
   it('should render loading state initially', () => {
-    (global.fetch as jest.Mock).mockImplementation(() =>
-      new Promise(() => {
-        /* never resolves */
-      })
+    (global.fetch as jest.Mock).mockImplementation(
+      () =>
+        new Promise(() => {
+          /* never resolves */
+        })
     );
 
     render(<TeacherDashboard teacherId="teacher-123" teacherName="John Smith" />);
@@ -118,8 +119,8 @@ describe('TeacherDashboard Component', () => {
     // Check that we have stats cards for Classes and sessions
     expect(screen.getByText('Classes')).toBeInTheDocument();
     expect(screen.getByText("Today's Sessions")).toBeInTheDocument();
-    expect(screen.getByText("This Week")).toBeInTheDocument();
-    expect(screen.getByText("Total Students")).toBeInTheDocument();
+    expect(screen.getByText('This Week')).toBeInTheDocument();
+    expect(screen.getByText('Total Students')).toBeInTheDocument();
   });
 
   it('should display upcoming sessions', async () => {

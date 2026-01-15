@@ -40,7 +40,9 @@ describe('Courses Management APIs', () => {
 
     it('should filter courses by programme', async () => {
       const programmeId = 'programme-123';
-      const mockRequest = new NextRequest(`http://localhost/api/admin/courses?programme_id=${programmeId}`);
+      const mockRequest = new NextRequest(
+        `http://localhost/api/admin/courses?programme_id=${programmeId}`
+      );
 
       const response = await GET(mockRequest);
 
@@ -491,7 +493,9 @@ describe('Courses Management APIs', () => {
 
     it('should filter courses by programme correctly', async () => {
       const programmeId = 'programme-123';
-      const mockRequest = new NextRequest(`http://localhost/api/admin/courses?programme_id=${programmeId}`);
+      const mockRequest = new NextRequest(
+        `http://localhost/api/admin/courses?programme_id=${programmeId}`
+      );
 
       const response = await GET(mockRequest);
       const data = await response.json();

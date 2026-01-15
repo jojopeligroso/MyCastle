@@ -4,10 +4,7 @@ import { invoices, payments } from '@/db/schema';
 import { eq, and, isNull, desc } from 'drizzle-orm';
 import { requireAuth } from '@/lib/auth/utils';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     await requireAuth(['admin']);
     const invoiceId = params.id;
@@ -32,17 +29,11 @@ export async function GET(
     return NextResponse.json({ ...invoice, payments: paymentHistory });
   } catch (error) {
     console.error('Error fetching invoice:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch invoice' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch invoice' }, { status: 500 });
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     await requireAuth(['admin']);
     const invoiceId = params.id;
@@ -64,9 +55,6 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting invoice:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete invoice' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to delete invoice' }, { status: 500 });
   }
 }

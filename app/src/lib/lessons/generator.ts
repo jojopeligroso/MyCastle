@@ -96,9 +96,7 @@ Topic: ${request.topic}`;
 /**
  * Generate lesson plan using OpenAI
  */
-export async function generateLessonPlan(
-  request: LessonPlanRequest,
-): Promise<LessonPlan> {
+export async function generateLessonPlan(request: LessonPlanRequest): Promise<LessonPlan> {
   const startTime = Date.now();
 
   try {
@@ -124,15 +122,13 @@ export async function generateLessonPlan(
     const validatedPlan = LessonPlanSchema.parse(rawPlan);
 
     const generationTime = Date.now() - startTime;
-    console.log(
-      `Lesson plan generated in ${generationTime}ms for topic: ${request.topic}`,
-    );
+    console.log(`Lesson plan generated in ${generationTime}ms for topic: ${request.topic}`);
 
     return validatedPlan;
   } catch (error) {
     console.error('Error generating lesson plan:', error);
     throw new Error(
-      `Failed to generate lesson plan: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      `Failed to generate lesson plan: ${error instanceof Error ? error.message : 'Unknown error'}`
     );
   }
 }

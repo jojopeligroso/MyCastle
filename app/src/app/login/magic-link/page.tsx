@@ -42,9 +42,7 @@ function MagicLinkContent() {
       const data = await response.json();
 
       if (response.status === 429) {
-        setError(
-          `Too many requests. Please try again in ${data.retryAfter || 60} seconds.`
-        );
+        setError(`Too many requests. Please try again in ${data.retryAfter || 60} seconds.`);
         setLoading(false);
         return;
       }
@@ -85,9 +83,7 @@ function MagicLinkContent() {
                 />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Check your email
-            </h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Check your email</h2>
             <p className="text-gray-600 mb-6">
               If an account exists with <strong>{email}</strong>, we&apos;ve sent you a magic link.
             </p>
@@ -111,10 +107,7 @@ function MagicLinkContent() {
             </button>
           </div>
           <div className="text-center pt-4 border-t">
-            <Link
-              href="/login"
-              className="text-sm text-gray-600 hover:text-gray-900"
-            >
+            <Link href="/login" className="text-sm text-gray-600 hover:text-gray-900">
               Back to password login
             </Link>
           </div>
@@ -127,23 +120,14 @@ function MagicLinkContent() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-md">
         <div>
-          <h2 className="text-center text-3xl font-bold text-gray-900">
-            MyCastle
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Sign in with a magic link
-          </p>
-          <p className="mt-1 text-center text-xs text-gray-500">
-            No password required
-          </p>
+          <h2 className="text-center text-3xl font-bold text-gray-900">MyCastle</h2>
+          <p className="mt-2 text-center text-sm text-gray-600">Sign in with a magic link</p>
+          <p className="mt-1 text-center text-xs text-gray-500">No password required</p>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleMagicLinkRequest}>
           <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
-            >
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
               Email address
             </label>
             <input
@@ -223,9 +207,7 @@ function MagicLinkContent() {
         </div>
 
         <div className="bg-gray-50 rounded-lg p-4 mt-6">
-          <h3 className="text-sm font-medium text-gray-900 mb-2">
-            How magic links work
-          </h3>
+          <h3 className="text-sm font-medium text-gray-900 mb-2">How magic links work</h3>
           <ul className="text-xs text-gray-600 space-y-1">
             <li>• Enter your registered email address</li>
             <li>• Receive an instant login link via email</li>
@@ -240,7 +222,11 @@ function MagicLinkContent() {
 
 export default function MagicLinkLoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50">Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">Loading...</div>
+      }
+    >
       <MagicLinkContent />
     </Suspense>
   );

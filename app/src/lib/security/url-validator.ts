@@ -94,9 +94,7 @@ export function extractSafeCallbackUrl(
   paramName: string = 'next',
   defaultPath: string = '/dashboard'
 ): string {
-  const callbackUrl = params instanceof URLSearchParams
-    ? params.get(paramName)
-    : params[paramName];
+  const callbackUrl = params instanceof URLSearchParams ? params.get(paramName) : params[paramName];
 
   return sanitizeRedirectUrl(callbackUrl, origin, defaultPath);
 }

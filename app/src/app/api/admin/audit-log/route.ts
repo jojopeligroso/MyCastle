@@ -52,15 +52,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Execute query with pagination
-    const results = await query
-      .orderBy(desc(auditLogs.created_at))
-      .limit(limit)
-      .offset(offset);
+    const results = await query.orderBy(desc(auditLogs.created_at)).limit(limit).offset(offset);
 
     // Get total count for pagination
-    const [{ count }] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(auditLogs);
+    const [{ count }] = await db.select({ count: sql<number>`count(*)::int` }).from(auditLogs);
 
     return NextResponse.json({
       logs: results,
@@ -73,9 +68,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error fetching audit logs:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch audit logs' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch audit logs' }, { status: 500 });
   }
 }

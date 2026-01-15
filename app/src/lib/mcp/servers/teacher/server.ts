@@ -80,10 +80,7 @@ async function main() {
         status: 'draft',
       };
 
-      const [plan] = await db
-        .insert(lessonPlans)
-        .values(insertData)
-        .returning();
+      const [plan] = await db.insert(lessonPlans).values(insertData).returning();
 
       return {
         content: [
@@ -124,10 +121,7 @@ async function main() {
         status: 'active',
       };
 
-      const [assignment] = await db
-        .insert(assignments)
-        .values(insertData)
-        .returning();
+      const [assignment] = await db.insert(assignments).values(insertData).returning();
 
       return {
         content: [
@@ -163,10 +157,7 @@ async function main() {
         graded_at: new Date(),
       };
 
-      const [newGrade] = await db
-        .insert(grades)
-        .values(insertData)
-        .returning();
+      const [newGrade] = await db.insert(grades).values(insertData).returning();
 
       return {
         content: [
@@ -209,30 +200,26 @@ async function main() {
   );
 
   // Prompt: teacher_persona
-  server.prompt(
-    'teacher_persona',
-    'Teacher assistant persona',
-    async () => {
-      return {
-        messages: [
-          {
-            role: 'user',
-            content: {
-              type: 'text',
-              text: 'You are a teaching assistant for ESL teachers. Help with lesson planning, assignments, grading, and classroom management.',
-            },
+  server.prompt('teacher_persona', 'Teacher assistant persona', async () => {
+    return {
+      messages: [
+        {
+          role: 'user',
+          content: {
+            type: 'text',
+            text: 'You are a teaching assistant for ESL teachers. Help with lesson planning, assignments, grading, and classroom management.',
           },
-        ],
-      };
-    }
-  );
+        },
+      ],
+    };
+  });
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error('[Teacher MCP] Server started on stdio');
 }
 
-main().catch((error) => {
+main().catch(error => {
   console.error('[Teacher MCP] Fatal error:', error);
   process.exit(1);
 });

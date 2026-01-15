@@ -41,7 +41,9 @@ async function createDessieBooking() {
       throw new Error('Course GE-A2 not found');
     }
 
-    console.log(`✅ Selected course: ${course[0].name} (${course[0].level}) - €${course[0].price_per_week_eur}/week`);
+    console.log(
+      `✅ Selected course: ${course[0].name} (${course[0].level}) - €${course[0].price_per_week_eur}/week`
+    );
 
     // Get Residence accommodation (nice upgrade for Dessie)
     const accommodation = await sql`
@@ -55,7 +57,9 @@ async function createDessieBooking() {
       throw new Error('Residence accommodation not found');
     }
 
-    console.log(`✅ Selected accommodation: ${accommodation[0].name} - €${accommodation[0].price_per_week_eur}/week`);
+    console.log(
+      `✅ Selected accommodation: ${accommodation[0].name} - €${accommodation[0].price_per_week_eur}/week`
+    );
 
     // Get Direct agency
     const agency = await sql`
@@ -78,7 +82,8 @@ async function createDessieBooking() {
     const registrationFee = 75;
     const learnerProtectionFee = 45;
     const medicalInsuranceFee = 150; // Dessie wants medical insurance
-    const totalBooking = courseFee + accommodationFee + registrationFee + learnerProtectionFee + medicalInsuranceFee;
+    const totalBooking =
+      courseFee + accommodationFee + registrationFee + learnerProtectionFee + medicalInsuranceFee;
     const depositPaid = 800;
 
     console.log('\n💰 Financial Breakdown:');

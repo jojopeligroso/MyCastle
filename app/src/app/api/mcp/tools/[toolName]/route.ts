@@ -21,7 +21,10 @@ export async function POST(
 
     // Verify session via Supabase
     const supabase = await createClient();
-    const { data: { session: supabaseSession }, error } = await supabase.auth.getSession();
+    const {
+      data: { session: supabaseSession },
+      error,
+    } = await supabase.auth.getSession();
 
     if (error || !supabaseSession) {
       return NextResponse.json(
@@ -51,10 +54,16 @@ export async function POST(
     if (response.success) {
       return NextResponse.json(response, { status: 200 });
     } else {
-      const statusCode = response.error?.code === 'UNAUTHORIZED' ? 401 :
-        response.error?.code === 'FORBIDDEN' ? 403 :
-          response.error?.code === 'TOOL_NOT_FOUND' ? 404 :
-            response.error?.code === 'INVALID_INPUT' ? 400 : 500;
+      const statusCode =
+        response.error?.code === 'UNAUTHORIZED'
+          ? 401
+          : response.error?.code === 'FORBIDDEN'
+            ? 403
+            : response.error?.code === 'TOOL_NOT_FOUND'
+              ? 404
+              : response.error?.code === 'INVALID_INPUT'
+                ? 400
+                : 500;
 
       return NextResponse.json(response, { status: statusCode });
     }

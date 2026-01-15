@@ -59,10 +59,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ enrollments: results });
   } catch (error) {
     console.error('Error fetching enrollments:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch enrollments' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch enrollments' }, { status: 500 });
   }
 }
 
@@ -116,10 +113,7 @@ export async function POST(request: NextRequest) {
       );
 
     if (count >= classData.capacity) {
-      return NextResponse.json(
-        { error: 'Class is at full capacity' },
-        { status: 409 }
-      );
+      return NextResponse.json({ error: 'Class is at full capacity' }, { status: 409 });
     }
 
     // Create enrollment
@@ -148,9 +142,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(newEnrollment, { status: 201 });
   } catch (error) {
     console.error('Error creating enrollment:', error);
-    return NextResponse.json(
-      { error: 'Failed to create enrollment' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to create enrollment' }, { status: 500 });
   }
 }

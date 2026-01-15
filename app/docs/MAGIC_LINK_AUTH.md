@@ -9,30 +9,36 @@ Magic link authentication provides a passwordless login option alongside the tra
 ## Security Features
 
 ### 1. User Verification
+
 - **Existing Users Only**: Magic links are sent only to email addresses that exist in the `users` table
 - **Status Check**: Only active users with valid `auth_id` can receive magic links
 - **Safe Failure Mode**: Returns generic success message regardless of whether user exists (prevents email enumeration)
 
 ### 2. Rate Limiting
+
 - **Per-IP Limiting**: Maximum 5 requests per minute per IP address
 - **Per-Email Limiting**: Maximum 3 requests per minute per email address
 - **429 Response**: Returns appropriate HTTP status with `Retry-After` header when limit exceeded
 
 ### 3. Timing Attack Prevention
+
 - **Constant Response Time**: Enforces minimum 200ms response time to prevent timing-based user enumeration
 - **Consistent Messages**: Always returns the same success message regardless of user existence
 
 ### 4. Redirect URL Validation
+
 - **Same-Origin Only**: Only allows redirects to the same origin as the application
 - **Protocol Validation**: Blocks dangerous protocols (javascript:, data:, etc.)
 - **Relative Path Support**: Safely handles relative paths starting with `/`
 
 ### 5. Token Security
+
 - **Single-Use Tokens**: Each magic link token can only be used once
 - **Time-Limited**: Tokens expire after 1 hour (configurable in Supabase)
 - **Code Exchange**: Uses PKCE-style code exchange for session creation
 
 ### 6. Session Management
+
 - **Secure Cookies**: Session cookies set via `@supabase/ssr` with secure flags
 - **RLS Integration**: Maintains Row-Level Security policies after authentication
 - **User Context**: Sets proper `app.current_user_id`, `app.current_tenant_id`, and `app.current_user_role`
@@ -66,6 +72,7 @@ User → /login/magic-link → Request Magic Link
 ### Components
 
 #### 1. Magic Link Request API (`/api/auth/magic-link/route.ts`)
+
 - Accepts POST requests with email and optional redirectTo
 - Validates email format
 - Checks rate limits (IP and email)
@@ -74,6 +81,7 @@ User → /login/magic-link → Request Magic Link
 - Returns generic success message
 
 #### 2. Auth Callback Handler (`/auth/callback/route.ts`)
+
 - Handles GET requests from Supabase Auth
 - Extracts authorization code from URL
 - Exchanges code for session via `exchangeCodeForSession()`
@@ -82,6 +90,7 @@ User → /login/magic-link → Request Magic Link
 - Redirects to requested page or dashboard
 
 #### 3. Magic Link UI (`/login/magic-link/page.tsx`)
+
 - Client component with email input form
 - Success state showing instructions
 - Error handling with user-friendly messages
@@ -89,6 +98,7 @@ User → /login/magic-link → Request Magic Link
 - Educational content about magic links
 
 #### 4. Main Login Page (`/login/page.tsx`)
+
 - Enhanced with magic link option
 - Clear separation between auth methods
 - Consistent UI/UX
@@ -145,6 +155,7 @@ CREATE TABLE users (
 ```
 
 **Key Fields**:
+
 - `auth_id`: Must be set and must match Supabase auth user ID
 - `email`: Must match the email in Supabase auth
 - `status`: Must be 'active' to receive magic links
@@ -170,8 +181,8 @@ const response = await fetch('/api/auth/magic-link', {
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     email: 'user@example.com',
-    redirectTo: '/specific-page'
-  })
+    redirectTo: '/specific-page',
+  }),
 });
 
 const data = await response.json();
@@ -201,6 +212,7 @@ if (!result.allowed) {
 ### Production Deployment
 
 1. **Use Redis for Rate Limiting**: Replace in-memory rate limiter with Redis
+
    ```typescript
    import { RateLimiterRedis } from 'rate-limiter-flexible';
    ```
@@ -222,15 +234,15 @@ if (!result.allowed) {
 
 ### Common Attacks and Mitigations
 
-| Attack | Mitigation |
-|--------|-----------|
-| Email Enumeration | Generic success messages, constant timing |
+| Attack            | Mitigation                                      |
+| ----------------- | ----------------------------------------------- |
+| Email Enumeration | Generic success messages, constant timing       |
 | Rate Limit Bypass | IP + Email combined limits, distributed limiter |
-| Open Redirect | Same-origin validation, protocol whitelist |
-| Token Reuse | Single-use tokens enforced by Supabase |
-| Phishing | Display destination domain in email template |
-| Session Hijacking | Secure cookies, HTTPOnly flags |
-| CSRF | State parameter in OAuth flow |
+| Open Redirect     | Same-origin validation, protocol whitelist      |
+| Token Reuse       | Single-use tokens enforced by Supabase          |
+| Phishing          | Display destination domain in email template    |
+| Session Hijacking | Secure cookies, HTTPOnly flags                  |
+| CSRF              | State parameter in OAuth flow                   |
 
 ## Testing
 
@@ -268,26 +280,26 @@ describe('Magic Link Authentication', () => {
   it('should send magic link to existing active user', async () => {
     const response = await fetch('/api/auth/magic-link', {
       method: 'POST',
-      body: JSON.stringify({ email: 'test@example.com' })
+      body: JSON.stringify({ email: 'test@example.com' }),
     });
 
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({
       success: true,
-      message: expect.stringContaining('magic link')
+      message: expect.stringContaining('magic link'),
     });
   });
 
   it('should not reveal non-existent emails', async () => {
     const response = await fetch('/api/auth/magic-link', {
       method: 'POST',
-      body: JSON.stringify({ email: 'nonexistent@example.com' })
+      body: JSON.stringify({ email: 'nonexistent@example.com' }),
     });
 
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({
       success: true,
-      message: expect.stringContaining('If an account exists')
+      message: expect.stringContaining('If an account exists'),
     });
   });
 });

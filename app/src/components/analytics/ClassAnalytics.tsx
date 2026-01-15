@@ -100,7 +100,8 @@ export function ClassAnalytics({ classId }: ClassAnalyticsProps) {
     return null;
   }
 
-  const enrollmentPercentage = (analytics.enrollment.totalStudents / analytics.enrollment.capacity) * 100;
+  const enrollmentPercentage =
+    (analytics.enrollment.totalStudents / analytics.enrollment.capacity) * 100;
   const isNearCapacity = enrollmentPercentage > 80;
 
   return (
@@ -116,7 +117,12 @@ export function ClassAnalytics({ classId }: ClassAnalyticsProps) {
           <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-medium text-blue-900">Enrollment</h3>
-              <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-8 h-8 text-blue-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -126,7 +132,9 @@ export function ClassAnalytics({ classId }: ClassAnalyticsProps) {
               </svg>
             </div>
             <div className="flex items-baseline gap-2 mb-2">
-              <div className="text-3xl font-bold text-blue-900">{analytics.enrollment.totalStudents}</div>
+              <div className="text-3xl font-bold text-blue-900">
+                {analytics.enrollment.totalStudents}
+              </div>
               <div className="text-sm text-blue-700">
                 / {analytics.enrollment.capacity} capacity
               </div>
@@ -149,7 +157,12 @@ export function ClassAnalytics({ classId }: ClassAnalyticsProps) {
           <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-medium text-green-900">Average Attendance</h3>
-              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-8 h-8 text-green-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -171,8 +184,8 @@ export function ClassAnalytics({ classId }: ClassAnalyticsProps) {
               {analytics.enrollment.averageAttendance > 90
                 ? 'Excellent'
                 : analytics.enrollment.averageAttendance > 75
-                ? 'Good'
-                : 'Needs improvement'}
+                  ? 'Good'
+                  : 'Needs improvement'}
             </div>
           </div>
 
@@ -180,7 +193,12 @@ export function ClassAnalytics({ classId }: ClassAnalyticsProps) {
           <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-medium text-purple-900">Assignments</h3>
-              <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-8 h-8 text-purple-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -190,13 +208,17 @@ export function ClassAnalytics({ classId }: ClassAnalyticsProps) {
               </svg>
             </div>
             <div className="flex items-baseline gap-3 mb-2">
-              <div className="text-3xl font-bold text-purple-900">{analytics.assignments.total}</div>
+              <div className="text-3xl font-bold text-purple-900">
+                {analytics.assignments.total}
+              </div>
               <div className="text-sm text-purple-700">total</div>
             </div>
             <div className="flex items-center gap-2 mt-4">
               <div className="flex-1">
                 <div className="text-xs text-purple-700 mb-1">Active</div>
-                <div className="text-lg font-semibold text-purple-900">{analytics.assignments.active}</div>
+                <div className="text-lg font-semibold text-purple-900">
+                  {analytics.assignments.active}
+                </div>
               </div>
               <div className="flex-1">
                 <div className="text-xs text-purple-700 mb-1">Completed</div>
@@ -211,7 +233,12 @@ export function ClassAnalytics({ classId }: ClassAnalyticsProps) {
           <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-medium text-gray-900">Quick Actions</h3>
-              <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-8 h-8 text-gray-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"

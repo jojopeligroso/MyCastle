@@ -43,7 +43,7 @@ export const agencies = pgTable(
   table => [
     uniqueIndex('idx_agencies_tenant_name').on(table.tenantId, table.name),
     index('idx_agencies_status').on(table.tenantId, table.status),
-  ],
+  ]
 );
 
 /**
@@ -71,7 +71,7 @@ export const courses = pgTable(
     index('idx_courses_tenant').on(table.tenantId),
     index('idx_courses_status').on(table.tenantId, table.status),
     index('idx_courses_level').on(table.level),
-  ],
+  ]
 );
 
 /**
@@ -96,7 +96,7 @@ export const accommodationTypes = pgTable(
   table => [
     uniqueIndex('idx_accommodation_types_tenant_name').on(table.tenantId, table.name),
     index('idx_accommodation_types_status').on(table.tenantId, table.status),
-  ],
+  ]
 );
 
 /**
@@ -144,13 +144,23 @@ export const bookings = pgTable(
 
     // Financial Breakdown (all in EUR)
     courseFeeEur: decimal('course_fee_eur', { precision: 10, scale: 2 }).notNull().default('0'),
-    accommodationFeeEur: decimal('accommodation_fee_eur', { precision: 10, scale: 2 }).notNull().default('0'),
+    accommodationFeeEur: decimal('accommodation_fee_eur', { precision: 10, scale: 2 })
+      .notNull()
+      .default('0'),
     transferFeeEur: decimal('transfer_fee_eur', { precision: 10, scale: 2 }).notNull().default('0'),
     examFeeEur: decimal('exam_fee_eur', { precision: 10, scale: 2 }).notNull().default('0'),
-    registrationFeeEur: decimal('registration_fee_eur', { precision: 10, scale: 2 }).notNull().default('0'),
-    learnerProtectionFeeEur: decimal('learner_protection_fee_eur', { precision: 10, scale: 2 }).notNull().default('0'),
-    medicalInsuranceFeeEur: decimal('medical_insurance_fee_eur', { precision: 10, scale: 2 }).notNull().default('0'),
-    totalBookingEur: decimal('total_booking_eur', { precision: 10, scale: 2 }).notNull().default('0'),
+    registrationFeeEur: decimal('registration_fee_eur', { precision: 10, scale: 2 })
+      .notNull()
+      .default('0'),
+    learnerProtectionFeeEur: decimal('learner_protection_fee_eur', { precision: 10, scale: 2 })
+      .notNull()
+      .default('0'),
+    medicalInsuranceFeeEur: decimal('medical_insurance_fee_eur', { precision: 10, scale: 2 })
+      .notNull()
+      .default('0'),
+    totalBookingEur: decimal('total_booking_eur', { precision: 10, scale: 2 })
+      .notNull()
+      .default('0'),
 
     // Payment Tracking
     depositPaidEur: decimal('deposit_paid_eur', { precision: 10, scale: 2 }).notNull().default('0'),
@@ -175,7 +185,7 @@ export const bookings = pgTable(
     index('idx_bookings_sale_date').on(table.tenantId, table.saleDate),
     index('idx_bookings_status').on(table.tenantId, table.status),
     index('idx_bookings_dates').on(table.courseStartDate, table.courseEndDate),
-  ],
+  ]
 );
 
 /**
@@ -205,7 +215,7 @@ export const payments = pgTable(
     index('idx_payments_booking').on(table.bookingId),
     index('idx_payments_tenant_date').on(table.tenantId, table.paymentDate),
     index('idx_payments_date').on(table.paymentDate),
-  ],
+  ]
 );
 
 // Type exports

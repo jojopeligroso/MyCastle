@@ -74,7 +74,9 @@ async function verify() {
     `;
     console.log(`\n✅ Bookings: ${bookings.length}`);
     bookings.forEach((b: any) =>
-      console.log(`   - ${b.booking_number}: ${b.weeks} weeks, Total: €${b.total_booking_eur}, Paid: €${b.total_paid_eur} (${b.status})`)
+      console.log(
+        `   - ${b.booking_number}: ${b.weeks} weeks, Total: €${b.total_booking_eur}, Paid: €${b.total_paid_eur} (${b.status})`
+      )
     );
 
     // 10. Check payments
@@ -84,7 +86,9 @@ async function verify() {
     `;
     console.log(`\n✅ Payments: ${payments.length}`);
     payments.forEach((p: any) =>
-      console.log(`   - ${p.payment_date}: €${p.amount_eur} via ${p.payment_method} (${p.reference_number})`)
+      console.log(
+        `   - ${p.payment_date}: €${p.amount_eur} via ${p.payment_method} (${p.reference_number})`
+      )
     );
 
     // 11. Verify multi-role capability (CRITICAL business requirement)

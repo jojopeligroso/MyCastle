@@ -76,7 +76,9 @@ async function main() {
       const { student_id, class_id, amount, currency, due_date } = args;
 
       const invoiceNumber = generateInvoiceNumber(session.tenantId);
-      const dueDate = due_date ? new Date(due_date) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      const dueDate = due_date
+        ? new Date(due_date)
+        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
       const insertData: any = {
         tenant_id: session.tenantId,
@@ -90,10 +92,7 @@ async function main() {
         description: `Booking for class ${class_id}`,
       };
 
-      const [invoice] = await db
-        .insert(invoices)
-        .values(insertData)
-        .returning();
+      const [invoice] = await db.insert(invoices).values(insertData).returning();
 
       await logFinanceAudit({
         tenantId: session.tenantId,
@@ -168,30 +167,26 @@ async function main() {
   );
 
   // Prompt: finance_persona
-  server.prompt(
-    'finance_persona',
-    'Finance-focused AI assistant persona',
-    async () => {
-      return {
-        messages: [
-          {
-            role: 'user',
-            content: {
-              type: 'text',
-              text: 'You are a finance assistant for an ESL school. Help with invoicing, payments, and financial reporting.',
-            },
+  server.prompt('finance_persona', 'Finance-focused AI assistant persona', async () => {
+    return {
+      messages: [
+        {
+          role: 'user',
+          content: {
+            type: 'text',
+            text: 'You are a finance assistant for an ESL school. Help with invoicing, payments, and financial reporting.',
           },
-        ],
-      };
-    }
-  );
+        },
+      ],
+    };
+  });
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error('[Finance MCP] Server started on stdio');
 }
 
-main().catch((error) => {
+main().catch(error => {
   console.error('[Finance MCP] Fatal error:', error);
   process.exit(1);
 });

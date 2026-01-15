@@ -82,21 +82,32 @@ export function TeacherDashboard({ teacherId, teacherName }: TeacherDashboardPro
               classes: classes.length,
               sessionsToday,
               sessionsThisWeek: sessions.length,
-              totalStudents: classes.reduce((sum: number, c: { enrolledCount?: number }) => sum + (c.enrolledCount || 0), 0),
+              totalStudents: classes.reduce(
+                (sum: number, c: { enrolledCount?: number }) => sum + (c.enrolledCount || 0),
+                0
+              ),
               pendingAssignments: 0, // TODO: fetch from assignments API
             });
 
             // Get upcoming sessions (today + next 3 days)
             const upcoming = sessions
-              .filter((s: { session: { sessionDate: string } }) => new Date(s.session.sessionDate) >= new Date(todayStr))
+              .filter(
+                (s: { session: { sessionDate: string } }) =>
+                  new Date(s.session.sessionDate) >= new Date(todayStr)
+              )
               .slice(0, 5)
-              .map((s: { session: { id: string; sessionDate: string; startTime: string; endTime: string }; class: { name: string; enrolledCount: number } }) => ({
-                id: s.session.id,
-                className: s.class.name,
-                startTime: `${s.session.sessionDate} ${s.session.startTime}`,
-                endTime: s.session.endTime,
-                enrolledCount: s.class.enrolledCount,
-              }));
+              .map(
+                (s: {
+                  session: { id: string; sessionDate: string; startTime: string; endTime: string };
+                  class: { name: string; enrolledCount: number };
+                }) => ({
+                  id: s.session.id,
+                  className: s.class.name,
+                  startTime: `${s.session.sessionDate} ${s.session.startTime}`,
+                  endTime: s.session.endTime,
+                  enrolledCount: s.class.enrolledCount,
+                })
+              );
 
             setUpcomingSessions(upcoming);
           }
@@ -156,7 +167,12 @@ export function TeacherDashboard({ teacherId, teacherName }: TeacherDashboardPro
               <p className="text-2xl font-bold text-gray-900">{stats.classes}</p>
             </div>
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-6 h-6 text-blue-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -175,7 +191,12 @@ export function TeacherDashboard({ teacherId, teacherName }: TeacherDashboardPro
               <p className="text-2xl font-bold text-gray-900">{stats.sessionsToday}</p>
             </div>
             <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-6 h-6 text-green-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -194,7 +215,12 @@ export function TeacherDashboard({ teacherId, teacherName }: TeacherDashboardPro
               <p className="text-2xl font-bold text-gray-900">{stats.sessionsThisWeek}</p>
             </div>
             <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-6 h-6 text-purple-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -213,7 +239,12 @@ export function TeacherDashboard({ teacherId, teacherName }: TeacherDashboardPro
               <p className="text-2xl font-bold text-gray-900">{stats.totalStudents}</p>
             </div>
             <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-              <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-6 h-6 text-orange-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -232,7 +263,12 @@ export function TeacherDashboard({ teacherId, teacherName }: TeacherDashboardPro
               <p className="text-2xl font-bold text-gray-900">{stats.pendingAssignments}</p>
             </div>
             <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-              <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-6 h-6 text-red-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -268,7 +304,9 @@ export function TeacherDashboard({ teacherId, teacherName }: TeacherDashboardPro
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-medium text-gray-900">{session.enrolledCount} students</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {session.enrolledCount} students
+                      </p>
                       <Link
                         href={`/teacher/attendance?session=${session.id}`}
                         className="text-xs text-blue-600 hover:text-blue-800"
@@ -340,9 +378,7 @@ export function TeacherDashboard({ teacherId, teacherName }: TeacherDashboardPro
               </div>
             </Link>
 
-            <button
-              className="block w-full text-left px-4 py-3 bg-orange-50 text-orange-900 rounded-lg hover:bg-orange-100 transition-colors"
-            >
+            <button className="block w-full text-left px-4 py-3 bg-orange-50 text-orange-900 rounded-lg hover:bg-orange-100 transition-colors">
               <div className="flex items-center gap-3">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path

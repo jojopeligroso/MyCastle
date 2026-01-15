@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     // Generate new lesson plan
     console.log(
-      `Generating new lesson plan for topic: ${validatedRequest.topic}, level: ${validatedRequest.cefr_level}`,
+      `Generating new lesson plan for topic: ${validatedRequest.topic}, level: ${validatedRequest.cefr_level}`
     );
 
     const plan = await generateLessonPlan(validatedRequest);
@@ -82,9 +82,7 @@ export async function POST(request: NextRequest) {
 
     // Log performance metrics
     if (generationTime > 5000) {
-      console.warn(
-        `⚠️  Lesson generation exceeded SLA (${generationTime}ms > 5000ms)`,
-      );
+      console.warn(`⚠️  Lesson generation exceeded SLA (${generationTime}ms > 5000ms)`);
     }
 
     return NextResponse.json(
@@ -96,7 +94,7 @@ export async function POST(request: NextRequest) {
         generation_time_ms: generationTime,
         created_at: savedPlan.created_at,
       },
-      { status: 201 },
+      { status: 201 }
     );
   } catch (error) {
     console.error('Error in lesson generation API:', error);
@@ -109,14 +107,11 @@ export async function POST(request: NextRequest) {
       if (error.name === 'ZodError') {
         return NextResponse.json(
           { error: 'Invalid request data', details: error },
-          { status: 400 },
+          { status: 400 }
         );
       }
     }
 
-    return NextResponse.json(
-      { error: 'Failed to generate lesson plan' },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: 'Failed to generate lesson plan' }, { status: 500 });
   }
 }

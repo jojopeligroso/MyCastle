@@ -96,7 +96,9 @@ describe('Global Search API', () => {
     });
 
     it('should search teachers by email', async () => {
-      const mockRequest = new NextRequest('http://localhost/api/admin/search?q=teacher@example.com');
+      const mockRequest = new NextRequest(
+        'http://localhost/api/admin/search?q=teacher@example.com'
+      );
 
       const response = await GET(mockRequest);
       const data = await response.json();
@@ -140,7 +142,9 @@ describe('Global Search API', () => {
 
     it('should respect limit parameter', async () => {
       const limit = 5;
-      const mockRequest = new NextRequest(`http://localhost/api/admin/search?q=test&limit=${limit}`);
+      const mockRequest = new NextRequest(
+        `http://localhost/api/admin/search?q=test&limit=${limit}`
+      );
 
       const response = await GET(mockRequest);
       const data = await response.json();
@@ -273,7 +277,9 @@ describe('Global Search API', () => {
 
     it('should return original query in response', async () => {
       const query = 'test search';
-      const mockRequest = new NextRequest(`http://localhost/api/admin/search?q=${encodeURIComponent(query)}`);
+      const mockRequest = new NextRequest(
+        `http://localhost/api/admin/search?q=${encodeURIComponent(query)}`
+      );
 
       const response = await GET(mockRequest);
       const data = await response.json();
@@ -321,7 +327,9 @@ describe('Global Search API', () => {
       const specialQueries = ["john's", 'john@example', 'test-name', 'test_name', 'test 123'];
 
       for (const query of specialQueries) {
-        const mockRequest = new NextRequest(`http://localhost/api/admin/search?q=${encodeURIComponent(query)}`);
+        const mockRequest = new NextRequest(
+          `http://localhost/api/admin/search?q=${encodeURIComponent(query)}`
+        );
 
         const response = await GET(mockRequest);
 

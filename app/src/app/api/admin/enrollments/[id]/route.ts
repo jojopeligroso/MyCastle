@@ -18,10 +18,7 @@ const createAmendmentSchema = z.object({
   metadata: z.record(z.any()).optional(),
 });
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     await requireAuth(['admin']);
     const enrollmentId = params.id;
@@ -46,17 +43,11 @@ export async function GET(
     return NextResponse.json({ ...enrollment, amendments });
   } catch (error) {
     console.error('Error fetching enrollment:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch enrollment' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch enrollment' }, { status: 500 });
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     await requireAuth(['admin']);
     const enrollmentId = params.id;
@@ -93,18 +84,12 @@ export async function PATCH(
     return NextResponse.json(updatedEnrollment);
   } catch (error) {
     console.error('Error updating enrollment:', error);
-    return NextResponse.json(
-      { error: 'Failed to update enrollment' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to update enrollment' }, { status: 500 });
   }
 }
 
 // Amendment creation endpoint
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     await requireAuth(['admin']);
     const enrollmentId = params.id;
@@ -169,17 +154,11 @@ export async function POST(
     return NextResponse.json(newAmendment, { status: 201 });
   } catch (error) {
     console.error('Error creating amendment:', error);
-    return NextResponse.json(
-      { error: 'Failed to create amendment' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to create amendment' }, { status: 500 });
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     await requireAuth(['admin']);
     const enrollmentId = params.id;
@@ -218,9 +197,6 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting enrollment:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete enrollment' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to delete enrollment' }, { status: 500 });
   }
 }

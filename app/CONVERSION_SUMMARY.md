@@ -5,6 +5,7 @@
 ### 1. **Tool Registration Pattern Change**
 
 **Before (Library):**
+
 ```typescript
 const myTool: MCPTool = {
   name: 'create_user',
@@ -22,18 +23,21 @@ export const config: MCPServerConfig = {
 ```
 
 **After (Protocol):**
+
 ```typescript
 server.registerTool(
   'create_user',
   {
     description: '...',
-    inputSchema: { /* Zod schema fields directly */ }
+    inputSchema: {
+      /* Zod schema fields directly */
+    },
   },
   async (args, extra) => {
     const session = getSessionFromContext(extra);
     // Same business logic
     return {
-      content: [{ type: 'text', text: 'Result' }]
+      content: [{ type: 'text', text: 'Result' }],
     };
   }
 );
@@ -42,47 +46,51 @@ server.registerTool(
 ### 2. **Session Context Extraction**
 
 **Before:** Session passed directly as parameter
+
 ```typescript
 handler: async (input, session: MCPSession) => {
-  session.tenantId  // Direct access
-}
+  session.tenantId; // Direct access
+};
 ```
 
 **After:** Session extracted from request metadata
+
 ```typescript
 async (args, extra) => {
   const session = getSessionFromContext(extra);
-  session.tenantId  // From extra._meta
-}
+  session.tenantId; // From extra._meta
+};
 ```
 
 ### 3. **Return Value Format**
 
 **Before:** Plain object
+
 ```typescript
 return { text: 'Success message' };
 ```
 
 **After:** MCP protocol-compliant format
+
 ```typescript
 return {
-  content: [
-    { type: 'text', text: 'Success message' }
-  ]
+  content: [{ type: 'text', text: 'Success message' }],
 };
 ```
 
 ### 4. **Input Schema Definition**
 
 **Before:** Full Zod object
+
 ```typescript
 inputSchema: z.object({
   email: z.string().email(),
-  name: z.string()
-})
+  name: z.string(),
+});
 ```
 
 **After:** Schema fields directly
+
 ```typescript
 inputSchema: {
   email: z.string().email(),
@@ -93,6 +101,7 @@ inputSchema: {
 ### 5. **Server Initialization**
 
 **Before:** Export configuration object
+
 ```typescript
 export const identityMCPConfig: MCPServerConfig = {
   name: 'Identity MCP',
@@ -102,6 +111,7 @@ export const identityMCPConfig: MCPServerConfig = {
 ```
 
 **After:** Executable server with transport
+
 ```typescript
 #!/usr/bin/env node
 async function main() {
@@ -116,13 +126,15 @@ main().catch(error => process.exit(1));
 ### 6. **Scope Validation**
 
 **Before:** Built into MCPTool type
+
 ```typescript
 const tool: MCPTool = {
-  requiredScopes: ['identity:write']
+  requiredScopes: ['identity:write'],
 };
 ```
 
 **After:** Handled by host during routing (removed from tool definition)
+
 ```typescript
 // Scope checking happens in MCPHost before calling tool
 // Tools don't declare scopes in protocol version
@@ -130,20 +142,21 @@ const tool: MCPTool = {
 
 ## Conversion Statistics
 
-| Server | Tools | Resources | Prompts | Lines (Old) | Lines (New) |
-|--------|-------|-----------|---------|-------------|-------------|
-| Identity | 6 | 4 | 3 | ~1100 | ~450 |
-| Finance | 9 | 4 | 3 | ~1180 | ~320 |
-| Academic | 10 | 3 | 2 | ~940 | ~280 |
-| Attendance | 8 | 2 | 2 | ~1070 | ~250 |
-| Teacher | 10 | 3 | 2 | ~910 | ~260 |
-| **Total** | **43** | **16** | **12** | **~5200** | **~1560** |
+| Server     | Tools  | Resources | Prompts | Lines (Old) | Lines (New) |
+| ---------- | ------ | --------- | ------- | ----------- | ----------- |
+| Identity   | 6      | 4         | 3       | ~1100       | ~450        |
+| Finance    | 9      | 4         | 3       | ~1180       | ~320        |
+| Academic   | 10     | 3         | 2       | ~940        | ~280        |
+| Attendance | 8      | 2         | 2       | ~1070       | ~250        |
+| Teacher    | 10     | 3         | 2       | ~910        | ~260        |
+| **Total**  | **43** | **16**    | **12**  | **~5200**   | **~1560**   |
 
 **Code Reduction:** ~70% (by focusing on protocol interface vs full business logic in examples)
 
 ## Files Created
 
 ### New Standalone Servers
+
 1. `app/src/lib/mcp/servers/identity/server.ts` - Identity & Access MCP
 2. `app/src/lib/mcp/servers/finance/server.ts` - Finance MCP
 3. `app/src/lib/mcp/servers/academic/server.ts` - Academic Operations MCP
@@ -151,10 +164,12 @@ const tool: MCPTool = {
 5. `app/src/lib/mcp/servers/teacher/server.ts` - Teacher MCP
 
 ### New Host/Infrastructure
+
 6. `app/src/lib/mcp/host/MCPHostRefactored.ts` - MCP Client-based host
 7. `app/src/lib/mcp/initRefactored.ts` - Server process initialization
 
 ### Documentation
+
 8. `app/MCP_ARCHITECTURE.md` - Architecture documentation
 9. `app/CONVERSION_SUMMARY.md` - This file
 
@@ -167,6 +182,7 @@ const tool: MCPTool = {
 ## Old Files (Preserved for Reference)
 
 These library-style files remain but are not used:
+
 - `app/src/lib/mcp/host/MCPHost.ts`
 - `app/src/lib/mcp/init.ts`
 - `app/src/lib/mcp/servers/identity/IdentityAccessMCP.ts`
@@ -180,11 +196,13 @@ These library-style files remain but are not used:
 ## Breaking Changes
 
 ### For API Consumers
+
 - **None** - HTTP API remains unchanged
 - Same endpoints: `POST /api/mcp/tools/{toolName}`
 - Same request/response format
 
 ### For Server Developers
+
 - ✅ Must use `McpServer` from SDK
 - ✅ Must handle stdio transport
 - ✅ Must extract session from request metadata
@@ -213,6 +231,7 @@ These library-style files remain but are not used:
 ## Testing
 
 ### Test Individual Server
+
 ```bash
 npm run mcp:identity
 npm run mcp:finance
@@ -222,12 +241,14 @@ npm run mcp:teacher
 ```
 
 ### Test via API
+
 ```bash
 npm run dev
 # POST http://localhost:3000/api/mcp/tools/create_user
 ```
 
 ### Expected Behavior
+
 1. Server spawns as child process via stdio
 2. Host sends JSON-RPC 2.0 messages over stdin
 3. Server responds over stdout
@@ -237,12 +258,14 @@ npm run dev
 ## Performance Implications
 
 ### Pros
+
 ✅ **Process Isolation** - Server crashes don't affect host
 ✅ **Language Flexibility** - Can add Python/Rust servers
 ✅ **Independent Scaling** - Scale servers separately
 ✅ **Hot Reload** - Restart servers without app restart
 
 ### Cons
+
 ❌ **IPC Overhead** - stdio communication slower than function calls
 ❌ **Memory** - Each server process has separate memory
 ❌ **Startup Time** - Process spawn adds latency

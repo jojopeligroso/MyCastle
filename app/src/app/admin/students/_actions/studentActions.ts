@@ -143,7 +143,9 @@ export async function createStudent(data: CreateStudentData) {
             ${JSON.stringify({
               score: data.diagnostic_test.score,
               max_score: data.diagnostic_test.max_score,
-              percentage: Math.round((data.diagnostic_test.score / data.diagnostic_test.max_score) * 100),
+              percentage: Math.round(
+                (data.diagnostic_test.score / data.diagnostic_test.max_score) * 100
+              ),
               suggested_level: data.diagnostic_test.suggested_level,
             })},
             'graded'

@@ -3,7 +3,8 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'MyCastle - ESL Learning Platform',
-  description: 'ESL school operations platform with timetable management and AI-assisted lesson planning',
+  description:
+    'ESL school operations platform with timetable management and AI-assisted lesson planning',
 };
 
 export default function RootLayout({

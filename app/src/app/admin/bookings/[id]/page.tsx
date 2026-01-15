@@ -4,7 +4,15 @@
 
 import { requireAuth, getTenantId } from '@/lib/auth/utils';
 import { db } from '@/db';
-import { bookings, students, users, courses, accommodationTypes, agencies, payments } from '@/db/schema';
+import {
+  bookings,
+  students,
+  users,
+  courses,
+  accommodationTypes,
+  agencies,
+  payments,
+} from '@/db/schema';
 import { eq, and, sql } from 'drizzle-orm';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
@@ -129,7 +137,7 @@ async function getPaymentHistory(bookingId: string): Promise<Payment[]> {
     .where(and(eq(payments.bookingId, bookingId), eq(payments.tenantId, tenantId)))
     .orderBy(payments.paymentDate);
 
-  return result.map((p) => ({
+  return result.map(p => ({
     ...p,
     paymentDate: p.paymentDate.toString(),
     amountEur: p.amountEur || '0',
@@ -146,9 +154,9 @@ export default async function ViewBookingPage({ params }: { params: { id: string
 
   const paymentHistory = await getPaymentHistory(params.id);
 
-  const balance = (
-    parseFloat(booking.totalBookingEur) - parseFloat(booking.totalPaidEur)
-  ).toFixed(2);
+  const balance = (parseFloat(booking.totalBookingEur) - parseFloat(booking.totalPaidEur)).toFixed(
+    2
+  );
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -227,7 +235,9 @@ export default async function ViewBookingPage({ params }: { params: { id: string
             <dl className="space-y-3">
               <div className="flex justify-between text-sm">
                 <dt className="text-gray-500">Course Fee</dt>
-                <dd className="text-gray-900 font-medium">€{parseFloat(booking.courseFeeEur).toFixed(2)}</dd>
+                <dd className="text-gray-900 font-medium">
+                  €{parseFloat(booking.courseFeeEur).toFixed(2)}
+                </dd>
               </div>
               {parseFloat(booking.accommodationFeeEur) > 0 && (
                 <div className="flex justify-between text-sm">
@@ -289,7 +299,7 @@ export default async function ViewBookingPage({ params }: { params: { id: string
               <p className="text-sm text-gray-500">No payments recorded yet.</p>
             ) : (
               <div className="space-y-3">
-                {paymentHistory.map((payment) => (
+                {paymentHistory.map(payment => (
                   <div key={payment.id} className="flex justify-between items-center border-b pb-3">
                     <div>
                       <p className="text-sm font-medium text-gray-900">

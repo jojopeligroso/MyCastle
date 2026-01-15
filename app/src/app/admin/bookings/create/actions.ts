@@ -34,29 +34,32 @@ export async function createBooking(data: CreateBookingData) {
     const bookingNumber = `BK-${year}-${String(Date.now()).slice(-6)}`;
 
     // Insert booking (with total_paid_eur = 0 initially)
-    const result = await db.insert(bookings).values({
-      tenantId: data.tenantId,
-      bookingNumber,
-      saleDate: new Date().toISOString().split('T')[0], // Today's date
-      studentId: data.studentId,
-      courseId: data.courseId,
-      agencyId: data.agencyId,
-      accommodationTypeId: data.accommodationTypeId,
-      weeks: data.weeks,
-      courseStartDate: data.courseStartDate,
-      courseEndDate: data.courseEndDate,
-      courseFeeEur: data.courseFeeEur,
-      accommodationFeeEur: data.accommodationFeeEur,
-      transferFeeEur: '0',
-      examFeeEur: '0',
-      registrationFeeEur: data.registrationFeeEur,
-      learnerProtectionFeeEur: data.learnerProtectionFeeEur,
-      medicalInsuranceFeeEur: data.medicalInsuranceFeeEur,
-      totalBookingEur: data.totalBookingEur,
-      depositPaidEur: data.depositPaidEur,
-      totalPaidEur: '0', // Will be updated by trigger when payment is inserted
-      status: 'pending',
-    }).returning({ id: bookings.id });
+    const result = await db
+      .insert(bookings)
+      .values({
+        tenantId: data.tenantId,
+        bookingNumber,
+        saleDate: new Date().toISOString().split('T')[0], // Today's date
+        studentId: data.studentId,
+        courseId: data.courseId,
+        agencyId: data.agencyId,
+        accommodationTypeId: data.accommodationTypeId,
+        weeks: data.weeks,
+        courseStartDate: data.courseStartDate,
+        courseEndDate: data.courseEndDate,
+        courseFeeEur: data.courseFeeEur,
+        accommodationFeeEur: data.accommodationFeeEur,
+        transferFeeEur: '0',
+        examFeeEur: '0',
+        registrationFeeEur: data.registrationFeeEur,
+        learnerProtectionFeeEur: data.learnerProtectionFeeEur,
+        medicalInsuranceFeeEur: data.medicalInsuranceFeeEur,
+        totalBookingEur: data.totalBookingEur,
+        depositPaidEur: data.depositPaidEur,
+        totalPaidEur: '0', // Will be updated by trigger when payment is inserted
+        status: 'pending',
+      })
+      .returning({ id: bookings.id });
 
     const bookingId = result[0].id;
 

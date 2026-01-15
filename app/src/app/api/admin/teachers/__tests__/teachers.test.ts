@@ -204,10 +204,12 @@ describe('Teachers Management APIs', () => {
       (db.select as jest.Mock).mockReturnValueOnce({
         from: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
-        limit: jest.fn().mockResolvedValueOnce([{
-          id: 'user-123',
-          role: 'student', // Not a teacher
-        }]),
+        limit: jest.fn().mockResolvedValueOnce([
+          {
+            id: 'user-123',
+            role: 'student', // Not a teacher
+          },
+        ]),
       });
 
       const mockRequest = new NextRequest('http://localhost/api/admin/teachers/user-123');

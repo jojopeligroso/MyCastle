@@ -62,11 +62,11 @@ Every table contains a `tenant_id` column that references the tenant (organizati
 
 Three primary roles with different access levels:
 
-| Role | Access Level | Capabilities |
-|------|--------------|--------------|
-| **admin** | Org-wide | Full CRUD on all tenant data |
-| **teacher** | Class-scoped | View/modify assigned classes, sessions, attendance |
-| **student** | Self-scoped | View enrolled classes, own attendance, own submissions |
+| Role        | Access Level | Capabilities                                           |
+| ----------- | ------------ | ------------------------------------------------------ |
+| **admin**   | Org-wide     | Full CRUD on all tenant data                           |
+| **teacher** | Class-scoped | View/modify assigned classes, sessions, attendance     |
+| **student** | Self-scoped  | View enrolled classes, own attendance, own submissions |
 
 ---
 
@@ -85,6 +85,7 @@ CREATE OR REPLACE FUNCTION set_user_context(
 ```
 
 **Helper Functions**:
+
 - `current_user_id()` - Returns authenticated user UUID
 - `current_tenant_id()` - Returns authenticated tenant UUID
 - `current_user_role()` - Returns user role (admin/teacher/student)
@@ -94,9 +95,7 @@ CREATE OR REPLACE FUNCTION set_user_context(
 After JWT verification, the application must call:
 
 ```typescript
-await db.execute(
-  sql`SELECT set_user_context(${userId}::uuid, ${tenantId}::uuid, ${role})`
-);
+await db.execute(sql`SELECT set_user_context(${userId}::uuid, ${tenantId}::uuid, ${role})`);
 ```
 
 **Location**: `app/src/lib/auth/middleware.ts` (recommended)
@@ -107,22 +106,22 @@ await db.execute(
 
 ### Tables with RLS Enabled
 
-| Table | Admin | Teacher | Student | Notes |
-|-------|-------|---------|---------|-------|
-| **tenants** | Own tenant | Own tenant | Own tenant | Tenant isolation |
-| **users** | All in tenant | All in tenant | All in tenant | User directory |
-| **classes** | All in tenant | Assigned classes | Enrolled classes | Core access control |
-| **enrollments** | All in tenant | For their classes | Own enrollments | Enrollment visibility |
-| **class_sessions** | All in tenant | For their classes | For enrolled classes | Session access |
-| **attendance** | All in tenant | For their sessions | Own records | Attendance privacy |
-| **assignments** | All in tenant | For their classes | For enrolled classes | Assignment visibility |
-| **submissions** | All in tenant | For their classes | Own submissions | Student work privacy |
-| **grades** | All in tenant | For their classes | Own grades | Grade privacy |
-| **audit_logs** | View all | No access | No access | Admin-only auditing |
-| **invoices** | All in tenant | No access | Own invoices | Financial privacy |
-| **payments** | All in tenant | No access | Own payments | Payment privacy |
-| **conversations** | No access | Own conversations | Own conversations | Chat privacy |
-| **exports** | All in tenant | Own exports | No access | Export access |
+| Table              | Admin         | Teacher            | Student              | Notes                 |
+| ------------------ | ------------- | ------------------ | -------------------- | --------------------- |
+| **tenants**        | Own tenant    | Own tenant         | Own tenant           | Tenant isolation      |
+| **users**          | All in tenant | All in tenant      | All in tenant        | User directory        |
+| **classes**        | All in tenant | Assigned classes   | Enrolled classes     | Core access control   |
+| **enrollments**    | All in tenant | For their classes  | Own enrollments      | Enrollment visibility |
+| **class_sessions** | All in tenant | For their classes  | For enrolled classes | Session access        |
+| **attendance**     | All in tenant | For their sessions | Own records          | Attendance privacy    |
+| **assignments**    | All in tenant | For their classes  | For enrolled classes | Assignment visibility |
+| **submissions**    | All in tenant | For their classes  | Own submissions      | Student work privacy  |
+| **grades**         | All in tenant | For their classes  | Own grades           | Grade privacy         |
+| **audit_logs**     | View all      | No access          | No access            | Admin-only auditing   |
+| **invoices**       | All in tenant | No access          | Own invoices         | Financial privacy     |
+| **payments**       | All in tenant | No access          | Own payments         | Payment privacy       |
+| **conversations**  | No access     | Own conversations  | Own conversations    | Chat privacy          |
+| **exports**        | All in tenant | Own exports        | No access            | Export access         |
 
 ---
 
@@ -133,6 +132,7 @@ await db.execute(
 #### Classes Table
 
 **SELECT Policy** (Role-based visibility):
+
 ```sql
 CREATE POLICY classes_select_by_role ON classes
   FOR SELECT
@@ -158,6 +158,7 @@ CREATE POLICY classes_select_by_role ON classes
 ```
 
 **INSERT Policy** (Admin-only):
+
 ```sql
 CREATE POLICY classes_insert_admin ON classes
   FOR INSERT
@@ -168,6 +169,7 @@ CREATE POLICY classes_insert_admin ON classes
 ```
 
 **UPDATE Policy** (Admin or assigned teacher):
+
 ```sql
 CREATE POLICY classes_update_admin_or_teacher ON classes
   FOR UPDATE
@@ -183,6 +185,7 @@ CREATE POLICY classes_update_admin_or_teacher ON classes
 #### Attendance Table
 
 **SELECT Policy**:
+
 ```sql
 CREATE POLICY attendance_select_by_role ON attendance
   FOR SELECT
@@ -205,6 +208,7 @@ CREATE POLICY attendance_select_by_role ON attendance
 ```
 
 **INSERT Policy** (Teachers mark attendance for their sessions):
+
 ```sql
 CREATE POLICY attendance_insert_teacher_or_admin ON attendance
   FOR INSERT
@@ -248,6 +252,7 @@ CREATE POLICY audit_logs_select_admin ON audit_logs
 Comprehensive test suite in `app/src/__tests__/rls-policies.test.ts`:
 
 **Test Categories**:
+
 1. ✅ **Setup & Teardown** - Create test tenants, users, classes
 2. ✅ **Tenant Isolation** - Users see only their tenant data
 3. ✅ **Role-Based Access** - Admins, teachers, students see appropriate data
@@ -270,6 +275,7 @@ npm test -- rls-policies.test.ts
 ```
 
 **Prerequisites**:
+
 - PostgreSQL database with RLS policies applied
 - `DATABASE_URL` environment variable set
 - Test database seeded with CEFR descriptors (optional)
@@ -306,9 +312,7 @@ import { sql } from 'drizzle-orm';
 const { userId, tenantId, role } = await verifyJWT(token);
 
 // Set user context for RLS policies
-await db.execute(
-  sql`SELECT set_user_context(${userId}::uuid, ${tenantId}::uuid, ${role})`
-);
+await db.execute(sql`SELECT set_user_context(${userId}::uuid, ${tenantId}::uuid, ${role})`);
 ```
 
 #### 2. Query Execution
@@ -393,6 +397,7 @@ RLS policies enforce strict tenant isolation. Even if an attacker obtains a vali
 ### 4. Immutable Audit Logs
 
 Audit logs have **no user-facing INSERT/UPDATE/DELETE policies**. They are:
+
 - Inserted via triggers or elevated application code
 - Read-only for admins
 - Tamper-proof
@@ -402,12 +407,14 @@ Audit logs have **no user-facing INSERT/UPDATE/DELETE policies**. They are:
 RLS is the **last line of defense**, not the only defense:
 
 **Application Layer**:
+
 - JWT authentication
 - Role-based middleware
 - Input validation
 - Business logic checks
 
 **Database Layer**:
+
 - RLS policies (this layer)
 - Foreign key constraints
 - Check constraints
@@ -417,11 +424,13 @@ Both layers are critical for security.
 ### 6. Performance Considerations
 
 **RLS Policies Add Query Overhead**:
+
 - Policies with `EXISTS` subqueries can impact performance
 - Mitigated by proper indexes (see `003_add_timetable_indexes.sql`)
 - Always test query performance with `EXPLAIN ANALYZE`
 
 **Indexes for RLS Performance**:
+
 ```sql
 -- Example: Speed up teacher's class queries
 CREATE INDEX idx_classes_teacher ON classes(teacher_id);
@@ -452,6 +461,7 @@ CREATE INDEX idx_enrollments_student_class ON enrollments(student_id, class_id);
 **Cause**: User context not set
 
 **Solution**:
+
 ```typescript
 await db.execute(sql`SELECT set_user_context(${userId}::uuid, ${tenantId}::uuid, ${role})`);
 ```
@@ -461,6 +471,7 @@ await db.execute(sql`SELECT set_user_context(${userId}::uuid, ${tenantId}::uuid,
 **Cause**: User role lacks permission for operation
 
 **Solution**: Check that:
+
 1. User role matches policy requirements (e.g., only admins can create classes)
 2. `tenant_id` matches current context
 3. Additional conditions met (e.g., teacher assigned to class)
@@ -470,6 +481,7 @@ await db.execute(sql`SELECT set_user_context(${userId}::uuid, ${tenantId}::uuid,
 **Cause**: RLS not enabled on table or policies not created
 
 **Solution**:
+
 ```sql
 -- Check RLS status
 SELECT tablename, rowsecurity
@@ -485,6 +497,7 @@ ALTER TABLE table_name ENABLE ROW LEVEL SECURITY;
 **Cause**: Running tests without proper database setup
 
 **Solution**:
+
 ```bash
 # Ensure DATABASE_URL points to test database
 export DATABASE_URL="postgresql://user:pass@localhost:5432/mycastle_test"
@@ -510,11 +523,11 @@ npm test -- rls-policies.test.ts
 
 ## Changelog
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0.0 | 2025-11-09 | Initial RLS policies implementation (T-011) |
-| 1.0.1 | 2025-11-09 | Consolidated policies into single migration file |
-| 1.0.2 | 2025-11-09 | Added comprehensive documentation |
+| Version | Date       | Changes                                          |
+| ------- | ---------- | ------------------------------------------------ |
+| 1.0.0   | 2025-11-09 | Initial RLS policies implementation (T-011)      |
+| 1.0.1   | 2025-11-09 | Consolidated policies into single migration file |
+| 1.0.2   | 2025-11-09 | Added comprehensive documentation                |
 
 ---
 

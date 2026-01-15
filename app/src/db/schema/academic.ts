@@ -65,7 +65,7 @@ export const classes = pgTable(
     index('idx_classes_teacher').on(table.teacher_id),
     index('idx_classes_status').on(table.status),
     index('idx_classes_dates').on(table.start_date, table.end_date),
-  ],
+  ]
 );
 
 /**
@@ -112,7 +112,7 @@ export const enrollments = pgTable(
   table => [
     // Unique active enrollment per student per class
     uniqueIndex('idx_enrollments_student_class').on(table.student_id, table.class_id),
-  ],
+  ]
 );
 
 /**
@@ -167,7 +167,7 @@ export const enrollmentAmendments = pgTable(
     index('idx_enrollment_amendments_status').on(table.status),
     index('idx_enrollment_amendments_type').on(table.amendment_type),
     index('idx_enrollment_amendments_date').on(table.amendment_date),
-  ],
+  ]
 );
 
 /**
@@ -197,7 +197,7 @@ export const classSessions = pgTable(
     created_at: timestamp('created_at').defaultNow().notNull(),
     updated_at: timestamp('updated_at').defaultNow().notNull(),
   },
-  table => [index('idx_sessions_class_date').on(table.class_id, table.session_date)],
+  table => [index('idx_sessions_class_date').on(table.class_id, table.session_date)]
 );
 
 /**
@@ -243,7 +243,7 @@ export const attendance = pgTable(
     uniqueIndex('idx_attendance_session_student').on(table.class_session_id, table.student_id),
     index('idx_attendance_hash').on(table.hash),
     index('idx_attendance_session_created').on(table.class_session_id, table.created_at),
-  ],
+  ]
 );
 
 /**

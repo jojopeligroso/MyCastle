@@ -19,11 +19,23 @@ export function DocumentsTab({ studentId }: DocumentsTabProps) {
         </div>
 
         <div className="bg-gray-50 rounded-lg p-8 text-center">
-          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+          <svg
+            className="mx-auto h-12 w-12 text-gray-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+            />
           </svg>
           <p className="mt-2 text-sm text-gray-600">No documents uploaded</p>
-          <p className="mt-1 text-xs text-gray-500">This feature will display passport copies, visa documents, certificates, and letters</p>
+          <p className="mt-1 text-xs text-gray-500">
+            This feature will display passport copies, visa documents, certificates, and letters
+          </p>
         </div>
       </section>
 

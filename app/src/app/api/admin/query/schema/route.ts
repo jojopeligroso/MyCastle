@@ -111,12 +111,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       tables: SCHEMA_TABLES,
     });
-
   } catch (error) {
     console.error('Error fetching schema:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch schema' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch schema' }, { status: 500 });
   }
 }

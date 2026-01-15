@@ -5,7 +5,12 @@
 
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { GET, POST } from '../route';
-import { GET as GET_BY_ID, PATCH, DELETE as DELETE_BY_ID, POST as CREATE_AMENDMENT } from '../[id]/route';
+import {
+  GET as GET_BY_ID,
+  PATCH,
+  DELETE as DELETE_BY_ID,
+  POST as CREATE_AMENDMENT,
+} from '../[id]/route';
 import { NextRequest } from 'next/server';
 
 // Mock dependencies
@@ -29,7 +34,9 @@ describe('Enrollment Management APIs', () => {
 
   describe('GET /api/admin/enrollments', () => {
     it('should return list of enrollments with pagination', async () => {
-      const mockRequest = new NextRequest('http://localhost/api/admin/enrollments?limit=10&offset=0');
+      const mockRequest = new NextRequest(
+        'http://localhost/api/admin/enrollments?limit=10&offset=0'
+      );
 
       const response = await GET(mockRequest);
       const data = await response.json();
@@ -43,7 +50,9 @@ describe('Enrollment Management APIs', () => {
 
     it('should filter enrollments by student', async () => {
       const studentId = 'student-123';
-      const mockRequest = new NextRequest(`http://localhost/api/admin/enrollments?student_id=${studentId}`);
+      const mockRequest = new NextRequest(
+        `http://localhost/api/admin/enrollments?student_id=${studentId}`
+      );
 
       const response = await GET(mockRequest);
 
@@ -53,7 +62,9 @@ describe('Enrollment Management APIs', () => {
 
     it('should filter enrollments by class', async () => {
       const classId = 'class-456';
-      const mockRequest = new NextRequest(`http://localhost/api/admin/enrollments?class_id=${classId}`);
+      const mockRequest = new NextRequest(
+        `http://localhost/api/admin/enrollments?class_id=${classId}`
+      );
 
       const response = await GET(mockRequest);
 
@@ -115,11 +126,13 @@ describe('Enrollment Management APIs', () => {
       (db.select as jest.Mock).mockReturnValueOnce({
         from: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
-        limit: jest.fn().mockResolvedValueOnce([{
-          id: 'full-class-789',
-          capacity: 15,
-          enrolled_count: 15, // Full
-        }]),
+        limit: jest.fn().mockResolvedValueOnce([
+          {
+            id: 'full-class-789',
+            capacity: 15,
+            enrolled_count: 15, // Full
+          },
+        ]),
       });
 
       const mockRequest = new NextRequest('http://localhost/api/admin/enrollments', {
@@ -296,10 +309,13 @@ describe('Enrollment Management APIs', () => {
         status: 'completed',
       };
 
-      const mockRequest = new NextRequest(`http://localhost/api/admin/enrollments/${enrollmentId}`, {
-        method: 'PATCH',
-        body: JSON.stringify(updateData),
-      });
+      const mockRequest = new NextRequest(
+        `http://localhost/api/admin/enrollments/${enrollmentId}`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify(updateData),
+        }
+      );
       const mockParams = { params: { id: enrollmentId } };
 
       const response = await PATCH(mockRequest, mockParams);
@@ -315,10 +331,13 @@ describe('Enrollment Management APIs', () => {
         end_date: 'not-a-date',
       };
 
-      const mockRequest = new NextRequest(`http://localhost/api/admin/enrollments/${enrollmentId}`, {
-        method: 'PATCH',
-        body: JSON.stringify(invalidData),
-      });
+      const mockRequest = new NextRequest(
+        `http://localhost/api/admin/enrollments/${enrollmentId}`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify(invalidData),
+        }
+      );
       const mockParams = { params: { id: enrollmentId } };
 
       const response = await PATCH(mockRequest, mockParams);
@@ -333,10 +352,13 @@ describe('Enrollment Management APIs', () => {
         class_id: 'different-class',
       };
 
-      const mockRequest = new NextRequest(`http://localhost/api/admin/enrollments/${enrollmentId}`, {
-        method: 'PATCH',
-        body: JSON.stringify(maliciousData),
-      });
+      const mockRequest = new NextRequest(
+        `http://localhost/api/admin/enrollments/${enrollmentId}`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify(maliciousData),
+        }
+      );
       const mockParams = { params: { id: enrollmentId } };
 
       const response = await PATCH(mockRequest, mockParams);
@@ -357,10 +379,13 @@ describe('Enrollment Management APIs', () => {
         metadata: { weeks_added: 8 },
       };
 
-      const mockRequest = new NextRequest(`http://localhost/api/admin/enrollments/${enrollmentId}`, {
-        method: 'POST',
-        body: JSON.stringify(amendmentData),
-      });
+      const mockRequest = new NextRequest(
+        `http://localhost/api/admin/enrollments/${enrollmentId}`,
+        {
+          method: 'POST',
+          body: JSON.stringify(amendmentData),
+        }
+      );
       const mockParams = { params: { id: enrollmentId } };
 
       const response = await CREATE_AMENDMENT(mockRequest, mockParams);
@@ -381,10 +406,13 @@ describe('Enrollment Management APIs', () => {
         reason: 'Student leaving early',
       };
 
-      const mockRequest = new NextRequest(`http://localhost/api/admin/enrollments/${enrollmentId}`, {
-        method: 'POST',
-        body: JSON.stringify(amendmentData),
-      });
+      const mockRequest = new NextRequest(
+        `http://localhost/api/admin/enrollments/${enrollmentId}`,
+        {
+          method: 'POST',
+          body: JSON.stringify(amendmentData),
+        }
+      );
       const mockParams = { params: { id: enrollmentId } };
 
       const response = await CREATE_AMENDMENT(mockRequest, mockParams);
@@ -403,10 +431,13 @@ describe('Enrollment Management APIs', () => {
         reason: 'Student progressed to next level',
       };
 
-      const mockRequest = new NextRequest(`http://localhost/api/admin/enrollments/${enrollmentId}`, {
-        method: 'POST',
-        body: JSON.stringify(amendmentData),
-      });
+      const mockRequest = new NextRequest(
+        `http://localhost/api/admin/enrollments/${enrollmentId}`,
+        {
+          method: 'POST',
+          body: JSON.stringify(amendmentData),
+        }
+      );
       const mockParams = { params: { id: enrollmentId } };
 
       const response = await CREATE_AMENDMENT(mockRequest, mockParams);
@@ -425,10 +456,13 @@ describe('Enrollment Management APIs', () => {
         reason: 'Student transferred to morning class',
       };
 
-      const mockRequest = new NextRequest(`http://localhost/api/admin/enrollments/${enrollmentId}`, {
-        method: 'POST',
-        body: JSON.stringify(amendmentData),
-      });
+      const mockRequest = new NextRequest(
+        `http://localhost/api/admin/enrollments/${enrollmentId}`,
+        {
+          method: 'POST',
+          body: JSON.stringify(amendmentData),
+        }
+      );
       const mockParams = { params: { id: enrollmentId } };
 
       const response = await CREATE_AMENDMENT(mockRequest, mockParams);
@@ -446,10 +480,13 @@ describe('Enrollment Management APIs', () => {
         new_value: 'something else',
       };
 
-      const mockRequest = new NextRequest(`http://localhost/api/admin/enrollments/${enrollmentId}`, {
-        method: 'POST',
-        body: JSON.stringify(invalidData),
-      });
+      const mockRequest = new NextRequest(
+        `http://localhost/api/admin/enrollments/${enrollmentId}`,
+        {
+          method: 'POST',
+          body: JSON.stringify(invalidData),
+        }
+      );
       const mockParams = { params: { id: enrollmentId } };
 
       const response = await CREATE_AMENDMENT(mockRequest, mockParams);
@@ -469,10 +506,13 @@ describe('Enrollment Management APIs', () => {
       const { db } = await import('@/db');
       const updateSpy = jest.spyOn(db, 'update');
 
-      const mockRequest = new NextRequest(`http://localhost/api/admin/enrollments/${enrollmentId}`, {
-        method: 'POST',
-        body: JSON.stringify(amendmentData),
-      });
+      const mockRequest = new NextRequest(
+        `http://localhost/api/admin/enrollments/${enrollmentId}`,
+        {
+          method: 'POST',
+          body: JSON.stringify(amendmentData),
+        }
+      );
       const mockParams = { params: { id: enrollmentId } };
 
       await CREATE_AMENDMENT(mockRequest, mockParams);
@@ -495,10 +535,13 @@ describe('Enrollment Management APIs', () => {
         },
       };
 
-      const mockRequest = new NextRequest(`http://localhost/api/admin/enrollments/${enrollmentId}`, {
-        method: 'POST',
-        body: JSON.stringify(amendmentData),
-      });
+      const mockRequest = new NextRequest(
+        `http://localhost/api/admin/enrollments/${enrollmentId}`,
+        {
+          method: 'POST',
+          body: JSON.stringify(amendmentData),
+        }
+      );
       const mockParams = { params: { id: enrollmentId } };
 
       const response = await CREATE_AMENDMENT(mockRequest, mockParams);
@@ -512,9 +555,12 @@ describe('Enrollment Management APIs', () => {
   describe('DELETE /api/admin/enrollments/[id]', () => {
     it('should soft delete an enrollment', async () => {
       const enrollmentId = 'enrollment-123';
-      const mockRequest = new NextRequest(`http://localhost/api/admin/enrollments/${enrollmentId}`, {
-        method: 'DELETE',
-      });
+      const mockRequest = new NextRequest(
+        `http://localhost/api/admin/enrollments/${enrollmentId}`,
+        {
+          method: 'DELETE',
+        }
+      );
       const mockParams = { params: { id: enrollmentId } };
 
       const response = await DELETE_BY_ID(mockRequest, mockParams);
@@ -530,9 +576,12 @@ describe('Enrollment Management APIs', () => {
       const { db } = await import('@/db');
       const updateSpy = jest.spyOn(db, 'update');
 
-      const mockRequest = new NextRequest(`http://localhost/api/admin/enrollments/${enrollmentId}`, {
-        method: 'DELETE',
-      });
+      const mockRequest = new NextRequest(
+        `http://localhost/api/admin/enrollments/${enrollmentId}`,
+        {
+          method: 'DELETE',
+        }
+      );
       const mockParams = { params: { id: enrollmentId } };
 
       await DELETE_BY_ID(mockRequest, mockParams);
@@ -563,9 +612,12 @@ describe('Enrollment Management APIs', () => {
 
     it('should preserve enrollment data (soft delete)', async () => {
       const enrollmentId = 'enrollment-123';
-      const mockRequest = new NextRequest(`http://localhost/api/admin/enrollments/${enrollmentId}`, {
-        method: 'DELETE',
-      });
+      const mockRequest = new NextRequest(
+        `http://localhost/api/admin/enrollments/${enrollmentId}`,
+        {
+          method: 'DELETE',
+        }
+      );
       const mockParams = { params: { id: enrollmentId } };
 
       const { db } = await import('@/db');

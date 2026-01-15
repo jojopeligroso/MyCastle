@@ -28,7 +28,9 @@ describe('Payment Management APIs', () => {
 
   describe('GET /api/admin/finance/payments', () => {
     it('should return list of payments with pagination', async () => {
-      const mockRequest = new NextRequest('http://localhost/api/admin/finance/payments?limit=10&offset=0');
+      const mockRequest = new NextRequest(
+        'http://localhost/api/admin/finance/payments?limit=10&offset=0'
+      );
 
       const response = await GET(mockRequest);
       const data = await response.json();
@@ -42,7 +44,9 @@ describe('Payment Management APIs', () => {
 
     it('should filter payments by invoice', async () => {
       const invoiceId = 'invoice-123';
-      const mockRequest = new NextRequest(`http://localhost/api/admin/finance/payments?invoice_id=${invoiceId}`);
+      const mockRequest = new NextRequest(
+        `http://localhost/api/admin/finance/payments?invoice_id=${invoiceId}`
+      );
 
       const response = await GET(mockRequest);
 
@@ -51,7 +55,9 @@ describe('Payment Management APIs', () => {
 
     it('should filter payments by student', async () => {
       const studentId = 'student-123';
-      const mockRequest = new NextRequest(`http://localhost/api/admin/finance/payments?student_id=${studentId}`);
+      const mockRequest = new NextRequest(
+        `http://localhost/api/admin/finance/payments?student_id=${studentId}`
+      );
 
       const response = await GET(mockRequest);
 
@@ -69,7 +75,9 @@ describe('Payment Management APIs', () => {
     });
 
     it('should filter payments by method', async () => {
-      const mockRequest = new NextRequest('http://localhost/api/admin/finance/payments?method=card');
+      const mockRequest = new NextRequest(
+        'http://localhost/api/admin/finance/payments?method=card'
+      );
 
       const response = await GET(mockRequest);
 
@@ -137,13 +145,15 @@ describe('Payment Management APIs', () => {
       (db.select as jest.Mock).mockReturnValueOnce({
         from: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
-        limit: jest.fn().mockResolvedValueOnce([{
-          id: 'invoice-123',
-          amount: 1000,
-          amount_paid: 0,
-          amount_due: 1000,
-          status: 'pending',
-        }]),
+        limit: jest.fn().mockResolvedValueOnce([
+          {
+            id: 'invoice-123',
+            amount: 1000,
+            amount_paid: 0,
+            amount_due: 1000,
+            status: 'pending',
+          },
+        ]),
       });
 
       const mockRequest = new NextRequest('http://localhost/api/admin/finance/payments', {
@@ -172,13 +182,15 @@ describe('Payment Management APIs', () => {
       (db.select as jest.Mock).mockReturnValueOnce({
         from: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
-        limit: jest.fn().mockResolvedValueOnce([{
-          id: 'invoice-123',
-          amount: 1000,
-          amount_paid: 500,
-          amount_due: 500,
-          status: 'partial',
-        }]),
+        limit: jest.fn().mockResolvedValueOnce([
+          {
+            id: 'invoice-123',
+            amount: 1000,
+            amount_paid: 500,
+            amount_due: 500,
+            status: 'partial',
+          },
+        ]),
       });
 
       const mockRequest = new NextRequest('http://localhost/api/admin/finance/payments', {
@@ -204,13 +216,15 @@ describe('Payment Management APIs', () => {
       (db.select as jest.Mock).mockReturnValueOnce({
         from: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
-        limit: jest.fn().mockResolvedValueOnce([{
-          id: 'invoice-123',
-          amount: 1000,
-          amount_paid: 0,
-          amount_due: 1000,
-          status: 'pending',
-        }]),
+        limit: jest.fn().mockResolvedValueOnce([
+          {
+            id: 'invoice-123',
+            amount: 1000,
+            amount_paid: 0,
+            amount_due: 1000,
+            status: 'pending',
+          },
+        ]),
       });
 
       const mockRequest = new NextRequest('http://localhost/api/admin/finance/payments', {
@@ -350,13 +364,15 @@ describe('Payment Management APIs', () => {
       (db.select as jest.Mock).mockReturnValueOnce({
         from: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
-        limit: jest.fn().mockResolvedValueOnce([{
-          id: 'invoice-123',
-          amount: 1000,
-          amount_paid: 0,
-          amount_due: 1000,
-          status: 'pending',
-        }]),
+        limit: jest.fn().mockResolvedValueOnce([
+          {
+            id: 'invoice-123',
+            amount: 1000,
+            amount_paid: 0,
+            amount_due: 1000,
+            status: 'pending',
+          },
+        ]),
       });
 
       const mockRequest = new NextRequest('http://localhost/api/admin/finance/payments', {
@@ -426,12 +442,14 @@ describe('Payment Management APIs', () => {
       (db.select as jest.Mock).mockReturnValueOnce({
         from: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
-        limit: jest.fn().mockResolvedValueOnce([{
-          id: 'invoice-123',
-          amount: 1000,
-          amount_paid: 0,
-          amount_due: 1000,
-        }]),
+        limit: jest.fn().mockResolvedValueOnce([
+          {
+            id: 'invoice-123',
+            amount: 1000,
+            amount_paid: 0,
+            amount_due: 1000,
+          },
+        ]),
       });
 
       // Mock transaction failure
@@ -462,13 +480,15 @@ describe('Payment Management APIs', () => {
       (db.select as jest.Mock).mockReturnValueOnce({
         from: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
-        limit: jest.fn().mockResolvedValueOnce([{
-          id: 'invoice-123',
-          amount: 1000,
-          amount_paid: 300,
-          amount_due: 700,
-          status: 'partial',
-        }]),
+        limit: jest.fn().mockResolvedValueOnce([
+          {
+            id: 'invoice-123',
+            amount: 1000,
+            amount_paid: 300,
+            amount_due: 700,
+            status: 'partial',
+          },
+        ]),
       });
 
       const mockRequest = new NextRequest('http://localhost/api/admin/finance/payments', {

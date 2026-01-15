@@ -74,7 +74,8 @@ export function CreateUserForm() {
         <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-6">
           <h2 className="text-lg font-semibold text-green-900 mb-4">User Created Successfully!</h2>
           <p className="text-sm text-green-700 mb-4">
-            The user has been created with a temporary password. Please share this password with the user securely.
+            The user has been created with a temporary password. Please share this password with the
+            user securely.
           </p>
           <div className="bg-white border border-green-300 rounded-md p-4">
             <div className="text-sm font-medium text-gray-700 mb-2">Temporary Password:</div>

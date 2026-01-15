@@ -34,18 +34,21 @@ export async function GET(request: NextRequest) {
     const descriptors = await query.execute();
 
     // Group by level and category for summary
-    const summary = descriptors.reduce((acc, descriptor) => {
-      const key = `${descriptor.level}-${descriptor.category}`;
-      if (!acc[key]) {
-        acc[key] = {
-          level: descriptor.level,
-          category: descriptor.category,
-          count: 0,
-        };
-      }
-      acc[key].count++;
-      return acc;
-    }, {} as Record<string, { level: string; category: string; count: number }>);
+    const summary = descriptors.reduce(
+      (acc, descriptor) => {
+        const key = `${descriptor.level}-${descriptor.category}`;
+        if (!acc[key]) {
+          acc[key] = {
+            level: descriptor.level,
+            category: descriptor.category,
+            count: 0,
+          };
+        }
+        acc[key].count++;
+        return acc;
+      },
+      {} as Record<string, { level: string; category: string; count: number }>
+    );
 
     return NextResponse.json({
       descriptors,

@@ -13,7 +13,9 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
 
     // Verify session via Supabase
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     if (!user) {
       return NextResponse.json(
@@ -27,7 +29,7 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
       sub: user.id,
       email: user.email,
       role: user.user_metadata?.role || 'student',
-      tenant_id: user.user_metadata?.tenant_id || 'default'
+      tenant_id: user.user_metadata?.tenant_id || 'default',
     });
 
     // Get capabilities
@@ -68,7 +70,7 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
           servers: health.servers.map(s => ({
             name: s.name,
             status: s.status,
-            connected: s.connected
+            connected: s.connected,
           })),
         },
       },

@@ -104,11 +104,13 @@ export default async function UsersPage() {
       </div>
 
       {/* Users List */}
-      <UserList users={users.map(u => ({
-        ...u,
-        created_at: u.created_at.toISOString(),
-        last_login: u.last_login?.toISOString() || null
-      }))} />
+      <UserList
+        users={users.map(u => ({
+          ...u,
+          created_at: u.created_at.toISOString(),
+          last_login: u.last_login?.toISOString() || null,
+        }))}
+      />
     </div>
   );
 }

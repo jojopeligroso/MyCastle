@@ -44,12 +44,7 @@ export async function GET(request: NextRequest) {
 
     // Apply search filter
     if (search) {
-      query = query.where(
-        or(
-          ilike(users.name, `%${search}%`),
-          ilike(users.email, `%${search}%`)
-        )
-      );
+      query = query.where(or(ilike(users.name, `%${search}%`), ilike(users.email, `%${search}%`)));
     }
 
     // Apply status filter
@@ -82,10 +77,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error fetching students:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch students' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch students' }, { status: 500 });
   }
 }
 
@@ -113,10 +105,7 @@ export async function POST(request: NextRequest) {
       .limit(1);
 
     if (existingUser) {
-      return NextResponse.json(
-        { error: 'A user with this email already exists' },
-        { status: 409 }
-      );
+      return NextResponse.json({ error: 'A user with this email already exists' }, { status: 409 });
     }
 
     // Create student user
@@ -150,9 +139,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(newStudent, { status: 201 });
   } catch (error) {
     console.error('Error creating student:', error);
-    return NextResponse.json(
-      { error: 'Failed to create student' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to create student' }, { status: 500 });
   }
 }

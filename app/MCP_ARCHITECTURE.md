@@ -16,6 +16,7 @@ const result = await tool.handler(input, session); // Direct function call
 ```
 
 **Issues:**
+
 - ❌ Not using MCP protocol at all - just regular function calls
 - ❌ No process isolation - everything in one Node.js process
 - ❌ Not language-agnostic - can't use Python/Rust/Go servers
@@ -41,6 +42,7 @@ const result = await client.callTool({ name: 'create_user', arguments: input });
 ```
 
 **Benefits:**
+
 - ✅ **Real MCP Protocol**: JSON-RPC 2.0 over stdio transport
 - ✅ **Process Isolation**: Each server runs independently
 - ✅ **Language Agnostic**: Can use any language that supports MCP SDK
@@ -99,12 +101,14 @@ app/src/lib/mcp/
 ### Server Side (Each MCP Server)
 
 Each server is now a standalone process that:
+
 1. Uses `McpServer` from `@modelcontextprotocol/sdk/server`
 2. Uses `StdioServerTransport` for communication
 3. Runs independently via `tsx server.ts`
 4. Registers tools, resources, and prompts using SDK API
 
 **Example: Identity MCP Server**
+
 ```typescript
 import { McpServer } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
@@ -115,9 +119,15 @@ const server = new McpServer(
 );
 
 // Register tools
-server.registerTool('create_user', { /* config */ }, async (args) => {
-  // Tool implementation
-});
+server.registerTool(
+  'create_user',
+  {
+    /* config */
+  },
+  async args => {
+    // Tool implementation
+  }
+);
 
 // Connect to stdio
 const transport = new StdioServerTransport();
@@ -152,28 +162,33 @@ const result = await client.callTool({
 ## Running MCP Servers
 
 ### Standalone Mode (for testing)
+
 ```bash
 npm run mcp:identity  # Start Identity MCP server
 npm run mcp:finance   # Start Finance MCP server
 ```
 
 ### Production Mode
+
 Servers are automatically spawned by the MCPHost when the application starts.
 
 ## Migration Status
 
 ### ✅ Completed
+
 - [x] Refactored MCPHost to use MCP Client with stdio transport
 - [x] Created standalone Identity MCP server
 - [x] Updated API routes to use new architecture
 - [x] Added npm scripts for running servers
 
 ### 🚧 In Progress
+
 - [ ] Convert remaining servers (Finance, Academic, Attendance, Teacher)
 - [ ] Test full end-to-end communication
 - [ ] Update tests to work with new architecture
 
 ### 📝 TODO
+
 - [ ] Add health monitoring for server processes
 - [ ] Implement server restart on crash
 - [ ] Add request/response logging
@@ -189,6 +204,7 @@ The API routes remain the same from the client perspective, but internally they 
 3. Handle server process lifecycle
 
 **API Example:**
+
 ```typescript
 // POST /api/mcp/tools/create_user
 const host = await getMCPHostInstance(); // Now async!
@@ -208,16 +224,16 @@ npm run test -- src/lib/mcp/host/__tests__/
 
 ## Benefits Summary
 
-| Aspect | Old (Library) | New (Protocol) |
-|--------|---------------|----------------|
-| **Communication** | Function calls | JSON-RPC 2.0 |
-| **Transport** | None | stdio |
-| **Process Model** | Single process | Multiple processes |
-| **Language Support** | TypeScript only | Any language |
-| **Pluggability** | Compile-time | Runtime |
-| **Protocol Compliance** | ❌ No | ✅ Yes |
-| **Standards-Based** | ❌ No | ✅ Yes |
-| **Process Isolation** | ❌ No | ✅ Yes |
+| Aspect                  | Old (Library)   | New (Protocol)     |
+| ----------------------- | --------------- | ------------------ |
+| **Communication**       | Function calls  | JSON-RPC 2.0       |
+| **Transport**           | None            | stdio              |
+| **Process Model**       | Single process  | Multiple processes |
+| **Language Support**    | TypeScript only | Any language       |
+| **Pluggability**        | Compile-time    | Runtime            |
+| **Protocol Compliance** | ❌ No           | ✅ Yes             |
+| **Standards-Based**     | ❌ No           | ✅ Yes             |
+| **Process Isolation**   | ❌ No           | ✅ Yes             |
 
 ## References
 

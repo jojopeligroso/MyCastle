@@ -62,7 +62,9 @@ export function CreateClassForm({ teachers }: Props) {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -201,7 +203,10 @@ export function CreateClassForm({ teachers }: Props) {
 
       {/* Schedule Description */}
       <div className="mb-6">
-        <label htmlFor="schedule_description" className="block text-sm font-medium text-gray-700 mb-2">
+        <label
+          htmlFor="schedule_description"
+          className="block text-sm font-medium text-gray-700 mb-2"
+        >
           Schedule *
         </label>
         <input
@@ -214,9 +219,7 @@ export function CreateClassForm({ teachers }: Props) {
           placeholder="e.g., Mon/Wed/Fri 09:00-11:00"
           className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
         />
-        <p className="mt-1 text-sm text-gray-500">
-          Describe the class schedule (days and times)
-        </p>
+        <p className="mt-1 text-sm text-gray-500">Describe the class schedule (days and times)</p>
       </div>
 
       {/* Start and End Dates */}

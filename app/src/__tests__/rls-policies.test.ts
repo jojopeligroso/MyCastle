@@ -517,7 +517,7 @@ describe('RLS Policies - Rollback Safety', () => {
     const initialCount = (await db.select().from(classes)).length;
 
     try {
-      await db.transaction(async (tx) => {
+      await db.transaction(async tx => {
         // This should fail due to RLS policy
         await tx.insert(classes).values({
           tenant_id: tenant1Id,

@@ -10,23 +10,27 @@ export async function POST(request: NextRequest) {
     const { sql: sqlQuery } = await request.json();
 
     if (!sqlQuery || typeof sqlQuery !== 'string') {
-      return NextResponse.json(
-        { error: 'SQL query is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'SQL query is required' }, { status: 400 });
     }
 
     // Validate that it's a SELECT query only
     const trimmed = sqlQuery.trim().toUpperCase();
     if (!trimmed.startsWith('SELECT')) {
-      return NextResponse.json(
-        { error: 'Only SELECT queries are allowed' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Only SELECT queries are allowed' }, { status: 400 });
     }
 
     // Check for dangerous keywords
-    const dangerousKeywords = ['DROP', 'DELETE', 'INSERT', 'UPDATE', 'ALTER', 'CREATE', 'TRUNCATE', 'GRANT', 'REVOKE'];
+    const dangerousKeywords = [
+      'DROP',
+      'DELETE',
+      'INSERT',
+      'UPDATE',
+      'ALTER',
+      'CREATE',
+      'TRUNCATE',
+      'GRANT',
+      'REVOKE',
+    ];
     for (const keyword of dangerousKeywords) {
       if (trimmed.includes(keyword)) {
         return NextResponse.json(
@@ -49,7 +53,6 @@ export async function POST(request: NextRequest) {
       data: result.rows || [],
       rowCount: result.rows?.length || 0,
     });
-
   } catch (error: any) {
     console.error('Error executing query:', error);
 
@@ -62,10 +65,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (error.message?.includes('syntax error')) {
-      return NextResponse.json(
-        { error: `SQL syntax error: ${error.message}` },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: `SQL syntax error: ${error.message}` }, { status: 400 });
     }
 
     return NextResponse.json(

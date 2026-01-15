@@ -16,9 +16,7 @@ export function AddPaymentForm({ bookingId, balance }: Props) {
   const [success, setSuccess] = useState(false);
 
   const [amount, setAmount] = useState('');
-  const [paymentDate, setPaymentDate] = useState(
-    new Date().toISOString().split('T')[0]
-  );
+  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
   const [paymentMethod, setPaymentMethod] = useState('Bank Transfer');
   const [referenceNumber, setReferenceNumber] = useState('');
 
@@ -73,9 +71,7 @@ export function AddPaymentForm({ bookingId, balance }: Props) {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Amount (EUR) *
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Amount (EUR) *</label>
           <input
             type="number"
             required
@@ -83,7 +79,7 @@ export function AddPaymentForm({ bookingId, balance }: Props) {
             min="0.01"
             max={balance}
             value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            onChange={e => setAmount(e.target.value)}
             className="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
             placeholder="0.00"
           />
@@ -91,26 +87,22 @@ export function AddPaymentForm({ bookingId, balance }: Props) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Payment Date *
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Payment Date *</label>
           <input
             type="date"
             required
             value={paymentDate}
-            onChange={(e) => setPaymentDate(e.target.value)}
+            onChange={e => setPaymentDate(e.target.value)}
             className="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Payment Method *
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method *</label>
           <select
             required
             value={paymentMethod}
-            onChange={(e) => setPaymentMethod(e.target.value)}
+            onChange={e => setPaymentMethod(e.target.value)}
             className="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="Bank Transfer">Bank Transfer</option>
@@ -123,13 +115,11 @@ export function AddPaymentForm({ bookingId, balance }: Props) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Reference Number
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Reference Number</label>
           <input
             type="text"
             value={referenceNumber}
-            onChange={(e) => setReferenceNumber(e.target.value)}
+            onChange={e => setReferenceNumber(e.target.value)}
             className="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
             placeholder="Optional"
           />

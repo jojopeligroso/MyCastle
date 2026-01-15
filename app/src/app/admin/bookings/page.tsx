@@ -88,15 +88,10 @@ async function getBookings(): Promise<BookingWithDetails[]> {
       .innerJoin(courses, eq(bookings.courseId, courses.id))
       .innerJoin(agencies, eq(bookings.agencyId, agencies.id))
       .leftJoin(accommodationTypes, eq(bookings.accommodationTypeId, accommodationTypes.id))
-      .where(
-        and(
-          eq(bookings.tenantId, tenantId),
-          isNull(bookings.cancelledAt)
-        )
-      )
+      .where(and(eq(bookings.tenantId, tenantId), isNull(bookings.cancelledAt)))
       .orderBy(desc(bookings.saleDate));
 
-    return result.map((row) => ({
+    return result.map(row => ({
       ...row,
       saleDate: row.saleDate.toString(),
       courseStartDate: row.courseStartDate.toString(),
@@ -113,16 +108,14 @@ async function getBookings(): Promise<BookingWithDetails[]> {
 
 async function getBookingStats(bookingsList: BookingWithDetails[]): Promise<BookingStats> {
   const totalBookings = bookingsList.length;
-  const pendingBookings = bookingsList.filter((b) => b.status === 'pending').length;
-  const confirmedBookings = bookingsList.filter((b) => b.status === 'confirmed').length;
+  const pendingBookings = bookingsList.filter(b => b.status === 'pending').length;
+  const confirmedBookings = bookingsList.filter(b => b.status === 'confirmed').length;
 
   const totalRevenue = bookingsList
     .reduce((sum, b) => sum + parseFloat(b.totalBookingEur), 0)
     .toFixed(2);
 
-  const totalPaid = bookingsList
-    .reduce((sum, b) => sum + parseFloat(b.totalPaidEur), 0)
-    .toFixed(2);
+  const totalPaid = bookingsList.reduce((sum, b) => sum + parseFloat(b.totalPaidEur), 0).toFixed(2);
 
   const outstandingBalance = (parseFloat(totalRevenue) - parseFloat(totalPaid)).toFixed(2);
 
@@ -201,7 +194,7 @@ function BookingsTable({ bookings }: { bookings: BookingWithDetails[] }) {
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {bookings.map((booking) => {
+          {bookings.map(booking => {
             const balance = (
               parseFloat(booking.totalBookingEur) - parseFloat(booking.totalPaidEur)
             ).toFixed(2);
@@ -243,9 +236,7 @@ function BookingsTable({ bookings }: { bookings: BookingWithDetails[] }) {
                   <div className="text-sm text-gray-500">
                     Paid: €{parseFloat(booking.totalPaidEur).toFixed(2)}
                   </div>
-                  <div className={`text-xs font-medium ${balanceColor}`}>
-                    Balance: €{balance}
-                  </div>
+                  <div className={`text-xs font-medium ${balanceColor}`}>Balance: €{balance}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span

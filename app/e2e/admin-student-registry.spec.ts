@@ -92,7 +92,11 @@ test.describe('Admin Student Registry', () => {
 
   test('should search students by name', async ({ page }) => {
     // Get first student name from the list
-    const firstStudentName = await page.locator('[data-testid="student-row"]').first().locator('[data-testid="student-name"]').textContent();
+    const firstStudentName = await page
+      .locator('[data-testid="student-row"]')
+      .first()
+      .locator('[data-testid="student-name"]')
+      .textContent();
 
     if (firstStudentName) {
       // Search for first few characters
@@ -140,7 +144,14 @@ test.describe('Admin Student Registry', () => {
     const drawer = page.locator('[data-testid="student-detail-drawer"]');
 
     // Test each tab
-    const tabs = ['Personal Info', 'Course History', 'Attendance', 'Assessments', 'Notes', 'Documents'];
+    const tabs = [
+      'Personal Info',
+      'Course History',
+      'Attendance',
+      'Assessments',
+      'Notes',
+      'Documents',
+    ];
 
     for (const tabName of tabs) {
       await drawer.getByRole('tab', { name: new RegExp(tabName, 'i') }).click();
@@ -267,7 +278,11 @@ test.describe('Admin Student Registry', () => {
 
     // Get existing student email
     await page.goto('/admin/students');
-    const existingEmail = await page.locator('[data-testid="student-row"]').first().locator('[data-testid="student-email"]').textContent();
+    const existingEmail = await page
+      .locator('[data-testid="student-row"]')
+      .first()
+      .locator('[data-testid="student-email"]')
+      .textContent();
 
     // Try to create student with same email
     await page.goto('/admin/students/create');
@@ -288,7 +303,7 @@ test.describe('Admin Student Registry', () => {
 
     // Should show visa warning badges
     const warningBadges = page.locator('[data-testid="visa-warning"]');
-    if (await warningBadges.count() > 0) {
+    if ((await warningBadges.count()) > 0) {
       await expect(warningBadges.first()).toBeVisible();
     }
   });

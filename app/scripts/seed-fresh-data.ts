@@ -166,7 +166,6 @@ async function seed() {
 
     await sql.end();
     process.exit(0);
-
   } catch (error) {
     console.error('❌ Seeding failed:', error);
     await sql.end();

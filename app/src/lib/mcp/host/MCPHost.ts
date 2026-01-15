@@ -65,7 +65,9 @@ export class MCPHost {
     // Store session
     this.sessions.set(session.sessionId, session);
 
-    console.log(`[MCP Host] Created session ${session.sessionId} for user ${session.userId} (role: ${session.role})`);
+    console.log(
+      `[MCP Host] Created session ${session.sessionId} for user ${session.userId} (role: ${session.role})`
+    );
 
     return session;
   }
@@ -75,7 +77,10 @@ export class MCPHost {
    */
   async verifyAndCreateSession(): Promise<MCPSession> {
     const supabase = await createClient();
-    const { data: { session }, error } = await supabase.auth.getSession();
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
 
     if (error || !session) {
       throw new Error(MCPErrorCode.UNAUTHORIZED);
@@ -340,7 +345,11 @@ export class MCPHost {
    */
   async aggregateContext(
     session: MCPSession,
-    contextRequests: { type: 'tool' | 'resource' | 'prompt'; target: string; params?: Record<string, unknown> }[]
+    contextRequests: {
+      type: 'tool' | 'resource' | 'prompt';
+      target: string;
+      params?: Record<string, unknown>;
+    }[]
   ): Promise<AggregatedContext> {
     const items: ContextItem[] = [];
 
@@ -355,7 +364,11 @@ export class MCPHost {
             response,
           };
         } else if (req.type === 'resource') {
-          const response = await this.fetchResource(req.target, session, req.params as Record<string, string>);
+          const response = await this.fetchResource(
+            req.target,
+            session,
+            req.params as Record<string, string>
+          );
           return {
             type: 'resource' as const,
             target: req.target,
@@ -373,7 +386,7 @@ export class MCPHost {
     );
 
     // Process results
-    results.forEach((result) => {
+    results.forEach(result => {
       if (result.status === 'fulfilled') {
         const { type, target, response } = result.value;
 
@@ -445,7 +458,10 @@ export class MCPHost {
   /**
    * Health check
    */
-  async healthCheck(): Promise<{ status: 'healthy' | 'degraded'; servers: { name: string; status: string }[] }> {
+  async healthCheck(): Promise<{
+    status: 'healthy' | 'degraded';
+    servers: { name: string; status: string }[];
+  }> {
     const serverStatuses = Array.from(this.servers.values()).map(server => ({
       name: server.name,
       status: 'healthy', // Could be enhanced with actual health checks

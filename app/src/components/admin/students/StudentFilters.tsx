@@ -38,7 +38,7 @@ export function StudentFilters() {
 
       router.push(`${pathname}?${params.toString()}`);
     },
-    [pathname, router, searchParams],
+    [pathname, router, searchParams]
   );
 
   const handleViewChange = (viewId: string) => {
@@ -81,7 +81,7 @@ export function StudentFilters() {
 
       {/* Saved Views */}
       <div className="flex flex-wrap items-center gap-2">
-        {SAVED_VIEWS.map((view) => (
+        {SAVED_VIEWS.map(view => (
           <button
             key={view.id}
             onClick={() => handleViewChange(view.id)}
@@ -103,8 +103,18 @@ export function StudentFilters() {
         <div className="flex-1 min-w-[200px] max-w-md">
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <svg
+                className="h-5 w-5 text-gray-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
               </svg>
             </div>
             <input
@@ -125,7 +135,7 @@ export function StudentFilters() {
             className="block w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
           >
             <option value="">All Statuses</option>
-            {STATUSES.map((status) => (
+            {STATUSES.map(status => (
               <option key={status} value={status}>
                 {status.charAt(0).toUpperCase() + status.slice(1)}
               </option>
@@ -141,7 +151,7 @@ export function StudentFilters() {
             className="block w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
           >
             <option value="">All Levels</option>
-            {CEFR_LEVELS.map((level) => (
+            {CEFR_LEVELS.map(level => (
               <option key={level} value={level}>
                 {level}
               </option>
@@ -156,7 +166,12 @@ export function StudentFilters() {
             className="inline-flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
             Clear
           </button>
@@ -169,7 +184,7 @@ export function StudentFilters() {
           <span className="text-gray-500">Active filters:</span>
           {currentView !== 'all' && (
             <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 rounded">
-              {SAVED_VIEWS.find((v) => v.id === currentView)?.label}
+              {SAVED_VIEWS.find(v => v.id === currentView)?.label}
               <button
                 onClick={() => handleViewChange('all')}
                 className="ml-1 hover:text-purple-900"

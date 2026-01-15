@@ -11,7 +11,8 @@ export default async function QueryPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Admin Query Interface</h1>
         <p className="mt-2 text-gray-600">
-          Access your data using natural language or a simple query builder. No SQL knowledge required.
+          Access your data using natural language or a simple query builder. No SQL knowledge
+          required.
         </p>
       </div>
 
@@ -25,8 +26,8 @@ export default async function QueryPage() {
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
             <h3 className="font-semibold text-blue-900 mb-2">💡 How it works</h3>
             <p className="text-sm text-blue-800">
-              Describe what you want to see in plain English. Our AI will translate it to SQL, show you a preview,
-              and execute it safely. Perfect for quick queries and exploration.
+              Describe what you want to see in plain English. Our AI will translate it to SQL, show
+              you a preview, and execute it safely. Perfect for quick queries and exploration.
             </p>
             <div className="mt-3 text-sm text-blue-700">
               <strong>Examples:</strong>
@@ -46,8 +47,8 @@ export default async function QueryPage() {
           <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
             <h3 className="font-semibold text-green-900 mb-2">💡 How it works</h3>
             <p className="text-sm text-green-800">
-              Build your query step by step using visual controls. Select a table, choose columns, add filters,
-              and see results instantly. The generated SQL is shown for transparency.
+              Build your query step by step using visual controls. Select a table, choose columns,
+              add filters, and see results instantly. The generated SQL is shown for transparency.
             </p>
             <div className="mt-3 text-sm text-green-700">
               <strong>Steps:</strong>
@@ -108,9 +109,10 @@ export default async function QueryPage() {
           <div>
             <h3 className="font-semibold text-amber-900">Safety & Security</h3>
             <p className="text-sm text-amber-800 mt-1">
-              This interface only allows <strong>SELECT</strong> queries (read-only). All queries are subject to
-              Row Level Security (RLS) policies, ensuring you only access data you're authorized to see.
-              Queries have a 5-second timeout and are limited to 1,000 rows maximum.
+              This interface only allows <strong>SELECT</strong> queries (read-only). All queries
+              are subject to Row Level Security (RLS) policies, ensuring you only access data you're
+              authorized to see. Queries have a 5-second timeout and are limited to 1,000 rows
+              maximum.
             </p>
           </div>
         </div>
@@ -119,7 +121,15 @@ export default async function QueryPage() {
   );
 }
 
-function QuickActionCard({ title, description, query }: { title: string; description: string; query: string }) {
+function QuickActionCard({
+  title,
+  description,
+  query,
+}: {
+  title: string;
+  description: string;
+  query: string;
+}) {
   return (
     <div className="border rounded-lg p-4 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer bg-white">
       <h3 className="font-semibold text-gray-900 mb-1">{title}</h3>

@@ -95,9 +95,7 @@ export function NaturalLanguageQuery() {
     const headers = Object.keys(result.data[0]);
     const csvContent = [
       headers.join(','),
-      ...result.data.map((row) =>
-        headers.map((h) => JSON.stringify(row[h] || '')).join(',')
-      ),
+      ...result.data.map(row => headers.map(h => JSON.stringify(row[h] || '')).join(',')),
     ].join('\n');
 
     // Download
@@ -119,7 +117,7 @@ export function NaturalLanguageQuery() {
         <Textarea
           id="query"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={e => setQuery(e.target.value)}
           placeholder="Example: Show me all active students in Pre-Int level"
           className="h-24"
           disabled={isLoading}
@@ -130,11 +128,7 @@ export function NaturalLanguageQuery() {
       </div>
 
       <div className="flex gap-2">
-        <Button
-          onClick={handleTranslate}
-          disabled={!query.trim() || isLoading}
-          className="flex-1"
-        >
+        <Button onClick={handleTranslate} disabled={!query.trim() || isLoading} className="flex-1">
           {isLoading ? 'Translating...' : '🔍 Translate to SQL'}
         </Button>
       </div>
@@ -149,9 +143,7 @@ export function NaturalLanguageQuery() {
         <div className="border rounded-lg p-4 space-y-4 bg-blue-50">
           <div>
             <h3 className="font-semibold text-sm text-gray-700 mb-2">📝 SQL Query</h3>
-            <pre className="bg-white p-3 rounded border text-sm overflow-x-auto">
-              {result.sql}
-            </pre>
+            <pre className="bg-white p-3 rounded border text-sm overflow-x-auto">{result.sql}</pre>
           </div>
 
           <div>
@@ -199,7 +191,7 @@ export function NaturalLanguageQuery() {
               <thead className="bg-gray-50 border-b">
                 <tr>
                   {result.data[0] &&
-                    Object.keys(result.data[0]).map((key) => (
+                    Object.keys(result.data[0]).map(key => (
                       <th key={key} className="px-4 py-2 text-left font-medium text-gray-700">
                         {key}
                       </th>

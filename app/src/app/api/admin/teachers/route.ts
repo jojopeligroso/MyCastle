@@ -24,12 +24,7 @@ export async function GET(request: NextRequest) {
       .$dynamic();
 
     if (search) {
-      query = query.where(
-        or(
-          ilike(users.name, `%${search}%`),
-          ilike(users.email, `%${search}%`)
-        )
-      );
+      query = query.where(or(ilike(users.name, `%${search}%`), ilike(users.email, `%${search}%`)));
     }
 
     if (status) {
@@ -41,9 +36,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ teachers: results });
   } catch (error) {
     console.error('Error fetching teachers:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch teachers' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch teachers' }, { status: 500 });
   }
 }

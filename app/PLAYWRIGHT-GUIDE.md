@@ -3,26 +3,31 @@
 ## Quick Start
 
 ### Run All Tests
+
 ```bash
 npm run test:e2e
 ```
 
 ### Run in Interactive UI Mode (Recommended for Development)
+
 ```bash
 npm run test:e2e:ui
 ```
 
 ### Run Specific Test File
+
 ```bash
 npx playwright test e2e/admin-student-registry.spec.ts
 ```
 
 ### Debug Tests Step-by-Step
+
 ```bash
 npm run test:e2e:debug
 ```
 
 ### View Test Report
+
 ```bash
 npm run test:e2e:report
 ```
@@ -32,6 +37,7 @@ npm run test:e2e:report
 ## What Gets Tested
 
 ✅ **Complete Application Functionality:**
+
 - User interactions (clicks, typing, form submission)
 - Navigation between pages
 - API calls and data loading
@@ -42,6 +48,7 @@ npm run test:e2e:report
 - Loading states
 
 ✅ **Across Multiple Browsers:**
+
 - Chrome (Chromium)
 - Firefox
 - Safari (WebKit)
@@ -191,6 +198,7 @@ await page.waitForTimeout(1000); // Use sparingly!
 ### Before Running Tests
 
 1. **Start your dev server** (or let Playwright auto-start it):
+
    ```bash
    npm run dev
    ```
@@ -223,6 +231,7 @@ npx playwright test e2e/admin-student-registry.spec.ts --debug
 ### What to Expect
 
 ✅ **29 tests** covering:
+
 - List view and filters (8 tests)
 - Student detail drawer (4 tests)
 - Create student forms (5 tests)
@@ -238,18 +247,22 @@ npx playwright test e2e/admin-student-registry.spec.ts --debug
 ## Debugging Failed Tests
 
 ### 1. Use UI Mode
+
 ```bash
 npm run test:e2e:ui
 ```
+
 - See tests running in browser
 - Step through each action
 - Inspect element states
 - Rerun individual tests
 
 ### 2. Use Debug Mode
+
 ```bash
 npm run test:e2e:debug
 ```
+
 - Pause on each step
 - Open DevTools
 - Inspect page state
@@ -258,14 +271,17 @@ npm run test:e2e:debug
 ### 3. Check Screenshots & Videos
 
 Failed tests automatically save:
+
 - **Screenshots**: `playwright-report/screenshots/`
 - **Videos**: `playwright-report/videos/`
 - **Traces**: `playwright-report/traces/` (use trace viewer)
 
 ### 4. View Trace
+
 ```bash
 npx playwright show-trace playwright-report/traces/trace.zip
 ```
+
 - See timeline of actions
 - Network requests
 - DOM snapshots
@@ -328,6 +344,7 @@ Tests run automatically on GitHub Actions:
 ## Next Steps
 
 1. ✅ **Run the new Student Registry tests**:
+
    ```bash
    npm run test:e2e:ui e2e/admin-student-registry.spec.ts
    ```
@@ -349,21 +366,25 @@ Tests run automatically on GitHub Actions:
 ## Troubleshooting
 
 ### "Element not found"
+
 - Use UI mode to see what's on the page
 - Check if element has different text/role
 - Try more flexible selectors: `/name/i` instead of `"Name"`
 
 ### "Timeout waiting for element"
+
 - Increase timeout: `{ timeout: 10000 }`
 - Check if API is slow/failing
 - Use `waitForLoadState('networkidle')`
 
 ### "Test passes locally but fails in CI"
+
 - Check for timing issues (add waits)
 - Verify test data is seeded
 - Check environment variables
 
 ### "Can't connect to database"
+
 - Ensure `.env.local` has correct `DATABASE_URL`
 - Run migrations on Supabase
 - Seed test data
