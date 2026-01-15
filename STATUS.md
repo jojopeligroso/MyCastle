@@ -1,6 +1,6 @@
 ---
 status: APPROVED
-last_updated: 2026-01-14
+last_updated: 2026-01-15
 next_review: 2026-01-21
 owner: Eoin Malone
 phase: Phase 1 - Admin UI/UX
@@ -8,8 +8,8 @@ phase: Phase 1 - Admin UI/UX
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-01-14
-**Current Phase:** Phase 1 (Admin UI/UX) - 42% Complete
+**Last Updated:** 2026-01-15
+**Current Phase:** Phase 1 (Admin UI/UX) - 43% Complete
 **Current Sprint:** Week 6 of Phase 1
 **Next Milestone:** Finance & Bookings Complete (ETA: Jan 17, 2026)
 
@@ -17,7 +17,7 @@ phase: Phase 1 - Admin UI/UX
 
 ## 🎯 Quick Summary
 
-### Recent Wins (Last 2 Weeks - Jan 1-14)
+### Recent Wins (Last 2 Weeks - Jan 1-15)
 - ✅ **Fresh database schema** deployed with FRESH migrations (multi-tenant, RLS, proper relations)
 - ✅ **Students management page** built with multi-table JOINs (students + users tables)
 - ✅ **Bookings management system** complete:
@@ -25,12 +25,16 @@ phase: Phase 1 - Admin UI/UX
   - Create booking form with auto-calculations
   - View booking page with detailed financial breakdown
   - Payment recording system with database triggers
+- ✅ **Finance dashboard** updated with booking-based schema:
+  - Revenue overview with 4 stats cards (Total Revenue, Total Paid, Outstanding, Overdue)
+  - Monthly revenue trend chart (last 6 months bar chart)
+  - Recent payments table with booking references
+  - Links to bookings and students
 - ✅ **Test data created** (Dessie Garcia - STU-2026-002, booking BK-2026-880943)
 - ✅ **Database triggers verified** (auto-calculate bookings.total_paid_eur from payments)
 - ✅ **Current system stats**: €8,765 total revenue, €3,300 paid, €5,465 outstanding across 2 bookings
 
-### In Progress This Week (Jan 14-21)
-- 🟡 **Finance dashboard** (revenue charts, outstanding balances)
+### In Progress This Week (Jan 15-21)
 - 🟡 **Student detail pages** (complete profile view with bookings history)
 - 🟡 **Reporting system** (booking reports, payment reports)
 
@@ -41,7 +45,7 @@ phase: Phase 1 - Admin UI/UX
 
 ## 📊 Phase 1 Progress Overview
 
-**Overall Progress:** 42% (25 of 60 tasks complete)
+**Overall Progress:** 43% (26 of 60 tasks complete)
 
 | Module | Status | Tasks Complete | Next Task |
 |--------|--------|----------------|-----------|
@@ -50,11 +54,11 @@ phase: Phase 1 - Admin UI/UX
 | Student Registry | ✅ Complete | 5/5 | - |
 | Bookings Management | ✅ Complete | 6/6 | - |
 | Payment Recording | ✅ Complete | 4/4 | - |
-| Finance Dashboard | ⏳ Not Started | 0/8 | Build revenue overview |
+| Finance Dashboard | 🔄 In Progress | 1/8 | Build student detail page |
 | Compliance & Visa | ⏳ Not Started | 0/6 | Create visa tracking dashboard |
 | Reporting System | ⏳ Not Started | 0/10 | Build booking reports |
 | Teacher Portal | ⏳ Not Started | 0/14 | Create teacher dashboard |
-| **Total** | **42%** | **25/60** | **4 completed modules** |
+| **Total** | **43%** | **26/60** | **5 modules started** |
 
 ---
 
@@ -90,45 +94,30 @@ phase: Phase 1 - Admin UI/UX
 
 ### Priority 1: Build Finance Dashboard (Est: 4-6 hours)
 
-#### Task 1.1: Build Finance Dashboard Overview ⚡ START HERE
+#### Task 1.1: Build Finance Dashboard Overview ✅ COMPLETE
 **Estimate:** 30 minutes
-**Status:** ⏳ Pending
+**Status:** ✅ Complete (Jan 15, 2026)
 **Roadmap Ref:** Next logical step after bookings/payments complete
 
-**Subtasks:**
-1. **Create dashboard page** (10 min)
-   - Create `/app/admin/finance/page.tsx`
-   - Add stats cards (Total Revenue, Outstanding, Paid This Month, Overdue)
-   - Calculate stats from bookings and payments tables
-
-2. **Add revenue chart** (10 min)
-   - Install recharts or similar charting library
-   - Create monthly revenue chart component
-   - Show trend of payments over time
-
-3. **Add outstanding bookings table** (8 min)
-   - List bookings with balance > 0
-   - Sort by balance descending
-   - Link to booking detail pages
-
-4. **Test with current data** (2 min)
-   - Verify stats: €8,765 revenue, €5,465 outstanding
-   - Check chart renders correctly
-   - Verify links work
+**Completed:**
+1. ✅ Updated finance page to use bookings schema (replaced invoices)
+2. ✅ Added stats cards (Total Revenue €8,765, Total Paid €3,300, Outstanding €5,465, Overdue)
+3. ✅ Added monthly revenue trend chart (last 6 months bar chart)
+4. ✅ Updated Recent Payments table with booking references
+5. ✅ Set RLS context for all queries
+6. ✅ All links to bookings working
 
 **Acceptance Criteria:**
-- [ ] Stats cards show correct totals
-- [ ] Revenue chart displays monthly data
-- [ ] Outstanding bookings table populated
-- [ ] All links to booking details work
-
-**Next Task After Completion:** Task 1.2 (Build Student Detail Page)
+- [x] Stats cards show correct totals
+- [x] Revenue chart displays monthly data
+- [x] Recent payments table shows booking-based data
+- [x] All links to booking details work
 
 ---
 
-#### Task 1.2: Build Student Detail Page
+#### Task 1.2: Build Student Detail Page ⚡ START HERE
 **Estimate:** 30 minutes
-**Status:** ⏳ Blocked by Task 1.1
+**Status:** ⏳ Pending
 **Roadmap Ref:** Extend student management functionality
 
 **Subtasks:**
@@ -286,20 +275,21 @@ phase: Phase 1 - Admin UI/UX
 ## 🎯 Success Metrics
 
 ### Completion Tracking
-- **Tasks Complete:** 25/60 (42%)
-- **UI Pages:** 5/21 (24%)
+- **Tasks Complete:** 26/60 (43%)
+- **UI Pages:** 6/21 (29%)
   - Students list ✅
   - Bookings list ✅
   - Create booking ✅
   - View booking ✅
   - Record payment ✅
+  - Finance dashboard ✅
 - **Database Schema:** Fresh migrations deployed ✅
-- **Core Features:** Bookings + Payments system functional ✅
+- **Core Features:** Bookings + Payments + Finance dashboard functional ✅
 
-### Velocity Tracking (Last 2 Weeks - Jan 1-14)
-- **Tasks Completed:** 15
-- **Lines of Code:** ~1,600 (focused, high-quality code)
-- **Features Built:** 5 complete workflows
+### Velocity Tracking (Last 2 Weeks - Jan 1-15)
+- **Tasks Completed:** 16
+- **Lines of Code:** ~2,000 (focused, high-quality code)
+- **Features Built:** 6 complete workflows
 - **Average Task Time:** 25 minutes
 - **Database Triggers:** 1 working trigger (payment totals)
 

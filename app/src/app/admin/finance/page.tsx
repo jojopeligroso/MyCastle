@@ -1,98 +1,164 @@
 /**
  * Finance Dashboard - Overview of financial operations
- * MCP Resources: admin://invoices, admin://payments, admin://aging_report
+ * MCP Resources: admin://bookings, admin://payments, admin://financial_reports
  */
 
 import { db } from '@/db';
-import { invoices, payments, users } from '@/db/schema';
-import { eq, and, gte, lt, desc, sum, count } from 'drizzle-orm';
+import { bookings, payments, students, users } from '@/db/schema';
+import { eq, and, gte, lt, desc, sum, count, sql } from 'drizzle-orm';
 import { requireAuth, getTenantId } from '@/lib/auth/utils';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 
 async function getFinanceStats(tenantId: string) {
-  // Get all invoices
-  const allInvoices = await db
+  // Set RLS context first
+  await db.execute(
+    sql`SELECT set_config('app.tenant_id', ${tenantId}, false)`
+  );
+
+  // Get all bookings
+  const allBookings = await db
     .select()
-    .from(invoices)
-    .where(eq(invoices.tenant_id, tenantId));
+    .from(bookings)
+    .where(eq(bookings.tenantId, tenantId));
 
   // Get all payments
   const allPayments = await db
     .select()
     .from(payments)
-    .where(eq(payments.tenant_id, tenantId));
+    .where(eq(payments.tenantId, tenantId));
 
-  const totalRevenue = allPayments.reduce(
-    (sum, p) => sum + parseFloat(p.amount.toString()),
+  const totalRevenue = allBookings.reduce(
+    (sum, b) => sum + parseFloat(b.totalBookingEur?.toString() || '0'),
     0
   );
 
-  const totalInvoiced = allInvoices.reduce(
-    (sum, inv) => sum + parseFloat(inv.amount.toString()),
+  const totalPaid = allBookings.reduce(
+    (sum, b) => sum + parseFloat(b.totalPaidEur?.toString() || '0'),
     0
   );
 
-  const paidInvoices = allInvoices.filter(inv => inv.status === 'paid');
-  const pendingInvoices = allInvoices.filter(inv => inv.status === 'pending');
-  const overdueInvoices = allInvoices.filter(inv => inv.status === 'overdue');
-
-  const outstanding = pendingInvoices.reduce(
-    (sum, inv) => sum + parseFloat(inv.amount.toString()),
+  const outstanding = allBookings.reduce(
+    (sum, b) => {
+      const total = parseFloat(b.totalBookingEur?.toString() || '0');
+      const paid = parseFloat(b.totalPaidEur?.toString() || '0');
+      const balance = total - paid;
+      return balance > 0 ? sum + balance : sum;
+    },
     0
   );
 
-  const overdue = overdueInvoices.reduce(
-    (sum, inv) => sum + parseFloat(inv.amount.toString()),
-    0
-  );
+  const confirmedBookings = allBookings.filter(b => b.status === 'confirmed');
+  const pendingBookings = allBookings.filter(b => b.status === 'pending');
+  const cancelledBookings = allBookings.filter(b => b.status === 'cancelled');
 
-  // Get this month's stats
+  // Calculate overdue (bookings with outstanding balance and past course start date)
   const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const overdueBookings = allBookings.filter(b => {
+    const total = parseFloat(b.totalBookingEur?.toString() || '0');
+    const paid = parseFloat(b.totalPaidEur?.toString() || '0');
+    const balance = total - paid;
+    const startDate = b.courseStartDate ? new Date(b.courseStartDate) : null;
+    return balance > 0 && startDate && startDate < now;
+  });
 
+  const overdue = overdueBookings.reduce(
+    (sum, b) => {
+      const total = parseFloat(b.totalBookingEur?.toString() || '0');
+      const paid = parseFloat(b.totalPaidEur?.toString() || '0');
+      return sum + (total - paid);
+    },
+    0
+  );
+
+  // Get this month's payment revenue
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const thisMonthPayments = allPayments.filter(
-    p => new Date(p.payment_date) >= startOfMonth
+    p => p.paymentDate && new Date(p.paymentDate) >= startOfMonth
   );
 
   const thisMonthRevenue = thisMonthPayments.reduce(
-    (sum, p) => sum + parseFloat(p.amount.toString()),
+    (sum, p) => sum + parseFloat(p.amountEur?.toString() || '0'),
     0
   );
 
   return {
     totalRevenue,
-    totalInvoiced,
+    totalPaid,
     outstanding,
     overdue,
     thisMonthRevenue,
-    invoiceCount: allInvoices.length,
-    paidCount: paidInvoices.length,
-    pendingCount: pendingInvoices.length,
-    overdueCount: overdueInvoices.length,
+    bookingCount: allBookings.length,
+    confirmedCount: confirmedBookings.length,
+    pendingCount: pendingBookings.length,
+    overdueCount: overdueBookings.length,
   };
 }
 
 async function getRecentTransactions(tenantId: string) {
+  // Set RLS context first
+  await db.execute(
+    sql`SELECT set_config('app.tenant_id', ${tenantId}, false)`
+  );
+
   const recentPayments = await db
     .select({
       payment: payments,
-      student: {
-        name: users.name,
-        email: users.email,
+      booking: {
+        bookingNumber: bookings.bookingNumber,
       },
-      invoice: {
-        invoice_number: invoices.invoice_number,
+      student: {
+        id: students.id,
+        fullName: students.fullName,
+      },
+      user: {
+        email: users.email,
       },
     })
     .from(payments)
-    .leftJoin(users, eq(payments.student_id, users.id))
-    .leftJoin(invoices, eq(payments.invoice_id, invoices.id))
-    .where(eq(payments.tenant_id, tenantId))
-    .orderBy(desc(payments.created_at))
+    .leftJoin(bookings, eq(payments.bookingId, bookings.id))
+    .leftJoin(students, eq(bookings.studentId, students.id))
+    .leftJoin(users, eq(students.userId, users.id))
+    .where(eq(payments.tenantId, tenantId))
+    .orderBy(desc(payments.createdAt))
     .limit(10);
 
   return recentPayments;
+}
+
+interface MonthlyRevenue {
+  month: string;
+  revenue: number;
+}
+
+async function getMonthlyRevenue(tenantId: string): Promise<MonthlyRevenue[]> {
+  // Set RLS context first
+  await db.execute(
+    sql`SELECT set_config('app.tenant_id', ${tenantId}, false)`
+  );
+
+  const allPayments = await db
+    .select()
+    .from(payments)
+    .where(eq(payments.tenantId, tenantId))
+    .orderBy(payments.paymentDate);
+
+  // Group by month
+  const monthlyData: Record<string, number> = {};
+
+  allPayments.forEach(payment => {
+    if (payment.paymentDate) {
+      const date = new Date(payment.paymentDate);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const amount = parseFloat(payment.amountEur?.toString() || '0');
+      monthlyData[monthKey] = (monthlyData[monthKey] || 0) + amount;
+    }
+  });
+
+  // Convert to array and sort
+  return Object.entries(monthlyData)
+    .map(([month, revenue]) => ({ month, revenue }))
+    .sort((a, b) => a.month.localeCompare(b.month));
 }
 
 export default async function FinancePage() {
@@ -105,6 +171,7 @@ export default async function FinancePage() {
 
   const stats = await getFinanceStats(tenantId);
   const recentTransactions = await getRecentTransactions(tenantId);
+  const monthlyRevenue = await getMonthlyRevenue(tenantId);
 
   return (
     <div>
@@ -112,14 +179,14 @@ export default async function FinancePage() {
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Finance Dashboard</h1>
-          <p className="mt-2 text-gray-600">Manage invoices, payments, and financial reports</p>
+          <p className="mt-2 text-gray-600">Revenue overview, outstanding balances, and payment tracking</p>
         </div>
         <div className="flex space-x-3">
           <Link
-            href="/admin/finance/invoices/create"
+            href="/admin/bookings/create"
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700"
           >
-            + Create Invoice
+            + Create Booking
           </Link>
         </div>
       </div>
@@ -129,14 +196,14 @@ export default async function FinancePage() {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="text-sm font-medium text-gray-500">Total Revenue</div>
           <div className="mt-2 text-3xl font-bold text-green-600">
-            ${stats.totalRevenue.toFixed(2)}
+            €{stats.totalRevenue.toFixed(2)}
           </div>
-          <div className="mt-1 text-sm text-gray-500">All time</div>
+          <div className="mt-1 text-sm text-gray-500">{stats.bookingCount} bookings</div>
         </div>
         <div className="bg-white rounded-lg shadow p-6">
-          <div className="text-sm font-medium text-gray-500">This Month</div>
+          <div className="text-sm font-medium text-gray-500">Total Paid</div>
           <div className="mt-2 text-3xl font-bold text-blue-600">
-            ${stats.thisMonthRevenue.toFixed(2)}
+            €{stats.totalPaid.toFixed(2)}
           </div>
           <div className="mt-1 text-sm text-gray-500">
             {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
@@ -145,30 +212,61 @@ export default async function FinancePage() {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="text-sm font-medium text-gray-500">Outstanding</div>
           <div className="mt-2 text-3xl font-bold text-orange-600">
-            ${stats.outstanding.toFixed(2)}
+            €{stats.outstanding.toFixed(2)}
           </div>
           <div className="mt-1 text-sm text-gray-500">{stats.pendingCount} pending</div>
         </div>
         <div className="bg-white rounded-lg shadow p-6">
           <div className="text-sm font-medium text-gray-500">Overdue</div>
           <div className="mt-2 text-3xl font-bold text-red-600">
-            ${stats.overdue.toFixed(2)}
+            €{stats.overdue.toFixed(2)}
           </div>
           <div className="mt-1 text-sm text-gray-500">{stats.overdueCount} overdue</div>
         </div>
       </div>
 
+      {/* Revenue Chart */}
+      <div className="bg-white rounded-lg shadow p-6 mb-8">
+        <h2 className="text-lg font-medium text-gray-900 mb-4">Revenue Trend</h2>
+        {monthlyRevenue.length > 0 ? (
+          <div className="space-y-3">
+            {monthlyRevenue.slice(-6).map(({ month, revenue }) => {
+              const maxRevenue = Math.max(...monthlyRevenue.map(m => m.revenue));
+              const percentage = (revenue / maxRevenue) * 100;
+              const date = new Date(month + '-01');
+              const monthLabel = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+
+              return (
+                <div key={month} className="flex items-center gap-4">
+                  <div className="w-24 text-sm text-gray-600">{monthLabel}</div>
+                  <div className="flex-1 bg-gray-100 rounded-full h-8 relative overflow-hidden">
+                    <div
+                      className="bg-gradient-to-r from-purple-500 to-purple-600 h-full rounded-full transition-all duration-500 flex items-center justify-end pr-3"
+                      style={{ width: `${Math.max(percentage, 10)}%` }}
+                    >
+                      <span className="text-white text-sm font-medium">€{revenue.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="text-gray-500 text-center py-8">No payment data available yet</p>
+        )}
+      </div>
+
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <Link
-          href="/admin/finance/invoices"
+          href="/admin/bookings"
           className="bg-white rounded-lg shadow p-6 hover:bg-gray-50 transition"
         >
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-medium text-gray-900">Invoices</h3>
+              <h3 className="text-lg font-medium text-gray-900">Bookings</h3>
               <p className="mt-1 text-sm text-gray-500">
-                {stats.invoiceCount} total • {stats.paidCount} paid
+                {stats.bookingCount} total • {stats.confirmedCount} confirmed
               </p>
             </div>
             <svg
@@ -188,13 +286,13 @@ export default async function FinancePage() {
         </Link>
 
         <Link
-          href="/admin/finance/payments"
+          href="/admin/students"
           className="bg-white rounded-lg shadow p-6 hover:bg-gray-50 transition"
         >
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-medium text-gray-900">Payments</h3>
-              <p className="mt-1 text-sm text-gray-500">View payment history</p>
+              <h3 className="text-lg font-medium text-gray-900">Students</h3>
+              <p className="mt-1 text-sm text-gray-500">Manage student records</p>
             </div>
             <svg
               className="w-8 h-8 text-green-600"
@@ -206,7 +304,7 @@ export default async function FinancePage() {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
               />
             </svg>
           </div>
@@ -238,7 +336,7 @@ export default async function FinancePage() {
       {/* Recent Transactions */}
       <div className="bg-white rounded-lg shadow">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-medium text-gray-900">Recent Transactions</h2>
+          <h2 className="text-lg font-medium text-gray-900">Recent Payments</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -251,7 +349,7 @@ export default async function FinancePage() {
                   Student
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Invoice
+                  Booking
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Method
@@ -268,33 +366,42 @@ export default async function FinancePage() {
               {recentTransactions.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
-                    No transactions yet
+                    No payments yet
                   </td>
                 </tr>
               ) : (
-                recentTransactions.map(({ payment, student, invoice }) => (
+                recentTransactions.map(({ payment, booking, student, user }) => (
                   <tr key={payment.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(payment.payment_date).toLocaleDateString()}
+                      {payment.paymentDate ? new Date(payment.paymentDate).toLocaleDateString() : 'N/A'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{student?.name}</div>
-                      <div className="text-sm text-gray-500">{student?.email}</div>
+                      <div className="text-sm font-medium text-gray-900">{student?.fullName || 'Unknown'}</div>
+                      <div className="text-sm text-gray-500">{user?.email || ''}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {invoice?.invoice_number || 'N/A'}
+                      {booking?.bookingNumber ? (
+                        <Link
+                          href={`/admin/bookings/${payment.bookingId}`}
+                          className="text-purple-600 hover:text-purple-900"
+                        >
+                          {booking.bookingNumber}
+                        </Link>
+                      ) : (
+                        'N/A'
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                        {payment.payment_method}
+                        {payment.paymentMethod}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
-                      ${parseFloat(payment.amount.toString()).toFixed(2)}
+                      €{parseFloat(payment.amountEur?.toString() || '0').toFixed(2)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <Link
-                        href={`/admin/finance/payments/${payment.id}`}
+                        href={`/admin/bookings/${payment.bookingId}`}
                         className="text-purple-600 hover:text-purple-900"
                       >
                         View
