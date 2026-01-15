@@ -1,8 +1,10 @@
-# MyCastle - Claude Code Guide
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 > **Purpose:** Primary instructions for Claude Code working with MyCastle
-> **Last Updated:** 2026-01-13
-> **Keep it under 200 lines** - Use progressive disclosure for details
+> **Last Updated:** 2026-01-14
+> **Keep it under 250 lines** - Use progressive disclosure for details
 
 ---
 
@@ -11,7 +13,7 @@
 **MyCastle** is an ESL school operations platform with **8-domain MCP architecture**:
 - Identity & Access, Academic Operations, Attendance/Compliance, Finance, Student Services, Operations/Quality, Teacher Portal, Student Portal
 
-**Stack:** Next.js 15 (App Router), Supabase (PostgreSQL + Auth), Drizzle ORM, TypeScript, Playwright
+**Stack:** Next.js 16 (App Router), Supabase (PostgreSQL + Auth), Drizzle ORM, TypeScript, Playwright
 
 **Key Principle:** Domain-driven design with proper MCP protocol (JSON-RPC 2.0 over stdio)
 
@@ -71,14 +73,9 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 **Migration sequence** (MUST run in order):
 ```bash
 # In Supabase SQL Editor:
-0001_initial_schema_with_rls.sql
-0002_admin_dashboard_views.sql
-0003_user_management_views.sql
-0004_add_programmes_table.sql
-0005_add_courses_table.sql
-0006_extend_users_for_students.sql
-0007_student_registry_views.sql
-0008_add_enrollment_flexibility.sql
+FRESH_0000_drop_all.sql      # (dev only - drops everything)
+FRESH_0001_core_schema.sql   # Core tables + multi-tenant structure
+FRESH_0002_rls_policies.sql  # Row-Level Security policies
 
 # After migrations:
 npm run db:generate     # Regenerate TypeScript types
@@ -94,7 +91,7 @@ npm run dev            # Restart dev server
 **CRITICAL:** Every database query MUST set RLS context first:
 
 ```typescript
-import { db } from '@/lib/db';
+import { db } from '@/db';
 import { sql } from 'drizzle-orm';
 
 // ALWAYS do this BEFORE any query:
@@ -111,18 +108,18 @@ const data = await db.select().from(table);
 ```
 
 **Why:** Supabase RLS policies enforce data isolation. Without context = empty results or permission denied.
-**Guide:** `/app/RLS-POLICIES.md`
+**Guide:** `/app/docs/RLS-POLICIES.md`
 
 ### 5. Testing Requirements
 
-**Unit Tests (Jest):**
+**Unit Tests (Jest) - 337 test files:**
 ```bash
 npm test                # Run unit tests
 npm run test:watch      # Watch mode
 npm run test:coverage   # With coverage report
 ```
 
-**E2E Tests (Playwright):**
+**E2E Tests (Playwright) - 5 test specs:**
 ```bash
 npm run test:e2e:ui     # Interactive mode (RECOMMENDED)
 npm run test:e2e        # Headless mode
@@ -133,10 +130,69 @@ npm run test:e2e:debug  # Step-by-step debugging
 
 **Before merging to main:**
 ```bash
-npm run check:full      # All checks + E2E tests
+npm run check           # Format, lint, test, type-check, build
+# Note: check:full exists but not yet defined in package.json
 ```
 
-**Guide:** `/app/PLAYWRIGHT-GUIDE.md`
+**Guide:** `/app/PLAYWRIGHT-GUIDE.md` (when created)
+
+---
+
+## 📁 Codebase Structure
+
+```
+MyCastle/
+├── app/                              # Next.js application
+│   ├── src/
+│   │   ├── app/                      # App Router pages & API routes
+│   │   │   ├── admin/               # Admin UI (30+ routes)
+│   │   │   ├── teacher/             # Teacher portal
+│   │   │   ├── api/                 # API routes & MCP orchestration
+│   │   │   └── auth/                # Auth callback handlers
+│   │   ├── components/              # React components
+│   │   │   ├── admin/              # Admin-specific components
+│   │   │   ├── ui/                 # Shared UI components
+│   │   │   └── [domain]/           # Domain-specific components
+│   │   ├── db/
+│   │   │   ├── schema/
+│   │   │   │   ├── index.ts        # Schema exports
+│   │   │   │   ├── core.ts         # Users, tenants, audit logs
+│   │   │   │   └── business.ts     # Students, bookings, payments
+│   │   │   └── index.ts            # Database client & connection
+│   │   ├── lib/
+│   │   │   ├── auth/               # Authentication utilities
+│   │   │   ├── mcp/                # MCP architecture
+│   │   │   │   ├── host/           # MCP host orchestration
+│   │   │   │   └── servers/        # 5 MCP servers (identity, finance, etc.)
+│   │   │   ├── supabase/           # Supabase client
+│   │   │   └── security/           # Security utilities
+│   │   └── __tests__/              # 337 unit tests
+│   ├── e2e/                         # 5 Playwright E2E tests
+│   ├── migrations/                  # SQL migration files
+│   ├── scripts/                     # Utility scripts (seed, test)
+│   └── package.json
+│
+├── Core Specification ("The Spine")
+├── REQ.md                           # Requirements (What & Why)
+├── DESIGN.md                        # Design (How - Architecture)
+├── TASKS.md                         # Work breakdown (42 core + 34 migration)
+├── STATUS.md                        # ⭐ Current sprint (KEEP UPDATED!)
+├── ROADMAP.md                       # 4 phases, 105 tasks
+│
+└── Guides & Documentation
+    ├── GETTING-STARTED.md           # Quick start
+    ├── TESTING.md                   # Testing strategy
+    ├── DEPLOYMENT.md                # Production deployment
+    ├── docs/                        # Additional documentation
+    └── spec/                        # Detailed MCP specs
+```
+
+**Key File Locations:**
+- Database schema: `app/src/db/schema/` (modular: core.ts, business.ts)
+- Database client: `app/src/db/index.ts`
+- MCP servers: `app/src/lib/mcp/servers/` (identity, finance, academic, attendance, teacher)
+- Admin routes: `app/src/app/admin/` (30+ feature routes)
+- E2E tests: `app/e2e/` (5 specs covering auth, admin, teacher flows)
 
 ---
 
@@ -152,10 +208,10 @@ npm run build           # Production build
 ### Code Quality
 ```bash
 npm run format          # Format with Prettier
+npm run format:check    # Check formatting (no changes)
 npm run lint            # ESLint check
 npm test                # Jest unit tests
-npm run check           # All checks + build
-npm run check:full      # + E2E tests
+npm run check           # All checks + build (pre-commit)
 ```
 
 ### Database
@@ -163,12 +219,27 @@ npm run check:full      # + E2E tests
 npm run db:generate     # Generate types from schema
 npm run db:migrate      # Run migrations (prefer manual via Supabase SQL Editor)
 npm run db:push         # Push schema changes (dev only)
+npm run test:db         # Test database connection
+npm run verify:schema   # Verify schema matches database
+npm run migrate:fresh   # Run fresh migrations (dev only)
 ```
 
 ### Seeding
 ```bash
+npm run seed:admin      # Seed admin user
 npm run seed:cefr       # Seed CEFR descriptors
 npm run seed:students   # Seed sample students
+```
+
+### Testing
+```bash
+npm test                # Unit tests
+npm run test:watch      # Unit tests (watch mode)
+npm run test:coverage   # Unit tests with coverage
+npm run test:e2e        # E2E tests (headless)
+npm run test:e2e:ui     # E2E tests (interactive UI)
+npm run test:e2e:debug  # E2E tests (step debugger)
+npm run test:e2e:report # Show E2E test report
 ```
 
 ### MCP Servers (Run standalone)
@@ -212,9 +283,8 @@ npm run mcp:teacher     # Teacher MCP
 - **Getting Started:** `GETTING-STARTED.md`
 - **Testing:** `TESTING.md`
 - **Deployment:** `DEPLOYMENT.md`
-- **RLS Policies:** `app/RLS-POLICIES.md`
-- **E2E Testing:** `app/PLAYWRIGHT-GUIDE.md`
-- **MCP Architecture:** `app/MCP_ARCHITECTURE.md`
+- **RLS Policies:** `app/docs/RLS-POLICIES.md`
+- **MCP Architecture:** `app/docs/MCP_ARCHITECTURE.md`
 - **Magic Link Auth:** `app/docs/MAGIC_LINK_AUTH.md`
 - **Migrations:** `app/migrations/README.md`
 
@@ -234,15 +304,23 @@ npm run mcp:teacher     # Teacher MCP
 6. **❌ Committing without unit tests** → DoD not met
 7. **❌ Modifying RLS policies without security review** → Data leak risk
 8. **❌ Writing >10 tools per MCP** → Breaks domain isolation principle
+9. **❌ Importing from wrong db path** → Use `@/db` not relative paths
+10. **❌ Pushing to wrong branch** → CI runs on `main`, `develop`, `claude/**` only
 
 ---
 
-## 🔧 Git Hooks (Auto-Enforcement)
+## 🔧 Git Hooks & CI/CD
 
-**Pre-Commit:** Warns if STATUS.md >7 days old
-**Post-Commit:** Reminds if STATUS.md not included in commit
+**Git Hooks (Local):**
+- **Pre-Commit:** Warns if STATUS.md >7 days old
+- **Post-Commit:** Reminds if STATUS.md not included in commit
+- **Location:** `.git/hooks/pre-commit`, `.git/hooks/post-commit`
 
-**Location:** `.git/hooks/pre-commit`, `.git/hooks/post-commit`
+**CI/CD (GitHub Actions):**
+- **Triggers:** Push to `main`, `develop`, or `claude/**` branches
+- **Jobs:** Lint, type-check, build, test
+- **Deployment:** Vercel on push to `main`
+- **Config:** `.github/workflows/ci.yml`
 
 ---
 
@@ -261,13 +339,14 @@ npm run mcp:teacher     # Teacher MCP
 
 **During Work:**
 ```bash
-npm run dev            # Development
+npm run dev            # Development server
 npm test               # Unit tests as you go
+npm run test:e2e:ui    # E2E tests (when needed)
 ```
 
 **End of Session / Task Completion:**
 ```bash
-npm run check          # Verify quality
+npm run check          # Verify quality (format, lint, test, typecheck, build)
 # Update STATUS.md     # Mark task ✅, update progress %
 /commit                # Orchestrated commit
 /clear                 # Clear context
@@ -281,11 +360,11 @@ npm run check          # Verify quality
 Before marking any task complete:
 - [ ] Code formatted (`npm run format`)
 - [ ] Linting passes (`npm run lint`)
-- [ ] Unit tests written and passing
+- [ ] Unit tests written and passing (`npm test`)
 - [ ] TypeScript compiles (`npx tsc --noEmit`)
-- [ ] E2E tests pass (if applicable)
+- [ ] E2E tests pass (if applicable) (`npm run test:e2e`)
 - [ ] RLS policies tested (if database changes)
-- [ ] STATUS.md updated
+- [ ] STATUS.md updated with task completion
 - [ ] Code linked to REQ/DESIGN references
 - [ ] Documentation updated (if needed)
 
@@ -297,26 +376,36 @@ Before marking any task complete:
 → Did you set RLS context? Check `set_user_context()` was called first
 
 **"Migration failed"**
-→ Check order (0001→0008), verify previous migrations succeeded
+→ Check order (FRESH_0001→0002), verify previous migrations succeeded
 
 **"Type errors after schema change"**
 → Run `npm run db:generate` to regenerate types
 
 **"E2E test times out"**
-→ Check dev server running, verify test data seeded
+→ Check dev server running (`npm run dev`), verify test data seeded
+
+**"Import error: cannot find '@/db'"**
+→ Check `tsconfig.json` has path alias configured: `"@/*": ["./src/*"]`
 
 **"What should I work on next?"**
 → Run `/MyCastle-standup` to see next immediate task
+
+**"CI failing on push"**
+→ Run `npm run check` locally first to catch issues
 
 ---
 
 ## 📝 Additional Context
 
-**Tech Decisions Log:** When major decisions are made (e.g., Docker for prod), document here or in DESIGN.md
+**Tech Decisions Log:** When major decisions are made (e.g., Docker for prod), document in DESIGN.md
 
-**CI/CD:** GitHub Actions runs on push to main/develop/claude/** branches. Deploy to Vercel on main push.
+**CI/CD:** GitHub Actions runs on push to `main`/`develop`/`claude/**` branches. Deploy to Vercel on main push.
 
 **Deployment:** Currently Vercel (no Docker). See `DEPLOYMENT.md` when ready for production.
+
+**Database:** Supabase PostgreSQL with RLS multi-tenancy. Direct connection for migrations (`DIRECT_URL`), pooled for queries (`DATABASE_URL`).
+
+**MCP Architecture:** 5 servers implemented (identity, finance, academic, attendance, teacher), 3 planned (student services, ops/quality, student portal).
 
 ---
 
