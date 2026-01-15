@@ -293,11 +293,14 @@ export default async function FinancePage() {
           </div>
         </Link>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <Link
+          href="/admin/reports/bookings"
+          className="bg-white rounded-lg shadow p-6 hover:bg-gray-50 transition"
+        >
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-medium text-gray-900">Reports</h3>
-              <p className="mt-1 text-sm text-gray-500">Coming soon</p>
+              <p className="mt-1 text-sm text-gray-500">Revenue & analytics</p>
             </div>
             <svg
               className="w-8 h-8 text-blue-600"
@@ -313,7 +316,7 @@ export default async function FinancePage() {
               />
             </svg>
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* Recent Transactions */}
