@@ -20,9 +20,9 @@ export default async function AttendanceDashboard() {
   const sessions = await db
     .select({
       id: classSessions.id,
-      date: classSessions.session_date,
-      startTime: classSessions.start_time,
-      endTime: classSessions.end_time,
+      date: classSessions.sessionDate,
+      startTime: classSessions.startTime,
+      endTime: classSessions.endTime,
       topic: classSessions.topic,
       className: classes.name,
       classCode: classes.code,
@@ -30,11 +30,11 @@ export default async function AttendanceDashboard() {
       attendanceCount: sql<number>`count(${attendance.id})`,
     })
     .from(classSessions)
-    .innerJoin(classes, eq(classSessions.class_id, classes.id))
-    .leftJoin(attendance, eq(attendance.class_session_id, classSessions.id))
-    .where(eq(classSessions.tenant_id, tenantId))
+    .innerJoin(classes, eq(classSessions.classId, classes.id))
+    .leftJoin(attendance, eq(attendance.classSessionId, classSessions.id))
+    .where(eq(classSessions.tenantId, tenantId))
     .groupBy(classSessions.id, classes.name, classes.code)
-    .orderBy(desc(classSessions.session_date))
+    .orderBy(desc(classSessions.sessionDate))
     .limit(50); // Show last 50 sessions
 
   return (

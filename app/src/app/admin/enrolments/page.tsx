@@ -27,10 +27,10 @@ async function getEnrolments(tenantId: string) {
       },
     })
     .from(enrollments)
-    .leftJoin(users, eq(enrollments.student_id, users.id))
-    .leftJoin(classes, eq(enrollments.class_id, classes.id))
-    .where(eq(enrollments.tenant_id, tenantId))
-    .orderBy(desc(enrollments.enrollment_date));
+    .leftJoin(users, eq(enrollments.studentId, users.id))
+    .leftJoin(classes, eq(enrollments.classId, classes.id))
+    .where(eq(enrollments.tenantId, tenantId))
+    .orderBy(desc(enrollments.enrollmentDate));
 
   return allEnrolments;
 }
@@ -39,7 +39,7 @@ async function getEnrolmentStats(tenantId: string) {
   const allEnrolments = await db
     .select()
     .from(enrollments)
-    .where(eq(enrollments.tenant_id, tenantId));
+    .where(eq(enrollments.tenantId, tenantId));
 
   const totalEnrolments = allEnrolments.length;
   const activeEnrolments = allEnrolments.filter(e => e.status === 'active').length;
@@ -48,7 +48,7 @@ async function getEnrolmentStats(tenantId: string) {
 
   // Calculate average attendance rate
   const attendanceRates = allEnrolments
-    .map(e => parseFloat(e.attendance_rate || '0'))
+    .map(e => parseFloat(e.attendanceRate || '0'))
     .filter(rate => rate > 0);
   const avgAttendance =
     attendanceRates.length > 0
@@ -175,12 +175,12 @@ export default async function EnrolmentsPage() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(enrolment.enrollment_date).toLocaleDateString()}
+                    {new Date(enrolment.enrollmentDate).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
-                      {enrolment.attendance_rate
-                        ? `${parseFloat(enrolment.attendance_rate).toFixed(1)}%`
+                      {enrolment.attendanceRate
+                        ? `${parseFloat(enrolment.attendanceRate).toFixed(1)}%`
                         : 'N/A'}
                     </div>
                   </td>

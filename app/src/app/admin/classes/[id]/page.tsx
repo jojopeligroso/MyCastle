@@ -16,8 +16,8 @@ async function getClass(classId: string, tenantId: string) {
       teacher: users,
     })
     .from(classes)
-    .leftJoin(users, eq(classes.teacher_id, users.id))
-    .where(and(eq(classes.id, classId), eq(classes.tenant_id, tenantId)))
+    .leftJoin(users, eq(classes.teacherId, users.id))
+    .where(and(eq(classes.id, classId), eq(classes.tenantId, tenantId)))
     .limit(1);
 
   return result[0] || null;
@@ -30,8 +30,8 @@ async function getEnrolledStudents(classId: string) {
       enrollment: enrollments,
     })
     .from(enrollments)
-    .innerJoin(users, eq(enrollments.student_id, users.id))
-    .where(and(eq(enrollments.class_id, classId), eq(enrollments.status, 'active')))
+    .innerJoin(users, eq(enrollments.studentId, users.id))
+    .where(and(eq(enrollments.classId, classId), eq(enrollments.status, 'active')))
     .orderBy(users.name);
 
   return students;
@@ -95,7 +95,7 @@ export default async function ClassDetailPage({ params }: { params: { id: string
               </div>
               <div>
                 <dt className="text-sm font-medium text-gray-500">Schedule</dt>
-                <dd className="mt-1 text-sm text-gray-900">{cls.schedule_description}</dd>
+                <dd className="mt-1 text-sm text-gray-900">{cls.scheduleDescription}</dd>
               </div>
               <div>
                 <dt className="text-sm font-medium text-gray-500">Status</dt>
@@ -114,13 +114,13 @@ export default async function ClassDetailPage({ params }: { params: { id: string
               <div>
                 <dt className="text-sm font-medium text-gray-500">Start Date</dt>
                 <dd className="mt-1 text-sm text-gray-900">
-                  {new Date(cls.start_date).toLocaleDateString()}
+                  {new Date(cls.startDate).toLocaleDateString()}
                 </dd>
               </div>
               <div>
                 <dt className="text-sm font-medium text-gray-500">End Date</dt>
                 <dd className="mt-1 text-sm text-gray-900">
-                  {cls.end_date ? new Date(cls.end_date).toLocaleDateString() : 'Ongoing'}
+                  {cls.endDate ? new Date(cls.endDate).toLocaleDateString() : 'Ongoing'}
                 </dd>
               </div>
             </dl>
@@ -158,7 +158,7 @@ export default async function ClassDetailPage({ params }: { params: { id: string
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-500">{student.email}</td>
                         <td className="px-4 py-3 text-sm text-gray-500">
-                          {new Date(enrollment.enrollment_date).toLocaleDateString()}
+                          {new Date(enrollment.enrollmentDate).toLocaleDateString()}
                         </td>
                       </tr>
                     ))}
