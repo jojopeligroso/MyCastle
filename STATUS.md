@@ -1,6 +1,6 @@
 ---
 status: APPROVED
-last_updated: 2026-01-15
+last_updated: 2026-01-16
 next_review: 2026-01-21
 owner: Eoin Malone
 phase: Phase 1 - Admin UI/UX
@@ -8,8 +8,8 @@ phase: Phase 1 - Admin UI/UX
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-01-15
-**Current Phase:** Phase 1 (Admin UI/UX) - 48% Complete
+**Last Updated:** 2026-01-16
+**Current Phase:** Phase 1 (Admin UI/UX) - 53% Complete
 **Current Sprint:** Week 6 of Phase 1
 **Next Milestone:** Finance & Reporting Complete (ETA: Jan 21, 2026)
 
@@ -55,6 +55,27 @@ phase: Phase 1 - Admin UI/UX
   - Student table sorted by expiry date
   - Links to student detail pages
 
+### Recent Wins (Jan 16)
+- ✅ **Schema standardization complete** - Converted academic.ts to camelCase TypeScript properties (DB columns remain snake_case per Supabase best practice)
+- ✅ **Teachers management page** complete:
+  - List all teachers with assigned class counts
+  - Stats cards: Total Teachers, Active, Assigned to Classes, Unassigned
+  - Teacher details table with name, email, status, class count
+  - Links to teacher profiles and assigned classes
+  - Quick assignment info section with navigation to classes page
+- ✅ **Attendance reports** complete:
+  - Class attendance summary with attendance rates
+  - Student attendance report with individual tracking
+  - Last 30 days date range analytics
+  - Color-coded status badges (Good >90%, At Risk 70-90%, Critical <70%)
+  - Stats cards: Total Sessions, Avg Attendance Rate, Classes At Risk
+- ✅ **Enrollment reports** complete:
+  - Class roster report with capacity tracking
+  - Enrollment capacity utilization visual (color-coded: red >90%, amber 75-90%, green <75%)
+  - Enrollment trends (last 12 weeks) with active/completed/dropped stats
+  - Stats cards: Total Classes, Total Enrolled, Avg Class Size, Classes at Capacity
+  - Links to class and student detail pages
+
 ### In Progress This Week (Jan 15-21)
 - ✅ **Booking reports page** (revenue analytics, agency performance) - COMPLETE
 - ✅ **Visa tracking dashboard** (expiry monitoring) - COMPLETE
@@ -67,7 +88,7 @@ phase: Phase 1 - Admin UI/UX
 
 ## 📊 Phase 1 Progress Overview
 
-**Overall Progress:** 48% (29 of 60 tasks complete)
+**Overall Progress:** 53% (32 of 60 tasks complete)
 
 | Module | Status | Tasks Complete | Next Task |
 |--------|--------|----------------|-----------|
@@ -78,9 +99,9 @@ phase: Phase 1 - Admin UI/UX
 | Payment Recording | ✅ Complete | 4/4 | - |
 | Finance Dashboard | 🔄 In Progress | 3/8 | Continue finance reports |
 | Compliance & Visa | ⏸️ Paused | 1/6 | Dashboard complete, alerts shelved (see tidy.md) |
-| Reporting System | 🔄 In Progress | 1/10 | Build payment reports |
-| Teacher Portal | ⏳ Not Started | 0/14 | Create teacher dashboard |
-| **Total** | **48%** | **29/60** | **5 modules started** |
+| Reporting System | 🔄 In Progress | 3/10 | Build payment reports |
+| Teacher Portal | 🔄 In Progress | 1/14 | Create teacher dashboard |
+| **Total** | **53%** | **32/60** | **6 modules started** |
 
 ---
 
@@ -281,8 +302,8 @@ phase: Phase 1 - Admin UI/UX
 ## 🎯 Success Metrics
 
 ### Completion Tracking
-- **Tasks Complete:** 29/60 (48%)
-- **UI Pages:** 9/21 (43%)
+- **Tasks Complete:** 32/60 (53%)
+- **UI Pages:** 12/21 (57%)
   - Students list ✅
   - Student detail ✅
   - Bookings list ✅
@@ -292,8 +313,11 @@ phase: Phase 1 - Admin UI/UX
   - Finance dashboard ✅
   - Booking reports ✅
   - Visa tracking ✅
+  - Teachers list ✅
+  - Attendance reports ✅
+  - Enrollment reports ✅
 - **Database Schema:** Fresh migrations deployed ✅
-- **Core Features:** Bookings + Payments + Finance dashboard + Reports + Visa tracking functional ✅
+- **Core Features:** Bookings + Payments + Finance dashboard + Reports + Visa tracking + Teachers + Attendance/Enrollment reports functional ✅
 
 ### Velocity Tracking (Last 2 Weeks - Jan 1-15)
 - **Tasks Completed:** 19
@@ -346,4 +370,4 @@ This document is updated:
 
 **Next Review:** 2026-01-21 (Weekly)
 **Owner:** Eoin Malone
-**Last Update:** Completed visa tracking dashboard with expiry monitoring (Jan 15, 2026)
+**Last Update:** Completed schema standardization, teachers management page, attendance reports, and enrollment reports (Jan 16, 2026)
