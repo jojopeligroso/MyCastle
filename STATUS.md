@@ -58,7 +58,7 @@ phase: Phase 1 - Admin UI/UX
 ### In Progress This Week (Jan 15-21)
 - ✅ **Booking reports page** (revenue analytics, agency performance) - COMPLETE
 - ✅ **Visa tracking dashboard** (expiry monitoring) - COMPLETE
-- 🟡 **Email alert system** (next task)
+- 📝 **Next priority:** Finance & Reporting tasks (continue dashboard build-out)
 
 ### Blockers
 - None - core booking and payment system fully functional
@@ -77,7 +77,7 @@ phase: Phase 1 - Admin UI/UX
 | Bookings Management | ✅ Complete | 6/6 | - |
 | Payment Recording | ✅ Complete | 4/4 | - |
 | Finance Dashboard | 🔄 In Progress | 3/8 | Continue finance reports |
-| Compliance & Visa | 🔄 In Progress | 1/6 | Build email alert system |
+| Compliance & Visa | ⏸️ Paused | 1/6 | Dashboard complete, alerts shelved (see tidy.md) |
 | Reporting System | 🔄 In Progress | 1/10 | Build payment reports |
 | Teacher Portal | ⏳ Not Started | 0/14 | Create teacher dashboard |
 | **Total** | **48%** | **29/60** | **5 modules started** |
@@ -224,7 +224,11 @@ phase: Phase 1 - Admin UI/UX
 - [x] Days remaining calculated accurately (350 days verified)
 - [x] Links to student details work correctly
 
-**Next Task:** Task 1.4.1 (Visa Workflow Tracking - planned) or Task 1.5 (Build Email Alert System)
+**Next Priority:** Continue Finance Dashboard module (Task 1.6+) or Reporting System
+
+**Shelved Tasks:**
+- Task 1.5 (Email Alert System) - shelved, see tidy.md for rationale
+- Task 1.4.1 (Visa Workflow Tracking) - deferred to post-MVP
 
 ---
 
@@ -263,12 +267,14 @@ phase: Phase 1 - Admin UI/UX
 - [ ] Payment reports (by method, trends)
 - [ ] Outstanding balances tracking
 
-### Milestone 3: Compliance & Visa Tracking (Jan 28, 2026)
+### Milestone 3: Compliance & Visa Tracking (Jan 28, 2026) - ⏸️ Paused
 - [x] Visa expiry dashboard
-- [ ] Automated visa expiry alerts
-- [ ] Student visa status tracking (planned: Task 1.4.1 - visa workflow tracking)
-- [ ] Compliance reporting
-- [ ] Document management system
+- [~] Automated visa expiry alerts (shelved - see tidy.md)
+- [ ] Student visa status tracking (deferred: Task 1.4.1 post-MVP)
+- [ ] Compliance reporting (deferred)
+- [ ] Document management system (deferred)
+
+**Status:** Core visa tracking complete. Additional features deferred to focus on MVP essentials.
 
 ---
 

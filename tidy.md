@@ -184,8 +184,44 @@ Property 'created_at' does not exist on type '...'. Did you mean 'createdAt'?
 
 ---
 
+## Shelved Features (Unlikely to be Required)
+
+### Task 1.5: Build Email Alert System
+
+**Status:** Shelved (unlikely to be required for MVP or beyond)
+
+**Original Proposal:**
+- Automated email notifications for visa expiry alerts
+- Send emails to admins when student visas are 30/90 days from expiry or expired
+- Scheduled daily cron job to check and send alerts
+
+**Why Shelved:**
+1. **Dashboard suffices:** Task 1.4 visa tracking dashboard (`/admin/visa`) provides real-time visibility
+2. **Infrastructure overhead:** Requires email service (Resend/Nodemailer/SendGrid), cron scheduler, API keys, templates
+3. **Usage uncertainty:** Unclear if automated emails are actually needed vs. periodic dashboard checks
+4. **Complexity vs. value:** 60-90 minutes implementation for potentially low-value feature
+5. **Better alternatives:** If notifications needed later, consider:
+   - Manual "Send Alert" button on dashboard (5 min implementation)
+   - Browser notifications / in-app alerts
+   - Integrate with unified notification system post-MVP
+
+**Technical Requirements (if ever implemented):**
+- Email service provider (Resend recommended)
+- Email templates (React Email)
+- Cron scheduler (Vercel Cron or external service)
+- Database: admin notification preferences table
+- Estimated effort: 60-90 minutes
+
+**Decision Date:** 2026-01-15
+**Rationale:** Focus MVP development on core features. Dashboard provides sufficient visibility. Email infrastructure can be added later if usage patterns prove it's needed.
+
+**Note:** If visa compliance requires documented notifications, reconsider as Task 1.4.2 post-MVP.
+
+---
+
 ## Notes
 
 - **Task 1.2 (Student Detail Page) introduced ZERO new errors** ✅
+- **Task 1.4 (Visa Tracking Dashboard) introduced ZERO new errors** ✅
 - All new code follows best practices and passes type checking
 - Pre-existing errors are from legacy code and should be addressed separately
