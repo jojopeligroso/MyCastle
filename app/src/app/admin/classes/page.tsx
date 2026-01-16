@@ -17,14 +17,14 @@ async function getClasses(tenantId: string) {
       enrollmentCount: count(enrollments.id),
     })
     .from(classes)
-    .leftJoin(users, eq(classes.teacher_id, users.id))
+    .leftJoin(users, eq(classes.teacherId, users.id))
     .leftJoin(
       enrollments,
-      and(eq(enrollments.class_id, classes.id), eq(enrollments.status, 'active'))
+      and(eq(enrollments.classId, classes.id), eq(enrollments.status, 'active'))
     )
-    .where(eq(classes.tenant_id, tenantId))
+    .where(eq(classes.tenantId, tenantId))
     .groupBy(classes.id, users.id)
-    .orderBy(desc(classes.created_at));
+    .orderBy(desc(classes.createdAt));
 
   return allClasses;
 }
@@ -34,7 +34,11 @@ async function getTeachers(tenantId: string) {
     .select()
     .from(users)
     .where(
-      and(eq(users.tenant_id, tenantId), eq(users.role, 'teacher'), eq(users.status, 'active'))
+      and(
+        eq(users.tenantId, tenantId),
+        eq(users.primaryRole, 'teacher'),
+        eq(users.status, 'active')
+      )
     )
     .orderBy(users.name);
 

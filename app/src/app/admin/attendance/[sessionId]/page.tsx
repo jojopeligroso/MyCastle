@@ -21,17 +21,17 @@ export default async function AttendanceDetailPage({ params }: PageProps) {
   const sessionData = await db
     .select({
       id: classSessions.id,
-      date: classSessions.session_date,
-      startTime: classSessions.start_time,
-      endTime: classSessions.end_time,
+      date: classSessions.sessionDate,
+      startTime: classSessions.startTime,
+      endTime: classSessions.endTime,
       topic: classSessions.topic,
       className: classes.name,
       classCode: classes.code,
       classId: classes.id,
     })
     .from(classSessions)
-    .innerJoin(classes, eq(classSessions.class_id, classes.id))
-    .where(and(eq(classSessions.id, sessionId), eq(classSessions.tenant_id, tenantId)))
+    .innerJoin(classes, eq(classSessions.classId, classes.id))
+    .where(and(eq(classSessions.id, sessionId), eq(classSessions.tenantId, tenantId)))
     .limit(1);
 
   if (sessionData.length === 0) {
@@ -45,22 +45,22 @@ export default async function AttendanceDetailPage({ params }: PageProps) {
     .select({
       id: users.id,
       name: users.name,
-      avatarUrl: users.avatar_url,
+      avatarUrl: users.avatarUrl,
     })
     .from(enrollments)
-    .innerJoin(users, eq(enrollments.student_id, users.id))
-    .where(and(eq(enrollments.class_id, session.classId), eq(enrollments.status, 'active')));
+    .innerJoin(users, eq(enrollments.studentId, users.id))
+    .where(and(eq(enrollments.classId, session.classId), eq(enrollments.status, 'active')));
 
   // 3. Fetch Existing Attendance Records
   const existingRecords = await db
     .select()
     .from(attendance)
-    .where(eq(attendance.class_session_id, sessionId));
+    .where(eq(attendance.classSessionId, sessionId));
 
   // Transform to map for O(1) lookup
   const attendanceMap: Record<string, { status: string; notes: string | null }> = {};
   existingRecords.forEach(r => {
-    attendanceMap[r.student_id] = { status: r.status, notes: r.notes };
+    attendanceMap[r.studentId] = { status: r.status, notes: r.notes };
   });
 
   return (

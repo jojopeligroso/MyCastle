@@ -15,12 +15,12 @@ interface ClassData {
     level: string | null;
     subject: string | null;
     capacity: number;
-    enrolled_count: number;
+    enrolledCount: number;
     status: string;
-    schedule_description: string | null;
-    start_date: string;
-    end_date: string | null;
-    teacher_id: string | null;
+    scheduleDescription: string | null;
+    startDate: string;
+    endDate: string | null;
+    teacherId: string | null;
   };
   teacher: {
     id: string;
@@ -179,11 +179,11 @@ export function ClassList({ classes, teachers }: Props) {
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-sm text-gray-900">
-                      {cls.schedule_description || 'Not scheduled'}
+                      {cls.scheduleDescription || 'Not scheduled'}
                     </div>
                     <div className="text-sm text-gray-500">
-                      {new Date(cls.start_date).toLocaleDateString()}
-                      {cls.end_date && ` - ${new Date(cls.end_date).toLocaleDateString()}`}
+                      {new Date(cls.startDate).toLocaleDateString()}
+                      {cls.endDate && ` - ${new Date(cls.endDate).toLocaleDateString()}`}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">

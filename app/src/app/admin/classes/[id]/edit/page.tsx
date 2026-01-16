@@ -19,14 +19,14 @@ async function getClass(classId: string, tenantId: string) {
       level: classes.level,
       subject: classes.subject,
       capacity: classes.capacity,
-      teacher_id: classes.teacher_id,
-      schedule_description: classes.schedule_description,
-      start_date: classes.start_date,
-      end_date: classes.end_date,
+      teacher_id: classes.teacherId,
+      schedule_description: classes.scheduleDescription,
+      start_date: classes.startDate,
+      end_date: classes.endDate,
       status: classes.status,
     })
     .from(classes)
-    .where(and(eq(classes.id, classId), eq(classes.tenant_id, tenantId)))
+    .where(and(eq(classes.id, classId), eq(classes.tenantId, tenantId)))
     .limit(1);
 
   return result[0] || null;
@@ -41,7 +41,11 @@ async function getTeachers(tenantId: string) {
     })
     .from(users)
     .where(
-      and(eq(users.tenant_id, tenantId), eq(users.role, 'teacher'), eq(users.status, 'active'))
+      and(
+        eq(users.tenantId, tenantId),
+        eq(users.primaryRole, 'teacher'),
+        eq(users.status, 'active')
+      )
     )
     .orderBy(users.name);
 

@@ -10,8 +10,10 @@ export * from './core';
 // Business tables (NEW - Ireland ESL school logic)
 export * from './business';
 
+// Academic schema (uncommented - classes, enrollments, attendance are actively used)
+export * from './academic';
+
 // Old schemas - commenting out until updated to match new database
-// export * from './academic';
 // export * from './curriculum';
 // export * from './system';
 // export * from './programmes';
