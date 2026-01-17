@@ -3,7 +3,7 @@ status: APPROVED
 last_updated: 2026-01-16
 next_review: 2026-01-21
 owner: Eoin Malone
-phase: Phase 1 - Admin UI/UX
+phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 ---
 
 # MyCastle Project Status
@@ -79,7 +79,7 @@ phase: Phase 1 - Admin UI/UX
 ### In Progress This Week (Jan 15-21)
 - ✅ **Booking reports page** (revenue analytics, agency performance) - COMPLETE
 - ✅ **Visa tracking dashboard** (expiry monitoring) - COMPLETE
-- 📝 **Next priority:** Finance & Reporting tasks (continue dashboard build-out)
+- 📝 **Next priority:** Core admin pages (Classes, Teacher Portal, Reporting)
 
 ### Blockers
 - None - core booking and payment system fully functional
@@ -97,11 +97,12 @@ phase: Phase 1 - Admin UI/UX
 | Student Registry | ✅ Complete | 5/5 | - |
 | Bookings Management | ✅ Complete | 6/6 | - |
 | Payment Recording | ✅ Complete | 4/4 | - |
-| Finance Dashboard | 🔄 In Progress | 3/8 | Continue finance reports |
 | Compliance & Visa | ⏸️ Paused | 1/6 | Dashboard complete, alerts shelved (see tidy.md) |
-| Reporting System | 🔄 In Progress | 3/10 | Build payment reports |
+| Reporting System | 🔄 In Progress | 3/10 | Build class/teacher reports |
 | Teacher Portal | 🔄 In Progress | 1/14 | Create teacher dashboard |
-| **Total** | **53%** | **32/60** | **6 modules started** |
+| Classes Management | ⏳ Not Started | 0/8 | Create classes list page |
+| Finance Dashboard | 🔮 Post-MVP | 1/8 | Deferred until core MVP complete |
+| **Total** | **53%** | **32/60** | **5 modules in progress** |
 
 ---
 
@@ -135,90 +136,9 @@ phase: Phase 1 - Admin UI/UX
 
 ---
 
-### Priority 1: Build Finance Dashboard (Est: 4-6 hours)
+### Priority 1: Core Admin Pages - Classes & Teachers
 
-#### Task 1.1: Build Finance Dashboard Overview ✅ COMPLETE
-**Estimate:** 30 minutes
-**Status:** ✅ Complete (Jan 15, 2026)
-**Roadmap Ref:** Next logical step after bookings/payments complete
-
-**Completed:**
-1. ✅ Updated finance page to use bookings schema (replaced invoices)
-2. ✅ Added stats cards (Total Revenue €8,765, Total Paid €3,300, Outstanding €5,465, Overdue)
-3. ✅ Added monthly revenue trend chart (last 6 months bar chart)
-4. ✅ Updated Recent Payments table with booking references
-5. ✅ Set RLS context for all queries
-6. ✅ All links to bookings working
-
-**Acceptance Criteria:**
-- [x] Stats cards show correct totals
-- [x] Revenue chart displays monthly data
-- [x] Recent payments table shows booking-based data
-- [x] All links to booking details work
-
----
-
-#### Task 1.2: Build Student Detail Page ✅ COMPLETE
-**Estimate:** 30 minutes
-**Status:** ✅ Complete (Jan 15, 2026)
-**Roadmap Ref:** Extend student management functionality
-
-**Completed:**
-1. ✅ Created detail page at `/app/src/app/admin/students/[id]/page.tsx`
-2. ✅ Fetch student + user data with JOIN query
-3. ✅ Display personal information (email, phone, DOB, nationality)
-4. ✅ Display visa information card (for visa students)
-5. ✅ Display emergency contact information
-6. ✅ Display medical & dietary information (if present)
-7. ✅ Financial summary cards (Total Bookings, Total Paid, Outstanding)
-8. ✅ Bookings history table with all booking details
-9. ✅ Payment history table with chronological display
-10. ✅ Links to booking detail pages working
-11. ✅ Added "View Details" links from students list page
-12. ✅ Tested with Dessie Garcia (STU-2026-002)
-
-**Acceptance Criteria:**
-- [x] Student detail page displays all information
-- [x] Bookings history shows all student bookings
-- [x] Payment history shows all payments
-- [x] Links to bookings work correctly
-
-**Next Task:** Task 1.3 (Build Booking Reports)
-
----
-
-#### Task 1.3: Build Booking Reports ✅ COMPLETE
-**Estimate:** 30 minutes
-**Status:** ✅ Complete (Jan 15, 2026)
-**Roadmap Ref:** Finance & reporting functionality
-
-**Completed:**
-1. ✅ Created comprehensive reports page at `/app/admin/reports/bookings/page.tsx`
-2. ✅ Added date range filters (start_date, end_date query params)
-3. ✅ Added status filter dropdown (All, Pending, Confirmed, Cancelled)
-4. ✅ Built bookings summary with 4 stats cards (Total, Revenue, Paid, Outstanding)
-5. ✅ Implemented revenue breakdown by course level (A2: €3,710, B1: €5,055)
-6. ✅ Built bookings by agency report with commission calculations
-7. ✅ Created payments by method breakdown (Bank Transfer: €3,300)
-8. ✅ Added top 10 outstanding balances by student table
-9. ✅ Verified calculations match test data (€8,765 / €3,300 / €5,465)
-10. ✅ Added export to CSV button (placeholder with alert)
-11. ✅ Updated finance dashboard to link to reports page
-12. ✅ Code formatted and linted (no warnings)
-
-**Acceptance Criteria:**
-- [x] Reports page displays all summary statistics
-- [x] Date range and status filters work correctly
-- [x] Calculations verified against test data
-- [x] Export functionality placeholder present
-
-**Next Task:** Task 1.4 (Build Visa Tracking Dashboard)
-
----
-
-### Priority 2: Build Compliance & Visa Tracking (Est: 4-6 hours)
-
-#### Task 1.4: Build Visa Expiry Dashboard ✅ COMPLETE
+#### Task 2.1: Build Visa Expiry Dashboard ✅ COMPLETE
 **Estimate:** 30 minutes
 **Status:** ✅ Complete (Jan 15, 2026)
 **Roadmap Ref:** Compliance & visa tracking module
@@ -245,15 +165,22 @@ phase: Phase 1 - Admin UI/UX
 - [x] Days remaining calculated accurately (350 days verified)
 - [x] Links to student details work correctly
 
-**Next Priority:** Continue Finance Dashboard module (Task 1.6+) or Reporting System
+**Next Priority:** Classes Management & Teacher Portal (Core MVP Features)
 
 **Shelved Tasks:**
-- Task 1.5 (Email Alert System) - shelved, see tidy.md for rationale
-- Task 1.4.1 (Visa Workflow Tracking) - deferred to post-MVP
+- Task 2.2 (Email Alert System) - shelved, see tidy.md for rationale
+- Task 2.1.1 (Visa Workflow Tracking) - deferred to post-MVP
 
 ---
 
-### Additional Upcoming Tasks
+### Current MVP Priorities (Before Finance Dashboard)
+
+**Priority 2: Classes Management** (Est: 3-4 hours)
+- Classes list page with filtering
+- Class detail view
+- Create/edit class forms
+- Class roster management
+- Session scheduling
 
 **Priority 3: Teacher Portal** (Est: 10-12 hours)
 - Teacher dashboard
@@ -262,10 +189,22 @@ phase: Phase 1 - Admin UI/UX
 - Grade submission forms
 
 **Priority 4: Reporting & Analytics** (Est: 6-8 hours)
-- Revenue reports and charts
-- Student enrollment trends
-- Compliance reports
+- Class enrollment reports
+- Teacher workload reports
+- Student progression reports
 - Export to PDF/CSV
+
+---
+
+### 🔮 Deferred to Post-MVP
+
+**Finance Dashboard Enhancements** (Deferred - basic overview page exists)
+- Advanced revenue analytics
+- Cash flow projections
+- Financial forecasting
+- Multi-currency support
+- Payment gateway integration
+- Detailed payment reports beyond basic booking reports
 
 ---
 
@@ -281,12 +220,13 @@ phase: Phase 1 - Admin UI/UX
 - [x] Database triggers verified
 - [x] Test data created and verified
 
-### Milestone 2: Finance Dashboard & Reporting (Jan 21, 2026)
-- [ ] Finance dashboard with revenue charts
-- [ ] Student detail pages with booking history
-- [ ] Booking reports (revenue, agency breakdown)
-- [ ] Payment reports (by method, trends)
-- [ ] Outstanding balances tracking
+### Milestone 2: Classes & Teacher Management (Jan 28, 2026)
+- [ ] Classes list page with filtering
+- [ ] Class detail view with enrollment roster
+- [ ] Create/edit class functionality
+- [ ] Teacher dashboard (my classes, schedule)
+- [ ] Teacher class roster view
+- [ ] Session management
 
 ### Milestone 3: Compliance & Visa Tracking (Jan 28, 2026) - ⏸️ Paused
 - [x] Visa expiry dashboard
@@ -370,4 +310,4 @@ This document is updated:
 
 **Next Review:** 2026-01-21 (Weekly)
 **Owner:** Eoin Malone
-**Last Update:** Completed schema standardization, teachers management page, attendance reports, and enrollment reports (Jan 16, 2026)
+**Last Update:** Reorganized priorities - Finance Dashboard deferred to post-MVP. Focus shifted to Classes Management & Teacher Portal (Jan 16, 2026)
