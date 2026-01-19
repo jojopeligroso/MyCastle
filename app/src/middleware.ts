@@ -2,17 +2,24 @@
  * Next.js Middleware
  * Refreshes Supabase auth sessions on every request
  * Ref: spec/07-authentication.md
+ *
+ * DEVELOPMENT AUTH BYPASS:
+ * When DEV_AUTH_BYPASS=true in development, this middleware injects a fixed
+ * dev user identity while keeping all auth/authz paths intact.
+ * See: lib/auth/dev-bypass-guard.ts
  */
 
 import { type NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { isDevBypassActive, DEV_USER_IDENTITY } from '@/lib/auth/dev-bypass-guard';
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   });
 
-  const supabase = createServerClient(
+  const baseClient = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -32,6 +39,9 @@ export async function middleware(request: NextRequest) {
       },
     }
   );
+
+  // Apply dev bypass if active
+  const supabase = applyDevBypass(baseClient);
 
   // IMPORTANT: Avoid writing any logic between createServerClient and
   // supabase.auth.getUser(). A simple mistake could make it very hard to debug
@@ -62,6 +72,57 @@ export async function middleware(request: NextRequest) {
   // of sync and terminate the user's session prematurely!
 
   return supabaseResponse;
+}
+
+/**
+ * Applies dev auth bypass to Supabase client if active
+ * Centralizes bypass logic for middleware
+ */
+function applyDevBypass(client: SupabaseClient): SupabaseClient {
+  if (!isDevBypassActive()) {
+    return client;
+  }
+
+  // DEVELOPMENT BYPASS: Wrap auth methods to inject dev user
+  const wrappedClient = client as SupabaseClient & {
+    auth: typeof client.auth & {
+      _originalGetUser?: typeof client.auth.getUser;
+      _originalGetSession?: typeof client.auth.getSession;
+    };
+  };
+
+  // Store original methods
+  wrappedClient.auth._originalGetUser = wrappedClient.auth.getUser.bind(wrappedClient.auth);
+  wrappedClient.auth._originalGetSession = wrappedClient.auth.getSession.bind(wrappedClient.auth);
+
+  // Override getUser to return dev identity
+  wrappedClient.auth.getUser = async () => {
+    return {
+      data: {
+        user: DEV_USER_IDENTITY as any,
+      },
+      error: null,
+    };
+  };
+
+  // Override getSession to return dev session
+  wrappedClient.auth.getSession = async () => {
+    return {
+      data: {
+        session: {
+          access_token: 'dev-bypass-token',
+          refresh_token: 'dev-bypass-refresh',
+          expires_in: 3600,
+          expires_at: Math.floor(Date.now() / 1000) + 3600,
+          token_type: 'bearer',
+          user: DEV_USER_IDENTITY as any,
+        },
+      },
+      error: null,
+    };
+  };
+
+  return wrappedClient;
 }
 
 export const config = {

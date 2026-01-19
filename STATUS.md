@@ -1,6 +1,6 @@
 ---
 status: APPROVED
-last_updated: 2026-01-16
+last_updated: 2026-01-19
 next_review: 2026-01-21
 owner: Eoin Malone
 phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
@@ -8,7 +8,7 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-01-16
+**Last Updated:** 2026-01-19
 **Current Phase:** Phase 1 (Admin UI/UX) - 53% Complete
 **Current Sprint:** Week 6 of Phase 1
 **Next Milestone:** Finance & Reporting Complete (ETA: Jan 21, 2026)
@@ -54,6 +54,25 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
   - Days until expiry calculation (350 days for Dessie Garcia)
   - Student table sorted by expiry date
   - Links to student detail pages
+
+### Recent Wins (Jan 19)
+- ✅ **Development auth bypass** implemented:
+  - Bypasses login UX in development only (NODE_ENV=development + DEV_AUTH_BYPASS=true)
+  - Hard crashes if misconfigured in production (mechanical safety enforcement)
+  - Injects admin user (eoinmaleoin@gmail.com) for testing admin interface
+  - All auth/authz paths and RLS policies remain fully active
+  - Zero refactor to disable - just remove env var
+  - Documentation: docs/DEV_AUTH_BYPASS.md
+- ✅ **Database views created** (FRESH_0003 migration):
+  - Created 7 missing views required by admin UI
+  - v_admin_kpis_daily, v_admin_alerts, v_admin_work_queue, v_audit_events_recent
+  - v_users_with_metadata, v_orphaned_auth_users, v_student_duplicate_candidates
+  - Admin dashboard now loads without view-related errors
+  - Stub implementations where underlying tables not yet migrated
+- ✅ **Snake_case naming convention** documented in CLAUDE.md:
+  - Supabase requires snake_case for all database identifiers
+  - TypeScript/Drizzle uses camelCase, maps to snake_case automatically
+  - Clear examples and anti-patterns documented
 
 ### Recent Wins (Jan 16)
 - ✅ **Schema standardization complete** - Converted academic.ts to camelCase TypeScript properties (DB columns remain snake_case per Supabase best practice)
