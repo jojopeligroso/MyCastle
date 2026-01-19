@@ -110,7 +110,42 @@ const data = await db.select().from(table);
 **Why:** Supabase RLS policies enforce data isolation. Without context = empty results or permission denied.
 **Guide:** `/app/docs/RLS-POLICIES.md`
 
-### 5. Testing Requirements
+### 5. Database Naming Convention (CRITICAL!)
+
+**Supabase requires snake_case for ALL database identifiers:**
+
+```sql
+-- ✅ CORRECT - Database uses snake_case
+CREATE TABLE users (
+  first_name VARCHAR(255),
+  created_at TIMESTAMP
+);
+
+CREATE VIEW v_user_summary AS
+  SELECT user_id, total_bookings FROM ...;
+
+-- ❌ WRONG - Never use camelCase in database
+CREATE TABLE users (
+  firstName VARCHAR(255),  -- WRONG!
+  createdAt TIMESTAMP      -- WRONG!
+);
+```
+
+**TypeScript/Drizzle Schema:**
+- Define properties in camelCase in schema files (`src/db/schema/*.ts`)
+- Drizzle automatically maps to snake_case in database
+- Example: `firstName: varchar('first_name')` ✅
+
+**When creating views, migrations, or raw SQL:**
+- ALWAYS use snake_case for column names
+- ALWAYS use snake_case for table names
+- ALWAYS use snake_case for view names
+
+**Convention:**
+- Views: Prefix with `v_` (e.g., `v_admin_kpis_daily`)
+- Functions: Use snake_case (e.g., `set_user_context`)
+
+### 6. Testing Requirements
 
 **Unit Tests (Jest) - 337 test files:**
 ```bash
