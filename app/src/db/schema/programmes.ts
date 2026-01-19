@@ -65,11 +65,12 @@ export const programmes = pgTable(
 );
 
 /**
- * Courses Table
+ * Programme Courses Table
  * Individual courses within programmes (e.g., "General English - B1")
+ * NOTE: Renamed from "courses" to "programme_courses" to avoid conflict with booking catalog courses
  */
-export const courses = pgTable(
-  'courses',
+export const programmeCourses = pgTable(
+  'programme_courses',
   {
     id: uuid('id').primaryKey().defaultRandom(),
     tenant_id: uuid('tenant_id')
@@ -107,12 +108,12 @@ export const courses = pgTable(
     deleted_at: timestamp('deleted_at'), // Soft delete
   },
   table => [
-    uniqueIndex('uk_courses_tenant_code').on(table.tenant_id, table.code),
-    index('idx_courses_tenant').on(table.tenant_id),
-    index('idx_courses_programme').on(table.programme_id),
-    index('idx_courses_cefr').on(table.cefr_level),
-    index('idx_courses_status').on(table.status),
-    index('idx_courses_deleted').on(table.deleted_at),
+    uniqueIndex('uk_programme_courses_tenant_code').on(table.tenant_id, table.code),
+    index('idx_programme_courses_tenant').on(table.tenant_id),
+    index('idx_programme_courses_programme').on(table.programme_id),
+    index('idx_programme_courses_cefr').on(table.cefr_level),
+    index('idx_programme_courses_status').on(table.status),
+    index('idx_programme_courses_deleted').on(table.deleted_at),
   ]
 );
 
@@ -121,5 +122,5 @@ export const courses = pgTable(
  */
 export type Programme = typeof programmes.$inferSelect;
 export type NewProgramme = typeof programmes.$inferInsert;
-export type Course = typeof courses.$inferSelect;
-export type NewCourse = typeof courses.$inferInsert;
+export type ProgrammeCourse = typeof programmeCourses.$inferSelect;
+export type NewProgrammeCourse = typeof programmeCourses.$inferInsert;

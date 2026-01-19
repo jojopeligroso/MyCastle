@@ -20,7 +20,6 @@ import {
   boolean,
 } from 'drizzle-orm/pg-core';
 import { tenants, users } from './core';
-import { courses } from './programmes';
 
 /**
  * Classes Table
