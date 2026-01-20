@@ -1,6 +1,6 @@
 ---
 status: APPROVED
-last_updated: 2026-01-19
+last_updated: 2026-01-20
 next_review: 2026-01-21
 owner: Eoin Malone
 phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
@@ -8,8 +8,8 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-01-19 (End of Day)
-**Current Phase:** Phase 1 (Admin UI/UX) - 62% Complete
+**Last Updated:** 2026-01-20 (End of Day)
+**Current Phase:** Phase 1 (Admin UI/UX) - 63% Complete
 **Current Sprint:** Week 6 of Phase 1
 **Next Milestone:** Classes Management UI & Teacher Portal (ETA: Jan 23, 2026)
 
@@ -117,6 +117,41 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
   - COMPLETED_WORK_SUMMARY.md - Comprehensive summary of all migrations and changes
   - REMAINING_WORK.md - Original requirements (now 90% complete)
 
+### Recent Wins (Jan 20 - Enhanced Attendance System)
+- ✅ **Enhanced attendance recording system** complete:
+  - Minutes tracking: Added `minutes_late` and `minutes_left_early` fields (0-89 range)
+  - New `late_absent` status (>16 min late = absent for attendance %, present for fire safety)
+  - Programme-specific cumulative lateness policies (configurable thresholds)
+  - Weekly reset (Monday-Sunday calendar weeks)
+  - Absence equivalents calculation: FLOOR(cumulative_minutes / threshold_minutes)
+  - Default: 15 minutes = 1 absence equivalent
+  - Excludes late_absent from cumulative (no double-penalization)
+- ✅ **Database migration FRESH_0011** applied:
+  - attendance.minutes_late and minutes_left_early columns
+  - classes.programme_id for policy configuration
+  - Indexes for efficient weekly aggregation (idx_attendance_student_date)
+  - Verified: 5 columns, 2 indexes created successfully
+- ✅ **Core business logic** implemented:
+  - Week boundary calculations (handles year boundaries, leap years, all edge cases)
+  - Cumulative lateness tracking per student per week
+  - Programme-specific policy engine (stored in programmes.metadata JSONB)
+  - Hash-chain updated for tamper detection with minutes fields
+- ✅ **API layer enhanced**:
+  - Bulk attendance API extended with minutes validation
+  - New cumulative endpoint: GET /api/attendance/cumulative
+  - Validation rules: late (1-16 min), late_absent (>16 min), range (0-89)
+- ✅ **Comprehensive testing**:
+  - 22 unit tests written and passing (100% pass rate)
+  - Week boundary edge cases (year transitions, leap years)
+  - Absence equivalent calculations
+  - Real-world scenarios from requirements (5 min late daily = 80% attendance)
+- ✅ **Migration tooling**:
+  - Created run-migration.ts script for executing SQL migrations
+  - Created verify-migration.ts script for verification
+  - Complete technical documentation: ATTENDANCE_ENHANCEMENT_SUMMARY.md
+- ✅ **Backend complete**: Core infrastructure ready for UI implementation
+- 📝 **Next**: Frontend UI (AttendanceRegister component, programme settings page, reports)
+
 ### Recent Wins (Jan 16)
 - ✅ **Schema standardization complete** - Converted academic.ts to camelCase TypeScript properties (DB columns remain snake_case per Supabase best practice)
 - ✅ **Teachers management page** complete:
@@ -143,7 +178,8 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 - ✅ **Visa tracking dashboard** (expiry monitoring) - COMPLETE
 - ✅ **Complete database migrations** (all missing academic tables) - COMPLETE
 - ✅ **Database views enhanced** (with real data from new tables) - COMPLETE
-- 📝 **Next priority:** Run migrations in Supabase, test admin pages, then continue with Classes Management UI
+- ✅ **Enhanced attendance system** (backend complete) - COMPLETE
+- 📝 **Next priority:** Classes Management UI & AttendanceRegister frontend implementation
 
 ### Blockers
 - None - core booking and payment system fully functional
@@ -152,21 +188,21 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 
 ## 📊 Phase 1 Progress Overview
 
-**Overall Progress:** 62% (37 of 60 tasks complete)
+**Overall Progress:** 63% (38 of 60 tasks complete)
 
 | Module | Status | Tasks Complete | Next Task |
 |--------|--------|----------------|-----------|
-| Database Schema | ✅ Complete | 9/9 | All migrations ready (need to run in Supabase) |
+| Database Schema | ✅ Complete | 10/10 | All migrations applied (incl. FRESH_0011) |
 | User Management | ✅ Complete | 4/4 | - |
 | Student Registry | ✅ Complete | 5/5 | - |
 | Bookings Management | ✅ Complete | 6/6 | - |
 | Payment Recording | ✅ Complete | 4/4 | - |
 | Compliance & Visa | ⏸️ Paused | 1/6 | Dashboard complete, alerts shelved (see tidy.md) |
 | Reporting System | 🔄 In Progress | 3/10 | Build class/teacher reports |
-| Teacher Portal | 🔄 In Progress | 1/14 | Create teacher dashboard |
+| Teacher Portal | 🔄 In Progress | 2/14 | Attendance backend done, need UI |
 | Classes Management | 🔄 Ready | 0/8 | Database ready, need UI implementation |
 | Finance Dashboard | 🔮 Post-MVP | 1/8 | Deferred until core MVP complete |
-| **Total** | **62%** | **37/60** | **Ready for Classes Management UI** |
+| **Total** | **63%** | **38/60** | **AttendanceRegister UI & Classes Management** |
 
 ---
 
