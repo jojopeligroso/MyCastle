@@ -17,11 +17,32 @@ import { z } from 'zod';
 const BulkAttendanceSchema = z.object({
   sessionId: z.string().uuid(),
   attendances: z.array(
-    z.object({
-      studentId: z.string().uuid(),
-      status: z.enum(['present', 'absent', 'late', 'excused']),
-      notes: z.string().optional(),
-    })
+    z
+      .object({
+        studentId: z.string().uuid(),
+        status: z.enum(['present', 'absent', 'late', 'excused', 'late_absent']),
+        notes: z.string().optional(),
+        minutesLate: z.number().int().min(0).max(89).optional().default(0),
+        minutesLeftEarly: z.number().int().min(0).max(89).optional().default(0),
+      })
+      .refine(
+        data => {
+          // late_absent requires >16 minutes late
+          if (data.status === 'late_absent') {
+            return (data.minutesLate || 0) > 16;
+          }
+          // late requires 1-16 minutes late
+          if (data.status === 'late') {
+            const late = data.minutesLate || 0;
+            return late > 0 && late <= 16;
+          }
+          return true;
+        },
+        {
+          message:
+            'Status validation failed: late_absent requires >16 min late, late requires 1-16 min late',
+        }
+      )
   ),
 });
 
@@ -137,6 +158,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             recordedBy: user.id,
             recordedAt: now,
             notes: item.notes,
+            minutesLate: item.minutesLate,
+            minutesLeftEarly: item.minutesLeftEarly,
           },
           currentHash
         );
@@ -150,6 +173,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             student_id: item.studentId,
             status: item.status,
             notes: item.notes || null,
+            minutes_late: item.minutesLate || 0,
+            minutes_left_early: item.minutesLeftEarly || 0,
             recorded_by: user.id,
             hash,
             previous_hash: currentHash,
@@ -160,6 +185,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             set: {
               status: item.status,
               notes: item.notes || null,
+              minutes_late: item.minutesLate || 0,
+              minutes_left_early: item.minutesLeftEarly || 0,
               hash,
               edited_by: user.id,
               edited_at: now,
