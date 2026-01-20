@@ -22,6 +22,8 @@ export interface AttendanceHashPayload {
   recordedBy: string;
   recordedAt: Date | string;
   notes?: string;
+  minutesLate?: number;
+  minutesLeftEarly?: number;
 }
 
 /**
@@ -60,6 +62,8 @@ export function computeAttendanceHash(
     recordedAt:
       payload.recordedAt instanceof Date ? payload.recordedAt.toISOString() : payload.recordedAt,
     notes: payload.notes || '',
+    minutesLate: payload.minutesLate ?? 0,
+    minutesLeftEarly: payload.minutesLeftEarly ?? 0,
   };
 
   // Create deterministic string representation
@@ -91,6 +95,8 @@ export function validateAttendanceHash(
     recorded_by: string;
     recorded_at: Date;
     notes?: string | null;
+    minutes_late?: number | null;
+    minutes_left_early?: number | null;
     hash: string | null;
     previous_hash: string | null;
   },
@@ -113,6 +119,8 @@ export function validateAttendanceHash(
     recordedBy: record.recorded_by,
     recordedAt: record.recorded_at,
     notes: record.notes || undefined,
+    minutesLate: record.minutes_late ?? undefined,
+    minutesLeftEarly: record.minutes_left_early ?? undefined,
   };
 
   const computedHash = computeAttendanceHash(payload, previousHash);
@@ -143,6 +151,8 @@ export function validateHashChain(
     recorded_by: string;
     recorded_at: Date;
     notes?: string | null;
+    minutes_late?: number | null;
+    minutes_left_early?: number | null;
     hash: string | null;
     previous_hash: string | null;
   }>

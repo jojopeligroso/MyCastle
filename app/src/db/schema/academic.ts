@@ -20,6 +20,7 @@ import {
   boolean,
 } from 'drizzle-orm/pg-core';
 import { tenants, users } from './core';
+import { programmes } from './programmes';
 
 /**
  * Classes Table
@@ -46,6 +47,9 @@ export const classes = pgTable(
 
     // Teacher assignment
     teacherId: uuid('teacher_id').references(() => users.id),
+
+    // Programme assignment (for programme-specific policies)
+    programmeId: uuid('programme_id').references(() => programmes.id), // Optional link to programmes table
 
     // Schedule
     scheduleDescription: varchar('schedule_description', { length: 500 }), // "Mon/Wed 10:00-11:00"
@@ -220,8 +224,12 @@ export const attendance = pgTable(
       .notNull()
       .references(() => users.id),
 
-    status: varchar('status', { length: 50 }).notNull(), // present, absent, late, excused
+    status: varchar('status', { length: 50 }).notNull(), // present, absent, late, excused, late_absent
     notes: text('notes'),
+
+    // Minutes tracking for late arrivals and early departures
+    minutesLate: integer('minutes_late').default(0), // 0-89 minutes late (max 89, classes are 90 min)
+    minutesLeftEarly: integer('minutes_left_early').default(0), // 0-89 minutes left early
 
     recordedBy: uuid('recorded_by').references(() => users.id), // Teacher/admin who recorded
     recordedAt: timestamp('recorded_at').defaultNow().notNull(),
@@ -243,6 +251,7 @@ export const attendance = pgTable(
     uniqueIndex('idx_attendance_session_student').on(table.classSessionId, table.studentId),
     index('idx_attendance_hash').on(table.hash),
     index('idx_attendance_session_created').on(table.classSessionId, table.createdAt),
+    index('idx_attendance_student_date').on(table.studentId, table.recordedAt), // For weekly cumulative queries
   ]
 );
 
