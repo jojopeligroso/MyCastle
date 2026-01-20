@@ -3,7 +3,7 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 > **Purpose:** Primary instructions for Claude Code working with MyCastle
-> **Last Updated:** 2026-01-14
+> **Last Updated:** 2026-01-19
 > **Keep it under 250 lines** - Use progressive disclosure for details
 
 ---
@@ -16,6 +16,42 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Stack:** Next.js 16 (App Router), Supabase (PostgreSQL + Auth), Drizzle ORM, TypeScript, Playwright
 
 **Key Principle:** Domain-driven design with proper MCP protocol (JSON-RPC 2.0 over stdio)
+
+---
+
+## 🚨 CRITICAL: Repository Structure
+
+**⚠️ IMPORTANT - READ THIS FIRST:**
+
+This repository has a **monorepo-style structure**:
+```
+/home/eoin/Work/MyCastle/          # Root - contains documentation only
+├── CLAUDE.md                       # This file
+├── STATUS.md                       # Project status
+├── REQ.md, DESIGN.md, etc.        # Specification docs
+└── app/                            # ⭐ Next.js application lives HERE
+    ├── package.json                # ⭐ npm commands run from HERE
+    ├── src/                        # Source code
+    ├── migrations/                 # Database migrations
+    └── scripts/                    # Utility scripts
+```
+
+**CRITICAL RULES:**
+1. **ALL npm commands MUST be run from `/home/eoin/Work/MyCastle/app`** (not root!)
+2. **Git commands run from root** (`/home/eoin/Work/MyCastle`)
+3. **When navigating with Bash, ALWAYS `cd ~/Work/MyCastle/app` before running npm**
+
+**Example (CORRECT):**
+```bash
+cd ~/Work/MyCastle/app && npm run dev      # ✅ CORRECT
+cd ~/Work/MyCastle/app && npm run check    # ✅ CORRECT
+```
+
+**Example (WRONG - will fail):**
+```bash
+cd ~/Work/MyCastle && npm run dev          # ❌ WRONG! No package.json here
+npm run dev                                 # ❌ WRONG! Depends on pwd
+```
 
 ---
 
@@ -77,7 +113,8 @@ FRESH_0000_drop_all.sql      # (dev only - drops everything)
 FRESH_0001_core_schema.sql   # Core tables + multi-tenant structure
 FRESH_0002_rls_policies.sql  # Row-Level Security policies
 
-# After migrations:
+# After migrations (run from /app directory):
+cd ~/Work/MyCastle/app
 npm run db:generate     # Regenerate TypeScript types
 npx tsc --noEmit       # Verify no type errors
 npm run dev            # Restart dev server
