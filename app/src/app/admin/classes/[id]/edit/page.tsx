@@ -4,13 +4,18 @@
 
 import { db } from '@/db';
 import { classes, users } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { programmes } from '@/db/schema/programmes';
+import { eq, and, sql } from 'drizzle-orm';
 import { requireAuth, getTenantId } from '@/lib/auth/utils';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { EditClassForm } from '@/components/admin/EditClassForm';
 
 async function getClass(classId: string, tenantId: string) {
+  // Set RLS context
+  await db.execute(sql.raw(`SET app.tenant_id = '${tenantId}'`));
+  await db.execute(sql.raw(`SET app.user_role = 'admin'`));
+
   const result = await db
     .select({
       id: classes.id,
@@ -19,11 +24,18 @@ async function getClass(classId: string, tenantId: string) {
       level: classes.level,
       subject: classes.subject,
       capacity: classes.capacity,
-      teacher_id: classes.teacherId,
-      schedule_description: classes.scheduleDescription,
-      start_date: classes.startDate,
-      end_date: classes.endDate,
+      teacherId: classes.teacherId,
+      programmeId: classes.programmeId,
+      scheduleDescription: classes.scheduleDescription,
+      startTime: classes.startTime,
+      endTime: classes.endTime,
+      breakDurationMinutes: classes.breakDurationMinutes,
+      daysOfWeek: classes.daysOfWeek,
+      startDate: classes.startDate,
+      endDate: classes.endDate,
+      showCapacityPublicly: classes.showCapacityPublicly,
       status: classes.status,
+      enrolledCount: classes.enrolledCount,
     })
     .from(classes)
     .where(and(eq(classes.id, classId), eq(classes.tenantId, tenantId)))
@@ -52,9 +64,24 @@ async function getTeachers(tenantId: string) {
   return teachers;
 }
 
-export default async function EditClassPage({ params }: { params: { id: string } }) {
+async function getProgrammes(tenantId: string) {
+  const programmesList = await db
+    .select({
+      id: programmes.id,
+      name: programmes.name,
+      code: programmes.code,
+    })
+    .from(programmes)
+    .where(eq(programmes.tenant_id, sql`${tenantId}::uuid`))
+    .orderBy(programmes.name);
+
+  return programmesList;
+}
+
+export default async function EditClassPage(props: { params: Promise<{ id: string }> }) {
   await requireAuth();
   const tenantId = await getTenantId();
+  const params = await props.params;
 
   if (!tenantId) {
     notFound();
@@ -67,6 +94,15 @@ export default async function EditClassPage({ params }: { params: { id: string }
   }
 
   const teachers = await getTeachers(tenantId);
+  const programmesList = await getProgrammes(tenantId);
+
+  // Format dates for the form (convert Date objects to strings)
+  const formattedClassData = {
+    ...classData,
+    startDate: classData.startDate?.toString() || '',
+    endDate: classData.endDate?.toString() || null,
+    daysOfWeek: (classData.daysOfWeek as string[]) || [],
+  };
 
   return (
     <div className="max-w-3xl">
@@ -81,7 +117,12 @@ export default async function EditClassPage({ params }: { params: { id: string }
         <p className="mt-2 text-gray-600">Update class details and settings</p>
       </div>
 
-      <EditClassForm classData={classData} teachers={teachers} />
+      <EditClassForm
+        classData={formattedClassData}
+        teachers={teachers}
+        programmes={programmesList}
+        enrolledCount={classData.enrolledCount}
+      />
     </div>
   );
 }
