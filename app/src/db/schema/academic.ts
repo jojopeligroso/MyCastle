@@ -53,8 +53,15 @@ export const classes = pgTable(
 
     // Schedule
     scheduleDescription: varchar('schedule_description', { length: 500 }), // "Mon/Wed 10:00-11:00"
+    startTime: time('start_time'), // Daily start time (e.g., 09:00:00)
+    endTime: time('end_time'), // Daily end time (e.g., 10:30:00)
+    breakDurationMinutes: integer('break_duration_minutes').default(0), // Optional break in minutes
+    daysOfWeek: jsonb('days_of_week').$type<string[]>().default([]), // e.g., ["Monday", "Wednesday", "Friday"]
     startDate: date('start_date').notNull(),
     endDate: date('end_date'),
+
+    // Capacity visibility
+    showCapacityPublicly: boolean('show_capacity_publicly').default(true), // Show capacity on dashboards
 
     // Status
     status: varchar('status', { length: 50 }).notNull().default('active'), // active, completed, cancelled
@@ -65,10 +72,12 @@ export const classes = pgTable(
     deletedAt: timestamp('deleted_at'),
   },
   table => [
+    uniqueIndex('uk_classes_tenant_name').on(table.tenantId, table.name),
     index('idx_classes_tenant').on(table.tenantId),
     index('idx_classes_teacher').on(table.teacherId),
     index('idx_classes_status').on(table.status),
     index('idx_classes_dates').on(table.startDate, table.endDate),
+    index('idx_classes_schedule_times').on(table.startTime, table.endTime),
   ]
 );
 

@@ -13,11 +13,18 @@ interface Teacher {
   email: string;
 }
 
-interface Props {
-  teachers: Teacher[];
+interface Programme {
+  id: string;
+  name: string;
+  code: string;
 }
 
-export function CreateClassForm({ teachers }: Props) {
+interface Props {
+  teachers: Teacher[];
+  programmes: Programme[];
+}
+
+export function CreateClassForm({ teachers, programmes }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -29,9 +36,15 @@ export function CreateClassForm({ teachers }: Props) {
     subject: 'General English',
     capacity: 20,
     teacher_id: '',
+    programme_id: '',
     schedule_description: '',
+    start_time: '',
+    end_time: '',
+    break_duration_minutes: 0,
+    days_of_week: [] as string[],
     start_date: '',
     end_date: '',
+    show_capacity_publicly: true,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -65,12 +78,36 @@ export function CreateClassForm({ teachers }: Props) {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
-    const { name, value } = e.target;
+    const { name, value, type } = e.target;
+
+    if (type === 'checkbox' && name === 'show_capacity_publicly') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: (e.target as HTMLInputElement).checked,
+      }));
+    } else if (name === 'capacity' || name === 'break_duration_minutes') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: parseInt(value) || 0,
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
+  };
+
+  const handleDayChange = (day: string) => {
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'capacity' ? parseInt(value) || 0 : value,
+      days_of_week: prev.days_of_week.includes(day)
+        ? prev.days_of_week.filter(d => d !== day)
+        : [...prev.days_of_week, day],
     }));
   };
+
+  const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   return (
     <form onSubmit={handleSubmit} className="bg-white shadow rounded-lg p-6">
@@ -112,6 +149,29 @@ export function CreateClassForm({ teachers }: Props) {
           className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
         />
         <p className="mt-1 text-sm text-gray-500">Leave empty to auto-generate</p>
+      </div>
+
+      {/* Programme Selection */}
+      <div className="mb-6">
+        <label htmlFor="programme_id" className="block text-sm font-medium text-gray-700 mb-2">
+          Programme *
+        </label>
+        <select
+          id="programme_id"
+          name="programme_id"
+          required
+          value={formData.programme_id}
+          onChange={handleChange}
+          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+        >
+          <option value="">Select a programme</option>
+          {programmes.map(programme => (
+            <option key={programme.id} value={programme.id}>
+              {programme.name} ({programme.code})
+            </option>
+          ))}
+        </select>
+        <p className="mt-1 text-sm text-gray-500">Select the programme this class belongs to</p>
       </div>
 
       {/* Level and Subject */}
@@ -198,6 +258,96 @@ export function CreateClassForm({ teachers }: Props) {
               </option>
             ))}
           </select>
+        </div>
+      </div>
+
+      {/* Capacity Visibility */}
+      <div className="mb-6">
+        <label className="flex items-center">
+          <input
+            type="checkbox"
+            name="show_capacity_publicly"
+            checked={formData.show_capacity_publicly}
+            onChange={handleChange}
+            className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+          />
+          <span className="ml-2 text-sm text-gray-700">Show capacity publicly on dashboards</span>
+        </label>
+        <p className="mt-1 ml-6 text-sm text-gray-500">
+          Uncheck to hide capacity limits from public-facing dashboards
+        </p>
+      </div>
+
+      {/* Days of Week */}
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-gray-700 mb-2">Days of Week *</label>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {daysOfWeek.map(day => (
+            <label key={day} className="flex items-center">
+              <input
+                type="checkbox"
+                checked={formData.days_of_week.includes(day)}
+                onChange={() => handleDayChange(day)}
+                className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+              />
+              <span className="ml-2 text-sm text-gray-700">{day}</span>
+            </label>
+          ))}
+        </div>
+        <p className="mt-1 text-sm text-gray-500">Select the days this class runs</p>
+      </div>
+
+      {/* Start and End Times */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div>
+          <label htmlFor="start_time" className="block text-sm font-medium text-gray-700 mb-2">
+            Start Time *
+          </label>
+          <input
+            type="time"
+            id="start_time"
+            name="start_time"
+            required
+            value={formData.start_time}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="end_time" className="block text-sm font-medium text-gray-700 mb-2">
+            End Time *
+          </label>
+          <input
+            type="time"
+            id="end_time"
+            name="end_time"
+            required
+            value={formData.end_time}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="break_duration_minutes"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Break (minutes)
+          </label>
+          <input
+            type="number"
+            id="break_duration_minutes"
+            name="break_duration_minutes"
+            min="0"
+            max="60"
+            value={formData.break_duration_minutes}
+            onChange={handleChange}
+            placeholder="0"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+          />
+          <p className="mt-1 text-sm text-gray-500">Optional break time</p>
         </div>
       </div>
 

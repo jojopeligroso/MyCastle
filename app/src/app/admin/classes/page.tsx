@@ -12,7 +12,26 @@ import { ClassList } from '@/components/admin/ClassList';
 async function getClasses(tenantId: string) {
   const allClasses = await db
     .select({
-      class: classes,
+      class: {
+        id: classes.id,
+        code: classes.code,
+        name: classes.name,
+        level: classes.level,
+        subject: classes.subject,
+        capacity: classes.capacity,
+        enrolledCount: classes.enrolledCount,
+        status: classes.status,
+        scheduleDescription: classes.scheduleDescription,
+        startTime: classes.startTime,
+        endTime: classes.endTime,
+        breakDurationMinutes: classes.breakDurationMinutes,
+        daysOfWeek: classes.daysOfWeek,
+        startDate: classes.startDate,
+        endDate: classes.endDate,
+        teacherId: classes.teacherId,
+        showCapacityPublicly: classes.showCapacityPublicly,
+        createdAt: classes.createdAt,
+      },
       teacher: users,
       enrollmentCount: count(enrollments.id),
     })
