@@ -8,14 +8,26 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-01-21 (Evening)
-**Current Phase:** Phase 1 (Admin UI/UX) - 65% Complete
+**Last Updated:** 2026-01-21 (Late Evening)
+**Current Phase:** Phase 1 (Admin UI/UX) - 67% Complete
 **Current Sprint:** Week 6 of Phase 1
 **Next Milestone:** Classes Management UI & Teacher Portal (ETA: Jan 23, 2026)
 
 ---
 
 ## 🎯 Quick Summary
+
+### Recent Wins (Jan 21 - Late Evening - Class Detail View)
+- ✅ **Class detail page** complete (Task 1.2.3):
+  - Comprehensive class metadata display (name, code, level, subject, description)
+  - Enhanced schedule information (start/end times, days of week, break duration)
+  - Status badges color-coded (green=active, gray=completed, red=cancelled)
+  - Enrolled students table with links to student profiles
+  - Teacher information with navigation link
+  - Capacity tracking with visual progress bar
+  - Quick actions: Edit class, view attendance register, manage enrollments
+  - RLS context properly configured with sql.raw()
+  - Next.js 15 async params pattern
 
 ### Recent Wins (Jan 21 - Evening - Classes Management UI)
 - ✅ **Classes list page with advanced filtering** complete (Task 1.2.1):
@@ -205,7 +217,7 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 
 ## 📊 Phase 1 Progress Overview
 
-**Overall Progress:** 65% (39 of 60 tasks complete)
+**Overall Progress:** 67% (40 of 60 tasks complete)
 
 | Module | Status | Tasks Complete | Next Task |
 |--------|--------|----------------|-----------|
@@ -217,9 +229,9 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 | Compliance & Visa | ⏸️ Paused | 1/6 | Dashboard complete, alerts shelved (see tidy.md) |
 | Reporting System | 🔄 In Progress | 3/10 | Build class/teacher reports |
 | Teacher Portal | 🔄 In Progress | 2/14 | Attendance backend done, need UI |
-| Classes Management | 🔄 In Progress | 1/8 | Class list with filters ✅, next: detail view |
+| Classes Management | 🔄 In Progress | 2/8 | List ✅, Detail ✅, next: create form |
 | Finance Dashboard | 🔮 Post-MVP | 1/8 | Deferred until core MVP complete |
-| **Total** | **65%** | **39/60** | **Class detail view & AttendanceRegister UI** |
+| **Total** | **67%** | **40/60** | **Class create form & AttendanceRegister UI** |
 
 ---
 
