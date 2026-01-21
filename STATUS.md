@@ -8,7 +8,7 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-01-21 (Mid-Day)
+**Last Updated:** 2026-01-21 (Evening)
 **Current Phase:** Phase 1 (Admin UI/UX) - 65% Complete
 **Current Sprint:** Week 6 of Phase 1
 **Next Milestone:** Classes Management UI & Teacher Portal (ETA: Jan 23, 2026)
@@ -17,7 +17,17 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 
 ## 🎯 Quick Summary
 
-### Recent Wins (Jan 21 - Enhanced Class Scheduling)
+### Recent Wins (Jan 21 - Evening - Classes Management UI)
+- ✅ **Classes list page with advanced filtering** complete (Task 1.2.1):
+  - Server-side filtering: Teacher, CEFR level (A1-C2), status (active/completed/cancelled)
+  - Search functionality: Filter by class name or code
+  - Sorting controls: Sort by name or start date (ascending/descending)
+  - URL search params: Filters persist across page reloads
+  - Loading states: Smooth transitions with visual feedback
+  - Clear filters button: Easy reset of all active filters
+  - Enhanced UX: Improved filter layout with dropdown selects and toggle buttons
+
+### Recent Wins (Jan 21 - Mid-Day - Enhanced Class Scheduling)
 - ✅ **Enhanced class scheduling system** complete:
   - Programme integration: Required programme selection for all classes
   - Separate time fields: start_time and end_time replace schedule_description
@@ -195,7 +205,7 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 
 ## 📊 Phase 1 Progress Overview
 
-**Overall Progress:** 63% (38 of 60 tasks complete)
+**Overall Progress:** 65% (39 of 60 tasks complete)
 
 | Module | Status | Tasks Complete | Next Task |
 |--------|--------|----------------|-----------|
@@ -207,9 +217,9 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 | Compliance & Visa | ⏸️ Paused | 1/6 | Dashboard complete, alerts shelved (see tidy.md) |
 | Reporting System | 🔄 In Progress | 3/10 | Build class/teacher reports |
 | Teacher Portal | 🔄 In Progress | 2/14 | Attendance backend done, need UI |
-| Classes Management | 🔄 Ready | 0/8 | Database ready, need UI implementation |
+| Classes Management | 🔄 In Progress | 1/8 | Class list with filters ✅, next: detail view |
 | Finance Dashboard | 🔮 Post-MVP | 1/8 | Deferred until core MVP complete |
-| **Total** | **63%** | **38/60** | **AttendanceRegister UI & Classes Management** |
+| **Total** | **65%** | **39/60** | **Class detail view & AttendanceRegister UI** |
 
 ---
 
@@ -328,7 +338,7 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 - [x] Test data created and verified
 
 ### Milestone 2: Classes & Teacher Management (Jan 28, 2026)
-- [ ] Classes list page with filtering
+- [x] Classes list page with filtering
 - [ ] Class detail view with enrollment roster
 - [ ] Create/edit class functionality
 - [ ] Teacher dashboard (my classes, schedule)
@@ -349,7 +359,7 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 ## 🎯 Success Metrics
 
 ### Completion Tracking
-- **Tasks Complete:** 32/60 (53%)
+- **Tasks Complete:** 39/60 (65%)
 - **UI Pages:** 12/21 (57%)
   - Students list ✅
   - Student detail ✅

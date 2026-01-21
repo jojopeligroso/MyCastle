@@ -4,12 +4,46 @@
 
 import { db } from '@/db';
 import { classes, users, enrollments } from '@/db/schema';
-import { eq, and, count, desc } from 'drizzle-orm';
+import { eq, and, count, desc, asc, like, or } from 'drizzle-orm';
 import { requireAuth, getTenantId } from '@/lib/auth/utils';
 import Link from 'next/link';
 import { ClassList } from '@/components/admin/ClassList';
 
-async function getClasses(tenantId: string) {
+interface ClassFilters {
+  teacherId?: string;
+  level?: string;
+  status?: string;
+  search?: string;
+  sortBy?: 'name' | 'startDate';
+  sortOrder?: 'asc' | 'desc';
+}
+
+async function getClasses(tenantId: string, filters: ClassFilters = {}) {
+  const { teacherId, level, status, search, sortBy = 'startDate', sortOrder = 'desc' } = filters;
+
+  // Build WHERE conditions
+  const conditions = [eq(classes.tenantId, tenantId)];
+
+  if (teacherId) {
+    conditions.push(eq(classes.teacherId, teacherId));
+  }
+
+  if (level) {
+    conditions.push(eq(classes.level, level));
+  }
+
+  if (status) {
+    conditions.push(eq(classes.status, status));
+  }
+
+  if (search) {
+    conditions.push(or(like(classes.name, `%${search}%`), like(classes.code, `%${search}%`))!);
+  }
+
+  // Build ORDER BY clause
+  const orderByColumn = sortBy === 'name' ? classes.name : classes.startDate;
+  const orderByDirection = sortOrder === 'asc' ? asc : desc;
+
   const allClasses = await db
     .select({
       class: {
@@ -41,9 +75,9 @@ async function getClasses(tenantId: string) {
       enrollments,
       and(eq(enrollments.classId, classes.id), eq(enrollments.status, 'active'))
     )
-    .where(eq(classes.tenantId, tenantId))
+    .where(and(...conditions))
     .groupBy(classes.id, users.id)
-    .orderBy(desc(classes.createdAt));
+    .orderBy(orderByDirection(orderByColumn));
 
   return allClasses;
 }
@@ -64,7 +98,11 @@ async function getTeachers(tenantId: string) {
   return teachers;
 }
 
-export default async function ClassesPage() {
+export default async function ClassesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   await requireAuth();
   const tenantId = await getTenantId();
 
@@ -76,7 +114,19 @@ export default async function ClassesPage() {
     );
   }
 
-  const classData = await getClasses(tenantId);
+  // Parse search params
+  const params = await searchParams;
+  const filters: ClassFilters = {
+    teacherId: typeof params.teacherId === 'string' ? params.teacherId : undefined,
+    level: typeof params.level === 'string' ? params.level : undefined,
+    status: typeof params.status === 'string' ? params.status : undefined,
+    search: typeof params.search === 'string' ? params.search : undefined,
+    sortBy: params.sortBy === 'name' || params.sortBy === 'startDate' ? params.sortBy : 'startDate',
+    sortOrder:
+      params.sortOrder === 'asc' || params.sortOrder === 'desc' ? params.sortOrder : 'desc',
+  };
+
+  const classData = await getClasses(tenantId, filters);
   const teachers = await getTeachers(tenantId);
 
   const stats = {
@@ -126,7 +176,7 @@ export default async function ClassesPage() {
       </div>
 
       {/* Class List */}
-      <ClassList classes={classData} teachers={teachers} />
+      <ClassList classes={classData} teachers={teachers} filters={filters} />
     </div>
   );
 }
