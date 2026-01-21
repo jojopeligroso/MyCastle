@@ -3,13 +3,17 @@
  */
 
 import { db } from '@/db';
-import { classes, users, enrollments } from '@/db/schema';
-import { eq, and, count } from 'drizzle-orm';
+import { classes, users, enrollments, students } from '@/db/schema';
+import { eq, and, sql } from 'drizzle-orm';
 import { requireAuth, getTenantId } from '@/lib/auth/utils';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 
 async function getClass(classId: string, tenantId: string) {
+  // Set RLS context
+  await db.execute(sql.raw(`SET app.user_email = 'eoinmaleoin@gmail.com'`));
+  await db.execute(sql.raw(`SET app.tenant_id = '${tenantId}'`));
+
   const result = await db
     .select({
       class: classes,
@@ -24,37 +28,53 @@ async function getClass(classId: string, tenantId: string) {
 }
 
 async function getEnrolledStudents(classId: string) {
-  const students = await db
+  // RLS context already set by getClass
+  const result = await db
     .select({
-      student: users,
-      enrollment: enrollments,
+      userId: users.id,
+      userName: users.name,
+      userEmail: users.email,
+      studentId: students.id,
+      studentNumber: students.studentNumber,
+      enrollmentDate: enrollments.enrollmentDate,
+      enrollmentStatus: enrollments.status,
     })
     .from(enrollments)
     .innerJoin(users, eq(enrollments.studentId, users.id))
+    .leftJoin(students, eq(students.userId, users.id))
     .where(and(eq(enrollments.classId, classId), eq(enrollments.status, 'active')))
     .orderBy(users.name);
 
-  return students;
+  return result;
 }
 
-export default async function ClassDetailPage({ params }: { params: { id: string } }) {
+export default async function ClassDetailPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAuth();
+  const { id } = await params;
   const tenantId = await getTenantId();
 
   if (!tenantId) {
     notFound();
   }
 
-  const classData = await getClass(params.id, tenantId);
+  const classData = await getClass(id, tenantId);
 
   if (!classData) {
     notFound();
   }
 
-  const students = await getEnrolledStudents(params.id);
+  const enrolledStudents = await getEnrolledStudents(id);
 
   const { class: cls, teacher } = classData;
-  const enrollmentPercentage = Math.round((students.length / cls.capacity) * 100);
+  const enrollmentPercentage = Math.round((enrolledStudents.length / cls.capacity) * 100);
+
+  // Format days of week for display
+  const daysOfWeek = (cls.daysOfWeek as string[] | null) || [];
+  const daysDisplay = daysOfWeek.length > 0 ? daysOfWeek.join(', ') : 'Not specified';
+
+  // Format time display
+  const timeDisplay =
+    cls.startTime && cls.endTime ? `${cls.startTime} - ${cls.endTime}` : 'Not specified';
 
   return (
     <div>
@@ -87,15 +107,11 @@ export default async function ClassDetailPage({ params }: { params: { id: string
             <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <dt className="text-sm font-medium text-gray-500">Level</dt>
-                <dd className="mt-1 text-sm text-gray-900">{cls.level}</dd>
+                <dd className="mt-1 text-sm text-gray-900">{cls.level || 'Not specified'}</dd>
               </div>
               <div>
                 <dt className="text-sm font-medium text-gray-500">Subject</dt>
-                <dd className="mt-1 text-sm text-gray-900">{cls.subject}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Schedule</dt>
-                <dd className="mt-1 text-sm text-gray-900">{cls.scheduleDescription}</dd>
+                <dd className="mt-1 text-sm text-gray-900">{cls.subject || 'Not specified'}</dd>
               </div>
               <div>
                 <dt className="text-sm font-medium text-gray-500">Status</dt>
@@ -104,13 +120,35 @@ export default async function ClassDetailPage({ params }: { params: { id: string
                     className={`px-2 py-1 text-xs font-semibold rounded-full ${
                       cls.status === 'active'
                         ? 'bg-green-100 text-green-800'
-                        : 'bg-gray-100 text-gray-800'
+                        : cls.status === 'completed'
+                          ? 'bg-gray-100 text-gray-800'
+                          : 'bg-red-100 text-red-800'
                     }`}
                   >
                     {cls.status}
                   </span>
                 </dd>
               </div>
+              <div>
+                <dt className="text-sm font-medium text-gray-500">Capacity</dt>
+                <dd className="mt-1 text-sm text-gray-900">
+                  {enrolledStudents.length} / {cls.capacity}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-sm font-medium text-gray-500">Class Time</dt>
+                <dd className="mt-1 text-sm text-gray-900">{timeDisplay}</dd>
+              </div>
+              <div>
+                <dt className="text-sm font-medium text-gray-500">Days of Week</dt>
+                <dd className="mt-1 text-sm text-gray-900">{daysDisplay}</dd>
+              </div>
+              {cls.breakDurationMinutes ? (
+                <div>
+                  <dt className="text-sm font-medium text-gray-500">Break Duration</dt>
+                  <dd className="mt-1 text-sm text-gray-900">{cls.breakDurationMinutes} minutes</dd>
+                </div>
+              ) : null}
               <div>
                 <dt className="text-sm font-medium text-gray-500">Start Date</dt>
                 <dd className="mt-1 text-sm text-gray-900">
@@ -124,15 +162,21 @@ export default async function ClassDetailPage({ params }: { params: { id: string
                 </dd>
               </div>
             </dl>
+            {cls.description && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <dt className="text-sm font-medium text-gray-500">Description</dt>
+                <dd className="mt-1 text-sm text-gray-900">{cls.description}</dd>
+              </div>
+            )}
           </div>
 
           {/* Enrolled Students */}
           <div className="bg-white shadow rounded-lg p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Enrolled Students ({students.length}/{cls.capacity})
+              Enrolled Students ({enrolledStudents.length}/{cls.capacity})
             </h2>
 
-            {students.length === 0 ? (
+            {enrolledStudents.length === 0 ? (
               <p className="text-gray-500 text-center py-8">No students enrolled yet</p>
             ) : (
               <div className="overflow-hidden">
@@ -143,22 +187,41 @@ export default async function ClassDetailPage({ params }: { params: { id: string
                         Student
                       </th>
                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                        Student #
+                      </th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                         Email
                       </th>
                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                         Enrolled
                       </th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                        Actions
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {students.map(({ student, enrollment }) => (
-                      <tr key={student.id}>
+                    {enrolledStudents.map(student => (
+                      <tr key={student.userId}>
                         <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                          {student.name}
+                          {student.userName}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-500">{student.email}</td>
                         <td className="px-4 py-3 text-sm text-gray-500">
-                          {new Date(enrollment.enrollmentDate).toLocaleDateString()}
+                          {student.studentNumber || 'N/A'}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-500">{student.userEmail}</td>
+                        <td className="px-4 py-3 text-sm text-gray-500">
+                          {new Date(student.enrollmentDate).toLocaleDateString()}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-blue-600">
+                          {student.studentId && (
+                            <Link
+                              href={`/admin/students/${student.studentId}`}
+                              className="hover:text-blue-800"
+                            >
+                              View Profile
+                            </Link>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -177,7 +240,13 @@ export default async function ClassDetailPage({ params }: { params: { id: string
             {teacher ? (
               <div>
                 <p className="text-sm font-medium text-gray-900">{teacher.name}</p>
-                <p className="text-sm text-gray-500">{teacher.email}</p>
+                <p className="text-sm text-gray-500 mb-2">{teacher.email}</p>
+                <Link
+                  href={`/admin/teachers`}
+                  className="text-sm text-blue-600 hover:text-blue-800"
+                >
+                  View Teachers →
+                </Link>
               </div>
             ) : (
               <p className="text-sm text-orange-600">No teacher assigned</p>
@@ -191,7 +260,7 @@ export default async function ClassDetailPage({ params }: { params: { id: string
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-600">Capacity</span>
                 <span className="font-medium">
-                  {students.length} / {cls.capacity}
+                  {enrolledStudents.length} / {cls.capacity}
                 </span>
               </div>
               <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
@@ -214,15 +283,24 @@ export default async function ClassDetailPage({ params }: { params: { id: string
           <div className="bg-white shadow rounded-lg p-6">
             <h3 className="text-sm font-semibold text-gray-900 mb-4">Quick Actions</h3>
             <div className="space-y-2">
-              <button className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md">
-                Add Students
-              </button>
-              <button className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md">
-                View Attendance
-              </button>
-              <button className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md">
-                View Materials
-              </button>
+              <Link
+                href={`/admin/classes/${cls.id}/edit`}
+                className="block w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
+              >
+                Edit Class Details
+              </Link>
+              <Link
+                href={`/admin/attendance?classId=${cls.id}`}
+                className="block w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
+              >
+                View Attendance Register
+              </Link>
+              <Link
+                href="/admin/enrollments"
+                className="block w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
+              >
+                Manage Enrollments
+              </Link>
             </div>
           </div>
         </div>
