@@ -8,14 +8,30 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-01-21 (Late Evening)
-**Current Phase:** Phase 1 (Admin UI/UX) - 67% Complete
+**Last Updated:** 2026-01-21 (Night - Edit Class Form)
+**Current Phase:** Phase 1 (Admin UI/UX) - 68% Complete
 **Current Sprint:** Week 6 of Phase 1
 **Next Milestone:** Classes Management UI & Teacher Portal (ETA: Jan 23, 2026)
 
 ---
 
 ## 🎯 Quick Summary
+
+### Recent Wins (Jan 21 - Night - Edit Class Form)
+- ✅ **Edit class form** complete (Task 1.2.4):
+  - EditClassForm component with all FRESH_0012 fields (programme, times, days, breaks)
+  - PUT API endpoint with full validation and audit logging
+  - Capacity validation: prevents reducing below enrolled count (client + server)
+  - Duplicate name prevention (excluding current class)
+  - Audit log tracks all changes (old/new values) for compliance
+  - Form pre-populates with current class data including schedule fields
+  - Programme dropdown with existing programmes
+  - Teacher assignment with active teachers list
+  - Days of week multi-select checkboxes
+  - Time fields with break duration tracking
+  - Status management (active/completed/cancelled)
+  - Next.js 15 async params pattern
+  - Type-safe implementation (no `any` types)
 
 ### Recent Wins (Jan 21 - Late Evening - Class Detail View)
 - ✅ **Class detail page** complete (Task 1.2.3):
@@ -217,11 +233,11 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 
 ## 📊 Phase 1 Progress Overview
 
-**Overall Progress:** 67% (40 of 60 tasks complete)
+**Overall Progress:** 68% (41 of 60 tasks complete)
 
 | Module | Status | Tasks Complete | Next Task |
 |--------|--------|----------------|-----------|
-| Database Schema | ✅ Complete | 10/10 | All migrations applied (incl. FRESH_0011) |
+| Database Schema | ✅ Complete | 10/10 | All migrations applied (incl. FRESH_0012) |
 | User Management | ✅ Complete | 4/4 | - |
 | Student Registry | ✅ Complete | 5/5 | - |
 | Bookings Management | ✅ Complete | 6/6 | - |
@@ -229,9 +245,9 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 | Compliance & Visa | ⏸️ Paused | 1/6 | Dashboard complete, alerts shelved (see tidy.md) |
 | Reporting System | 🔄 In Progress | 3/10 | Build class/teacher reports |
 | Teacher Portal | 🔄 In Progress | 2/14 | Attendance backend done, need UI |
-| Classes Management | 🔄 In Progress | 2/8 | List ✅, Detail ✅, next: create form |
+| Classes Management | 🔄 In Progress | 4/8 | List ✅, Create ✅, Detail ✅, Edit ✅ |
 | Finance Dashboard | 🔮 Post-MVP | 1/8 | Deferred until core MVP complete |
-| **Total** | **67%** | **40/60** | **Class create form & AttendanceRegister UI** |
+| **Total** | **68%** | **41/60** | **Session generation & AttendanceRegister UI** |
 
 ---
 
