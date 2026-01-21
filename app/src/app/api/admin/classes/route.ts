@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { classes } from '@/db/schema';
 import { requireAuth, getTenantId } from '@/lib/auth/utils';
+import { eq, and } from 'drizzle-orm';
 import { z } from 'zod';
 
 const createClassSchema = z.object({
@@ -16,9 +17,15 @@ const createClassSchema = z.object({
   subject: z.string(),
   capacity: z.number().positive(),
   teacher_id: z.string().uuid().optional(),
-  schedule_description: z.string(),
+  programme_id: z.string().uuid(),
+  schedule_description: z.string().optional(),
+  start_time: z.string(),
+  end_time: z.string(),
+  break_duration_minutes: z.number().min(0).max(60).default(0),
+  days_of_week: z.array(z.string()),
   start_date: z.string(),
   end_date: z.string().optional(),
+  show_capacity_publicly: z.boolean().default(true),
 });
 
 export async function POST(request: NextRequest) {
@@ -44,26 +51,48 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validatedData = createClassSchema.parse(body);
 
+    // Check for duplicate class name (unique constraint enforcement)
+    const existingClass = await db
+      .select({ id: classes.id })
+      .from(classes)
+      .where(and(eq(classes.tenantId, tenantId), eq(classes.name, validatedData.name)))
+      .limit(1);
+
+    if (existingClass.length > 0) {
+      return NextResponse.json(
+        {
+          error: `A class with the name "${validatedData.name}" already exists. Please choose a different name.`,
+        },
+        { status: 409 }
+      );
+    }
+
     // Generate class code if not provided
     const classCode =
       validatedData.code || generateClassCode(validatedData.subject, validatedData.level);
 
-    // Create class
+    // Create class with new fields
     const [newClass] = await db
       .insert(classes)
       .values({
-        tenant_id: tenantId,
+        tenantId: tenantId,
         name: validatedData.name,
         code: classCode,
         description: `${validatedData.level} ${validatedData.subject}`,
         level: validatedData.level,
         subject: validatedData.subject,
         capacity: validatedData.capacity,
-        enrolled_count: 0,
-        teacher_id: validatedData.teacher_id || null,
-        schedule_description: validatedData.schedule_description,
-        start_date: validatedData.start_date,
-        end_date: validatedData.end_date || null,
+        enrolledCount: 0,
+        teacherId: validatedData.teacher_id || null,
+        programmeId: validatedData.programme_id,
+        scheduleDescription: validatedData.schedule_description || null,
+        startTime: validatedData.start_time,
+        endTime: validatedData.end_time,
+        breakDurationMinutes: validatedData.break_duration_minutes,
+        daysOfWeek: validatedData.days_of_week,
+        startDate: validatedData.start_date,
+        endDate: validatedData.end_date || null,
+        showCapacityPublicly: validatedData.show_capacity_publicly,
         status: 'active',
       })
       .returning();

@@ -18,9 +18,14 @@ interface ClassData {
     enrolledCount: number;
     status: string;
     scheduleDescription: string | null;
+    startTime: string | null;
+    endTime: string | null;
+    breakDurationMinutes: number | null;
+    daysOfWeek: string[];
     startDate: string;
     endDate: string | null;
     teacherId: string | null;
+    showCapacityPublicly: boolean;
   };
   teacher: {
     id: string;
@@ -179,7 +184,17 @@ export function ClassList({ classes, teachers }: Props) {
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-sm text-gray-900">
-                      {cls.scheduleDescription || 'Not scheduled'}
+                      {cls.daysOfWeek && cls.daysOfWeek.length > 0
+                        ? cls.daysOfWeek.map(d => d.substring(0, 3)).join(', ')
+                        : cls.scheduleDescription || 'Not scheduled'}
+                    </div>
+                    <div className="text-sm font-medium text-gray-700">
+                      {cls.startTime && cls.endTime
+                        ? `${cls.startTime.substring(0, 5)} - ${cls.endTime.substring(0, 5)}`
+                        : 'Times TBD'}
+                      {cls.breakDurationMinutes && cls.breakDurationMinutes > 0
+                        ? ` (${cls.breakDurationMinutes}min break)`
+                        : ''}
                     </div>
                     <div className="text-sm text-gray-500">
                       {new Date(cls.startDate).toLocaleDateString()}
@@ -187,14 +202,23 @@ export function ClassList({ classes, teachers }: Props) {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div
-                      className={`text-sm font-medium ${getCapacityColor(enrollmentCount, cls.capacity)}`}
-                    >
-                      {enrollmentCount} / {cls.capacity}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {Math.round((enrollmentCount / cls.capacity) * 100)}% full
-                    </div>
+                    {cls.showCapacityPublicly ? (
+                      <>
+                        <div
+                          className={`text-sm font-medium ${getCapacityColor(enrollmentCount, cls.capacity)}`}
+                        >
+                          {enrollmentCount} / {cls.capacity}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {Math.round((enrollmentCount / cls.capacity) * 100)}% full
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-sm text-gray-500">
+                        {enrollmentCount} enrolled
+                        <div className="text-xs text-gray-400">(capacity hidden)</div>
+                      </div>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
