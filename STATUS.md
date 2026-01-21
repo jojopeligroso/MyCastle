@@ -1,15 +1,15 @@
 ---
 status: APPROVED
-last_updated: 2026-01-20
-next_review: 2026-01-21
+last_updated: 2026-01-21
+next_review: 2026-01-22
 owner: Eoin Malone
 phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 ---
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-01-20 (End of Day)
-**Current Phase:** Phase 1 (Admin UI/UX) - 63% Complete
+**Last Updated:** 2026-01-21 (Mid-Day)
+**Current Phase:** Phase 1 (Admin UI/UX) - 65% Complete
 **Current Sprint:** Week 6 of Phase 1
 **Next Milestone:** Classes Management UI & Teacher Portal (ETA: Jan 23, 2026)
 
@@ -17,18 +17,25 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 
 ## 🎯 Quick Summary
 
-### Recent Wins (Last 2 Weeks - Jan 1-15)
-- ✅ **Fresh database schema** deployed with FRESH migrations (multi-tenant, RLS, proper relations)
-- ✅ **Students management page** built with multi-table JOINs (students + users tables)
-- ✅ **Bookings management system** complete:
-  - Bookings list page with stats cards and financial tracking
-  - Create booking form with auto-calculations
-  - View booking page with detailed financial breakdown
-  - Payment recording system with database triggers
-- ✅ **Finance dashboard** updated with booking-based schema:
-  - Revenue overview with 4 stats cards (Total Revenue, Total Paid, Outstanding, Overdue)
-  - Monthly revenue trend chart (last 6 months bar chart)
-  - Recent payments table with booking references
+### Recent Wins (Jan 21 - Enhanced Class Scheduling)
+- ✅ **Enhanced class scheduling system** complete:
+  - Programme integration: Required programme selection for all classes
+  - Separate time fields: start_time and end_time replace schedule_description
+  - Break duration tracking: Optional break_duration_minutes field (0-60 range)
+  - Days of week multi-select: Full weekday selection (Monday-Sunday)
+  - Capacity visibility control: show_capacity_publicly toggle for dashboard privacy
+  - Unique name enforcement: Database constraint + API validation prevents duplicates
+  - Seed programmes: GE, IELTS, Conversation, Business English pre-seeded
+- ✅ **Database migration FRESH_0012** applied:
+  - classes.start_time TIME, classes.end_time TIME
+  - classes.break_duration_minutes INTEGER, classes.days_of_week JSONB
+  - classes.show_capacity_publicly BOOLEAN  
+  - UK constraint: classes(tenant_id, name) enforces unique names
+- ✅ **Multi-enrolment support**:
+  - Students can enrol in multiple classes/programmes simultaneously
+  - Example: Student in "GE Morning" can also enrol in "IELTS" or "Conversation"
+  - No conflicts - supports supplementary programmes
+
   - Links to bookings and students
 - ✅ **Test data created** (Dessie Garcia - STU-2026-002, booking BK-2026-880943)
 - ✅ **Database triggers verified** (auto-calculate bookings.total_paid_eur from payments)
