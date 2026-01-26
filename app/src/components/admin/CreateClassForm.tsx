@@ -45,6 +45,7 @@ export function CreateClassForm({ teachers, programmes }: Props) {
     start_date: '',
     end_date: '',
     show_capacity_publicly: true,
+    generate_sessions: true,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -66,7 +67,10 @@ export function CreateClassForm({ teachers, programmes }: Props) {
         throw new Error(data.error || 'Failed to create class');
       }
 
+      const data = await response.json();
+
       // Success - redirect to classes list
+      // If sessions were generated, the redirect will show them
       router.push('/admin/classes');
       router.refresh();
     } catch (err: any) {
@@ -80,7 +84,10 @@ export function CreateClassForm({ teachers, programmes }: Props) {
   ) => {
     const { name, value, type } = e.target;
 
-    if (type === 'checkbox' && name === 'show_capacity_publicly') {
+    if (
+      type === 'checkbox' &&
+      (name === 'show_capacity_publicly' || name === 'generate_sessions')
+    ) {
       setFormData(prev => ({
         ...prev,
         [name]: (e.target as HTMLInputElement).checked,
@@ -403,6 +410,27 @@ export function CreateClassForm({ teachers, programmes }: Props) {
           />
           <p className="mt-1 text-sm text-gray-500">Optional - leave empty for ongoing class</p>
         </div>
+      </div>
+
+      {/* Generate Sessions */}
+      <div className="mb-6">
+        <label className="flex items-center">
+          <input
+            type="checkbox"
+            name="generate_sessions"
+            checked={formData.generate_sessions}
+            onChange={handleChange}
+            className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+          />
+          <span className="ml-2 text-sm font-medium text-gray-700">
+            Automatically generate class sessions
+          </span>
+        </label>
+        <p className="mt-1 ml-6 text-sm text-gray-500">
+          Creates individual session records for each scheduled class meeting based on the days and
+          times above.{' '}
+          {!formData.end_date && 'Sessions will be generated for 12 weeks (default term length).'}
+        </p>
       </div>
 
       {/* Actions */}

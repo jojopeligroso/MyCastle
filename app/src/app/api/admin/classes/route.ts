@@ -6,9 +6,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { classes } from '@/db/schema';
+import { classSessions } from '@/db/schema/academic';
 import { requireAuth, getTenantId } from '@/lib/auth/utils';
 import { eq, and } from 'drizzle-orm';
 import { z } from 'zod';
+import { generateSessions } from '@/lib/utils/generateSessions';
 
 const createClassSchema = z.object({
   name: z.string().min(1),
@@ -26,6 +28,7 @@ const createClassSchema = z.object({
   start_date: z.string(),
   end_date: z.string().optional(),
   show_capacity_publicly: z.boolean().default(true),
+  generate_sessions: z.boolean().default(false),
 });
 
 export async function POST(request: NextRequest) {
@@ -97,9 +100,35 @@ export async function POST(request: NextRequest) {
       })
       .returning();
 
+    // Generate sessions if requested
+    let sessionsCreated = 0;
+    if (validatedData.generate_sessions) {
+      try {
+        const sessions = generateSessions({
+          classId: newClass.id,
+          tenantId: tenantId,
+          startDate: validatedData.start_date,
+          endDate: validatedData.end_date || null,
+          daysOfWeek: validatedData.days_of_week,
+          startTime: validatedData.start_time,
+          endTime: validatedData.end_time,
+        });
+
+        if (sessions.length > 0) {
+          await db.insert(classSessions).values(sessions);
+          sessionsCreated = sessions.length;
+        }
+      } catch (error) {
+        console.error('Error generating sessions:', error);
+        // Don't fail the entire request if session generation fails
+        // The class was created successfully, sessions can be generated manually later
+      }
+    }
+
     return NextResponse.json({
       success: true,
       class: newClass,
+      sessionsCreated,
     });
   } catch (error: any) {
     console.error('Error creating class:', error);

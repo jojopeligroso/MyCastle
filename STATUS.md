@@ -1,21 +1,37 @@
 ---
 status: APPROVED
-last_updated: 2026-01-21
-next_review: 2026-01-22
+last_updated: 2026-01-26
+next_review: 2026-01-27
 owner: Eoin Malone
 phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 ---
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-01-21 (Night - Edit Class Form)
-**Current Phase:** Phase 1 (Admin UI/UX) - 68% Complete
+**Last Updated:** 2026-01-26 (Session Generation Feature)
+**Current Phase:** Phase 1 (Admin UI/UX) - 70% Complete
 **Current Sprint:** Week 6 of Phase 1
-**Next Milestone:** Classes Management UI & Teacher Portal (ETA: Jan 23, 2026)
+**Next Milestone:** Classes Management UI & Teacher Portal (ETA: Jan 28, 2026)
 
 ---
 
 ## 🎯 Quick Summary
+
+### Recent Wins (Jan 26 - Session Generation Feature)
+- ✅ **Automatic session generation** complete (Task 1.2.5):
+  - Session generation utility function (generateSessions.ts)
+  - Date iteration algorithm with configurable days of week (Mon/Wed/Fri patterns)
+  - Handles edge cases: year boundaries, null end dates, timezone issues
+  - Defaults to 12-week term length for ongoing classes
+  - "Generate Sessions" checkbox in CreateClassForm (checked by default)
+  - Wired into POST /api/admin/classes endpoint
+  - Returns sessionsCreated count in API response
+  - Graceful error handling (class creation succeeds even if generation fails)
+  - Comprehensive test suite: 13/13 unit tests passing
+  - Test coverage: MWF schedules, single day, daily, validation, year boundaries
+  - calculateSessionCount() helper for preview functionality
+  - TypeScript-safe with proper NewClassSession types
+  - All quality checks passing (format, tests)
 
 ### Recent Wins (Jan 21 - Night - Edit Class Form)
 - ✅ **Edit class form** complete (Task 1.2.4):
@@ -233,7 +249,7 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 
 ## 📊 Phase 1 Progress Overview
 
-**Overall Progress:** 68% (41 of 60 tasks complete)
+**Overall Progress:** 70% (42 of 60 tasks complete)
 
 | Module | Status | Tasks Complete | Next Task |
 |--------|--------|----------------|-----------|
@@ -245,9 +261,9 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 | Compliance & Visa | ⏸️ Paused | 1/6 | Dashboard complete, alerts shelved (see tidy.md) |
 | Reporting System | 🔄 In Progress | 3/10 | Build class/teacher reports |
 | Teacher Portal | 🔄 In Progress | 2/14 | Attendance backend done, need UI |
-| Classes Management | 🔄 In Progress | 4/8 | List ✅, Create ✅, Detail ✅, Edit ✅ |
+| Classes Management | 🔄 In Progress | 5/8 | List ✅, Create ✅, Detail ✅, Edit ✅, Sessions ✅ |
 | Finance Dashboard | 🔮 Post-MVP | 1/8 | Deferred until core MVP complete |
-| **Total** | **68%** | **41/60** | **Session generation & AttendanceRegister UI** |
+| **Total** | **70%** | **42/60** | **Enrollment UI & AttendanceRegister UI** |
 
 ---
 
