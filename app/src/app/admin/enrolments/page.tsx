@@ -3,14 +3,72 @@
  * MCP Resource: admin://enrolments
  */
 
+import { Suspense } from 'react';
 import { db } from '@/db';
 import { enrollments, classes, users } from '@/db/schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, asc, or, like, sql } from 'drizzle-orm';
 import { requireAuth, getTenantId } from '@/lib/auth/utils';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import { EnrollmentList } from '@/components/admin/EnrollmentList';
 
-async function getEnrolments(tenantId: string) {
+interface EnrollmentFilters {
+  studentId?: string;
+  classId?: string;
+  status?: string;
+  search?: string;
+  sortBy?: 'enrollmentDate' | 'studentName';
+  sortOrder?: 'asc' | 'desc';
+}
+
+async function getEnrolments(tenantId: string, filters: EnrollmentFilters = {}) {
+  const {
+    studentId,
+    classId,
+    status,
+    search,
+    sortBy = 'enrollmentDate',
+    sortOrder = 'desc',
+  } = filters;
+
+  // Set RLS context
+  await db.execute(sql.raw(`SET app.user_email = 'eoinmaleoin@gmail.com'`));
+  await db.execute(sql.raw(`SET app.tenant_id = '${tenantId}'`));
+
+  // Build WHERE conditions
+  const conditions = [eq(enrollments.tenantId, tenantId)];
+
+  if (studentId) {
+    conditions.push(eq(enrollments.studentId, studentId));
+  }
+
+  if (classId) {
+    conditions.push(eq(enrollments.classId, classId));
+  }
+
+  if (status) {
+    conditions.push(eq(enrollments.status, status));
+  }
+
+  if (search) {
+    conditions.push(
+      or(
+        like(users.name, `%${search}%`),
+        like(classes.name, `%${search}%`),
+        like(classes.code, `%${search}%`)
+      )!
+    );
+  }
+
+  // Build ORDER BY
+  let orderByClause;
+  if (sortBy === 'studentName') {
+    orderByClause = sortOrder === 'asc' ? asc(users.name) : desc(users.name);
+  } else {
+    orderByClause =
+      sortOrder === 'asc' ? asc(enrollments.enrollmentDate) : desc(enrollments.enrollmentDate);
+  }
+
   const allEnrolments = await db
     .select({
       enrolment: enrollments,
@@ -29,13 +87,15 @@ async function getEnrolments(tenantId: string) {
     .from(enrollments)
     .leftJoin(users, eq(enrollments.studentId, users.id))
     .leftJoin(classes, eq(enrollments.classId, classes.id))
-    .where(eq(enrollments.tenantId, tenantId))
-    .orderBy(desc(enrollments.enrollmentDate));
+    .where(and(...conditions))
+    .orderBy(orderByClause);
 
   return allEnrolments;
 }
 
 async function getEnrolmentStats(tenantId: string) {
+  await db.execute(sql.raw(`SET app.tenant_id = '${tenantId}'`));
+
   const allEnrolments = await db
     .select()
     .from(enrollments)
@@ -64,7 +124,105 @@ async function getEnrolmentStats(tenantId: string) {
   };
 }
 
-export default async function EnrolmentsPage() {
+async function getStudentsForFilter(tenantId: string) {
+  try {
+    await db.execute(sql.raw(`SET app.tenant_id = '${tenantId}'`));
+
+    const students = await db
+      .select({
+        id: users.id,
+        name: users.name,
+      })
+      .from(users)
+      .where(
+        and(
+          eq(users.tenantId, tenantId),
+          eq(users.primaryRole, 'student'),
+          eq(users.status, 'active')
+        )
+      )
+      .orderBy(users.name);
+
+    return students;
+  } catch (error) {
+    console.error('Failed to fetch students:', error);
+    return [];
+  }
+}
+
+async function getClassesForFilter(tenantId: string) {
+  try {
+    await db.execute(sql.raw(`SET app.tenant_id = '${tenantId}'`));
+
+    const classList = await db
+      .select({
+        id: classes.id,
+        name: classes.name,
+        code: classes.code,
+      })
+      .from(classes)
+      .where(eq(classes.tenantId, tenantId))
+      .orderBy(classes.name);
+
+    return classList;
+  } catch (error) {
+    console.error('Failed to fetch classes:', error);
+    return [];
+  }
+}
+
+function StatCard({
+  label,
+  value,
+  icon,
+  color,
+}: {
+  label: string;
+  value: number | string;
+  icon: string;
+  color: 'blue' | 'green' | 'purple' | 'red';
+}) {
+  const colorClasses = {
+    blue: 'bg-blue-100 text-blue-600',
+    green: 'bg-green-100 text-green-600',
+    purple: 'bg-purple-100 text-purple-600',
+    red: 'bg-red-100 text-red-600',
+  };
+
+  return (
+    <div className="bg-white rounded-lg shadow p-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-gray-600">{label}</p>
+          <p className="mt-2 text-3xl font-bold text-gray-900">{value}</p>
+        </div>
+        <div className={`p-3 rounded-lg ${colorClasses[color]}`}>
+          <span className="text-2xl">{icon}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LoadingSkeleton() {
+  return (
+    <div className="space-y-6 animate-pulse">
+      <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-5">
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="h-32 bg-gray-200 rounded-lg"></div>
+        ))}
+      </div>
+      <div className="h-96 bg-gray-200 rounded-lg"></div>
+    </div>
+  );
+}
+
+export default async function EnrolmentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   await requireAuth();
   const tenantId = await getTenantId();
 
@@ -72,163 +230,77 @@ export default async function EnrolmentsPage() {
     notFound();
   }
 
-  const enrolments = await getEnrolments(tenantId);
+  // Parse search params
+  const params = await searchParams;
+  const filters: EnrollmentFilters = {
+    studentId: typeof params.studentId === 'string' ? params.studentId : undefined,
+    classId: typeof params.classId === 'string' ? params.classId : undefined,
+    status: typeof params.status === 'string' ? params.status : undefined,
+    search: typeof params.search === 'string' ? params.search : undefined,
+    sortBy:
+      params.sortBy === 'studentName' || params.sortBy === 'enrollmentDate'
+        ? params.sortBy
+        : 'enrollmentDate',
+    sortOrder:
+      params.sortOrder === 'asc' || params.sortOrder === 'desc' ? params.sortOrder : 'desc',
+  };
+
+  const enrolments = await getEnrolments(tenantId, filters);
   const stats = await getEnrolmentStats(tenantId);
+  const students = await getStudentsForFilter(tenantId);
+  const classList = await getClassesForFilter(tenantId);
 
   return (
-    <div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Enrolments</h1>
-          <p className="mt-2 text-gray-600">Track student enrolments and progression</p>
+          <h1 className="text-3xl font-bold text-gray-900">Enrollment Management</h1>
+          <p className="mt-2 text-gray-600">Track student enrollments and progression</p>
         </div>
-        <div className="flex space-x-3">
-          <Link
-            href="/admin/enrolments/enroll"
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
-          >
-            Enroll Student
-          </Link>
-          <Link
-            href="/admin/classes"
-            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-          >
-            View Classes
-          </Link>
-        </div>
+        <Link
+          href="/admin/enrolments/enroll"
+          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+        >
+          <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+            />
+          </svg>
+          Enroll Student
+        </Link>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="text-sm font-medium text-gray-500">Total Enrolments</div>
-          <div className="mt-2 text-3xl font-bold text-gray-900">{stats.totalEnrolments}</div>
-        </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="text-sm font-medium text-gray-500">Active</div>
-          <div className="mt-2 text-3xl font-bold text-green-600">{stats.activeEnrolments}</div>
-        </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="text-sm font-medium text-gray-500">Completed</div>
-          <div className="mt-2 text-3xl font-bold text-blue-600">{stats.completedEnrolments}</div>
-        </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="text-sm font-medium text-gray-500">Dropped</div>
-          <div className="mt-2 text-3xl font-bold text-red-600">{stats.droppedEnrolments}</div>
-        </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="text-sm font-medium text-gray-500">Avg Attendance</div>
-          <div className="mt-2 text-3xl font-bold text-purple-600">{stats.avgAttendance}%</div>
-        </div>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-5 mb-8">
+        <StatCard label="Total Enrolments" value={stats.totalEnrolments} icon="📋" color="blue" />
+        <StatCard label="Active" value={stats.activeEnrolments} icon="✅" color="green" />
+        <StatCard label="Completed" value={stats.completedEnrolments} icon="🎓" color="purple" />
+        <StatCard label="Dropped" value={stats.droppedEnrolments} icon="⚠️" color="red" />
+        <StatCard
+          label="Avg Attendance"
+          value={`${stats.avgAttendance}%`}
+          icon="📊"
+          color="purple"
+        />
       </div>
 
-      {/* Enrolments Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Student
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Class
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Level
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Enrolment Date
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Attendance
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {enrolments.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
-                  No enrolments found. Students can be enrolled from the class pages.
-                </td>
-              </tr>
-            ) : (
-              enrolments.map(({ enrolment, student, class: classInfo }) => (
-                <tr key={enrolment.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {student?.name || 'Unknown'}
-                        </div>
-                        <div className="text-sm text-gray-500">{student?.email || ''}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{classInfo?.name || 'N/A'}</div>
-                    <div className="text-sm text-gray-500">{classInfo?.code || ''}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                      {classInfo?.level || 'N/A'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(enrolment.enrollmentDate).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {enrolment.attendanceRate
-                        ? `${parseFloat(enrolment.attendanceRate).toFixed(1)}%`
-                        : 'N/A'}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        enrolment.status === 'active'
-                          ? 'bg-green-100 text-green-800'
-                          : enrolment.status === 'completed'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-gray-100 text-gray-800'
-                      }`}
-                    >
-                      {enrolment.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <Link
-                      href={`/admin/enrolments/${enrolment.id}`}
-                      className="text-blue-600 hover:text-blue-900 mr-4 font-semibold"
-                    >
-                      View Details
-                    </Link>
-                    <Link
-                      href={`/admin/students/${student?.id}`}
-                      className="text-purple-600 hover:text-purple-900 mr-4"
-                    >
-                      View Student
-                    </Link>
-                    <Link
-                      href={`/admin/classes/${classInfo?.id}`}
-                      className="text-purple-600 hover:text-purple-900"
-                    >
-                      View Class
-                    </Link>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      {/* Enrollment List */}
+      <Suspense fallback={<LoadingSkeleton />}>
+        <EnrollmentList
+          enrollments={enrolments}
+          students={students}
+          classes={classList}
+          filters={filters}
+        />
+      </Suspense>
     </div>
   );
 }
+
+// Make this page dynamic to ensure fresh data
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
