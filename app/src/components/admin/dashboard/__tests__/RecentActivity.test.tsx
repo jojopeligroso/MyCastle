@@ -89,6 +89,6 @@ describe('RecentActivity', () => {
     render(<RecentActivity events={mockEvents} />);
 
     // Timestamps should be formatted as locale strings
-    expect(screen.getByText(/12\/17\/2025/)).toBeInTheDocument();
+    expect(screen.getAllByText(/12\/17\/2025/).length).toBeGreaterThan(0);
   });
 });

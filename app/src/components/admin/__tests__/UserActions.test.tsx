@@ -59,7 +59,10 @@ describe('UserActions', () => {
 
     fireEvent.click(screen.getByText('Change Role'));
 
-    const submitButton = screen.getByText('Change Role', { selector: 'button' });
+    const submitButton = screen.getAllByRole('button', { name: 'Change Role' }).pop();
+    if (!submitButton) {
+      throw new Error('Change Role submit button not found');
+    }
     fireEvent.click(submitButton);
 
     expect(global.alert).toHaveBeenCalledWith('Please provide a reason for the role change');
