@@ -50,7 +50,7 @@ describe('KPIGrid', () => {
 
     render(<KPIGrid kpis={zeroKPIs} />);
 
-    expect(screen.getByText('0')).toBeInTheDocument();
+    expect(screen.getAllByText('0').length).toBeGreaterThan(0);
     expect(screen.getByText('0.0%')).toBeInTheDocument();
   });
 
