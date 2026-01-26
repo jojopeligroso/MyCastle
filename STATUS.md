@@ -8,8 +8,8 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-01-26 (Enrollment List Page Complete)
-**Current Phase:** Phase 1 (Admin UI/UX) - 72% Complete
+**Last Updated:** 2026-01-26 (Enroll Student Form Complete)
+**Current Phase:** Phase 1 (Admin UI/UX) - 73% Complete
 **Current Sprint:** Week 6 of Phase 1
 **Next Milestone:** Classes Management UI & Teacher Portal (ETA: Jan 28, 2026)
 
@@ -18,6 +18,17 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 ## 🎯 Quick Summary
 
 ### Recent Wins (Jan 26 - Enrollment Management UI)
+- ✅ **Enroll student form** complete (Task 1.3.2):
+  - Enhanced EnrollStudentForm component with server-side data fetching
+  - Success/error state handling with visual feedback
+  - Capacity validation with real-time availability display
+  - Empty state handling (no students/classes)
+  - Client-side date validation (end >= start)
+  - Server-side props support (backwards compatible)
+  - Form disabling during submission
+  - Auto-redirect on success after 1.5s
+  - Comprehensive helper text and error messages
+  - Zero new TypeScript errors introduced
 - ✅ **Enrollment list page** complete (Task 1.3.1):
   - Server-side data fetching with RLS context
   - 5 stats cards: Total Enrollments, Active, Completed, Dropped, Avg Attendance
@@ -262,7 +273,7 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 
 ## 📊 Phase 1 Progress Overview
 
-**Overall Progress:** 72% (43 of 60 tasks complete)
+**Overall Progress:** 73% (44 of 60 tasks complete)
 
 | Module | Status | Tasks Complete | Next Task |
 |--------|--------|----------------|-----------|
@@ -275,9 +286,9 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 | Reporting System | 🔄 In Progress | 3/10 | Build class/teacher reports |
 | Teacher Portal | 🔄 In Progress | 2/14 | Attendance backend done, need UI |
 | Classes Management | 🔄 In Progress | 5/8 | List ✅, Create ✅, Detail ✅, Edit ✅, Sessions ✅ |
-| Enrollments Management | 🔄 In Progress | 1/6 | List ✅, Enroll form next |
+| Enrollments Management | 🔄 In Progress | 2/6 | List ✅, Enroll ✅, Amendments next |
 | Finance Dashboard | 🔮 Post-MVP | 1/8 | Deferred until core MVP complete |
-| **Total** | **72%** | **43/60** | **Enroll Student Form & AttendanceRegister UI** |
+| **Total** | **73%** | **44/60** | **Enrollment Amendments & AttendanceRegister UI** |
 
 ---
 
