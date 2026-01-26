@@ -13,7 +13,11 @@ export * from './business';
 // Academic schema (uncommented - classes, enrollments, attendance are actively used)
 export * from './academic';
 
+// System schema (audit logs, invoices, exports)
+export * from './system';
+
+// Programmes schema
+export * from './programmes';
+
 // Old schemas - commenting out until updated to match new database
 // export * from './curriculum';
-// export * from './system';
-// export * from './programmes';
