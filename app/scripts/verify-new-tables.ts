@@ -14,7 +14,26 @@ const sql = postgres(process.env.DATABASE_URL!, { max: 1 });
 
   console.log(`\n📊 Database Tables (${tables.length} total):\n`);
 
-  const newTables = ['classes', 'enrollments', 'enrollment_amendments', 'class_sessions', 'attendance', 'assignments', 'submissions', 'grades', 'audit_logs', 'invoices', 'conversations', 'exports', 'cefr_descriptors', 'lesson_plans', 'materials', 'lesson_plan_materials', 'programmes', 'programme_courses'];
+  const newTables = [
+    'classes',
+    'enrollments',
+    'enrollment_amendments',
+    'class_sessions',
+    'attendance',
+    'assignments',
+    'submissions',
+    'grades',
+    'audit_logs',
+    'invoices',
+    'conversations',
+    'exports',
+    'cefr_descriptors',
+    'lesson_plans',
+    'materials',
+    'lesson_plan_materials',
+    'programmes',
+    'programme_courses',
+  ];
 
   newTables.forEach((table: string) => {
     const exists = tables.find((t: any) => t.tablename === table);

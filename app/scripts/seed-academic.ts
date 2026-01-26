@@ -293,8 +293,8 @@ async function seed() {
         const rand = Math.random();
         let status = 'present';
         if (rand > 0.95) status = 'excused';
-        else if (rand > 0.90) status = 'late';
-        else if (rand > 0.80) status = 'absent';
+        else if (rand > 0.9) status = 'late';
+        else if (rand > 0.8) status = 'absent';
 
         await sql`
           INSERT INTO attendance (
@@ -378,7 +378,6 @@ async function seed() {
     console.log(`- ${students.length} students enrolled`);
     console.log(`- ${completedSessions.length} sessions with attendance`);
     console.log('- 4 assignments created\n');
-
   } catch (error) {
     console.error('❌ Seed failed:', error);
     throw error;
