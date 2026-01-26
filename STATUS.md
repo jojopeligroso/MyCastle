@@ -8,14 +8,26 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-01-26 (Enroll Student Form Complete)
-**Current Phase:** Phase 1 (Admin UI/UX) - 73% Complete
+**Last Updated:** 2026-01-26 (Enrollment Amendments Complete)
+**Current Phase:** Phase 1 (Admin UI/UX) - 75% Complete
 **Current Sprint:** Week 6 of Phase 1
 **Next Milestone:** Classes Management UI & Teacher Portal (ETA: Jan 28, 2026)
 
 ---
 
 ## 🎯 Quick Summary
+
+### Recent Wins (Jan 26 - Enrollment Amendments Complete)
+- ✅ **Enrollment amendments system** complete (Task 1.3.3):
+  - API endpoint for creating amendments (POST /api/admin/enrollments/[id])
+  - Zod schema validation (EXTENSION, REDUCTION, LEVEL_CHANGE, TRANSFER)
+  - Automatic enrollment end_date updates on EXTENSION/REDUCTION
+  - Tab-based amendment form UI with three tabs
+  - Client-side validation (dates, level selection)
+  - Amendment history table in detail view
+  - Audit log entries for compliance tracking
+  - Full integration with enrollment detail page
+  - Action buttons for extend, reduce, and change level
 
 ### Recent Wins (Jan 26 - Enrollment Management UI)
 - ✅ **Enroll student form** complete (Task 1.3.2):
@@ -273,7 +285,7 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 
 ## 📊 Phase 1 Progress Overview
 
-**Overall Progress:** 73% (44 of 60 tasks complete)
+**Overall Progress:** 75% (45 of 60 tasks complete)
 
 | Module | Status | Tasks Complete | Next Task |
 |--------|--------|----------------|-----------|
@@ -286,9 +298,9 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 | Reporting System | 🔄 In Progress | 3/10 | Build class/teacher reports |
 | Teacher Portal | 🔄 In Progress | 2/14 | Attendance backend done, need UI |
 | Classes Management | 🔄 In Progress | 5/8 | List ✅, Create ✅, Detail ✅, Edit ✅, Sessions ✅ |
-| Enrollments Management | 🔄 In Progress | 2/6 | List ✅, Enroll ✅, Amendments next |
+| Enrollments Management | 🔄 In Progress | 3/6 | List ✅, Enroll ✅, Amendments ✅, Transfer next |
 | Finance Dashboard | 🔮 Post-MVP | 1/8 | Deferred until core MVP complete |
-| **Total** | **73%** | **44/60** | **Enrollment Amendments & AttendanceRegister UI** |
+| **Total** | **75%** | **45/60** | **Enrollment Transfer & AttendanceRegister UI** |
 
 ---
 

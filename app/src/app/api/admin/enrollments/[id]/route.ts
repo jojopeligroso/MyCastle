@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { enrollments, enrollmentAmendments, classes } from '@/db/schema';
+import { enrollments, enrollmentAmendments, classes, auditLogs } from '@/db/schema';
 import { eq, and, isNull, sql } from 'drizzle-orm';
-import { requireAuth } from '@/lib/auth/utils';
+import { requireAuth, getTenantId } from '@/lib/auth/utils';
 import { z } from 'zod';
 
 const updateEnrollmentSchema = z.object({
@@ -91,9 +91,14 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 // Amendment creation endpoint
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    await requireAuth(['admin']);
+    const user = await requireAuth();
+    const tenantId = await getTenantId();
     const enrollmentId = params.id;
     const body = await request.json();
+
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Tenant not found' }, { status: 400 });
+    }
 
     const validationResult = createAmendmentSchema.safeParse(body);
     if (!validationResult.success) {
@@ -150,6 +155,22 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         })
         .where(eq(enrollments.id, enrollmentId));
     }
+
+    // Create audit log entry
+    await db.insert(auditLogs).values({
+      tenantId: tenantId,
+      userId: user.id,
+      action: 'enrollment_amended',
+      resourceType: 'enrollment',
+      resourceId: enrollmentId,
+      metadata: {
+        amendmentId: newAmendment.id,
+        amendmentType: data.amendment_type,
+        previousValue: data.previous_value,
+        newValue: data.new_value,
+        reason: data.reason,
+      },
+    });
 
     return NextResponse.json(newAmendment, { status: 201 });
   } catch (error) {
