@@ -6,7 +6,7 @@ import { requireAuth } from '@/lib/auth/utils';
 
 export async function GET(request: NextRequest) {
   try {
-    await requireAuth(['admin']);
+    await requireAuth();
 
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q');
@@ -29,15 +29,13 @@ export async function GET(request: NextRequest) {
         id: users.id,
         name: users.name,
         email: users.email,
-        role: users.role,
-        current_level: users.current_level,
         status: users.status,
       })
       .from(users)
       .where(
         and(
-          eq(users.role, 'student'),
-          isNull(users.deleted_at),
+          eq(users.primaryRole, 'student'),
+          isNull(users.deletedAt),
           or(ilike(users.name, searchPattern), ilike(users.email, searchPattern))
         )
       )
@@ -49,14 +47,13 @@ export async function GET(request: NextRequest) {
         id: users.id,
         name: users.name,
         email: users.email,
-        role: users.role,
         status: users.status,
       })
       .from(users)
       .where(
         and(
-          eq(users.role, 'teacher'),
-          isNull(users.deleted_at),
+          eq(users.primaryRole, 'teacher'),
+          isNull(users.deletedAt),
           or(ilike(users.name, searchPattern), ilike(users.email, searchPattern))
         )
       )
@@ -70,12 +67,11 @@ export async function GET(request: NextRequest) {
         code: classes.code,
         level: classes.level,
         status: classes.status,
-        teacher_id: classes.teacher_id,
       })
       .from(classes)
       .where(
         and(
-          isNull(classes.deleted_at),
+          isNull(classes.deletedAt),
           or(ilike(classes.name, searchPattern), ilike(classes.code, searchPattern))
         )
       )
