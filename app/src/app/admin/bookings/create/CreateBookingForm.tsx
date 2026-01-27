@@ -135,7 +135,7 @@ export function CreateBookingForm({
       } else {
         setError(result.error || 'Failed to create booking');
       }
-    } catch (err) {
+    } catch (_err) {
       setError('An unexpected error occurred');
     } finally {
       setIsSubmitting(false);

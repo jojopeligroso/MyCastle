@@ -53,12 +53,18 @@ export default async function CoursesPage() {
                 <li>id (uuid, primary key)</li>
                 <li>tenant_id (uuid, references tenants)</li>
                 <li>programme_id (uuid, references programmes)</li>
-                <li>name (varchar) - e.g., "Elementary English"</li>
-                <li>code (varchar) - e.g., "GE-A1"</li>
-                <li>cefr_level (varchar) - CEFR level ["A1", "A2", "B1", "B2", "C1", "C2"]</li>
+                <li>name (varchar) - e.g., &quot;Elementary English&quot;</li>
+                <li>code (varchar) - e.g., &quot;GE-A1&quot;</li>
+                <li>
+                  cefr_level (varchar) - CEFR level [&quot;A1&quot;, &quot;A2&quot;, &quot;B1&quot;,
+                  &quot;B2&quot;, &quot;C1&quot;, &quot;C2&quot;]
+                </li>
                 <li>syllabus_url (text) - Link to curriculum document</li>
                 <li>hours_per_week (integer) - Default teaching hours</li>
-                <li>status (varchar) - e.g., "draft", "active", "archived"</li>
+                <li>
+                  status (varchar) - e.g., &quot;draft&quot;, &quot;active&quot;,
+                  &quot;archived&quot;
+                </li>
                 <li>created_at, updated_at (timestamp)</li>
               </ul>
               <p className="mt-3">

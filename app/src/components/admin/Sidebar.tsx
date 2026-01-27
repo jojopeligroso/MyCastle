@@ -7,13 +7,13 @@ import { useState, ComponentType } from 'react';
 type NavItem = {
   name: string;
   href: string;
-  icon?: ComponentType<any>;
+  icon?: ComponentType<unknown>;
 };
 
 type NavGroup = {
   name: string;
   items: NavItem[];
-  icon?: ComponentType<any>;
+  icon?: ComponentType<unknown>;
 };
 
 const navigation: (NavItem | NavGroup)[] = [
@@ -161,7 +161,7 @@ function NavGroup({ group, pathname }: { group: NavGroup; pathname: string }) {
 }
 
 // Icons
-function HomeIcon(props: any) {
+function HomeIcon(props: unknown) {
   return (
     <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path
@@ -173,7 +173,7 @@ function HomeIcon(props: any) {
     </svg>
   );
 }
-function UsersIcon(props: any) {
+function UsersIcon(props: unknown) {
   return (
     <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path
@@ -185,7 +185,7 @@ function UsersIcon(props: any) {
     </svg>
   );
 }
-function AcademicCapIcon(props: any) {
+function AcademicCapIcon(props: unknown) {
   return (
     <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path
@@ -209,7 +209,7 @@ function AcademicCapIcon(props: any) {
     </svg>
   );
 }
-function ClipboardCheckIcon(props: any) {
+function ClipboardCheckIcon(props: unknown) {
   return (
     <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path
@@ -221,7 +221,7 @@ function ClipboardCheckIcon(props: any) {
     </svg>
   );
 }
-function CogIcon(props: any) {
+function CogIcon(props: unknown) {
   return (
     <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path
@@ -239,7 +239,7 @@ function CogIcon(props: any) {
     </svg>
   );
 }
-function QuestionMarkCircleIcon(props: any) {
+function QuestionMarkCircleIcon(props: unknown) {
   return (
     <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path

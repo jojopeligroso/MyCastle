@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Test Student Server Actions
  * Validates that all student CRUD operations work correctly

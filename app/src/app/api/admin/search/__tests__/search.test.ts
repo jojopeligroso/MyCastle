@@ -444,7 +444,7 @@ describe('Global Search API', () => {
 
       // Student results should only include users with role='student'
       if (data.students && data.students.length > 0) {
-        data.students.forEach((student: any) => {
+        data.students.forEach((student: unknown) => {
           expect(student.role).toBe('student');
         });
       }
@@ -458,7 +458,7 @@ describe('Global Search API', () => {
 
       // Teacher results should only include users with role='teacher'
       if (data.teachers && data.teachers.length > 0) {
-        data.teachers.forEach((teacher: any) => {
+        data.teachers.forEach((teacher: unknown) => {
           expect(teacher.role).toBe('teacher');
         });
       }

@@ -39,8 +39,8 @@ async function logFinanceAudit(params: {
   action: string;
   resourceType: string;
   resourceId?: string;
-  changes?: any;
-  metadata?: any;
+  changes?: unknown;
+  metadata?: unknown;
 }) {
   await db.insert(auditLogs).values({
     tenant_id: params.tenantId,
@@ -66,7 +66,7 @@ function generateInvoiceNumber(tenantId: string): string {
 /**
  * Helper: Calculate invoice status
  */
-function calculateInvoiceStatus(invoice: any): string {
+function calculateInvoiceStatus(invoice: unknown): string {
   const now = new Date();
   const dueDate = new Date(invoice.due_date);
 
@@ -120,7 +120,7 @@ const createBookingTool: MCPTool = {
       line_items,
       due_date,
       auto_confirm_enrollment,
-    } = input as any;
+    } = input as Record<string, unknown>;
 
     // Verify student exists
     const [student] = await db
@@ -261,7 +261,10 @@ const editBookingTool: MCPTool = {
     reason: z.string().describe('Reason for modification (required for audit)'),
   }),
   handler: async (input, session) => {
-    const { invoice_id, amount, due_date, description, line_items, reason } = input as any;
+    const { invoice_id, amount, due_date, description, line_items, reason } = input as Record<
+      string,
+      unknown
+    >;
 
     // Get existing invoice
     const [invoice] = await db
@@ -283,7 +286,7 @@ const editBookingTool: MCPTool = {
     }
 
     // Build update object
-    const updates: any = {
+    const updates: unknown = {
       updated_at: new Date(),
     };
 
@@ -373,7 +376,7 @@ const issueInvoiceTool: MCPTool = {
       issue_date,
       due_date,
       send_email,
-    } = input as any;
+    } = input as Record<string, unknown>;
 
     // Verify student exists
     const [student] = await db
@@ -448,7 +451,7 @@ const applyDiscountTool: MCPTool = {
     reason: z.string().describe('Reason for discount (required for audit)'),
   }),
   handler: async (input, session) => {
-    const { invoice_id, discount_type, discount_value, reason } = input as any;
+    const { invoice_id, discount_type, discount_value, reason } = input as Record<string, unknown>;
 
     // Get invoice
     const [invoice] = await db
@@ -536,7 +539,7 @@ const refundPaymentTool: MCPTool = {
     refund_method: z.enum(['original_method', 'bank_transfer', 'cash']).default('original_method'),
   }),
   handler: async (input, session) => {
-    const { payment_id, refund_amount, reason, refund_method } = input as any;
+    const { payment_id, refund_amount, reason, refund_method } = input as Record<string, unknown>;
 
     // Get payment
     const [payment] = await db
@@ -627,7 +630,7 @@ const reconcilePayoutsTool: MCPTool = {
     payment_method: z.enum(['stripe', 'cash', 'bank_transfer', 'all']).default('all'),
   }),
   handler: async (input, session) => {
-    const { start_date, end_date, payment_method } = input as any;
+    const { start_date, end_date, payment_method } = input as Record<string, unknown>;
 
     // Build query conditions
     const conditions = [
@@ -648,7 +651,7 @@ const reconcilePayoutsTool: MCPTool = {
       .orderBy(payments.payment_date);
 
     // Calculate totals
-    const totalAmount = paymentRecords.reduce((sum, p) => sum + parseFloat(p.amount), 0);
+    const _totalAmount = paymentRecords.reduce((sum, p) => sum + parseFloat(p.amount), 0);
     const byMethod: Record<string, number> = {};
     const byCurrency: Record<string, number> = {};
 
@@ -698,7 +701,7 @@ const ledgerExportTool: MCPTool = {
     include_refunds: z.boolean().default(true),
   }),
   handler: async (input, session) => {
-    const { start_date, end_date, format, include_refunds } = input as any;
+    const { start_date, end_date, format, include_refunds } = input as Record<string, unknown>;
 
     // Query all financial transactions
     const transactions = await db
@@ -756,7 +759,7 @@ const agingReportTool: MCPTool = {
     as_of_date: z.string().optional().describe('Report as of date (defaults to today)'),
   }),
   handler: async (input, session) => {
-    const { as_of_date } = input as any;
+    const { as_of_date } = input as Record<string, unknown>;
     const reportDate = new Date(as_of_date || Date.now());
 
     // Query unpaid invoices
@@ -771,11 +774,11 @@ const agingReportTool: MCPTool = {
 
     // Categorize by age
     const aging = {
-      current: [] as any[],
-      days_30: [] as any[],
-      days_60: [] as any[],
-      days_90: [] as any[],
-      days_90_plus: [] as any[],
+      current: [] as unknown[],
+      days_30: [] as unknown[],
+      days_60: [] as unknown[],
+      days_90: [] as unknown[],
+      days_90_plus: [] as unknown[],
     };
 
     unpaidInvoices.forEach(({ invoice, student }) => {
@@ -800,7 +803,7 @@ const agingReportTool: MCPTool = {
     });
 
     // Calculate totals
-    const calculateTotal = (items: any[]) =>
+    const calculateTotal = (items: unknown[]) =>
       items.reduce((sum, item) => sum + parseFloat(item.invoice.amount), 0);
 
     let response = `Accounts Receivable Aging Report\n\n`;
@@ -836,7 +839,7 @@ const confirmIntakeTool: MCPTool = {
     notes: z.string().optional().describe('Additional intake notes'),
   }),
   handler: async (input, session) => {
-    const { invoice_id, payment_confirmed, start_date, notes } = input as any;
+    const { invoice_id, payment_confirmed, start_date, notes } = input as Record<string, unknown>;
 
     if (!payment_confirmed) {
       throw new Error('Cannot confirm intake without payment verification');
@@ -901,7 +904,7 @@ const invoicesResource: MCPResource = {
   description: 'Complete list of invoices with current status',
   requiredScopes: ['finance:read'],
   mimeType: 'application/json',
-  handler: async (session, params) => {
+  handler: async (session: unknown, params) => {
     const limit = parseInt(params?.limit || '50', 10);
 
     const allInvoices = await db
@@ -939,7 +942,7 @@ const paymentsResource: MCPResource = {
   description: 'All recorded payments',
   requiredScopes: ['finance:read'],
   mimeType: 'application/json',
-  handler: async (session, params) => {
+  handler: async (session: unknown, params) => {
     const limit = parseInt(params?.limit || '50', 10);
 
     const allPayments = await db
@@ -977,7 +980,7 @@ const outstandingResource: MCPResource = {
   description: 'Unpaid invoices and overdue amounts',
   requiredScopes: ['finance:read'],
   mimeType: 'application/json',
-  handler: async (session, params) => {
+  handler: async (session: unknown, params) => {
     const unpaid = await db
       .select({
         invoice: invoices,
@@ -1017,7 +1020,7 @@ const revenueSummaryResource: MCPResource = {
   description: 'Revenue analytics and trends',
   requiredScopes: ['finance:read'],
   mimeType: 'application/json',
-  handler: async (session, params) => {
+  handler: async (session: unknown, params) => {
     const period = params?.period || 'month'; // day, week, month, year
 
     // Calculate revenue for current period

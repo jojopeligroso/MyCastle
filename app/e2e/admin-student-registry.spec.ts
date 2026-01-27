@@ -14,7 +14,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Admin Student Registry', () => {
   // Helper function to log in as admin
-  async function loginAsAdmin(page: any) {
+  async function loginAsAdmin(page: unknown) {
     // Skip auth in test mode or use test credentials
     // For now, we'll assume auth is handled or bypass it
     await page.goto('/admin/students');

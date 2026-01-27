@@ -66,7 +66,7 @@ async function KPISection() {
 
   try {
     kpis = await getAdminKPIs();
-  } catch (err) {
+  } catch (_err) {
     console.error('Failed to load KPIs:', err);
     error = true;
     kpis = {

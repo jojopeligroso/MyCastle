@@ -5,8 +5,6 @@
  */
 
 import { getMCPHost } from './host/MCPHostRefactored';
-import path from 'path';
-import { fileURLToPath } from 'url';
 
 /**
  * Initialize all MCP servers as separate processes

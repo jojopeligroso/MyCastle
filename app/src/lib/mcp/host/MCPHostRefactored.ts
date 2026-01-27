@@ -9,8 +9,6 @@
 
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import path from 'path';
-import { fileURLToPath } from 'url';
 
 /**
  * MCP Server Configuration
@@ -34,7 +32,7 @@ interface MCPSession {
   role: string;
   scopes: string[];
   expiresAt: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -44,7 +42,7 @@ interface ConnectedServer {
   config: MCPServerConfig;
   client: Client;
   transport: StdioClientTransport;
-  capabilities?: any;
+  capabilities?: unknown;
 }
 
 /**
@@ -107,7 +105,7 @@ export class MCPHost {
         transport,
         capabilities,
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(`[MCP Host] Failed to register server ${config.name}:`, error);
       throw error;
     }
@@ -163,9 +161,9 @@ export class MCPHost {
     session: MCPSession
   ): Promise<{
     success: boolean;
-    data?: any;
-    error?: any;
-    metadata?: any;
+    data?: unknown;
+    error?: unknown;
+    metadata?: unknown;
   }> {
     const startTime = Date.now();
 
@@ -176,7 +174,7 @@ export class MCPHost {
       for (const [_prefix, server] of this.servers.entries()) {
         // List tools from this server
         const toolsList = await server.client.listTools();
-        const hasTool = toolsList.tools?.some((t: any) => t.name === toolName);
+        const hasTool = toolsList.tools?.some((t: unknown) => t.name === toolName);
 
         if (hasTool) {
           targetServer = server;
@@ -218,7 +216,7 @@ export class MCPHost {
           executionTimeMs: Date.now() - startTime,
         },
       };
-    } catch (error) {
+    } catch (error: unknown) {
       return {
         success: false,
         error: {
@@ -242,8 +240,8 @@ export class MCPHost {
     params?: Record<string, string>
   ): Promise<{
     success: boolean;
-    data?: any;
-    error?: any;
+    data?: unknown;
+    error?: unknown;
   }> {
     try {
       // Find which server provides this resource
@@ -251,7 +249,7 @@ export class MCPHost {
 
       for (const [_prefix, server] of this.servers.entries()) {
         const resourcesList = await server.client.listResources();
-        const hasResource = resourcesList.resources?.some((r: any) => r.uri === resourceUri);
+        const hasResource = resourcesList.resources?.some((r: unknown) => r.uri === resourceUri);
 
         if (hasResource) {
           targetServer = server;
@@ -284,7 +282,7 @@ export class MCPHost {
         success: true,
         data: result.contents,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       return {
         success: false,
         error: {
@@ -303,15 +301,15 @@ export class MCPHost {
     session: MCPSession
   ): Promise<{
     success: boolean;
-    data?: any;
-    error?: any;
+    data?: unknown;
+    error?: unknown;
   }> {
     try {
       let targetServer: ConnectedServer | null = null;
 
       for (const [_prefix, server] of this.servers.entries()) {
         const promptsList = await server.client.listPrompts();
-        const hasPrompt = promptsList.prompts?.some((p: any) => p.name === promptName);
+        const hasPrompt = promptsList.prompts?.some((p: unknown) => p.name === promptName);
 
         if (hasPrompt) {
           targetServer = server;
@@ -341,7 +339,7 @@ export class MCPHost {
         success: true,
         data: result,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       return {
         success: false,
         error: {
@@ -356,7 +354,7 @@ export class MCPHost {
    * List all available tools across all servers
    */
   async listTools(session: MCPSession): Promise<any[]> {
-    const allTools: any[] = [];
+    const allTools: unknown[] = [];
 
     for (const [_prefix, server] of this.servers.entries()) {
       try {
@@ -364,7 +362,7 @@ export class MCPHost {
         if (result.tools) {
           allTools.push(...result.tools);
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.error(`[MCP Host] Failed to list tools from ${server.config.name}:`, error);
       }
     }
@@ -376,7 +374,7 @@ export class MCPHost {
    * List all available resources across all servers
    */
   async listResources(session: MCPSession): Promise<any[]> {
-    const allResources: any[] = [];
+    const allResources: unknown[] = [];
 
     for (const [_prefix, server] of this.servers.entries()) {
       try {
@@ -384,7 +382,7 @@ export class MCPHost {
         if (result.resources) {
           allResources.push(...result.resources);
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.error(`[MCP Host] Failed to list resources from ${server.config.name}:`, error);
       }
     }
@@ -396,7 +394,7 @@ export class MCPHost {
    * List all available prompts across all servers
    */
   async listPrompts(session: MCPSession): Promise<any[]> {
-    const allPrompts: any[] = [];
+    const allPrompts: unknown[] = [];
 
     for (const [_prefix, server] of this.servers.entries()) {
       try {
@@ -404,7 +402,7 @@ export class MCPHost {
         if (result.prompts) {
           allPrompts.push(...result.prompts);
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.error(`[MCP Host] Failed to list prompts from ${server.config.name}:`, error);
       }
     }
@@ -430,7 +428,7 @@ export class MCPHost {
           status: 'healthy',
           connected: true,
         });
-      } catch (error) {
+      } catch (error: unknown) {
         serverStatuses.push({
           name: server.config.name,
           status: 'error',
@@ -457,7 +455,7 @@ export class MCPHost {
       try {
         await server.client.close();
         console.log(`[MCP Host] Closed connection to ${server.config.name}`);
-      } catch (error) {
+      } catch (error: unknown) {
         console.error(`[MCP Host] Error closing ${server.config.name}:`, error);
       }
     }

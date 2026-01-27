@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
       data: result.rows || [],
       rowCount: result.rows?.length || 0,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error executing query:', error);
 
     // Handle specific database errors

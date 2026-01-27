@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const net = require('net');
 
 const HOST_IPV6 = '2a05:d018:135e:1631:7259:a824:bd5f:8cd';

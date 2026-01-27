@@ -68,7 +68,7 @@ export async function getAdminKPIs() {
       FROM v_admin_kpis_daily
     `);
 
-    const row = result[0] as any;
+    const row = result[0] as Record<string, unknown>;
 
     return {
       activeStudents: Number(row?.active_students || 0),
@@ -154,7 +154,7 @@ export async function getRecentAuditEvents() {
       action: string;
       resource_type: string | null;
       resource_id: string | null;
-      changes: any;
+      changes: unknown;
       timestamp: Date;
       actor_name: string | null;
       actor_email: string | null;

@@ -103,7 +103,7 @@ export function TimetableWeekView({ teacherId: _teacherId }: TimetableWeekViewPr
         } else {
           setError(data.error || 'Unknown error');
         }
-      } catch (err) {
+      } catch (_err) {
         console.error('[Timetable] Fetch error:', err);
         setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {

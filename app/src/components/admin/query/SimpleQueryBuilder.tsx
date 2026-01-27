@@ -30,7 +30,7 @@ interface Filter {
 
 interface QueryResult {
   sql: string;
-  data?: any[];
+  data?: unknown[];
   error?: string;
 }
 

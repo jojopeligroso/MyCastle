@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { config } from 'dotenv';
 import { resolve } from 'path';
 import postgres from 'postgres';
@@ -20,7 +21,7 @@ async function checkRLS() {
     `;
 
     console.log('📋 RLS Status:');
-    rlsEnabled.forEach((t: any) => {
+    rlsEnabled.forEach((t: unknown) => {
       const status = t.rowsecurity ? '✅ Enabled' : '❌ Disabled';
       console.log(`   ${status} - ${t.tablename}`);
     });
@@ -43,7 +44,7 @@ async function checkRLS() {
 
     console.log(`\n📜 Current Policies: ${policies.length} total\n`);
 
-    const grouped = policies.reduce((acc: any, p: any) => {
+    const grouped = policies.reduce((acc: unknown, p: unknown) => {
       if (!acc[p.tablename]) acc[p.tablename] = [];
       acc[p.tablename].push(p);
       return acc;
@@ -51,7 +52,7 @@ async function checkRLS() {
 
     Object.entries(grouped).forEach(([table, pols]: [string, any]) => {
       console.log(`\n🗂️  ${table}:`);
-      pols.forEach((p: any) => {
+      pols.forEach((p: unknown) => {
         console.log(`   - ${p.policyname}`);
         console.log(`     Command: ${p.cmd}`);
         console.log(`     Roles: ${p.roles.join(', ')}`);
@@ -61,13 +62,13 @@ async function checkRLS() {
     });
 
     // Identify missing policies
-    const tables = rlsEnabled.map((t: any) => t.tablename);
+    const tables = rlsEnabled.map((t: unknown) => t.tablename);
     const commands = ['SELECT', 'INSERT', 'UPDATE', 'DELETE'];
 
     console.log('\n⚠️  Missing Policies:\n');
-    tables.forEach((table: any) => {
+    tables.forEach((table: unknown) => {
       const tablePolicies = grouped[table] || [];
-      const existingCmds = tablePolicies.map((p: any) => p.cmd);
+      const existingCmds = tablePolicies.map((p: unknown) => p.cmd);
 
       commands.forEach(cmd => {
         if (!existingCmds.includes(cmd)) {

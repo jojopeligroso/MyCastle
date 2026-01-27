@@ -11,9 +11,9 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import { db } from '@/db';
 import { classes, enrollments } from '@/db/schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 
-function getSessionFromContext(extra?: any) {
+function getSessionFromContext(extra?: unknown) {
   return {
     tenantId: extra?._meta?.tenant_id || 'default-tenant',
     userId: extra?._meta?.user_id || 'system',
@@ -53,7 +53,7 @@ async function main() {
       max_students: z.number().int().positive().default(20).describe('Capacity'),
     },
     async (args, extra) => {
-      const session = getSessionFromContext(extra);
+      const _session = getSessionFromContext(extra);
       const {
         name,
         code,
@@ -67,7 +67,7 @@ async function main() {
         max_students,
       } = args;
 
-      const insertData: any = {
+      const insertData: unknown = {
         tenant_id: session.tenantId,
         name,
         code,
@@ -104,10 +104,10 @@ async function main() {
       enrollment_date: z.string().optional().describe('Enrollment date (defaults to now)'),
     },
     async (args, extra) => {
-      const session = getSessionFromContext(extra);
+      const _session = getSessionFromContext(extra);
       const { student_id, class_id, enrollment_date } = args;
 
-      const insertData: any = {
+      const insertData: unknown = {
         tenant_id: session.tenantId,
         student_id,
         class_id,

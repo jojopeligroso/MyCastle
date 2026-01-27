@@ -1,21 +1,39 @@
 ---
 status: APPROVED
-last_updated: 2026-01-26
-next_review: 2026-01-27
+last_updated: 2026-01-27
+next_review: 2026-01-28
 owner: Eoin Malone
 phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 ---
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-01-26 (Enrollment Amendments Complete)
-**Current Phase:** Phase 1 (Admin UI/UX) - 75% Complete
+**Last Updated:** 2026-01-27 (Enrollment Transfer Complete)
+**Current Phase:** Phase 1 (Admin UI/UX) - 77% Complete
 **Current Sprint:** Week 6 of Phase 1
 **Next Milestone:** Classes Management UI & Teacher Portal (ETA: Jan 28, 2026)
 
 ---
 
 ## 🎯 Quick Summary
+
+### Recent Wins (Jan 27 - Enrollment Transfer & Lint Cleanup)
+- ✅ **Enrollment transfer system** complete (Task 1.3.6):
+  - TransferStudentForm component with target class selector
+  - Transfer effective date picker with validation
+  - Three-step API workflow: create amendment → close enrollment → create new
+  - Capacity validation for target class
+  - Server-side data fetching with RLS context
+  - Integration with enrollment detail page ("Transfer to Another Class" button)
+  - Redirects to new enrollment after successful transfer
+  - Audit trail with TRANSFER amendment type
+  - Attendance history preserved via student_id linkage
+- ✅ **Code quality improvements**:
+  - Fixed 221 lint errors (402 → 181, 55% reduction)
+  - Bulk replaced `any` types with `unknown` across 100+ files
+  - Removed unused imports and variables
+  - Added proper TypeScript types to MCP servers
+  - Fixed React JSX quote escaping issues
 
 ### Recent Wins (Jan 26 - Enrollment Amendments Complete)
 - ✅ **Enrollment amendments system** complete (Task 1.3.3):
@@ -285,7 +303,7 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 
 ## 📊 Phase 1 Progress Overview
 
-**Overall Progress:** 75% (45 of 60 tasks complete)
+**Overall Progress:** 77% (46 of 60 tasks complete)
 
 | Module | Status | Tasks Complete | Next Task |
 |--------|--------|----------------|-----------|
@@ -298,9 +316,9 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 | Reporting System | 🔄 In Progress | 3/10 | Build class/teacher reports |
 | Teacher Portal | 🔄 In Progress | 2/14 | Attendance backend done, need UI |
 | Classes Management | 🔄 In Progress | 5/8 | List ✅, Create ✅, Detail ✅, Edit ✅, Sessions ✅ |
-| Enrollments Management | 🔄 In Progress | 3/6 | List ✅, Enroll ✅, Amendments ✅, Transfer next |
+| Enrollments Management | 🔄 In Progress | 4/6 | List ✅, Enroll ✅, Amendments ✅, Transfer ✅ |
 | Finance Dashboard | 🔮 Post-MVP | 1/8 | Deferred until core MVP complete |
-| **Total** | **75%** | **45/60** | **Enrollment Transfer & AttendanceRegister UI** |
+| **Total** | **77%** | **46/60** | **AttendanceRegister UI & Teacher Portal** |
 
 ---
 

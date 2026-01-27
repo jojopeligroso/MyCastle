@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { config } from 'dotenv';
 import { resolve } from 'path';
 import postgres from 'postgres';
@@ -36,7 +37,7 @@ const sql = postgres(process.env.DATABASE_URL!, { max: 1 });
   ];
 
   newTables.forEach((table: string) => {
-    const exists = tables.find((t: any) => t.tablename === table);
+    const exists = tables.find((t: unknown) => t.tablename === table);
     console.log(exists ? `✓ ${table}` : `✗ ${table} - MISSING`);
   });
 

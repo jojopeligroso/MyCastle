@@ -49,7 +49,7 @@ export const programmes = pgTable(
     status: varchar('status', { length: 50 }).notNull().default('active'), // active, archived
 
     // Metadata (flexible storage for programme-specific data)
-    metadata: jsonb('metadata').$type<Record<string, any>>().default({}),
+    metadata: jsonb('metadata').$type<Record<string, unknown>>().default({}),
 
     // Timestamps
     created_at: timestamp('created_at').defaultNow().notNull(),
@@ -100,7 +100,7 @@ export const programmeCourses = pgTable(
     status: varchar('status', { length: 50 }).notNull().default('active'), // active, archived
 
     // Metadata (flexible storage for course-specific data)
-    metadata: jsonb('metadata').$type<Record<string, any>>().default({}),
+    metadata: jsonb('metadata').$type<Record<string, unknown>>().default({}),
 
     // Timestamps
     created_at: timestamp('created_at').defaultNow().notNull(),

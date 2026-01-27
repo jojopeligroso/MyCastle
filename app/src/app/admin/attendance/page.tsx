@@ -302,9 +302,7 @@ export default async function AttendanceDashboard({ searchParams }: PageProps) {
           <p className="mt-2 text-2xl font-semibold text-gray-900">
             {avgAttendanceRate === null ? 'N/A' : `${avgAttendanceRate}%`}
           </p>
-          <p className="mt-1 text-xs text-gray-500">
-            Based on present + late records in scope
-          </p>
+          <p className="mt-1 text-xs text-gray-500">Based on present + late records in scope</p>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white p-4 shadow">
           <p className="text-sm text-gray-500">Visa compliance alerts</p>
@@ -322,13 +320,9 @@ export default async function AttendanceDashboard({ searchParams }: PageProps) {
           <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Recent sessions</h2>
-              <p className="text-sm text-gray-500">
-                Latest 50 sessions matching current filters
-              </p>
+              <p className="text-sm text-gray-500">Latest 50 sessions matching current filters</p>
             </div>
-            {filterQuery ? (
-              <span className="text-xs text-gray-500">Filters applied</span>
-            ) : null}
+            {filterQuery ? <span className="text-xs text-gray-500">Filters applied</span> : null}
           </div>
           <ul className="divide-y divide-gray-200">
             {sessions.map(session => {
@@ -417,7 +411,6 @@ export default async function AttendanceDashboard({ searchParams }: PageProps) {
           </ul>
         </div>
       </div>
-
     </div>
   );
 }

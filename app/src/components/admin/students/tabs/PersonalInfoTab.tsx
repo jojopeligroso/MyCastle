@@ -266,7 +266,7 @@ export function PersonalInfoTab({
         {student.level_status === 'provisional' && (
           <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
             <p className="text-xs text-amber-800">
-              <strong>Note:</strong> This student's current level was assigned based on a diagnostic
+              <strong>Note:</strong> This student current level was assigned based on a diagnostic
               test result and requires approval from a Director of Studies or Administrator.
             </p>
           </div>

@@ -11,9 +11,9 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import { db } from '@/db';
 import { lessonPlans, assignments, grades } from '@/db/schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 
-function getSessionFromContext(extra?: any) {
+function getSessionFromContext(extra?: unknown) {
   return {
     tenantId: extra?._meta?.tenant_id || 'default-tenant',
     userId: extra?._meta?.user_id || 'system',
@@ -50,7 +50,7 @@ async function main() {
         .describe('Focus language skills'),
     },
     async (args, extra) => {
-      const session = getSessionFromContext(extra);
+      const _session = getSessionFromContext(extra);
       const { class_id, topic, cefr_level, duration_minutes, focus_skills } = args;
 
       // Generate lesson plan using AI (simplified)
@@ -68,7 +68,7 @@ async function main() {
         focus_skills,
       };
 
-      const insertData: any = {
+      const insertData: unknown = {
         tenant_id: session.tenantId,
         class_id,
         teacher_id: session.userId,
@@ -105,11 +105,11 @@ async function main() {
       max_score: z.number().int().positive().default(100).describe('Maximum score'),
       type: z.enum(['homework', 'quiz', 'exam', 'project']).describe('Assignment type'),
     },
-    async (args: any, extra: any) => {
-      const session = getSessionFromContext(extra);
+    async (args: unknown, extra: unknown) => {
+      const _session = getSessionFromContext(extra);
       const { class_id, title, description, due_date, max_score, type } = args;
 
-      const insertData: any = {
+      const insertData: unknown = {
         tenant_id: session.tenantId,
         class_id,
         title,
@@ -144,10 +144,10 @@ async function main() {
       grade: z.string().optional().describe('Letter grade (e.g. A, B+)'),
     },
     async (args, extra) => {
-      const session = getSessionFromContext(extra);
+      const _session = getSessionFromContext(extra);
       const { submission_id, score, feedback, grade } = args;
 
-      const insertData: any = {
+      const insertData: unknown = {
         tenant_id: session.tenantId,
         submission_id,
         score: score.toString(),
@@ -178,7 +178,7 @@ async function main() {
       mimeType: 'application/json',
     },
     async (uri, extra) => {
-      const session = getSessionFromContext(extra);
+      const _session = getSessionFromContext(extra);
 
       // Fetch teacher's classes (simplified - would access DB)
       const data = {

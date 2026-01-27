@@ -55,11 +55,15 @@ export default async function RoomsPage() {
                 <li>name (varchar) - e.g., "Room 101", "Computer Lab A"</li>
                 <li>capacity (integer) - Maximum student capacity</li>
                 <li>
-                  equipment (jsonb) - Available resources {'{'}"projector": true, "computers": 15
+                  equipment (jsonb) - Available resources {'{'}"projector": true,
+                  &quot;computers&quot;: 15
                   {'}'}
                 </li>
                 <li>accessibility (boolean) - Wheelchair accessible</li>
-                <li>status (varchar) - e.g., "available", "maintenance", "booked"</li>
+                <li>
+                  status (varchar) - e.g., &quot;available&quot;, &quot;maintenance&quot;,
+                  &quot;booked&quot;
+                </li>
                 <li>created_at, updated_at (timestamp)</li>
               </ul>
               <p className="mt-3">

@@ -73,7 +73,7 @@ export function AttendanceExport({ classes }: AttendanceExportProps) {
         executionTime,
         filename,
       });
-    } catch (err) {
+    } catch (_err) {
       console.error('[AttendanceExport] Export error:', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {

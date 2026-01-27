@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * T-034: Seed CEFR Descriptors (3 points, S)
  *

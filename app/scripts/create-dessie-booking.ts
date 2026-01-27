@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { config } from 'dotenv';
 import { resolve } from 'path';
 import postgres from 'postgres';

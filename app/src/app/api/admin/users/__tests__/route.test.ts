@@ -17,13 +17,13 @@ jest.mock('@supabase/supabase-js');
 
 describe('POST /api/admin/users', () => {
   let mockRequest: Partial<NextRequest>;
-  let mockSupabaseAdmin: any;
+  let mockSupabaseAdmin: unknown;
 
   beforeEach(() => {
     jest.clearAllMocks();
 
     mockRequest = {
-      json: jest.fn() as any,
+      json: jest.fn() as unknown,
     };
 
     // Mock auth functions
@@ -38,7 +38,7 @@ describe('POST /api/admin/users', () => {
     mockSupabaseAdmin = {
       auth: {
         admin: {
-          createUser: (jest.fn() as any).mockResolvedValue({
+          createUser: (jest.fn() as unknown).mockResolvedValue({
             data: { user: { id: 'new-user-id', email: 'test@example.com' } },
             error: null,
           }),
@@ -73,7 +73,7 @@ describe('POST /api/admin/users', () => {
 
     (db.insert as any).mockReturnValue({
       values: jest.fn().mockReturnThis(),
-      returning: (jest.fn() as any).mockResolvedValue([mockInsertedUser]),
+      returning: (jest.fn() as unknown).mockResolvedValue([mockInsertedUser]),
     });
 
     const response = await POST(mockRequest as NextRequest);
@@ -98,7 +98,7 @@ describe('POST /api/admin/users', () => {
 
     (db.insert as any).mockReturnValue({
       values: jest.fn().mockReturnThis(),
-      returning: (jest.fn() as any).mockResolvedValue([
+      returning: (jest.fn() as unknown).mockResolvedValue([
         {
           id: 'new-user-id',
           ...dataWithoutPassword,
@@ -210,7 +210,7 @@ describe('POST /api/admin/users', () => {
 
       (db.insert as any).mockReturnValue({
         values: jest.fn().mockReturnThis(),
-        returning: (jest.fn() as any).mockResolvedValue([
+        returning: (jest.fn() as unknown).mockResolvedValue([
           {
             id: 'user-id',
             ...validData,
@@ -235,7 +235,7 @@ describe('POST /api/admin/users', () => {
 
     (db.insert as any).mockReturnValue({
       values: jest.fn().mockReturnThis(),
-      returning: (jest.fn() as any).mockResolvedValue([
+      returning: (jest.fn() as unknown).mockResolvedValue([
         {
           id: 'user-id',
           ...validData,
@@ -268,7 +268,7 @@ describe('POST /api/admin/users', () => {
 
     (db.insert as any).mockReturnValue({
       values: jest.fn().mockReturnThis(),
-      returning: (jest.fn() as any).mockResolvedValue([
+      returning: (jest.fn() as unknown).mockResolvedValue([
         {
           id: 'user-id',
           ...validData,
@@ -296,8 +296,8 @@ describe('POST /api/admin/users', () => {
     (mockRequest.json as any).mockResolvedValue(validData);
 
     (db.insert as any).mockReturnValue({
-      values: (jest.fn() as any).mockReturnThis(),
-      returning: (jest.fn() as any).mockRejectedValue(new Error('Database error')),
+      values: (jest.fn() as unknown).mockReturnThis(),
+      returning: (jest.fn() as unknown).mockRejectedValue(new Error('Database error')),
     });
 
     const response = await POST(mockRequest as NextRequest);
@@ -334,7 +334,7 @@ describe('POST /api/admin/users', () => {
 
     (db.insert as any).mockReturnValue({
       values: jest.fn().mockReturnThis(),
-      returning: (jest.fn() as any).mockResolvedValue([
+      returning: (jest.fn() as unknown).mockResolvedValue([
         {
           id: 'user-id',
           ...dataWithoutStatus,

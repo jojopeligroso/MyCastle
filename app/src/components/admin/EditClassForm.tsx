@@ -105,7 +105,7 @@ export function EditClassForm({ classData, teachers, programmes }: Props) {
       // Success - redirect to class detail page
       router.push(`/admin/classes/${classData.id}`);
       router.refresh();
-    } catch (err) {
+    } catch (_err) {
       const error = err as Error;
       setError(error.message);
       setLoading(false);

@@ -52,7 +52,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     }
 
     const data = validationResult.data;
-    const updateData: Record<string, any> = { updated_at: new Date() };
+    const updateData: Record<string, unknown> = { updated_at: new Date() };
 
     Object.keys(data).forEach(key => {
       if (data[key as keyof typeof data] !== undefined) {
