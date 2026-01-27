@@ -59,8 +59,25 @@ export default async function AttendanceDetailPage({ params }: PageProps) {
 
   // Transform to map for O(1) lookup
   const attendanceMap: Record<string, { status: string; notes: string | null }> = {};
+  const fullRecordsMap = new Map<
+    string,
+    {
+      id: string;
+      status: string;
+      notes: string | null;
+      minutesLate?: number;
+      minutesLeftEarly?: number;
+    }
+  >();
   existingRecords.forEach(r => {
     attendanceMap[r.studentId] = { status: r.status, notes: r.notes };
+    fullRecordsMap.set(r.studentId, {
+      id: r.id,
+      status: r.status,
+      notes: r.notes,
+      minutesLate: r.minutesLate || 0,
+      minutesLeftEarly: r.minutesLeftEarly || 0,
+    });
   });
 
   return (
@@ -123,6 +140,7 @@ export default async function AttendanceDetailPage({ params }: PageProps) {
         sessionId={sessionId}
         students={enrolledStudents}
         initialAttendance={attendanceMap}
+        existingRecords={fullRecordsMap}
       />
     </div>
   );

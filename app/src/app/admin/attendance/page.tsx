@@ -8,6 +8,12 @@ import { attendance, classSessions, classes, enrollments, students, users } from
 import { and, desc, eq, gte, lte, sql } from 'drizzle-orm';
 import { requireAuth, getTenantId } from '@/lib/auth/utils';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
+
+const PendingCorrections = dynamic(
+  () => import('@/components/admin/attendance/PendingCorrections'),
+  { ssr: false }
+);
 
 type SearchParams = {
   classId?: string;
@@ -314,6 +320,9 @@ export default async function AttendanceDashboard({ searchParams }: PageProps) {
           </p>
         </div>
       </div>
+
+      {/* Pending Corrections */}
+      <PendingCorrections />
 
       <div className="grid gap-4 lg:grid-cols-[2fr,1fr]">
         <div className="bg-white shadow sm:rounded-md">
