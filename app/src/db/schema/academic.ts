@@ -265,6 +265,70 @@ export const attendance = pgTable(
 );
 
 /**
+ * Attendance Corrections Table
+ * Tracks attendance correction requests with admin approval workflow
+ * Ref: Task 1.4.3 - Implement Attendance Correction Flow
+ */
+export const attendanceCorrections = pgTable(
+  'attendance_corrections',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+
+    // References
+    attendanceId: uuid('attendance_id')
+      .notNull()
+      .references(() => attendance.id),
+    classSessionId: uuid('class_session_id')
+      .notNull()
+      .references(() => classSessions.id),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => users.id),
+
+    // Original values (snapshot at time of correction request)
+    originalStatus: varchar('original_status', { length: 50 }).notNull(),
+    originalNotes: text('original_notes'),
+    originalMinutesLate: integer('original_minutes_late').default(0),
+    originalMinutesLeftEarly: integer('original_minutes_left_early').default(0),
+
+    // Corrected values (what should be changed to)
+    correctedStatus: varchar('corrected_status', { length: 50 }).notNull(),
+    correctedNotes: text('corrected_notes'),
+    correctedMinutesLate: integer('corrected_minutes_late').default(0),
+    correctedMinutesLeftEarly: integer('corrected_minutes_left_early').default(0),
+
+    // Request details
+    reason: text('reason').notNull(), // Why correction is needed
+    requestedBy: uuid('requested_by')
+      .notNull()
+      .references(() => users.id),
+    requestedAt: timestamp('requested_at').defaultNow().notNull(),
+
+    // Review/approval details
+    status: varchar('status', { length: 50 }).notNull().default('pending'), // pending, approved, rejected
+    reviewedBy: uuid('reviewed_by').references(() => users.id),
+    reviewedAt: timestamp('reviewed_at'),
+    reviewNotes: text('review_notes'),
+
+    // Timestamps
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  table => [
+    index('idx_corrections_tenant').on(table.tenantId),
+    index('idx_corrections_attendance').on(table.attendanceId),
+    index('idx_corrections_session').on(table.classSessionId),
+    index('idx_corrections_student').on(table.studentId),
+    index('idx_corrections_status').on(table.status),
+    index('idx_corrections_requested_by').on(table.requestedBy),
+    index('idx_corrections_reviewed_by').on(table.reviewedBy),
+  ]
+);
+
+/**
  * Assignments Table
  * Homework, quizzes, projects
  */

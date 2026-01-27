@@ -3,6 +3,12 @@
 import { useState } from 'react';
 import { saveAttendance, AttendanceRecord } from '../actions';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
+
+const AttendanceCorrectionForm = dynamic(
+  () => import('@/components/admin/attendance/AttendanceCorrectionForm'),
+  { ssr: false }
+);
 
 type Student = {
   id: string;
@@ -14,9 +20,15 @@ type Props = {
   sessionId: string;
   students: Student[];
   initialAttendance: Record<string, { status: string; notes: string | null }>;
+  existingRecords?: Map<string, { id: string; status: string; notes: string | null }>;
 };
 
-export default function AttendanceSheet({ sessionId, students, initialAttendance }: Props) {
+export default function AttendanceSheet({
+  sessionId,
+  students,
+  initialAttendance,
+  existingRecords = new Map(),
+}: Props) {
   const [records, setRecords] = useState<Record<string, { status: string; notes: string }>>(() => {
     const initial: Record<string, { status: string; notes: string }> = {};
     students.forEach(s => {
@@ -28,6 +40,7 @@ export default function AttendanceSheet({ sessionId, students, initialAttendance
     return initial;
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [showCorrectionForm, setShowCorrectionForm] = useState(false);
   const router = useRouter();
 
   const handleStatusChange = (studentId: string, status: string) => {
@@ -70,13 +83,21 @@ export default function AttendanceSheet({ sessionId, students, initialAttendance
     <div className="bg-white shadow overflow-hidden sm:rounded-lg">
       <div className="px-4 py-5 sm:px-6 flex justify-between items-center bg-gray-50 border-b border-gray-200">
         <h3 className="text-lg leading-6 font-medium text-gray-900">Student List</h3>
-        <button
-          onClick={handleSave}
-          disabled={isSaving}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50"
-        >
-          {isSaving ? 'Saving...' : 'Save Attendance'}
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowCorrectionForm(true)}
+            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+          >
+            Request Correction
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50"
+          >
+            {isSaving ? 'Saving...' : 'Save Attendance'}
+          </button>
+        </div>
       </div>
       <ul className="divide-y divide-gray-200">
         {students.map(student => {
@@ -135,6 +156,16 @@ export default function AttendanceSheet({ sessionId, students, initialAttendance
           </li>
         )}
       </ul>
+
+      {/* Correction Form Modal */}
+      {showCorrectionForm && (
+        <AttendanceCorrectionForm
+          sessionId={sessionId}
+          students={students}
+          existingRecords={existingRecords}
+          onClose={() => setShowCorrectionForm(false)}
+        />
+      )}
     </div>
   );
 }
