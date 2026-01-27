@@ -341,3 +341,11 @@ export * from './system';
 - All new code follows best practices and passes type checking
 - Pre-existing errors are from legacy code and should be addressed separately
 - **Error count stable at 563** - No increase from development work (+1 is rounding variance)
+- **Task 1.3.4 (Enrollment Reductions) introduced ZERO new errors** ✅
+  - Fixed typo in `src/components/admin/enrollments/AmendEnrollmentForm.tsx` (catch parameter `_err` → `err`)
+  - Feature was already fully implemented (reduction tab, API endpoint, validation, audit trail)
+  - Pre-commit checks revealed:
+    - 186 ESLint problems (74 errors, 112 warnings) in unrelated files - pre-existing
+    - 1 failing test in `AttendanceExport.test.tsx` - pre-existing from Task 1.4.4 export enhancements
+    - No issues in modified enrollment files
+  - Updated STATUS.md to 87% complete (52/60 tasks)

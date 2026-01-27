@@ -125,7 +125,7 @@ export default function AmendEnrollmentForm({
       // Success - redirect to enrollment detail page
       router.push(`/admin/enrolments/${enrollmentId}`);
       router.refresh();
-    } catch (_err) {
+    } catch (err) {
       const message = err instanceof Error ? err.message : 'An error occurred';
       setError(message);
     } finally {
