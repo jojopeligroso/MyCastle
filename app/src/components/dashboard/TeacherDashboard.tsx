@@ -114,7 +114,7 @@ export function TeacherDashboard({ teacherId, teacherName }: TeacherDashboardPro
         } else {
           setError(classesData.error?.message || 'Unknown error');
         }
-      } catch (err) {
+      } catch (_err) {
         console.error('[TeacherDashboard] Fetch error:', err);
         setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {

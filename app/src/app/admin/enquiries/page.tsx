@@ -55,11 +55,17 @@ export default async function EnquiriesPage() {
                 <li>name (varchar) - Prospective student name</li>
                 <li>email (varchar) - Contact email</li>
                 <li>phone (varchar) - Contact phone number</li>
-                <li>programme_interest (varchar) - Programme they're interested in</li>
+                <li>programme_interest (varchar) - Programme they are interested in</li>
                 <li>level_estimate (varchar) - Estimated CEFR level</li>
                 <li>start_date_preference (date) - Preferred start date</li>
-                <li>status (varchar) - e.g., "new", "contacted", "converted", "closed"</li>
-                <li>source (varchar) - e.g., "website", "referral", "agent", "social"</li>
+                <li>
+                  status (varchar) - e.g., &quot;new&quot;, &quot;contacted&quot;,
+                  &quot;converted&quot;, &quot;closed&quot;
+                </li>
+                <li>
+                  source (varchar) - e.g., &quot;website&quot;, &quot;referral&quot;,
+                  &quot;agent&quot;, &quot;social&quot;
+                </li>
                 <li>created_at, updated_at (timestamp)</li>
               </ul>
               <p className="mt-3">

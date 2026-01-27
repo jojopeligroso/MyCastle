@@ -74,7 +74,7 @@ export function CreateInvoiceForm({ students }: { students: Student[] }) {
       // Success - redirect to invoices list
       router.push('/admin/finance/invoices');
       router.refresh();
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.message);
       setLoading(false);
     }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Seed Programmes Script
  * Creates sample academic programmes for testing

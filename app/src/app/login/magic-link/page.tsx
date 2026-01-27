@@ -56,7 +56,7 @@ function MagicLinkContent() {
       // Success! Show message
       setSuccess(true);
       setLoading(false);
-    } catch (err) {
+    } catch (_err) {
       console.error('Magic link request error:', err);
       setError('Network error. Please check your connection and try again.');
       setLoading(false);

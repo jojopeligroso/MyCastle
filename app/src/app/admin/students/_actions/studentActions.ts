@@ -230,7 +230,7 @@ export async function updateStudent(studentId: string, data: UpdateStudentData) 
     }
 
     // Build update object
-    const updateData: any = {
+    const updateData: unknown = {
       updated_at: new Date(),
     };
 

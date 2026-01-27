@@ -73,7 +73,7 @@ export function CreateClassForm({ teachers, programmes }: Props) {
       // If sessions were generated, the redirect will show them
       router.push('/admin/classes');
       router.refresh();
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.message);
       setLoading(false);
     }

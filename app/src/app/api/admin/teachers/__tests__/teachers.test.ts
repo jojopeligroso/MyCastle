@@ -290,7 +290,7 @@ describe('Teachers Management APIs', () => {
 
       // All returned users should have role='teacher'
       if (data.teachers && data.teachers.length > 0) {
-        data.teachers.forEach((teacher: any) => {
+        data.teachers.forEach((teacher: unknown) => {
           expect(teacher.role).toBe('teacher');
         });
       }
@@ -313,7 +313,7 @@ describe('Teachers Management APIs', () => {
 
       // Should only return inactive teachers
       if (data.teachers && data.teachers.length > 0) {
-        data.teachers.forEach((teacher: any) => {
+        data.teachers.forEach((teacher: unknown) => {
           expect(teacher.status).toBe('inactive');
         });
       }

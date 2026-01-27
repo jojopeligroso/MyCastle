@@ -54,7 +54,7 @@ export function CreateUserForm() {
         router.push('/admin/users');
         router.refresh();
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.message);
       setLoading(false);
     }
@@ -84,7 +84,7 @@ export function CreateUserForm() {
             </code>
           </div>
           <p className="text-xs text-green-600 mt-4">
-            Make sure to copy this password now. You won't be able to see it again.
+            Make sure to copy this password now. You will not be able to see it again.
           </p>
         </div>
         <div className="flex justify-end gap-4">

@@ -102,7 +102,7 @@ async function getProgrammeLatenessPolicy(
     };
   }
 
-  const metadata = programme[0].metadata as Record<string, any>;
+  const metadata = programme[0].metadata as Record<string, unknown>;
 
   return {
     cumulativeLatenessEnabled: metadata.cumulativeLatenessEnabled ?? false,

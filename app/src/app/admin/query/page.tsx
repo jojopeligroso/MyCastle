@@ -110,8 +110,8 @@ export default async function QueryPage() {
             <h3 className="font-semibold text-amber-900">Safety & Security</h3>
             <p className="text-sm text-amber-800 mt-1">
               This interface only allows <strong>SELECT</strong> queries (read-only). All queries
-              are subject to Row Level Security (RLS) policies, ensuring you only access data you're
-              authorized to see. Queries have a 5-second timeout and are limited to 1,000 rows
+              are subject to Row Level Security (RLS) policies, ensuring you only access data you
+              are authorized to see. Queries have a 5-second timeout and are limited to 1,000 rows
               maximum.
             </p>
           </div>

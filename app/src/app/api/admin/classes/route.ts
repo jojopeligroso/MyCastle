@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
       class: newClass,
       sessionsCreated,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating class:', error);
 
     if (error.name === 'ZodError') {

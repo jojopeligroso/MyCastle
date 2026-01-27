@@ -168,7 +168,7 @@ export const enrollmentAmendments = pgTable(
     status: varchar('status', { length: 50 }).notNull().default('pending'), // pending, approved, rejected
 
     // Metadata
-    metadata: jsonb('metadata').$type<Record<string, any>>().default({}),
+    metadata: jsonb('metadata').$type<Record<string, unknown>>().default({}),
 
     // Timestamps
     createdAt: timestamp('created_at').defaultNow().notNull(),

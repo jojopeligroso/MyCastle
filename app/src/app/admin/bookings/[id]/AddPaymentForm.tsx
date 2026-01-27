@@ -46,7 +46,7 @@ export function AddPaymentForm({ bookingId, balance }: Props) {
       } else {
         setError(result.error || 'Failed to add payment');
       }
-    } catch (err) {
+    } catch (_err) {
       setError('An unexpected error occurred');
     } finally {
       setIsSubmitting(false);

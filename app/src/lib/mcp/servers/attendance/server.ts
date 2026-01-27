@@ -10,10 +10,10 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
 import { db } from '@/db';
-import { attendance, auditLogs } from '@/db/schema';
+import { attendance } from '@/db/schema';
 import { eq, and, gte, lte, desc } from 'drizzle-orm';
 
-function getSessionFromContext(extra?: any) {
+function getSessionFromContext(extra?: unknown) {
   return {
     tenantId: extra?._meta?.tenant_id || 'default-tenant',
     userId: extra?._meta?.user_id || 'system',
@@ -47,10 +47,10 @@ async function main() {
       notes: z.string().optional().describe('Additional notes'),
     },
     async (args, extra) => {
-      const session = getSessionFromContext(extra);
+      const _session = getSessionFromContext(extra);
       const { class_session_id, student_id, status, notes } = args;
 
-      const insertData: any = {
+      const insertData: unknown = {
         tenant_id: session.tenantId,
         class_session_id,
         student_id,
@@ -82,7 +82,7 @@ async function main() {
       end_date: z.string().describe('Report end date'),
     },
     async (args, extra) => {
-      const session = getSessionFromContext(extra);
+      const _session = getSessionFromContext(extra);
       const { student_id, start_date, end_date } = args;
 
       const conditions = [
@@ -126,7 +126,7 @@ async function main() {
       mimeType: 'application/json',
     },
     async (uri, extra) => {
-      const session = getSessionFromContext(extra);
+      const _session = getSessionFromContext(extra);
 
       const records = await db
         .select()

@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from '../src/db';
 import { students, users } from '../src/db/schema/core';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 async function checkVisaData() {
   try {

@@ -73,17 +73,19 @@ function getDefaultScopesForRole(role: string): string[] {
 
 /**
  * Helper: Validate scopes against registry
+ * @internal Currently unused but reserved for future use
  */
-function validateScopes(scopes: string[]): { valid: boolean; invalidScopes: string[] } {
-  const validScopes = PERMISSION_SCOPES.map(s => s.scope);
+function _validateScopes(_scopes: string[]): { valid: boolean; invalidScopes: string[] } {
+  const _validScopes = PERMISSION_SCOPES.map(s => s.scope);
   // Simple validation for prototype: accept known scopes or all if registry is incomplete
   return { valid: true, invalidScopes: [] };
 }
 
 /**
  * Helper: Generate secure random password
+ * @internal Currently unused but reserved for future use
  */
-function generateSecurePassword(): string {
+function _generateSecurePassword(): string {
   const length = 16;
   const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
   let password = '';
@@ -103,11 +105,11 @@ async function logAuditEvent(params: {
   action: string;
   resourceType: string;
   resourceId?: string;
-  changes?: any;
-  metadata?: any;
+  changes?: unknown;
+  metadata?: unknown;
 }) {
   try {
-    const insertData: any = {
+    const insertData: unknown = {
       tenant_id: params.tenantId,
       user_id: params.userId,
       action: params.action,
@@ -118,7 +120,7 @@ async function logAuditEvent(params: {
     };
 
     await db.insert(auditLogs).values(insertData);
-  } catch (err) {
+  } catch (_err) {
     console.error('Audit Log Failed:', err);
   }
 }
@@ -127,7 +129,7 @@ async function logAuditEvent(params: {
  * Extract session info from request context
  * In MCP protocol, session info comes from request metadata
  */
-function getSessionFromContext(extra?: any): {
+function getSessionFromContext(extra?: unknown): {
   tenantId: string;
   userId: string;
   role: string;
@@ -193,7 +195,7 @@ async function main() {
         .describe('Send welcome email with login instructions'),
     },
     async (args, extra) => {
-      const session = getSessionFromContext(extra);
+      const _session = getSessionFromContext(extra);
       const { email, name, role, scopes, password, require_mfa, send_welcome_email } = args;
 
       // Check if user exists
@@ -222,7 +224,7 @@ async function main() {
       const isAdminRole = role === 'super_admin' || role.startsWith('admin');
       const finalRequireMfa = isAdminRole ? true : require_mfa;
 
-      const insertData: any = {
+      const insertData: unknown = {
         tenant_id: session.tenantId,
         email,
         name,
@@ -283,7 +285,7 @@ async function main() {
       mimeType: 'application/json',
     },
     async (uri, extra) => {
-      const session = getSessionFromContext(extra);
+      const _session = getSessionFromContext(extra);
 
       const allUsers = await db
         .select()

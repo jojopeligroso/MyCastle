@@ -236,7 +236,7 @@ export type NewPayment = typeof payments.$inferInsert;
 
 // Combined types
 export type BookingWithDetails = Booking & {
-  student?: any; // Will be properly typed when needed
+  student?: unknown; // Will be properly typed when needed
   course?: Course;
   accommodationType?: AccommodationType;
   payments?: Payment[];

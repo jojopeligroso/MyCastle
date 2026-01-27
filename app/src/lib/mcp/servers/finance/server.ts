@@ -10,10 +10,10 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
 import { db } from '@/db';
-import { invoices, payments, auditLogs } from '@/db/schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { invoices, auditLogs } from '@/db/schema';
+import { eq, desc } from 'drizzle-orm';
 
-function getSessionFromContext(extra?: any) {
+function getSessionFromContext(extra?: unknown) {
   return {
     tenantId: extra?._meta?.tenant_id || 'default-tenant',
     userId: extra?._meta?.user_id || 'system',
@@ -28,9 +28,9 @@ function generateInvoiceNumber(tenantId: string): string {
   return `INV-${tenantId.substring(0, 4)}-${timestamp}-${random}`;
 }
 
-async function logFinanceAudit(params: any) {
+async function logFinanceAudit(params: unknown) {
   try {
-    const insertData: any = {
+    const insertData: unknown = {
       tenant_id: params.tenantId,
       user_id: params.userId,
       action: params.action,
@@ -41,7 +41,7 @@ async function logFinanceAudit(params: any) {
     };
 
     await db.insert(auditLogs).values(insertData);
-  } catch (err) {
+  } catch (_err) {
     console.error('Audit Log Failed:', err);
   }
 }
@@ -72,7 +72,7 @@ async function main() {
       due_date: z.string().optional().describe('Invoice due date (ISO 8601)'),
     },
     async (args, extra) => {
-      const session = getSessionFromContext(extra);
+      const _session = getSessionFromContext(extra);
       const { student_id, class_id, amount, currency, due_date } = args;
 
       const invoiceNumber = generateInvoiceNumber(session.tenantId);
@@ -80,7 +80,7 @@ async function main() {
         ? new Date(due_date)
         : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-      const insertData: any = {
+      const insertData: unknown = {
         tenant_id: session.tenantId,
         invoice_number: invoiceNumber,
         student_id,
@@ -122,7 +122,7 @@ async function main() {
       send_email: z.boolean().default(true).describe('Send invoice via email'),
     },
     async (args, extra) => {
-      const session = getSessionFromContext(extra);
+      const _session = getSessionFromContext(extra);
       const { booking_id, send_email } = args;
 
       // Implementation here
@@ -145,7 +145,7 @@ async function main() {
       mimeType: 'application/json',
     },
     async (uri, extra) => {
-      const session = getSessionFromContext(extra);
+      const _session = getSessionFromContext(extra);
 
       const allInvoices = await db
         .select()
@@ -174,7 +174,7 @@ async function main() {
           role: 'user',
           content: {
             type: 'text',
-            text: 'You are a finance assistant for an ESL school. Help with invoicing, payments, and financial reporting.',
+            text: 'You are a finance assistant for an ESL school. Help with invoicing, and financial reporting.',
           },
         },
       ],

@@ -67,7 +67,7 @@ export const createClient = async () => {
   wrappedClient.auth.getUser = async () => {
     return {
       data: {
-        user: DEV_USER_IDENTITY as any, // Type cast needed for dev bypass
+        user: DEV_USER_IDENTITY as unknown, // Type cast needed for dev bypass
       },
       error: null,
     };
@@ -83,7 +83,7 @@ export const createClient = async () => {
           expires_in: 3600,
           expires_at: Math.floor(Date.now() / 1000) + 3600,
           token_type: 'bearer',
-          user: DEV_USER_IDENTITY as any,
+          user: DEV_USER_IDENTITY as unknown,
         },
       },
       error: null,

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Seed Sample Students
  * Creates realistic sample student data for testing the Student Registry
@@ -5,7 +6,7 @@
  */
 
 import { db } from '../src/db';
-import { users, enrollments } from '../src/db/schema';
+import { users } from '../src/db/schema';
 import { sql } from 'drizzle-orm';
 
 interface SampleStudent {
@@ -18,7 +19,7 @@ interface SampleStudent {
   visa_type?: string;
   visa_expiry?: string; // YYYY-MM-DD
   status: 'active' | 'inactive' | 'suspended';
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 }
 
 const sampleStudents: SampleStudent[] = [

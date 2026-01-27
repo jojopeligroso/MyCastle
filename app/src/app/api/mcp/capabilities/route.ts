@@ -50,18 +50,18 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
             scopes: session.scopes,
           },
           capabilities: {
-            tools: tools.map((t: any) => ({
+            tools: tools.map((t: unknown) => ({
               name: t.name,
               description: t.description,
               inputSchema: t.inputSchema,
             })),
-            resources: resources.map((r: any) => ({
+            resources: resources.map((r: unknown) => ({
               uri: r.uri,
               name: r.name,
               description: r.description,
               mimeType: r.mimeType,
             })),
-            prompts: prompts.map((p: any) => ({
+            prompts: prompts.map((p: unknown) => ({
               name: p.name,
               description: p.description,
               arguments: p.arguments,

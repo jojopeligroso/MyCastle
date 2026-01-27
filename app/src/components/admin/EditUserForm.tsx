@@ -53,7 +53,7 @@ export function EditUserForm({ userData }: Props) {
       // Success - redirect to user detail page
       router.push(`/admin/users/${userData.id}`);
       router.refresh();
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.message);
       setLoading(false);
     }
@@ -157,7 +157,7 @@ export function EditUserForm({ userData }: Props) {
         <div className="mb-6 bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded">
           <p className="text-sm font-medium">Warning: Changing user role</p>
           <p className="text-sm mt-1">
-            This will update the user's permissions and access level. Make sure this is intended.
+            This will update the user permissions and access level. Make sure this is intended.
           </p>
         </div>
       )}

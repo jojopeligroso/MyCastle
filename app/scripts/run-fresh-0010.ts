@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { config } from 'dotenv';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';

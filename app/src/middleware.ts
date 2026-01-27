@@ -99,7 +99,7 @@ function applyDevBypass(client: SupabaseClient): SupabaseClient {
   wrappedClient.auth.getUser = async () => {
     return {
       data: {
-        user: DEV_USER_IDENTITY as any,
+        user: DEV_USER_IDENTITY as unknown,
       },
       error: null,
     };
@@ -115,7 +115,7 @@ function applyDevBypass(client: SupabaseClient): SupabaseClient {
           expires_in: 3600,
           expires_at: Math.floor(Date.now() / 1000) + 3600,
           token_type: 'bearer',
-          user: DEV_USER_IDENTITY as any,
+          user: DEV_USER_IDENTITY as unknown,
         },
       },
       error: null,

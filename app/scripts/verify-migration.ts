@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Verify Migration Script
  * Checks that FRESH_0011 changes were applied correctly

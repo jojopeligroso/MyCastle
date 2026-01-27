@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Run New Migrations (FRESH_0004 through FRESH_0009)
  * Executes only the new academic, system, curriculum, and programme migrations
@@ -69,7 +70,7 @@ async function runMigrations() {
     ];
 
     for (const table of newTables) {
-      const exists = tables.find((t: any) => t.tablename === table);
+      const exists = tables.find((t: unknown) => t.tablename === table);
       if (exists) {
         console.log(`✓ ${table} - created`);
       } else {

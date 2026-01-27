@@ -8,7 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 interface QueryResult {
   sql: string;
   explanation: string;
-  data?: any[];
+  data?: unknown[];
   error?: string;
   affectedRows?: number;
 }

@@ -236,7 +236,7 @@ describe('Student Management APIs', () => {
       const data = await response.json();
 
       expect(data.enrollments).toBeInstanceOf(Array);
-      data.enrollments.forEach((enrollment: any) => {
+      data.enrollments.forEach((enrollment: unknown) => {
         expect(enrollment).toHaveProperty('id');
         expect(enrollment).toHaveProperty('className');
         expect(enrollment).toHaveProperty('amendments');

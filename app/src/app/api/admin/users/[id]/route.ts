@@ -67,7 +67,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     // Update user metadata in Supabase Auth if email or role changed
     if (validatedData.email || validatedData.role || validatedData.name) {
-      const authUpdates: any = {};
+      const authUpdates: unknown = {};
 
       if (validatedData.email) {
         authUpdates.email = validatedData.email;
@@ -106,7 +106,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       success: true,
       user: updatedUser,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating user:', error);
 
     if (error.name === 'ZodError') {

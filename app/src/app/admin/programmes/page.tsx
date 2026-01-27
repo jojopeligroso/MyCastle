@@ -53,9 +53,9 @@ export default async function ProgrammesPage() {
                 <li>id (uuid, primary key)</li>
                 <li>tenant_id (uuid, references tenants)</li>
                 <li>name (varchar) - e.g., "General English"</li>
-                <li>code (varchar) - e.g., "GE"</li>
+                <li>code (varchar) - e.g., &quot;GE&quot;</li>
                 <li>description (text)</li>
-                <li>levels (jsonb) - Array of CEFR levels ["A1", "A2", "B1", "B2", "C1", "C2"]</li>
+                <li>levels (jsonb) - Array of CEFR levels [A1, A2, B1, B2, C1, C2]</li>
                 <li>duration_weeks (integer)</li>
                 <li>active (boolean)</li>
                 <li>created_at, updated_at (timestamp)</li>

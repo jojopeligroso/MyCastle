@@ -51,7 +51,7 @@ export function LessonPlannerForm({ onPlanGenerated }: LessonPlannerFormProps) {
       setGeneratedPlan(data.plan);
       setGenerationTime(data.generation_time_ms);
       onPlanGenerated?.(data.plan);
-    } catch (err) {
+    } catch (_err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);

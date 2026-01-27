@@ -63,7 +63,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 
     const data = validationResult.data;
 
-    const updateData: Record<string, any> = { updated_at: new Date() };
+    const updateData: Record<string, unknown> = { updated_at: new Date() };
     if (data.end_date !== undefined) {
       updateData.end_date = new Date(data.end_date);
     }

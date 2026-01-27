@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Run Fresh Migrations Directly
  * Executes nuclear reset + fresh schema + seed data
  */
 
+import { execSync } from 'child_process';
 import { config } from 'dotenv';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
@@ -66,7 +68,6 @@ async function runMigrations() {
     await sql.end();
 
     // Import and run seed function
-    const { execSync } = require('child_process');
     execSync('npx tsx scripts/seed-fresh-data.ts', {
       cwd: resolve(__dirname, '..'),
       stdio: 'inherit',

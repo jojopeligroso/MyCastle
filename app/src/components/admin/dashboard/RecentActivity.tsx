@@ -3,7 +3,7 @@ interface AuditEvent {
   action: string;
   resource_type: string | null;
   resource_id: string | null;
-  changes: any;
+  changes: unknown;
   timestamp: Date;
   actor_name: string | null;
   actor_email: string | null;

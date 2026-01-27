@@ -503,7 +503,7 @@ describe('Courses Management APIs', () => {
       expect(response.status).toBe(200);
       // All returned courses should belong to the specified programme
       if (data.courses && data.courses.length > 0) {
-        data.courses.forEach((course: any) => {
+        data.courses.forEach((course: unknown) => {
           expect(course.programme_id).toBe(programmeId);
         });
       }

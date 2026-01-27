@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Verify Dessie Garcia's bookings and payments
  */
 
 import { db } from '../src/db';
 import { students, users, bookings, courses, payments } from '../src/db/schema';
-import { eq, and, sql, desc } from 'drizzle-orm';
+import { eq, sql, desc } from 'drizzle-orm';
 
 async function verifyDessieData() {
   try {

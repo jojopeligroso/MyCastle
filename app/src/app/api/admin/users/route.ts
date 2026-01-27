@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
       user: newUser,
       temporaryPassword: validatedData.password ? undefined : password,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating user:', error);
 
     if (error.name === 'ZodError') {

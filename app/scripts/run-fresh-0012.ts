@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Run FRESH_0012 Migration Script
  * Adds schedule time fields and unique name constraint to classes table

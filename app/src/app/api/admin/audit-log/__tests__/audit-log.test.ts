@@ -400,7 +400,7 @@ describe('Audit Log APIs', () => {
 
       // Every log must have user_id (who made the change)
       if (data.logs && data.logs.length > 0) {
-        data.logs.forEach((log: any) => {
+        data.logs.forEach((log: unknown) => {
           expect(log).toHaveProperty('user_id');
         });
       }

@@ -52,7 +52,7 @@ export function CreateStudentForm() {
       }
 
       // Prepare data
-      const data: any = {
+      const data: unknown = {
         name,
         email,
         phone: phone || undefined,
@@ -80,7 +80,7 @@ export function CreateStudentForm() {
       } else {
         throw new Error(result.error || 'Failed to create student');
       }
-    } catch (err) {
+    } catch (_err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setIsSubmitting(false);
@@ -162,7 +162,7 @@ export function CreateStudentForm() {
         {/* Method Selection */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-3">
-            How would you like to assign the student's level?
+            How would you like to assign the student level?
           </label>
           <div className="space-y-3">
             <label className="flex items-start gap-3 p-4 border-2 rounded-lg cursor-pointer hover:border-purple-300 transition-colors">
@@ -177,7 +177,8 @@ export function CreateStudentForm() {
               <div className="flex-1">
                 <div className="font-medium text-gray-900">Manual Level Selection</div>
                 <div className="text-sm text-gray-500 mt-1">
-                  Directly assign a CEFR level. The level status will be set to "confirmed".
+                  Directly assign a CEFR level. The level status will be set to
+                  &quot;confirmed&quot;.
                 </div>
               </div>
             </label>
@@ -195,7 +196,7 @@ export function CreateStudentForm() {
                 <div className="font-medium text-gray-900">Diagnostic Test Result</div>
                 <div className="text-sm text-gray-500 mt-1">
                   Enter diagnostic test score and suggested level. The level status will be set to
-                  "provisional" and require approval.
+                  &quot;provisional&quot; and require approval.
                 </div>
               </div>
             </label>
@@ -319,8 +320,9 @@ export function CreateStudentForm() {
 
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
               <p className="text-xs text-amber-800">
-                <strong>Note:</strong> This student's level will be marked as "provisional" and
-                require approval from a Director of Studies or Administrator before being confirmed.
+                <strong>Note:</strong> This student level will be marked as &quot;provisional&quot;
+                and require approval from a Director of Studies or Administrator before being
+                confirmed.
               </p>
             </div>
           </div>

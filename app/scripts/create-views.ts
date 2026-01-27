@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Create Database Views for Admin Dashboard
  * Creates all missing views required by the admin UI
@@ -192,7 +193,7 @@ async function createViews() {
       try {
         const result = await sql`SELECT * FROM ${sql(view)} LIMIT 1`;
         console.log(`  ✓ ${view} - OK (${result.length} rows)`);
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.log(`  ✗ ${view} - ERROR: ${error.message}`);
       }
     }

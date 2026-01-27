@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { config } from 'dotenv';
 import { resolve } from 'path';
 import postgres from 'postgres';
@@ -16,7 +17,7 @@ const sql = postgres(process.env.DATABASE_URL!);
     `;
 
     console.log('\n📋 Available tables in database:\n');
-    tables.forEach((t: any) => console.log(`  - ${t.tablename}`));
+    tables.forEach((t: unknown) => console.log(`  - ${t.tablename}`));
     console.log('');
 
     await sql.end();

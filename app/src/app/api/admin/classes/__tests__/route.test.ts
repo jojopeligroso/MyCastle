@@ -20,7 +20,7 @@ describe('POST /api/admin/classes', () => {
     jest.clearAllMocks();
 
     mockRequest = {
-      json: jest.fn() as any,
+      json: jest.fn() as unknown,
     };
 
     // Mock auth functions
@@ -59,7 +59,7 @@ describe('POST /api/admin/classes', () => {
 
     (db.insert as any).mockReturnValue({
       values: jest.fn().mockReturnThis(),
-      returning: (jest.fn() as any).mockResolvedValue([mockInsertedClass]),
+      returning: (jest.fn() as unknown).mockResolvedValue([mockInsertedClass]),
     });
 
     const response = await POST(mockRequest as NextRequest);
@@ -96,7 +96,7 @@ describe('POST /api/admin/classes', () => {
 
     (db.insert as any).mockReturnValue({
       values: jest.fn().mockReturnThis(),
-      returning: (jest.fn() as any).mockResolvedValue([mockInsertedClass]),
+      returning: (jest.fn() as unknown).mockResolvedValue([mockInsertedClass]),
     });
 
     const response = await POST(mockRequest as NextRequest);
@@ -202,8 +202,8 @@ describe('POST /api/admin/classes', () => {
     (mockRequest.json as any).mockResolvedValue(validData);
 
     (db.insert as any).mockReturnValue({
-      values: (jest.fn() as any).mockReturnThis(),
-      returning: (jest.fn() as any).mockRejectedValue(new Error('Database error')),
+      values: (jest.fn() as unknown).mockReturnThis(),
+      returning: (jest.fn() as unknown).mockRejectedValue(new Error('Database error')),
     });
 
     const response = await POST(mockRequest as NextRequest);
@@ -232,7 +232,7 @@ describe('POST /api/admin/classes', () => {
 
     (db.insert as any).mockReturnValue({
       values: jest.fn().mockReturnThis(),
-      returning: (jest.fn() as any).mockResolvedValue([{ id: 'class-123', ...validData }]),
+      returning: (jest.fn() as unknown).mockResolvedValue([{ id: 'class-123', ...validData }]),
     });
 
     const response = await POST(mockRequest as NextRequest);
@@ -259,7 +259,7 @@ describe('POST /api/admin/classes', () => {
 
     (db.insert as any).mockReturnValue({
       values: jest.fn().mockReturnThis(),
-      returning: (jest.fn() as any).mockResolvedValue([{ id: 'class-123', ...validData }]),
+      returning: (jest.fn() as unknown).mockResolvedValue([{ id: 'class-123', ...validData }]),
     });
 
     const response = await POST(mockRequest as NextRequest);
