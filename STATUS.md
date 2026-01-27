@@ -8,14 +8,29 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-01-27 (Attendance Module 100% Complete! 🎉)
-**Current Phase:** Phase 1 (Admin UI/UX) - 85% Complete
+**Last Updated:** 2026-01-27 (Enrollment Reductions Complete!)
+**Current Phase:** Phase 1 (Admin UI/UX) - 87% Complete
 **Current Sprint:** Week 6 of Phase 1
 **Next Milestone:** Teacher Portal & Reporting Pages (ETA: Jan 28, 2026)
 
 ---
 
 ## 🎯 Quick Summary
+
+### Recent Wins (Jan 27 - Enrollment Reductions Complete)
+- ✅ **Enrollment reductions implemented** (Task 1.3.4):
+  - AmendEnrollmentForm already had complete reduction tab implementation
+  - Reduction form with new end date picker (must be before current, after start)
+  - Client-side validation: new_end >= start_date, new_end < current_end_date
+  - API endpoint handles REDUCTION amendments (updates enrollment.end_date)
+  - Amendment record created in enrollmentAmendments table
+  - Audit log entries for compliance tracking
+  - Reason field (optional) for documentation
+  - "Reduce Enrollment" button on enrollment detail page
+  - Visual badges: amber badge for REDUCTION amendment type
+  - Amendment history shows "Reduced to [date]" with before/after dates
+  - Fixed minor error handling typo in catch block
+  - **Enrollments Management now 5/6 tasks complete (83%)**
 
 ### Recent Wins (Jan 27 - Attendance Module 100% Complete!)
 - ✅ **Bulk attendance export implemented** (Task 1.4.4):
@@ -377,7 +392,7 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 
 ## 📊 Phase 1 Progress Overview
 
-**Overall Progress:** 85% (51 of 60 tasks complete)
+**Overall Progress:** 87% (52 of 60 tasks complete)
 
 | Module | Status | Tasks Complete | Next Task |
 |--------|--------|----------------|-----------|
@@ -392,9 +407,9 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 | Reporting System | 🔄 In Progress | 3/10 | Build class/teacher reports |
 | Teacher Portal | 🔄 In Progress | 2/14 | Attendance backend done, need UI |
 | Classes Management | 🔄 In Progress | 5/8 | List ✅, Create ✅, Detail ✅, Edit ✅, Sessions ✅ |
-| Enrollments Management | 🔄 In Progress | 4/6 | List ✅, Enroll ✅, Amendments ✅, Transfer ✅ |
+| Enrollments Management | 🔄 In Progress | 5/6 | List ✅, Enroll ✅, Amendments ✅, Transfer ✅, Reductions ✅ |
 | Finance Dashboard | 🔮 Post-MVP | 1/8 | Deferred until core MVP complete |
-| **Total** | **85%** | **51/60** | **Teacher Portal & Reporting Pages** |
+| **Total** | **87%** | **52/60** | **Enrollment Level Changes, then Reporting** |
 
 ---
 
@@ -534,7 +549,7 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 ## 🎯 Success Metrics
 
 ### Completion Tracking
-- **Tasks Complete:** 51/60 (85%)
+- **Tasks Complete:** 52/60 (87%)
 - **UI Pages:** 13/21 (62%)
   - Students list ✅
   - Student detail ✅
