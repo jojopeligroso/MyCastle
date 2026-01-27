@@ -8,14 +8,48 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-01-27 (Enrollment Level Changes Complete!)
+**Last Updated:** 2026-01-27 (Classes Management Investigation - Rooms Module Identified)
 **Current Phase:** Phase 1 (Admin UI/UX) - 88% Complete
 **Current Sprint:** Week 6 of Phase 1
-**Next Milestone:** Teacher Portal & Reporting Pages (ETA: Jan 28, 2026)
+**Next Milestone:** Rooms Management & Reporting Pages (ETA: Jan 28, 2026)
 
 ---
 
 ## 🎯 Quick Summary
+
+### ⚡ START HERE - Next Task
+
+**Task 1.8.1: Create Rooms List Page** (20 min estimate)
+- **Module:** Classes Management (Rooms submodule)
+- **Goal:** Implement rooms list UI + create database schema
+- **Files:** `/admin/rooms/page.tsx` (exists as placeholder), create `rooms` table
+- **Roadmap Ref:** ROADMAP.md section 1.8
+
+**Acceptance Criteria:**
+- [ ] Create `rooms` table in database (name, capacity, facilities, tenant_id)
+- [ ] List rooms from database with RLS protection
+- [ ] Display name, capacity, equipment/facilities
+- [ ] Add create/edit room links
+- [ ] Apply RLS policies for multi-tenancy
+
+**Blocker Resolved:** Investigation complete - "Classes Management 5/8" includes:
+- Section 1.2 (Core Classes): 5/5 complete ✅
+- Section 1.8 (Rooms Management): 0/3 complete ⏳
+- **Next 3 tasks:** 1.8.1 (Rooms List), 1.8.2 (Create Room), 1.8.3 (Room Allocation)
+
+---
+
+### Recent Wins (Jan 27 - Classes Management Module Investigation)
+- ✅ **Task count discrepancy resolved**:
+  - Investigated why STATUS.md showed "Classes Management 5/8"
+  - Discovered ROADMAP.md splits "Classes Management" across multiple sections
+  - Section 1.2 (Core Classes): 5 tasks complete (List, Create, Detail, Edit, Sessions) ✅
+  - Section 1.8 (Rooms Management): 3 tasks remaining (Rooms List, Create Room, Room Allocation) ⏳
+  - Total: 5/8 tasks complete in Classes Management module
+  - Identified Task 1.8.1 (Rooms List Page) as next priority
+  - Placeholder pages exist at `/admin/rooms/page.tsx` and `/admin/timetable/page.tsx`
+  - Database schema blocker: `rooms` table needs to be created
+  - Clear path forward: Rooms → Reporting → Teacher Portal UI
 
 ### Recent Wins (Jan 27 - Enrollment Level Changes Complete)
 - ✅ **Enrollment level changes verified complete** (Task 1.3.5):
@@ -422,7 +456,7 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 | Global Search | ✅ Complete | 1/1 | Multi-entity search with debounce ✅ |
 | Reporting System | 🔄 In Progress | 3/10 | Build class/teacher reports |
 | Teacher Portal | 🔄 In Progress | 2/14 | Attendance backend done, need UI |
-| Classes Management | 🔄 In Progress | 5/8 | List ✅, Create ✅, Detail ✅, Edit ✅, Sessions ✅ |
+| Classes Management | 🔄 In Progress | 5/8 | Core 5/5 ✅, Rooms 0/3 (Next: 1.8.1 Rooms List) |
 | Enrollments Management | ✅ Complete | 6/6 | All tasks complete: List, Enroll, Amendments, Reductions, Level Changes, Transfer |
 | Finance Dashboard | 🔮 Post-MVP | 1/8 | Deferred until core MVP complete |
 | **Total** | **88%** | **53/60** | **Classes Management & Reporting** |
@@ -498,12 +532,11 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 
 ### Current MVP Priorities (Before Finance Dashboard)
 
-**Priority 2: Classes Management** (Est: 3-4 hours)
-- Classes list page with filtering
-- Class detail view
-- Create/edit class forms
-- Class roster management
-- Session scheduling
+**Priority 2: Classes Management - Rooms Module** (Est: 65 minutes)
+- Task 1.8.1: Rooms list page with database schema (20 min)
+- Task 1.8.2: Create room form (20 min)
+- Task 1.8.3: Room allocation/booking view (25 min)
+- Core classes (1.2.1-1.2.5): All complete ✅
 
 **Priority 3: Teacher Portal** (Est: 10-12 hours)
 - Teacher dashboard
