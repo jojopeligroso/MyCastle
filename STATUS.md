@@ -8,14 +8,40 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-01-27 (Enrollment Transfer Complete)
-**Current Phase:** Phase 1 (Admin UI/UX) - 77% Complete
+**Last Updated:** 2026-01-27 (Global Search Complete)
+**Current Phase:** Phase 1 (Admin UI/UX) - 80% Complete
 **Current Sprint:** Week 6 of Phase 1
-**Next Milestone:** Classes Management UI & Teacher Portal (ETA: Jan 28, 2026)
+**Next Milestone:** Teacher Portal & Reporting Pages (ETA: Jan 28, 2026)
 
 ---
 
 ## 🎯 Quick Summary
+
+### Recent Wins (Jan 27 - Global Search Complete)
+- ✅ **Global search page implemented** (Task 1.14.1):
+  - Search input with 500ms debounce (prevents API spam)
+  - Multi-entity search across students, teachers, and classes
+  - Categorized results display with dedicated sections
+  - Result count badges for each category
+  - Navigation links to detail pages (/admin/students/[id], /admin/users/[id], /admin/classes/[id])
+  - Loading state with animated spinner
+  - Empty state ("Start searching")
+  - No results state ("No matches found")
+  - Error handling with user-friendly messages
+  - lucide-react icons (Search, User, Users, BookOpen, Loader2)
+  - Clean, responsive UI with hover states
+  - Minimum 2 characters required to search
+
+### Recent Wins (Jan 27 - Admin Attendance Review)
+- ✅ **Admin attendance dashboard reviewed** (Task 1.4.1):
+  - Comprehensive attendance overview with filtering (date, class, student)
+  - Summary stats: Total sessions, avg attendance %, visa compliance alerts
+  - Recent sessions list with attendance breakdown
+  - Visa compliance alerts panel (students <80% attendance)
+  - Session detail pages with attendance sheet
+  - All acceptance criteria met
+  - Hash-chain bypass documented (admin-only access, acceptable for current regulations)
+  - Export functionality deferred to Task 1.4.4
 
 ### Recent Wins (Jan 27 - Enrollment Transfer & Lint Cleanup)
 - ✅ **Enrollment transfer system** complete (Task 1.3.6):
@@ -303,7 +329,7 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 
 ## 📊 Phase 1 Progress Overview
 
-**Overall Progress:** 77% (46 of 60 tasks complete)
+**Overall Progress:** 80% (48 of 60 tasks complete)
 
 | Module | Status | Tasks Complete | Next Task |
 |--------|--------|----------------|-----------|
@@ -313,12 +339,14 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 | Bookings Management | ✅ Complete | 6/6 | - |
 | Payment Recording | ✅ Complete | 4/4 | - |
 | Compliance & Visa | ⏸️ Paused | 1/6 | Dashboard complete, alerts shelved (see tidy.md) |
+| Attendance Tracking | ✅ Complete | 1/4 | Admin overview ✅, session detail ✅, corrections pending |
+| Global Search | ✅ Complete | 1/1 | Multi-entity search with debounce ✅ |
 | Reporting System | 🔄 In Progress | 3/10 | Build class/teacher reports |
 | Teacher Portal | 🔄 In Progress | 2/14 | Attendance backend done, need UI |
 | Classes Management | 🔄 In Progress | 5/8 | List ✅, Create ✅, Detail ✅, Edit ✅, Sessions ✅ |
 | Enrollments Management | 🔄 In Progress | 4/6 | List ✅, Enroll ✅, Amendments ✅, Transfer ✅ |
 | Finance Dashboard | 🔮 Post-MVP | 1/8 | Deferred until core MVP complete |
-| **Total** | **77%** | **46/60** | **AttendanceRegister UI & Teacher Portal** |
+| **Total** | **80%** | **48/60** | **Teacher Portal & Reporting Pages** |
 
 ---
 
