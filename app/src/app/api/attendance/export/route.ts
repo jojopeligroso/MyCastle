@@ -1,19 +1,23 @@
 /**
- * Attendance CSV Export API
- * GET /api/attendance/export?weekStart=YYYY-MM-DD&classId=<uuid>
+ * Attendance Export API (CSV/XLSX)
+ * GET /api/attendance/export?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD&classIds=uuid1,uuid2&format=csv|xlsx
  *
- * T-054: Weekly CSV Export with Audit Hash (8 points, Medium)
- * - Generate CSV exports from templates
+ * Task 1.4.4: Bulk Attendance Export
+ * - Date range support (startDate + endDate)
+ * - Multi-class export (comma-separated classIds)
+ * - Format selection (CSV or XLSX)
  * - Include hash column for tamper detection
- * - Signed URLs for downloads
+ * - Signed URLs with 24h expiry
  * - Export completes in < 60s (p95)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { attendance, classSessions, classes } from '@/db/schema';
-import { eq, and, gte, lte, sql } from 'drizzle-orm';
+import { eq, and, gte, lte, sql, inArray, or } from 'drizzle-orm';
 import { getCurrentUser, getTenantId } from '@/lib/auth/utils';
+import ExcelJS from 'exceljs';
+import { createClient } from '@supabase/supabase-js';
 
 /**
  * Generate CSV from attendance records
@@ -87,28 +91,125 @@ function escapeCsvField(value: string): string {
   return value;
 }
 
+/**
+ * Generate XLSX from attendance records
+ */
+async function generateXLSX(
+  records: Array<{
+    studentName: string;
+    studentEmail: string;
+    sessionDate: string;
+    sessionTime: string;
+    status: string;
+    notes: string | null;
+    recordedBy: string;
+    recordedAt: Date;
+    hash: string | null;
+    previousHash: string | null;
+    editCount: number;
+    editedAt: Date | null;
+  }>,
+  metadata: {
+    classNames: string;
+    startDate: string;
+    endDate: string;
+    exportedAt: string;
+    exportedBy: string;
+  }
+): Promise<Buffer> {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Attendance');
+
+  // Add metadata as header rows
+  worksheet.addRow(['MyCastle Attendance Export']);
+  worksheet.addRow(['Classes:', metadata.classNames]);
+  worksheet.addRow(['Period:', `${metadata.startDate} to ${metadata.endDate}`]);
+  worksheet.addRow(['Exported:', metadata.exportedAt]);
+  worksheet.addRow(['Exported by:', metadata.exportedBy]);
+  worksheet.addRow(['WARNING: DO NOT MODIFY THIS FILE - Hash verification will detect tampering']);
+  worksheet.addRow([]); // Empty row
+
+  // Add column headers
+  const headerRow = worksheet.addRow([
+    'Student Name',
+    'Student Email',
+    'Session Date',
+    'Session Time',
+    'Status',
+    'Notes',
+    'Recorded By',
+    'Recorded At',
+    'Hash (SHA256)',
+    'Previous Hash',
+    'Edit Count',
+    'Last Edited',
+  ]);
+
+  // Style header row
+  headerRow.font = { bold: true };
+  headerRow.fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'FFE0E0E0' },
+  };
+
+  // Add data rows
+  for (const record of records) {
+    worksheet.addRow([
+      record.studentName,
+      record.studentEmail,
+      record.sessionDate,
+      record.sessionTime,
+      record.status,
+      record.notes || '',
+      record.recordedBy,
+      record.recordedAt.toISOString(),
+      record.hash || '',
+      record.previousHash || '',
+      record.editCount,
+      record.editedAt ? record.editedAt.toISOString() : '',
+    ]);
+  }
+
+  // Auto-fit columns
+  worksheet.columns.forEach(column => {
+    column.width = 15;
+  });
+
+  // Generate buffer
+  const buffer = await workbook.xlsx.writeBuffer();
+  return Buffer.from(buffer);
+}
+
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const startTime = Date.now();
 
   try {
     const searchParams = request.nextUrl.searchParams;
-    const weekStart = searchParams.get('weekStart');
-    const classId = searchParams.get('classId');
 
-    if (!weekStart || !classId) {
+    // Support both new params (startDate/endDate/classIds) and legacy (weekStart/classId)
+    const startDate = searchParams.get('startDate') || searchParams.get('weekStart');
+    const endDate = searchParams.get('endDate');
+    const classIdsParam = searchParams.get('classIds') || searchParams.get('classId');
+    const format = searchParams.get('format') || 'csv'; // csv or xlsx
+
+    if (!startDate || !classIdsParam) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Missing required parameters: weekStart, classId',
+          error: 'Missing required parameters: startDate (or weekStart) and classIds (or classId)',
         },
         { status: 400 }
       );
     }
 
-    // Calculate week end (7 days later)
-    const weekEnd = new Date(new Date(weekStart).getTime() + 7 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split('T')[0];
+    // Parse multiple class IDs
+    const classIds = classIdsParam.split(',').map(id => id.trim());
+
+    // Calculate end date if not provided (7 days from start for backward compatibility)
+    const finalEndDate =
+      endDate ||
+      new Date(new Date(startDate).getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
     // Verify authentication
     const user = await getCurrentUser();
@@ -137,37 +238,41 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const userRole = user.user_metadata?.role || user.app_metadata?.role || 'student';
     const userName = user.user_metadata?.name || user.email?.split('@')[0] || 'Unknown';
 
-    // Verify class belongs to teacher (or admin)
-    const [classRecord] = await db
+    // Verify classes belong to teacher (or admin)
+    const classRecords = await db
       .select()
       .from(classes)
-      .where(and(eq(classes.id, classId), eq(classes.tenant_id, tenantId)))
-      .limit(1);
+      .where(and(inArray(classes.id, classIds), eq(classes.tenantId, tenantId)));
 
-    if (!classRecord) {
+    if (classRecords.length === 0) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Class not found',
+          error: 'No classes found',
         },
         { status: 404 }
       );
     }
 
-    const isAuthorized =
-      userRole === 'admin' || (userRole === 'teacher' && classRecord.teacher_id === user.id);
-
-    if (!isAuthorized) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Forbidden',
-        },
-        { status: 403 }
-      );
+    // Check authorization for all classes
+    if (userRole !== 'admin') {
+      const unauthorizedClasses = classRecords.filter(c => c.teacherId !== user.id);
+      if (unauthorizedClasses.length > 0) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Forbidden: You do not have access to all requested classes',
+          },
+          { status: 403 }
+        );
+      }
     }
 
-    // Fetch attendance records for the week
+    const classNames = classRecords
+      .map(c => `${c.name} (${c.code || c.id.slice(0, 8)})`)
+      .join(', ');
+
+    // Fetch attendance records for the date range and classes
     const records = await db
       .select({
         attendance: attendance,
@@ -182,76 +287,156 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         },
       })
       .from(attendance)
-      .innerJoin(classSessions, eq(attendance.class_session_id, classSessions.id))
-      .innerJoin(sql`users`, eq(attendance.student_id, sql`users.id`))
-      .leftJoin(
-        sql`users AS recorded_by_user`,
-        eq(attendance.recorded_by, sql`recorded_by_user.id`)
-      )
+      .innerJoin(classSessions, eq(attendance.classSessionId, classSessions.id))
+      .innerJoin(sql`users`, eq(attendance.studentId, sql`users.id`))
+      .leftJoin(sql`users AS recorded_by_user`, eq(attendance.recordedBy, sql`recorded_by_user.id`))
       .where(
         and(
-          eq(classSessions.class_id, classId),
-          eq(classSessions.tenant_id, tenantId),
-          eq(attendance.tenant_id, tenantId),
-          gte(classSessions.session_date, weekStart),
-          lte(classSessions.session_date, weekEnd)
+          inArray(classSessions.classId, classIds),
+          eq(classSessions.tenantId, tenantId),
+          eq(attendance.tenantId, tenantId),
+          gte(classSessions.sessionDate, startDate),
+          lte(classSessions.sessionDate, finalEndDate)
         )
       )
-      .orderBy(classSessions.session_date, classSessions.start_time, sql`users.name`);
+      .orderBy(classSessions.sessionDate, classSessions.startTime, sql`users.name`);
 
-    // Transform records for CSV
-    const csvRecords = records.map(r => ({
+    // Transform records for export
+    const exportRecords = records.map(r => ({
       studentName: r.student.name as string,
       studentEmail: r.student.email as string,
-      sessionDate: r.session.session_date,
-      sessionTime: `${r.session.start_time}-${r.session.end_time}`,
+      sessionDate: r.session.sessionDate,
+      sessionTime: `${r.session.startTime}-${r.session.endTime}`,
       status: r.attendance.status,
       notes: r.attendance.notes,
       recordedBy: r.recordedBy.name as string,
-      recordedAt: r.attendance.recorded_at,
+      recordedAt: r.attendance.recordedAt,
       hash: r.attendance.hash,
-      previousHash: r.attendance.previous_hash,
-      editCount: r.attendance.edit_count || 0,
-      editedAt: r.attendance.edited_at,
+      previousHash: r.attendance.previousHash,
+      editCount: r.attendance.editCount || 0,
+      editedAt: r.attendance.editedAt,
     }));
 
-    // Generate CSV
-    const csv = generateCSV(csvRecords, {
-      className: classRecord.name,
-      weekStart,
-      weekEnd,
+    const metadata = {
+      classNames,
+      startDate,
+      endDate: finalEndDate,
       exportedAt: new Date().toISOString(),
       exportedBy: userName,
-    });
+    };
+
+    // Generate export based on format
+    let fileContent: Uint8Array;
+    let contentType: string;
+    let fileExtension: string;
+    let filename: string;
+
+    if (format === 'xlsx') {
+      const buffer = await generateXLSX(exportRecords, metadata);
+      fileContent = new Uint8Array(buffer);
+      contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      fileExtension = 'xlsx';
+    } else {
+      // Default to CSV
+      const csvString = generateCSV(exportRecords, {
+        className: classNames,
+        weekStart: startDate,
+        weekEnd: finalEndDate,
+        exportedAt: metadata.exportedAt,
+        exportedBy: metadata.exportedBy,
+      });
+      fileContent = new TextEncoder().encode(csvString);
+      contentType = 'text/csv';
+      fileExtension = 'csv';
+    }
+
+    filename = `attendance_export_${startDate}_to_${finalEndDate}.${fileExtension}`;
 
     const executionTime = Date.now() - startTime;
 
+    // Upload to Supabase storage and generate signed URL
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    let signedUrl: string | null = null;
+
+    if (supabaseUrl && supabaseServiceKey) {
+      try {
+        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+        const storagePath = `exports/${tenantId}/${Date.now()}_${filename}`;
+
+        // Upload file
+        const { error: uploadError } = await supabase.storage
+          .from('attendance-exports')
+          .upload(storagePath, fileContent, {
+            contentType,
+            upsert: false,
+          });
+
+        if (uploadError) {
+          console.error('[Attendance Export] Storage upload error:', uploadError);
+        } else {
+          // Generate signed URL (24 hours expiry)
+          const { data: urlData, error: urlError } = await supabase.storage
+            .from('attendance-exports')
+            .createSignedUrl(storagePath, 86400); // 24 hours in seconds
+
+          if (urlError) {
+            console.error('[Attendance Export] Signed URL error:', urlError);
+          } else {
+            signedUrl = urlData.signedUrl;
+          }
+        }
+      } catch (storageError) {
+        console.error('[Attendance Export] Storage error:', storageError);
+        // Continue with direct download if storage fails
+      }
+    }
+
     // Log export to audit_logs
     await db.execute(sql`
-      INSERT INTO audit_logs (tenant_id, user_id, action, entity_type, entity_id, changes, ip_address)
+      INSERT INTO audit_logs (tenant_id, user_id, action, resource_type, resource_id, changes)
       VALUES (
         ${tenantId},
         ${user.id},
         'EXPORT',
         'attendance',
-        ${classId},
-        ${JSON.stringify({ weekStart, weekEnd, recordCount: csvRecords.length })}::jsonb,
-        inet_client_addr()
+        ${classIds[0]},
+        ${JSON.stringify({
+          startDate,
+          endDate: finalEndDate,
+          classIds,
+          format,
+          recordCount: exportRecords.length,
+          signedUrl: signedUrl ? 'generated' : 'direct_download',
+        })}::jsonb
       )
     `);
 
     console.log(
-      `[Attendance Export] Generated CSV in ${executionTime}ms (${csvRecords.length} records)`
+      `[Attendance Export] Generated ${format.toUpperCase()} in ${executionTime}ms (${exportRecords.length} records)`
     );
 
-    // Return CSV with appropriate headers
-    return new NextResponse(csv, {
+    // If signed URL was generated, return JSON with URL
+    if (signedUrl) {
+      return NextResponse.json({
+        success: true,
+        signedUrl,
+        filename,
+        recordCount: exportRecords.length,
+        executionTime,
+        expiresIn: '24 hours',
+      });
+    }
+
+    // Otherwise, return file directly
+    return new NextResponse(fileContent as BodyInit, {
       status: 200,
       headers: {
-        'Content-Type': 'text/csv',
-        'Content-Disposition': `attachment; filename="attendance_${classRecord.code || classId}_${weekStart}.csv"`,
+        'Content-Type': contentType,
+        'Content-Disposition': `attachment; filename="${filename}"`,
         'X-Execution-Time-Ms': String(executionTime),
-        'X-Record-Count': String(csvRecords.length),
+        'X-Record-Count': String(exportRecords.length),
       },
     });
   } catch (error) {

@@ -8,14 +8,46 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-01-27 (Session Attendance Detail Complete)
-**Current Phase:** Phase 1 (Admin UI/UX) - 82% Complete
+**Last Updated:** 2026-01-27 (Attendance Module 100% Complete! 🎉)
+**Current Phase:** Phase 1 (Admin UI/UX) - 85% Complete
 **Current Sprint:** Week 6 of Phase 1
 **Next Milestone:** Teacher Portal & Reporting Pages (ETA: Jan 28, 2026)
 
 ---
 
 ## 🎯 Quick Summary
+
+### Recent Wins (Jan 27 - Attendance Module 100% Complete!)
+- ✅ **Bulk attendance export implemented** (Task 1.4.4):
+  - Date range picker (startDate + endDate) instead of week-only
+  - Multi-class selection with checkboxes (select multiple classes at once)
+  - Format selector: CSV or XLSX (Excel) with radio buttons
+  - ExcelJS integration for XLSX generation with styling
+  - Signed URL generation with 24h expiry (Supabase storage)
+  - Falls back to direct download if storage unavailable
+  - Updated API supports: ?startDate=...&endDate=...&classIds=id1,id2&format=csv|xlsx
+  - Hash columns included in both formats for tamper detection
+  - Performance tracking and execution time display
+  - Backward compatibility with legacy weekStart/classId params
+  - Audit logging for all exports
+  - **Attendance module now 100% complete (4/4 tasks)** 🎉
+
+### Recent Wins (Jan 27 - Attendance Correction Flow Complete)
+- ✅ **Attendance correction workflow implemented** (Task 1.4.3):
+  - Database migration FRESH_0013: attendance_corrections table
+  - AttendanceCorrectionForm modal component with student selector
+  - Visual comparison of original vs corrected values (status, notes)
+  - Required reason field with validation (min 10 chars)
+  - API endpoints: POST /corrections, GET /corrections, POST /corrections/[id]/review
+  - PendingCorrections dashboard widget with inline review
+  - Admin approval workflow (approve/reject with notes)
+  - Duplicate correction prevention
+  - Audit trail integration (creates audit log on approval)
+  - Updates attendance record on approval with edit count increment
+  - RLS policies for admin and teacher access
+  - 7 indexes + 3 RLS policies applied
+  - Teacher Portal note: Corrections are admin-only; Teacher Portal is post-MVP
+  - All acceptance criteria met
 
 ### Recent Wins (Jan 27 - Session Attendance Detail Complete)
 - ✅ **Session-specific attendance sheet implemented** (Task 1.4.2):
@@ -345,7 +377,7 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 
 ## 📊 Phase 1 Progress Overview
 
-**Overall Progress:** 82% (49 of 60 tasks complete)
+**Overall Progress:** 85% (51 of 60 tasks complete)
 
 | Module | Status | Tasks Complete | Next Task |
 |--------|--------|----------------|-----------|
@@ -355,14 +387,14 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 | Bookings Management | ✅ Complete | 6/6 | - |
 | Payment Recording | ✅ Complete | 4/4 | - |
 | Compliance & Visa | ⏸️ Paused | 1/6 | Dashboard complete, alerts shelved (see tidy.md) |
-| Attendance Tracking | 🔄 In Progress | 2/4 | Overview ✅, Session Detail ✅, Corrections & Export pending |
+| Attendance Tracking | ✅ Complete | 4/4 | All tasks complete: Overview, Sessions, Corrections, Export |
 | Global Search | ✅ Complete | 1/1 | Multi-entity search with debounce ✅ |
 | Reporting System | 🔄 In Progress | 3/10 | Build class/teacher reports |
 | Teacher Portal | 🔄 In Progress | 2/14 | Attendance backend done, need UI |
 | Classes Management | 🔄 In Progress | 5/8 | List ✅, Create ✅, Detail ✅, Edit ✅, Sessions ✅ |
 | Enrollments Management | 🔄 In Progress | 4/6 | List ✅, Enroll ✅, Amendments ✅, Transfer ✅ |
 | Finance Dashboard | 🔮 Post-MVP | 1/8 | Deferred until core MVP complete |
-| **Total** | **82%** | **49/60** | **Teacher Portal & Reporting Pages** |
+| **Total** | **85%** | **51/60** | **Teacher Portal & Reporting Pages** |
 
 ---
 
@@ -502,7 +534,7 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 ## 🎯 Success Metrics
 
 ### Completion Tracking
-- **Tasks Complete:** 49/60 (82%)
+- **Tasks Complete:** 51/60 (85%)
 - **UI Pages:** 13/21 (62%)
   - Students list ✅
   - Student detail ✅
