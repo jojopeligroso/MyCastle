@@ -19,5 +19,8 @@ export * from './system';
 // Programmes schema
 export * from './programmes';
 
+// Facilities schema (rooms and allocations)
+export * from './facilities';
+
 // Old schemas - commenting out until updated to match new database
 // export * from './curriculum';
