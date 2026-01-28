@@ -8,10 +8,10 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-01-28 (Rooms Management Complete - 3 Tasks)
+**Last Updated:** 2026-01-28 (Communications Module Complete - 2 Tasks)
 **Current Phase:** Phase 1 (Admin UI/UX) - 93% Complete
 **Current Sprint:** Week 6 of Phase 1
-**Next Milestone:** Communications & Enquiries Management (ETA: Jan 29, 2026)
+**Next Milestone:** Enquiries Management (ETA: Jan 29, 2026)
 
 ---
 
@@ -19,22 +19,39 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 
 ### ⚡ START HERE - Next Task
 
-**Task 1.9.1: Create Email Logs Page** (20 min estimate)
-- **Module:** Communications Management
-- **Goal:** Display all sent emails with filtering capabilities
-- **Files:** `/admin/communications/email-logs/page.tsx`, create `EmailLogsList.tsx`
-- **Roadmap Ref:** ROADMAP.md section 1.9
+**Task 1.10.1: Create Enquiries List Page** (25 min estimate)
+- **Module:** Enquiries Management
+- **Goal:** Track inbound enquiries with status filtering and manual entry
+- **Files:** `/admin/enquiries/page.tsx`, create `EnquiriesList.tsx`
+- **Roadmap Ref:** ROADMAP.md section 1.10
+
+**Actionable Subtasks (Task 1.10.1):**
+- [ ] Confirm/create enquiries data shape (status, source, external_id)
+- [ ] Build `EnquiriesList` with status badges and multi-status filter
+- [ ] Add “Create Enquiry” button and manual entry form scaffold
+- [ ] Add detail link to `/admin/enquiries/[id]` (stub ok)
+- [ ] Wire tenant-scoped query in page
 
 **Acceptance Criteria:**
-- [ ] List emails from logs table
-- [ ] Display recipient, subject, sent time, status
-- [ ] Filter by date range
-- [ ] Show delivery status (sent, failed, pending)
-- [ ] Link to view email content/details
+- [ ] List enquiries with name, email, status, date
+- [ ] Status filtering (new/contacted/converted/rejected)
+- [ ] Create enquiry form (manual entry)
+- [ ] Status badges for each status
+- [ ] Link to enquiry detail view
 
-**Context:** Communications module provides email and notification management for the admin portal.
+**Context:** Enquiries module captures inbound leads for the admin portal.
 
 ---
+
+### Recent Wins (Jan 28 - Communications Module Complete)
+- ✅ **Communications Management implemented** (Tasks 1.9.1, 1.9.2):
+  - Email logs list with search, date range, status filters, and detail stub
+  - Notification list with status/type/scope filters and read/unread indicators
+  - Create Notification form with audience targeting (user/role/all) and scheduling
+  - Notifications + notification_recipients tables with RLS policies
+  - Server action + API route for manual notification creation
+  - Validation coverage for notification payloads
+  - **Communications module now 2/2 tasks complete (100%)** 🎉
 
 ### Recent Wins (Jan 28 - Rooms Management Module Complete)
 - ✅ **Rooms Management implemented** (Tasks 1.8.1, 1.8.2, 1.8.3):
