@@ -6,6 +6,20 @@ This repository contains the **complete specifications** for MyCastle, an ESL sc
 
 ---
 
+## ✅ MVP Readiness Source of Truth
+
+**Readiness hierarchy (SSOT):**
+- **MVP_SPEC_REVIEW.md = Authority (readiness)**
+- STATUS.md = Signal (derived)
+- ROADMAP.md = Intent (future)
+- project-review.md = Learning (post-hoc)
+
+**MVP policy decisions:**
+- **/api/admin/* routes are admin-only**
+- **Admin attendance does NOT require hash-chain compliance for MVP**
+
+---
+
 ## 📋 Core Specification Documents (The Spine)
 
 These three documents form the **authoritative spine** of the project and are updated with every commit:
@@ -371,4 +385,3 @@ This ensures **bidirectional traceability**: from requirements to implementation
 **Architectural Decision**: ✅ 8-MCP domain-driven architecture with extensibility approved 2025-11-11
 **Last Updated**: 2025-11-11
 **Version**: 3.0.0  
-
