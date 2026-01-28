@@ -19,6 +19,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
+## 📌 MVP Readiness + Policy (SSOT)
+
+**Readiness hierarchy (source of truth):**
+- **MVP_SPEC_REVIEW.md = Authority (SSOT for readiness)**
+- STATUS.md = Signal (derived)
+- ROADMAP.md = Intent (future)
+- project-review.md = Learning (post-hoc)
+
+**MVP policy decisions:**
+- **/api/admin/* routes are admin-only** (enforce role checks server-side)
+- **Admin attendance does NOT require hash-chain compliance for MVP**
+
+---
+
 ## 🚨 CRITICAL: Repository Structure
 
 **⚠️ IMPORTANT - READ THIS FIRST:**
