@@ -1,17 +1,17 @@
 ---
 status: APPROVED
-last_updated: 2026-01-27
-next_review: 2026-01-28
+last_updated: 2026-01-28
+next_review: 2026-01-29
 owner: Eoin Malone
 phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 ---
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-01-27 (Classes Management Investigation - Rooms Module Identified)
-**Current Phase:** Phase 1 (Admin UI/UX) - 88% Complete
+**Last Updated:** 2026-01-28 (Rooms Management Complete - 3 Tasks)
+**Current Phase:** Phase 1 (Admin UI/UX) - 93% Complete
 **Current Sprint:** Week 6 of Phase 1
-**Next Milestone:** Rooms Management & Reporting Pages (ETA: Jan 28, 2026)
+**Next Milestone:** Communications & Enquiries Management (ETA: Jan 29, 2026)
 
 ---
 
@@ -19,25 +19,36 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 
 ### ⚡ START HERE - Next Task
 
-**Task 1.8.1: Create Rooms List Page** (20 min estimate)
-- **Module:** Classes Management (Rooms submodule)
-- **Goal:** Implement rooms list UI + create database schema
-- **Files:** `/admin/rooms/page.tsx` (exists as placeholder), create `rooms` table
-- **Roadmap Ref:** ROADMAP.md section 1.8
+**Task 1.9.1: Create Email Logs Page** (20 min estimate)
+- **Module:** Communications Management
+- **Goal:** Display all sent emails with filtering capabilities
+- **Files:** `/admin/communications/email-logs/page.tsx`, create `EmailLogsList.tsx`
+- **Roadmap Ref:** ROADMAP.md section 1.9
 
 **Acceptance Criteria:**
-- [ ] Create `rooms` table in database (name, capacity, facilities, tenant_id)
-- [ ] List rooms from database with RLS protection
-- [ ] Display name, capacity, equipment/facilities
-- [ ] Add create/edit room links
-- [ ] Apply RLS policies for multi-tenancy
+- [ ] List emails from logs table
+- [ ] Display recipient, subject, sent time, status
+- [ ] Filter by date range
+- [ ] Show delivery status (sent, failed, pending)
+- [ ] Link to view email content/details
 
-**Blocker Resolved:** Investigation complete - "Classes Management 5/8" includes:
-- Section 1.2 (Core Classes): 5/5 complete ✅
-- Section 1.8 (Rooms Management): 0/3 complete ⏳
-- **Next 3 tasks:** 1.8.1 (Rooms List), 1.8.2 (Create Room), 1.8.3 (Room Allocation)
+**Context:** Communications module provides email and notification management for the admin portal.
 
 ---
+
+### Recent Wins (Jan 28 - Rooms Management Module Complete)
+- ✅ **Rooms Management implemented** (Tasks 1.8.1, 1.8.2, 1.8.3):
+  - Created FRESH_0014 migration for rooms and room_allocations tables
+  - Built rooms schema with equipment (JSONB) and facilities (array) tracking
+  - RoomList component with search, filtering, and 5 stats cards
+  - CreateRoomForm with equipment checkboxes (projector, whiteboard, computers)
+  - Facilities selection (wifi, AC, wheelchair access, sound insulation)
+  - Room allocation view with date picker and grouping by room
+  - API routes: GET/POST/PUT/DELETE for rooms, GET/POST/DELETE for allocations
+  - RLS policies for multi-tenant security (admin full access, teachers read-only)
+  - Unique constraint: room name per tenant, one room per session
+  - Unit tests created (rooms-schema.test.ts)
+  - **Classes Management now 8/8 tasks complete (100%)** 🎉
 
 ### Recent Wins (Jan 27 - Classes Management Module Investigation)
 - ✅ **Task count discrepancy resolved**:
@@ -442,11 +453,11 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 
 ## 📊 Phase 1 Progress Overview
 
-**Overall Progress:** 88% (53 of 60 tasks complete)
+**Overall Progress:** 93% (56 of 60 tasks complete)
 
 | Module | Status | Tasks Complete | Next Task |
 |--------|--------|----------------|-----------|
-| Database Schema | ✅ Complete | 10/10 | All migrations applied (incl. FRESH_0012) |
+| Database Schema | ✅ Complete | 10/10 | All migrations applied (incl. FRESH_0014) |
 | User Management | ✅ Complete | 4/4 | - |
 | Student Registry | ✅ Complete | 5/5 | - |
 | Bookings Management | ✅ Complete | 6/6 | - |
@@ -456,10 +467,10 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 | Global Search | ✅ Complete | 1/1 | Multi-entity search with debounce ✅ |
 | Reporting System | 🔄 In Progress | 3/10 | Build class/teacher reports |
 | Teacher Portal | 🔄 In Progress | 2/14 | Attendance backend done, need UI |
-| Classes Management | 🔄 In Progress | 5/8 | Core 5/5 ✅, Rooms 0/3 (Next: 1.8.1 Rooms List) |
+| Classes Management | ✅ Complete | 8/8 | Core Classes 5/5 ✅, Rooms 3/3 ✅ |
 | Enrollments Management | ✅ Complete | 6/6 | All tasks complete: List, Enroll, Amendments, Reductions, Level Changes, Transfer |
 | Finance Dashboard | 🔮 Post-MVP | 1/8 | Deferred until core MVP complete |
-| **Total** | **88%** | **53/60** | **Classes Management & Reporting** |
+| **Total** | **93%** | **56/60** | **Communications & Enquiries** |
 
 ---
 
