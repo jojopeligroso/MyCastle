@@ -14,6 +14,7 @@ import {
   integer,
   jsonb,
   index,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core';
 import { tenants, users } from './core';
 
@@ -154,3 +155,42 @@ export const exports = pgTable('exports', {
   created_at: timestamp('created_at').defaultNow().notNull(),
   expires_at: timestamp('expires_at'), // Signed URL expiry
 });
+
+/**
+ * Email Logs Table
+ * Records outbound email delivery attempts
+ */
+export const emailLogs = pgTable(
+  'email_logs',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenant_id: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+
+    recipient: varchar('recipient', { length: 255 }).notNull(),
+    subject: varchar('subject', { length: 255 }).notNull(),
+    sent_at: timestamp('sent_at').defaultNow().notNull(),
+    status: varchar('status', { length: 50 }).notNull().default('sent'),
+
+    source: varchar('source', { length: 100 }),
+    external_id: varchar('external_id', { length: 255 }),
+    provider: varchar('provider', { length: 100 }),
+    provider_message_id: varchar('provider_message_id', { length: 255 }),
+
+    headers: jsonb('headers'),
+    body_preview: text('body_preview'),
+    error_message: text('error_message'),
+  },
+  table => [
+    index('idx_email_logs_tenant').on(table.tenant_id),
+    index('idx_email_logs_recipient').on(table.recipient),
+    index('idx_email_logs_sent_at').on(table.sent_at),
+    index('idx_email_logs_status').on(table.status),
+    uniqueIndex('idx_email_logs_source_external').on(
+      table.tenant_id,
+      table.source,
+      table.external_id
+    ),
+  ]
+);
