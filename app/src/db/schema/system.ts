@@ -194,3 +194,81 @@ export const emailLogs = pgTable(
     ),
   ]
 );
+
+/**
+ * Notifications Table
+ * System notifications sent to users
+ */
+export const notifications = pgTable(
+  'notifications',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenant_id: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+
+    title: varchar('title', { length: 255 }).notNull(),
+    body: text('body').notNull(),
+    severity: varchar('severity', { length: 50 }).notNull().default('info'), // info, warning, critical
+    status: varchar('status', { length: 50 }).notNull().default('sent'), // draft, scheduled, sent
+    type: varchar('type', { length: 50 }).notNull().default('system'), // system, announcement, reminder
+    target_scope: varchar('target_scope', { length: 50 }).notNull().default('all'), // user, role, all
+
+    source: varchar('source', { length: 100 }),
+    external_id: varchar('external_id', { length: 255 }),
+
+    scheduled_at: timestamp('scheduled_at'),
+    sent_at: timestamp('sent_at'),
+    created_at: timestamp('created_at').defaultNow().notNull(),
+    updated_at: timestamp('updated_at').defaultNow().notNull(),
+  },
+  table => [
+    index('idx_notifications_tenant').on(table.tenant_id),
+    index('idx_notifications_status').on(table.status),
+    index('idx_notifications_type').on(table.type),
+    index('idx_notifications_scope').on(table.target_scope),
+    index('idx_notifications_created_at').on(table.created_at),
+    uniqueIndex('idx_notifications_source_external').on(
+      table.tenant_id,
+      table.source,
+      table.external_id
+    ),
+  ]
+);
+
+/**
+ * Notification Recipients Table
+ * Tracks delivery and read status per recipient
+ */
+export const notificationRecipients = pgTable(
+  'notification_recipients',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenant_id: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id),
+    notification_id: uuid('notification_id')
+      .notNull()
+      .references(() => notifications.id),
+
+    recipient_type: varchar('recipient_type', { length: 50 }).notNull().default('user'), // user, role, broadcast
+    user_id: uuid('user_id').references(() => users.id),
+    recipient_role: varchar('recipient_role', { length: 50 }),
+
+    status: varchar('status', { length: 50 }).notNull().default('unread'), // unread, read
+    read_at: timestamp('read_at'),
+    delivered_at: timestamp('delivered_at'),
+    created_at: timestamp('created_at').defaultNow().notNull(),
+  },
+  table => [
+    index('idx_notification_recipients_tenant').on(table.tenant_id),
+    index('idx_notification_recipients_notification').on(table.notification_id),
+    index('idx_notification_recipients_user').on(table.user_id),
+    index('idx_notification_recipients_status').on(table.status),
+    index('idx_notification_recipients_role').on(table.recipient_role),
+    uniqueIndex('idx_notification_recipient_unique').on(
+      table.notification_id,
+      table.user_id
+    ),
+  ]
+);

@@ -897,7 +897,7 @@ THEN I see which sessions are in which rooms
 
 ### 1.9 Communications
 
-#### Task 1.9.1: Create Email Logs Page
+#### Task 1.9.1: Create Email Logs Page ✅
 **Estimate:** 20 minutes
 **User Story:**
 ```gherkin
@@ -910,12 +910,21 @@ THEN I see all sent emails with recipient, subject, status, timestamp
 - `/app/admin/communications/email-logs/page.tsx`
 - Create `EmailLogsList.tsx`
 
-**Acceptance:**
-- [ ] List emails from logs
-- [ ] Display recipient, subject, sent time, status
-- [ ] Filter by date range
+**Implementation Plan:**
+- Data: add (or confirm) `email_logs` table with `tenant_id`, `recipient`, `subject`, `sent_at`, `status`, `source`, `external_id`, `provider`, `provider_message_id`, `headers`, `body_preview`, `error_message`.
+- Query: server-side fetch scoped by tenant, with search on recipient/subject and date range (`from`, `to`) from query params.
+- UI: `EmailLogsList` table with search input, date range inputs, status badges (sent/failed/pending), and empty state.
+- Detail: add link to `/admin/communications/email-logs/[id]` for full body/headers; stub if detail page not in scope yet.
+- Integration: ensure `source` + `external_id` allow CRM (e.g., Pipedrive) sync without conflicts.
 
-#### Task 1.9.2: Create Notifications Page
+**Acceptance:**
+- [x] List emails from logs
+- [x] Display recipient, subject, sent time, status
+- [x] Filter by date range
+ - [x] Status badge colors: sent=green, failed=red, pending=yellow
+ - [x] Link to view full email content/headers
+
+#### Task 1.9.2: Create Notifications Page ✅
 **Estimate:** 20 minutes
 **User Story:**
 ```gherkin
@@ -928,10 +937,19 @@ THEN I see all system notifications sent to users
 - `/app/admin/communications/notifications/page.tsx`
 - Create `NotificationsList.tsx`
 
+**Implementation Plan:**
+- Data: add `notifications` table plus `notification_recipients` for user/role/broadcast targeting with read/unread status per recipient.
+- Query: list recent notifications with filters for status, type, and recipient scope; scope by tenant.
+- UI: `NotificationsList` table with filters and "Create Notification" button.
+- Form: manual creation form with title/body, severity, target audience selector (user/role/all), and optional scheduling.
+- Integration: include `source` + `external_id` for third-party announcements.
+
 **Acceptance:**
-- [ ] List notifications
-- [ ] Create notification button
-- [ ] Send to user/role/all
+- [x] List notifications
+- [x] Create notification button
+- [x] Send to user/role/all
+ - [x] Filters for status/type/recipient scope
+ - [x] Read/unread indicators
 
 ---
 
@@ -951,10 +969,19 @@ THEN I see all enquiries with name, email, status, date
 - Create `EnquiriesList.tsx`
 - Create enquiries table if needed
 
+**Implementation Plan:**
+- Data: create `enquiries` table with `tenant_id`, `name`, `email`, `phone`, `status`, `source`, `external_id`, `programme_interest`, `created_at`, `updated_at`.
+- Query: list enquiries by tenant with multi-status filter and search (name/email).
+- UI: `EnquiriesList` table with status badges, multi-select status filter, and "Create Enquiry" button.
+- Form: manual enquiry entry form (phone/walk-in) with status default `new`.
+- Integration: store `source` + `external_id` to support CRM ingestion later.
+
 **Acceptance:**
 - [ ] List enquiries
 - [ ] Status filtering
 - [ ] Create enquiry form (for manual entry)
+ - [ ] Status badges: new/contacted/converted/rejected
+ - [ ] Link to enquiry detail view
 
 #### Task 1.10.2: Implement Enquiry Detail View
 **Estimate:** 20 minutes
