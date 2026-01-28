@@ -2,6 +2,8 @@
 
 **Last Updated:** 2026-01-26
 
+**Notes:** 2026-02-12 - Ran `FRESH_0015_email_logs.sql` migration to add email logs table; no regressions observed.
+
 This file tracks pre-existing code quality issues that should be addressed in a future cleanup sprint.
 
 ---
