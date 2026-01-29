@@ -8,10 +8,10 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-01-29 (Enquiries List Page Committed - Task 1.10.1 Complete)
-**Current Phase:** Phase 1 (Admin UI/UX) - 95% Complete
+**Last Updated:** 2026-01-29 (Enquiry Detail View Complete - Task 1.10.2)
+**Current Phase:** Phase 1 (Admin UI/UX) - 97% Complete
 **Current Sprint:** Week 6 of Phase 1
-**Next Milestone:** Enquiries Detail View (ETA: Jan 29, 2026)
+**Next Milestone:** Reporting & Analytics (ETA: Jan 30, 2026)
 
 ---
 
@@ -44,7 +44,22 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 
 ---
 
-### Recent Wins (Jan 29 - Enquiries List Page Complete)
+### Recent Wins (Jan 29 - Enquiries Management Module Complete)
+- ✅ **Enquiry Detail View implemented** (Task 1.10.2):
+  - Added GET handler to /api/admin/enquiries/[id]/route.ts
+  - Server component at /admin/enquiries/[id]/page.tsx with RLS context
+  - EnquiryDetail client component with comprehensive UI (361 lines)
+  - Contact information card with mailto/tel links
+  - Programme interest card with CEFR level badges
+  - Status management with dropdown (new/contacted/converted/rejected)
+  - Notes editing with save/cancel functionality
+  - Action buttons: Convert to Student (stubbed), Edit, Delete with confirmation
+  - Breadcrumb navigation back to enquiries list
+  - Color-coded status and level badges matching list page
+  - Responsive layout with grid system
+  - Optimistic UI updates with router.refresh()
+  - **Enquiries Management now 2/2 tasks complete (100%)** 🎉
+
 - ✅ **Enquiries Management List Page implemented** (Task 1.10.1):
   - Database migration FRESH_0018: enquiries table with 14 columns
   - 6 indexes for optimal filtering (tenant, status, email, created_at, composite tenant+status)
@@ -58,7 +73,7 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
   - Server component page with stats calculation (conversion rate, new vs contacted)
   - Migration executed via run-fresh-0018.ts script
   - Comprehensive testing and documentation created
-  - **Enquiries Management now 1/2 tasks complete (50%)**
+  - Migration executed via run-fresh-0018.ts script
 
 ### Recent Wins (Jan 29 - Auth/RBAC Hardening)
 - ✅ **Admin API RBAC enforced**:
@@ -482,7 +497,7 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 - ✅ **RBAC enforcement across admin APIs** (role-gated `requireAuth` + super_admin support)
 - ✅ **Role-based auth unit tests** added for `requireAuth`/`requireRole`
 - ✅ **Enquiries List Page** (Task 1.10.1 - Complete with migration, API, UI)
-- 📝 **Next priority:** Enquiries Detail View (Task 1.10.2 - 20 min)
+- 📝 **Next priority:** Reporting & Analytics improvements
 
 ### Blockers
 - None - core booking and payment system fully functional
@@ -491,7 +506,7 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 
 ## 📊 Phase 1 Progress Overview
 
-**Overall Progress:** 95% (57 of 60 tasks complete)
+**Overall Progress:** 97% (58 of 60 tasks complete)
 
 | Module | Status | Tasks Complete | Next Task |
 |--------|--------|----------------|-----------|
@@ -508,9 +523,9 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 | Classes Management | ✅ Complete | 8/8 | Core Classes 5/5 ✅, Rooms 3/3 ✅ |
 | Enrollments Management | ✅ Complete | 6/6 | All tasks complete: List, Enroll, Amendments, Reductions, Level Changes, Transfer |
 | Communications | ✅ Complete | 2/2 | Email Logs, Notifications with create form ✅ |
-| Enquiries Management | 🔄 In Progress | 1/2 | List page complete, detail view next |
+| Enquiries Management | ✅ Complete | 2/2 | List + Detail views complete ✅ |
 | Finance Dashboard | 🔮 Post-MVP | 1/8 | Deferred until core MVP complete |
-| **Total** | **95%** | **57/60** | **Enquiries Detail View** |
+| **Total** | **97%** | **58/60** | **Enquiries Detail View** |
 
 ---
 

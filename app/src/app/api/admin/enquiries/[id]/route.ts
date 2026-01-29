@@ -1,5 +1,6 @@
 /**
- * Admin Enquiry Detail API - Update and delete individual enquiries
+ * Admin Enquiry Detail API - CRUD operations for individual enquiries
+ * GET /api/admin/enquiries/[id] - Fetch single enquiry
  * PUT /api/admin/enquiries/[id] - Update enquiry (typically status changes)
  * DELETE /api/admin/enquiries/[id] - Delete enquiry
  * REQ: spec/01-admin-mcp.md §1.2.6 - admin://enquiries resource
@@ -24,6 +25,43 @@ const updateEnquirySchema = z.object({
   source: z.enum(['website', 'referral', 'agent', 'social', 'phone', 'walk_in']).optional(),
   notes: z.string().optional(),
 });
+
+/**
+ * GET /api/admin/enquiries/[id]
+ * Fetch a single enquiry by ID
+ */
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params;
+
+    // Verify authentication and get tenant
+    await requireAuth(['admin']);
+    const tenantId = await getTenantId();
+
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Tenant not found' }, { status: 400 });
+    }
+
+    // Fetch enquiry with RLS enforcement
+    const [enquiry] = await db
+      .select()
+      .from(enquiries)
+      .where(and(eq(enquiries.id, id), eq(enquiries.tenantId, tenantId)))
+      .limit(1);
+
+    if (!enquiry) {
+      return NextResponse.json({ error: 'Enquiry not found' }, { status: 404 });
+    }
+
+    return NextResponse.json(enquiry);
+  } catch (error: unknown) {
+    console.error('Error fetching enquiry:', error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Failed to fetch enquiry' },
+      { status: 500 }
+    );
+  }
+}
 
 /**
  * PUT /api/admin/enquiries/[id]
