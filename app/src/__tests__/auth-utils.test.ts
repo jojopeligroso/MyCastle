@@ -84,6 +84,96 @@ describe('Auth Utilities', () => {
 
       await expect(requireAuth()).rejects.toThrow('Unauthorized');
     });
+
+    it('should allow access when role is permitted', async () => {
+      const mockUser = {
+        id: 'admin-user-id',
+        email: 'admin@example.com',
+        user_metadata: { role: 'admin' },
+      };
+
+      (mockGetUser as any).mockResolvedValue({
+        data: { user: mockUser },
+        error: null,
+      });
+
+      const { requireAuth } = await import('@/lib/auth/utils');
+      const user = await requireAuth(['admin']);
+
+      expect(user).toEqual(mockUser);
+    });
+
+    it('should allow super_admin when admin is required', async () => {
+      const mockUser = {
+        id: 'super-admin-user-id',
+        email: 'superadmin@example.com',
+        user_metadata: { role: 'super_admin' },
+      };
+
+      (mockGetUser as any).mockResolvedValue({
+        data: { user: mockUser },
+        error: null,
+      });
+
+      const { requireAuth } = await import('@/lib/auth/utils');
+      const user = await requireAuth(['admin']);
+
+      expect(user).toEqual(mockUser);
+    });
+
+    it('should throw when role is not permitted', async () => {
+      const mockUser = {
+        id: 'teacher-user-id',
+        email: 'teacher@example.com',
+        user_metadata: { role: 'teacher' },
+      };
+
+      (mockGetUser as any).mockResolvedValue({
+        data: { user: mockUser },
+        error: null,
+      });
+
+      const { requireAuth } = await import('@/lib/auth/utils');
+
+      await expect(requireAuth(['admin'])).rejects.toThrow('Forbidden: Insufficient permissions');
+    });
+  });
+
+  describe('requireRole', () => {
+    it('should allow access when role matches', async () => {
+      const mockUser = {
+        id: 'teacher-user-id',
+        email: 'teacher@example.com',
+        user_metadata: { role: 'teacher' },
+      };
+
+      (mockGetUser as any).mockResolvedValue({
+        data: { user: mockUser },
+        error: null,
+      });
+
+      const { requireRole } = await import('@/lib/auth/utils');
+      const user = await requireRole(['teacher']);
+
+      expect(user).toEqual(mockUser);
+    });
+
+    it('should throw when role does not match', async () => {
+      const mockUser = {
+        id: 'student-user-id',
+        email: 'student@example.com',
+        user_metadata: { role: 'student' },
+      };
+
+      (mockGetUser as any).mockResolvedValue({
+        data: { user: mockUser },
+        error: null,
+      });
+
+      const { requireRole } = await import('@/lib/auth/utils');
+
+      await expect(requireRole(['admin'])).rejects.toThrow('Forbidden: Insufficient permissions');
+    });
   });
 
   describe('getTenantId', () => {
