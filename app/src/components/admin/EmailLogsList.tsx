@@ -51,7 +51,9 @@ export function EmailLogsList({ logs, filters }: EmailLogsListProps) {
           </div>
           <form method="get" className="flex flex-col gap-3 sm:flex-row sm:items-end">
             <div>
-              <label className="block text-xs font-medium text-gray-500">Recipient or subject</label>
+              <label className="block text-xs font-medium text-gray-500">
+                Recipient or subject
+              </label>
               <input
                 type="text"
                 name="search"
@@ -153,9 +155,7 @@ export function EmailLogsList({ logs, filters }: EmailLogsListProps) {
                       <div className="text-xs text-red-500">{log.error_message}</div>
                     ) : null}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
-                    {formatSentAt(log.sent_at)}
-                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{formatSentAt(log.sent_at)}</td>
                   <td className="px-6 py-4">
                     <span
                       className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold ${statusStyle(

@@ -17,15 +17,14 @@ type EmailLogFilters = {
 };
 
 async function getEmailLogs(tenantId: string, filters: EmailLogFilters): Promise<EmailLog[]> {
-  let query = db
-    .select()
-    .from(emailLogs)
-    .where(eq(emailLogs.tenant_id, tenantId))
-    .$dynamic();
+  let query = db.select().from(emailLogs).where(eq(emailLogs.tenant_id, tenantId)).$dynamic();
 
   if (filters.search) {
     query = query.where(
-      or(ilike(emailLogs.recipient, `%${filters.search}%`), ilike(emailLogs.subject, `%${filters.search}%`))
+      or(
+        ilike(emailLogs.recipient, `%${filters.search}%`),
+        ilike(emailLogs.subject, `%${filters.search}%`)
+      )
     );
   }
 
@@ -51,11 +50,7 @@ async function getEmailLogs(tenantId: string, filters: EmailLogFilters): Promise
   return query.orderBy(desc(emailLogs.sent_at));
 }
 
-export default async function Page({
-  searchParams,
-}: {
-  searchParams?: Promise<SearchParams>;
-}) {
+export default async function Page({ searchParams }: { searchParams?: Promise<SearchParams> }) {
   await requireAuth();
   const tenantId = await getTenantId();
 

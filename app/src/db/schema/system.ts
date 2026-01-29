@@ -266,9 +266,6 @@ export const notificationRecipients = pgTable(
     index('idx_notification_recipients_user').on(table.user_id),
     index('idx_notification_recipients_status').on(table.status),
     index('idx_notification_recipients_role').on(table.recipient_role),
-    uniqueIndex('idx_notification_recipient_unique').on(
-      table.notification_id,
-      table.user_id
-    ),
+    uniqueIndex('idx_notification_recipient_unique').on(table.notification_id, table.user_id),
   ]
 );
