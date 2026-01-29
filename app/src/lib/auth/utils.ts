@@ -32,13 +32,24 @@ export const getSession = cache(async () => {
 
 /**
  * Require authentication - throws if user is not logged in
+ * Optionally enforce allowed roles when provided
  * Use in Server Components and Route Handlers
  */
-export const requireAuth = async () => {
+export const requireAuth = async (allowedRoles?: string[]) => {
   const user = await getCurrentUser();
   if (!user) {
     throw new Error('Unauthorized');
   }
+
+  if (allowedRoles) {
+    const userRole = user.user_metadata?.role || user.app_metadata?.role;
+    const hasRole = userRole && allowedRoles.includes(userRole);
+    const isSuperAdminAllowed = userRole === 'super_admin' && allowedRoles.includes('admin');
+    if (!hasRole && !isSuperAdminAllowed) {
+      throw new Error('Forbidden: Insufficient permissions');
+    }
+  }
+
   return user;
 };
 
@@ -57,16 +68,7 @@ export const hasRole = async (allowedRoles: string[]) => {
 /**
  * Require specific role - throws if user doesn't have role
  */
-export const requireRole = async (allowedRoles: string[]) => {
-  const user = await requireAuth();
-  const userRole = user.user_metadata?.role || user.app_metadata?.role;
-
-  if (!allowedRoles.includes(userRole)) {
-    throw new Error('Forbidden: Insufficient permissions');
-  }
-
-  return user;
-};
+export const requireRole = async (allowedRoles: string[]) => requireAuth(allowedRoles);
 
 /**
  * Get tenant ID for the current user
