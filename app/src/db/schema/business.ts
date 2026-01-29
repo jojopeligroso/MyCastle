@@ -13,6 +13,7 @@ import {
   integer,
   decimal,
   date,
+  text,
   index,
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
@@ -218,6 +219,56 @@ export const payments = pgTable(
   ]
 );
 
+/**
+ * Enquiries Table
+ * REQ: spec/01-admin-mcp.md §1.2.6 - admin://enquiries resource
+ * Prospective student enquiries from various sources
+ */
+export const enquiries = pgTable(
+  'enquiries',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id, { onDelete: 'cascade' }),
+
+    // Contact Information
+    name: varchar('name', { length: 255 }).notNull(),
+    email: varchar('email', { length: 255 }).notNull(),
+    phone: varchar('phone', { length: 50 }),
+
+    // Programme Interest
+    programmeInterest: varchar('programme_interest', { length: 255 }),
+    levelEstimate: varchar('level_estimate', { length: 10 }), // CEFR level: A1-C2
+    startDatePreference: date('start_date_preference'),
+
+    // Status Tracking
+    status: varchar('status', { length: 50 }).notNull().default('new'),
+    // Status values: 'new', 'contacted', 'converted', 'rejected'
+
+    // Source Tracking
+    source: varchar('source', { length: 50 }),
+    // Source values: 'website', 'referral', 'agent', 'social', 'phone', 'walk_in'
+
+    // CRM Integration
+    externalId: varchar('external_id', { length: 255 }),
+
+    // Notes
+    notes: text('notes'),
+
+    // Timestamps
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  table => [
+    index('idx_enquiries_tenant_id').on(table.tenantId),
+    index('idx_enquiries_status').on(table.status),
+    index('idx_enquiries_created_at').on(table.createdAt),
+    index('idx_enquiries_email').on(table.email),
+    index('idx_enquiries_tenant_status').on(table.tenantId, table.status),
+  ]
+);
+
 // Type exports
 export type Agency = typeof agencies.$inferSelect;
 export type NewAgency = typeof agencies.$inferInsert;
@@ -233,6 +284,9 @@ export type NewBooking = typeof bookings.$inferInsert;
 
 export type Payment = typeof payments.$inferSelect;
 export type NewPayment = typeof payments.$inferInsert;
+
+export type Enquiry = typeof enquiries.$inferSelect;
+export type NewEnquiry = typeof enquiries.$inferInsert;
 
 // Combined types
 export type BookingWithDetails = Booking & {

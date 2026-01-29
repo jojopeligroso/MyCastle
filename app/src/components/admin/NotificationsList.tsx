@@ -56,7 +56,11 @@ const getLabel = (value: string) => {
   return value.replace(/_/g, ' ');
 };
 
-export function NotificationsList({ notifications, filters, createAction }: NotificationsListProps) {
+export function NotificationsList({
+  notifications,
+  filters,
+  createAction,
+}: NotificationsListProps) {
   const statusStyle = (status: string) => STATUS_STYLES[status] || 'bg-gray-100 text-gray-800';
   const severityStyle = (severity: string) =>
     SEVERITY_STYLES[severity] || 'bg-gray-100 text-gray-800';
@@ -188,19 +192,26 @@ export function NotificationsList({ notifications, filters, createAction }: Noti
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
                       <div className="font-medium text-gray-900">
-                        {SCOPE_LABELS[notification.target_scope] || getLabel(notification.target_scope)}
+                        {SCOPE_LABELS[notification.target_scope] ||
+                          getLabel(notification.target_scope)}
                       </div>
                       <div className="text-xs text-gray-500">
                         {notification.recipient_count} recipients
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
-                      {formatDateTime(notification.sent_at || notification.scheduled_at || notification.created_at)}
+                      {formatDateTime(
+                        notification.sent_at || notification.scheduled_at || notification.created_at
+                      )}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
                       <div className="flex flex-col">
-                        <span className="text-xs text-gray-500">Unread: {notification.unread_count}</span>
-                        <span className="text-xs text-gray-500">Read: {notification.read_count}</span>
+                        <span className="text-xs text-gray-500">
+                          Unread: {notification.unread_count}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          Read: {notification.read_count}
+                        </span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -274,7 +285,9 @@ export function NotificationsList({ notifications, filters, createAction }: Noti
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-500">User ID (if targeting a user)</label>
+              <label className="block text-xs font-medium text-gray-500">
+                User ID (if targeting a user)
+              </label>
               <input
                 type="text"
                 name="user_id"
@@ -283,7 +296,9 @@ export function NotificationsList({ notifications, filters, createAction }: Noti
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-500">Role (if targeting a role)</label>
+              <label className="block text-xs font-medium text-gray-500">
+                Role (if targeting a role)
+              </label>
               <input
                 type="text"
                 name="recipient_role"

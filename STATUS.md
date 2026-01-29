@@ -1,17 +1,17 @@
 ---
 status: APPROVED
-last_updated: 2026-01-28
-next_review: 2026-01-29
+last_updated: 2026-01-29
+next_review: 2026-01-30
 owner: Eoin Malone
 phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 ---
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-01-28 (Communications Module Complete - 2 Tasks)
-**Current Phase:** Phase 1 (Admin UI/UX) - 93% Complete
+**Last Updated:** 2026-01-29 (Enquiries List Page Committed - Task 1.10.1 Complete)
+**Current Phase:** Phase 1 (Admin UI/UX) - 95% Complete
 **Current Sprint:** Week 6 of Phase 1
-**Next Milestone:** Enquiries Management (ETA: Jan 29, 2026)
+**Next Milestone:** Enquiries Detail View (ETA: Jan 29, 2026)
 
 ---
 
@@ -19,29 +19,52 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 
 ### ⚡ START HERE - Next Task
 
-**Task 1.10.1: Create Enquiries List Page** (25 min estimate)
+**Task 1.10.2: Implement Enquiry Detail View** (20 min estimate)
 - **Module:** Enquiries Management
-- **Goal:** Track inbound enquiries with status filtering and manual entry
-- **Files:** `/admin/enquiries/page.tsx`, create `EnquiriesList.tsx`
+- **Goal:** View and manage individual enquiry details
+- **Files:** `/admin/enquiries/[id]/page.tsx`, update enquiry status
 - **Roadmap Ref:** ROADMAP.md section 1.10
 
-**Actionable Subtasks (Task 1.10.1):**
-- [ ] Confirm/create enquiries data shape (status, source, external_id)
-- [ ] Build `EnquiriesList` with status badges and multi-status filter
-- [ ] Add “Create Enquiry” button and manual entry form scaffold
-- [ ] Add detail link to `/admin/enquiries/[id]` (stub ok)
-- [ ] Wire tenant-scoped query in page
+**Actionable Subtasks (Task 1.10.2):**
+- [ ] Create `/admin/enquiries/[id]/page.tsx` detail page
+- [ ] Fetch single enquiry with RLS context
+- [ ] Display all enquiry fields (name, email, phone, programme, level, dates, notes)
+- [ ] Add status update dropdown (new → contacted → converted/rejected)
+- [ ] Add action buttons (Convert to Student, Edit, Delete)
+- [ ] Link back to enquiries list
 
 **Acceptance Criteria:**
-- [ ] List enquiries with name, email, status, date
-- [ ] Status filtering (new/contacted/converted/rejected)
-- [ ] Create enquiry form (manual entry)
-- [ ] Status badges for each status
-- [ ] Link to enquiry detail view
+- [ ] Display complete enquiry information
+- [ ] Status update functionality
+- [ ] Convert to student flow (stub acceptable)
+- [ ] Edit/delete controls
+- [ ] Breadcrumb navigation
 
-**Context:** Enquiries module captures inbound leads for the admin portal.
+**Context:** Detail view completes the enquiries management workflow.
 
 ---
+
+### Recent Wins (Jan 29 - Enquiries List Page Complete)
+- ✅ **Enquiries Management List Page implemented** (Task 1.10.1):
+  - Database migration FRESH_0018: enquiries table with 14 columns
+  - 6 indexes for optimal filtering (tenant, status, email, created_at, composite tenant+status)
+  - 4 RLS policies for admin-only CRUD operations
+  - Updated_at trigger for automatic timestamp management
+  - Enquiries schema in business.ts with TypeScript type inference
+  - API routes: GET/POST for /api/admin/enquiries, PUT/DELETE for [id]
+  - EnquiriesList component with multi-status filtering and search
+  - CreateEnquiryForm with validation (email format, CEFR levels)
+  - EnquiriesListPage with stats dashboard (5 cards) and modal management
+  - Server component page with stats calculation (conversion rate, new vs contacted)
+  - Migration executed via run-fresh-0018.ts script
+  - Comprehensive testing and documentation created
+  - **Enquiries Management now 1/2 tasks complete (50%)**
+
+### Recent Wins (Jan 29 - Auth/RBAC Hardening)
+- ✅ **Admin API RBAC enforced**:
+  - `requireAuth` now enforces allowed roles when provided
+  - `super_admin` explicitly satisfies `['admin']`
+  - Added unit coverage for role-based allow/deny
 
 ### Recent Wins (Jan 28 - Communications Module Complete)
 - ✅ **Communications Management implemented** (Tasks 1.9.1, 1.9.2):
@@ -455,13 +478,11 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
   - Stats cards: Total Classes, Total Enrolled, Avg Class Size, Classes at Capacity
   - Links to class and student detail pages
 
-### In Progress This Week (Jan 15-21)
-- ✅ **Booking reports page** (revenue analytics, agency performance) - COMPLETE
-- ✅ **Visa tracking dashboard** (expiry monitoring) - COMPLETE
-- ✅ **Complete database migrations** (all missing academic tables) - COMPLETE
-- ✅ **Database views enhanced** (with real data from new tables) - COMPLETE
-- ✅ **Enhanced attendance system** (backend complete) - COMPLETE
-- 📝 **Next priority:** Classes Management UI & AttendanceRegister frontend implementation
+### In Progress This Week (Jan 22-29)
+- ✅ **RBAC enforcement across admin APIs** (role-gated `requireAuth` + super_admin support)
+- ✅ **Role-based auth unit tests** added for `requireAuth`/`requireRole`
+- ✅ **Enquiries List Page** (Task 1.10.1 - Complete with migration, API, UI)
+- 📝 **Next priority:** Enquiries Detail View (Task 1.10.2 - 20 min)
 
 ### Blockers
 - None - core booking and payment system fully functional
@@ -470,7 +491,7 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 
 ## 📊 Phase 1 Progress Overview
 
-**Overall Progress:** 93% (56 of 60 tasks complete)
+**Overall Progress:** 95% (57 of 60 tasks complete)
 
 | Module | Status | Tasks Complete | Next Task |
 |--------|--------|----------------|-----------|
@@ -486,8 +507,10 @@ phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
 | Teacher Portal | 🔄 In Progress | 2/14 | Attendance backend done, need UI |
 | Classes Management | ✅ Complete | 8/8 | Core Classes 5/5 ✅, Rooms 3/3 ✅ |
 | Enrollments Management | ✅ Complete | 6/6 | All tasks complete: List, Enroll, Amendments, Reductions, Level Changes, Transfer |
+| Communications | ✅ Complete | 2/2 | Email Logs, Notifications with create form ✅ |
+| Enquiries Management | 🔄 In Progress | 1/2 | List page complete, detail view next |
 | Finance Dashboard | 🔮 Post-MVP | 1/8 | Deferred until core MVP complete |
-| **Total** | **93%** | **56/60** | **Communications & Enquiries** |
+| **Total** | **95%** | **57/60** | **Enquiries Detail View** |
 
 ---
 

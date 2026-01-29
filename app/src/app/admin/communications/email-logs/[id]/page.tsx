@@ -1,11 +1,7 @@
 import Link from 'next/link';
 import { requireAuth } from '@/lib/auth/utils';
 
-export default async function EmailLogDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function EmailLogDetailPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAuth();
   const { id } = await params;
 

@@ -71,16 +71,21 @@ export async function GET(request: NextRequest) {
         created_at: notifications.created_at,
         scheduled_at: notifications.scheduled_at,
         sent_at: notifications.sent_at,
-        read_count: sql<number>`COUNT(CASE WHEN ${notificationRecipients.status} = 'read' THEN 1 END)`.as(
-          'read_count'
-        ),
-        unread_count: sql<number>`COUNT(CASE WHEN ${notificationRecipients.status} = 'unread' THEN 1 END)`.as(
-          'unread_count'
-        ),
+        read_count:
+          sql<number>`COUNT(CASE WHEN ${notificationRecipients.status} = 'read' THEN 1 END)`.as(
+            'read_count'
+          ),
+        unread_count:
+          sql<number>`COUNT(CASE WHEN ${notificationRecipients.status} = 'unread' THEN 1 END)`.as(
+            'unread_count'
+          ),
         recipient_count: sql<number>`COUNT(${notificationRecipients.id})`.as('recipient_count'),
       })
       .from(notifications)
-      .leftJoin(notificationRecipients, eq(notificationRecipients.notification_id, notifications.id))
+      .leftJoin(
+        notificationRecipients,
+        eq(notificationRecipients.notification_id, notifications.id)
+      )
       .where(whereClause)
       .groupBy(notifications.id)
       .orderBy(desc(notifications.created_at))
