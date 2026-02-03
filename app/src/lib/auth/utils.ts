@@ -91,3 +91,49 @@ export const requireTenant = async (): Promise<string> => {
   }
   return tenantId;
 };
+
+/**
+ * Set RLS context for database queries
+ *
+ * Super admins: Get access to all tenant data (platform owner)
+ * Regular users: Restricted to their tenant only
+ *
+ * @param db - Drizzle database instance
+ * @returns Promise<void>
+ */
+export const setRLSContext = async (db: any): Promise<void> => {
+  const user = await getCurrentUser();
+  const tenantId = await getTenantId();
+
+  if (!user?.email) {
+    throw new Error('User email not available for RLS context');
+  }
+
+  // Import users table dynamically to avoid circular dependency
+  const { users } = await import('@/db/schema/core');
+  const { eq } = await import('drizzle-orm');
+  const { sql } = await import('drizzle-orm');
+
+  // Check if user is super admin
+  const [userRecord] = await db
+    .select({ isSuperAdmin: users.isSuperAdmin })
+    .from(users)
+    .where(eq(users.email, user.email))
+    .limit(1);
+
+  if (userRecord?.isSuperAdmin) {
+    // Super admin: Bypass tenant restrictions
+    await db.execute(sql.raw(`SET app.is_super_admin = 'true'`));
+    await db.execute(sql.raw(`SET app.user_email = '${user.email}'`));
+    console.log('[RLS] Super admin context set:', user.email);
+  } else {
+    // Regular user: Enforce tenant isolation
+    if (!tenantId) {
+      throw new Error('Tenant ID required for non-super-admin users');
+    }
+    await db.execute(sql.raw(`SET app.is_super_admin = 'false'`));
+    await db.execute(sql.raw(`SET app.user_email = '${user.email}'`));
+    await db.execute(sql.raw(`SET app.tenant_id = '${tenantId}'`));
+    console.log('[RLS] Tenant context set:', { email: user.email, tenantId });
+  }
+};

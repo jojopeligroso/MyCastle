@@ -7,7 +7,7 @@ import { Suspense } from 'react';
 import { db } from '@/db';
 import { enrollments, classes, users } from '@/db/schema';
 import { eq, and, desc, asc, or, like, sql } from 'drizzle-orm';
-import { requireAuth, getTenantId, getCurrentUser } from '@/lib/auth/utils';
+import { requireAuth, getTenantId, setRLSContext } from '@/lib/auth/utils';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { EnrollmentList } from '@/components/admin/EnrollmentList';
@@ -31,13 +31,8 @@ async function getEnrolments(tenantId: string, filters: EnrollmentFilters = {}) 
     sortOrder = 'desc',
   } = filters;
 
-  // Set RLS context with authenticated user
-  const user = await getCurrentUser();
-  if (!user?.email) {
-    throw new Error('User email not available for RLS context');
-  }
-  await db.execute(sql.raw(`SET app.user_email = '${user.email}'`));
-  await db.execute(sql.raw(`SET app.tenant_id = '${tenantId}'`));
+  // Set RLS context (super admin gets access to all tenants)
+  await setRLSContext(db);
 
   // Build WHERE conditions
   const conditions = [eq(enrollments.tenantId, tenantId)];
