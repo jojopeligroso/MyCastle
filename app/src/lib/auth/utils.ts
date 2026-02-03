@@ -115,13 +115,26 @@ export const setRLSContext = async (db: any): Promise<void> => {
   const { sql } = await import('drizzle-orm');
 
   // Check if user is super admin
-  const [userRecord] = await db
-    .select({ isSuperAdmin: users.isSuperAdmin })
-    .from(users)
-    .where(eq(users.email, user.email))
-    .limit(1);
+  // DEFENSIVE: If is_super_admin column doesn't exist, default to regular user
+  let isSuperAdmin = false;
+  try {
+    const [userRecord] = await db
+      .select({ isSuperAdmin: users.isSuperAdmin })
+      .from(users)
+      .where(eq(users.email, user.email))
+      .limit(1);
 
-  if (userRecord?.isSuperAdmin) {
+    isSuperAdmin = userRecord?.isSuperAdmin || false;
+  } catch (error) {
+    // Column doesn't exist - migration not run yet
+    console.warn(
+      '[RLS] is_super_admin column not found - defaulting to regular user.',
+      'Please run migration: app/migrations/add_is_super_admin.sql'
+    );
+    isSuperAdmin = false;
+  }
+
+  if (isSuperAdmin) {
     // Super admin: Bypass tenant restrictions
     await db.execute(sql.raw(`SET app.is_super_admin = 'true'`));
     await db.execute(sql.raw(`SET app.user_email = '${user.email}'`));
