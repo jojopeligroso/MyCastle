@@ -16,11 +16,11 @@ async function getUser(userId: string, tenantId: string) {
       id: users.id,
       name: users.name,
       email: users.email,
-      role: users.role,
+      role: users.primaryRole,
       status: users.status,
     })
     .from(users)
-    .where(and(eq(users.id, userId), eq(users.tenant_id, tenantId)))
+    .where(and(eq(users.id, userId), eq(users.tenantId, tenantId)))
     .limit(1);
 
   return result[0] || null;

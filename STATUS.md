@@ -1,23 +1,74 @@
 ---
-status: APPROVED
-last_updated: 2026-01-30
-next_review: 2026-01-31
+status: STABILIZATION
+last_updated: 2026-02-03
+next_review: 2026-02-04
 owner: Eoin Malone
-phase: Phase 1 - Admin UI/UX (Core MVP - Finance Dashboard deferred)
+phase: Phase 1 - Admin UI/UX (Stabilization In Progress)
 ---
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-01-30 (Data Management Module Complete - Task 1.11.3)
-**Current Phase:** Phase 1 (Admin UI/UX) - 100% Complete
-**Current Sprint:** Week 6 of Phase 1
-**Next Milestone:** Phase 1 Complete - Ready for Production Testing
+**Last Updated:** 2026-02-03 (Stabilization Phase - Critical Bugs Discovered)
+**Current Phase:** Phase 1 (Admin UI/UX) - Stabilization In Progress
+**Current Sprint:** Week 7 of Phase 1
+**Next Milestone:** Complete Stabilization → Production Testing
+
+---
+
+## 🚨 URGENT - Stabilization Phase (In Progress)
+
+**Status:** Phase 1 marked complete but critical runtime issues discovered during code review (2026-02-03)
+
+**Root Cause:** Admin code uses snake_case property access instead of camelCase Drizzle schema properties
+- TypeScript code incorrectly accesses `users.tenant_id` instead of `users.tenantId`
+- Database uses snake_case (PostgreSQL standard), Drizzle schema correctly maps to camelCase TypeScript
+- Admin pages bypass Drizzle's type system by using wrong property names
+
+**Impact:**
+- Admin dashboard crashes on KPI errors
+- User management pages return empty data
+- Student CRUD operations write to non-existent columns
+- Multi-tenant security compromised (hard-coded RLS context)
+- All quality checks failing (lint, test, build, typecheck)
+
+**Stabilization Tasks (18 total) - 4/18 complete (22%):**
+
+**Phase 0 - Critical Blockers (4/7)**
+- ✅ Fix dashboard KPI error handling crash (err vs _err)
+- ✅ Align admin users list page to current schema
+- ✅ Align admin user detail page to current schema
+- ✅ Align admin user edit page to current schema
+- ⏳ Align user actions (userActions.ts) to current schema
+- ⏳ Refactor student CRUD to split writes across users + students tables
+- ⏳ Fix user detail page field names (classes, enrolments queries)
+
+**Phase 1 - Security & Tenant Isolation (0/3)**
+- ⏳ Remove hard-coded RLS context from students page
+- ⏳ Remove hard-coded RLS context from enrolments page
+- ⏳ Add tenant filtering to dashboard queries
+
+**Phase 2 - API & UI Consistency (0/4)**
+- ⏳ Replace server-side fetch in enquiries page with direct DB access
+- ⏳ Replace server-side fetch in rooms page with direct DB access
+- ⏳ Gate alerts UI with 'not yet available' state
+- ⏳ Gate work queue UI with 'not yet available' state
+
+**Phase 3 - Hardening & CI/CD (0/4)**
+- ⏳ Add error boundaries to admin routes
+- ⏳ Fix lint errors across codebase
+- ⏳ Resolve test failures
+- ⏳ Fix build errors (dynamic imports, missing components)
+
+**Detailed findings:** See `CODE_REVIEW.md` for complete analysis
+
+**Estimated completion:** 5-7 hours total
+**Next task:** Fix dashboard KPI crash (5 minutes)
 
 ---
 
 ## 🎯 Quick Summary
 
-### ⚡ START HERE - Phase 1 Complete!
+### ⚡ START HERE - Stabilization Required!
 
 **🎉 Phase 1 (Admin UI/UX) - 100% COMPLETE (61/61 tasks)**
 
