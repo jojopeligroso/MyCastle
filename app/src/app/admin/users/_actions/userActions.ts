@@ -64,13 +64,13 @@ export async function changeUserRole(userId: string, newRole: string, reason: st
     const [targetUser] = await db
       .select()
       .from(users)
-      .where(and(eq(users.id, userId), eq(users.tenant_id, tenantId)));
+      .where(and(eq(users.id, userId), eq(users.tenantId, tenantId)));
 
     if (!targetUser) {
       return { success: false, error: 'User not found' };
     }
 
-    const oldRole = targetUser.role;
+    const oldRole = targetUser.primaryRole;
 
     // Validate role change
     if (newRole === 'super_admin') {
@@ -82,8 +82,8 @@ export async function changeUserRole(userId: string, newRole: string, reason: st
     // Update user role
     await db
       .update(users)
-      .set({ role: newRole, updated_at: new Date() })
-      .where(and(eq(users.id, userId), eq(users.tenant_id, tenantId)));
+      .set({ primaryRole: newRole, updatedAt: new Date() })
+      .where(and(eq(users.id, userId), eq(users.tenantId, tenantId)));
 
     // Create audit record
     await db.execute(sql`
@@ -130,8 +130,8 @@ export async function deactivateUser(userId: string, reason: string) {
   try {
     await db
       .update(users)
-      .set({ status: 'inactive', updated_at: new Date() })
-      .where(and(eq(users.id, userId), eq(users.tenant_id, tenantId)));
+      .set({ status: 'inactive', updatedAt: new Date() })
+      .where(and(eq(users.id, userId), eq(users.tenantId, tenantId)));
 
     // Create audit log
     await db.execute(sql`
@@ -165,8 +165,8 @@ export async function reactivateUser(userId: string) {
   try {
     await db
       .update(users)
-      .set({ status: 'active', updated_at: new Date() })
-      .where(and(eq(users.id, userId), eq(users.tenant_id, tenantId)));
+      .set({ status: 'active', updatedAt: new Date() })
+      .where(and(eq(users.id, userId), eq(users.tenantId, tenantId)));
 
     // Create audit log
     await db.execute(sql`
@@ -204,11 +204,11 @@ export async function revokeUserSessions(userId: string) {
   try {
     // Get user's auth_id
     const [user] = await db
-      .select({ auth_id: users.auth_id })
+      .select({ authId: users.authId })
       .from(users)
-      .where(and(eq(users.id, userId), eq(users.tenant_id, tenantId)));
+      .where(and(eq(users.id, userId), eq(users.tenantId, tenantId)));
 
-    if (!user?.auth_id) {
+    if (!user?.authId) {
       return { success: false, error: 'User auth ID not found' };
     }
 
@@ -225,7 +225,7 @@ export async function revokeUserSessions(userId: string) {
     );
 
     // Sign out the user (revokes all sessions)
-    const { error } = await supabase.auth.admin.signOut(user.auth_id);
+    const { error } = await supabase.auth.admin.signOut(user.authId);
 
     if (error) {
       console.error('Supabase session revocation error:', error);
@@ -267,11 +267,11 @@ export async function resetUserMFA(userId: string) {
   try {
     // Get user's auth_id
     const [user] = await db
-      .select({ auth_id: users.auth_id })
+      .select({ authId: users.authId })
       .from(users)
-      .where(and(eq(users.id, userId), eq(users.tenant_id, tenantId)));
+      .where(and(eq(users.id, userId), eq(users.tenantId, tenantId)));
 
-    if (!user?.auth_id) {
+    if (!user?.authId) {
       return { success: false, error: 'User auth ID not found' };
     }
 
@@ -369,11 +369,11 @@ export async function repairOrphanedUser(authId: string, name: string, role: str
 
     // Create user profile
     await db.insert(users).values({
-      tenant_id: tenantId,
-      auth_id: authId,
+      tenantId: tenantId,
+      authId: authId,
       email: authUser.user.email!,
       name,
-      role,
+      primaryRole: role,
       status: 'active',
     });
 

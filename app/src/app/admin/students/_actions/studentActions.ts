@@ -71,7 +71,7 @@ export async function createStudent(data: CreateStudentData) {
     const [existing] = await db
       .select()
       .from(users)
-      .where(and(eq(users.email, data.email), eq(users.tenant_id, tenantId)))
+      .where(and(eq(users.email, data.email), eq(users.tenantId, tenantId)))
       .limit(1);
 
     if (existing) {
@@ -93,25 +93,28 @@ export async function createStudent(data: CreateStudentData) {
       levelStatus = data.level_status;
     }
 
+    // TODO: CRITICAL - This needs refactoring to split data between users and students tables
+    // Currently inserting only valid user fields. Student-specific fields (visa, levels) need to go to students table
+
     // Create student user record
     const [newStudent] = await db
       .insert(users)
       .values({
-        tenant_id: tenantId,
+        tenantId: tenantId,
         email: data.email,
         name: data.name,
         phone: data.phone || null,
-        role: 'student',
+        primaryRole: 'student',
         status: 'active',
-        current_level: currentLevel,
-        initial_level: initialLevel,
-        level_status: levelStatus,
-        visa_type: data.visa_type || null,
-        visa_expiry: data.visa_expiry || null,
-        email_verified: false,
+        emailVerified: false,
         metadata: data.diagnostic_test
           ? {
               enrollment_date: new Date().toISOString().split('T')[0],
+              current_level: currentLevel,
+              initial_level: initialLevel,
+              level_status: levelStatus,
+              visa_type: data.visa_type || null,
+              visa_expiry: data.visa_expiry || null,
               notes: [
                 {
                   date: new Date().toISOString(),
@@ -122,6 +125,11 @@ export async function createStudent(data: CreateStudentData) {
             }
           : {
               enrollment_date: new Date().toISOString().split('T')[0],
+              current_level: currentLevel,
+              initial_level: initialLevel,
+              level_status: levelStatus,
+              visa_type: data.visa_type || null,
+              visa_expiry: data.visa_expiry || null,
             },
       })
       .returning();
@@ -209,7 +217,7 @@ export async function updateStudent(studentId: string, data: UpdateStudentData) 
     const [currentStudent] = await db
       .select()
       .from(users)
-      .where(and(eq(users.id, studentId), eq(users.tenant_id, tenantId), eq(users.role, 'student')))
+      .where(and(eq(users.id, studentId), eq(users.tenantId, tenantId), eq(users.primaryRole, 'student')))
       .limit(1);
 
     if (!currentStudent) {
@@ -221,7 +229,7 @@ export async function updateStudent(studentId: string, data: UpdateStudentData) 
       const [emailConflict] = await db
         .select()
         .from(users)
-        .where(and(eq(users.email, data.email), eq(users.tenant_id, tenantId)))
+        .where(and(eq(users.email, data.email), eq(users.tenantId, tenantId)))
         .limit(1);
 
       if (emailConflict) {
@@ -229,26 +237,34 @@ export async function updateStudent(studentId: string, data: UpdateStudentData) 
       }
     }
 
-    // Build update object
-    const updateData: unknown = {
-      updated_at: new Date(),
+    // TODO: CRITICAL - Student-specific fields need to be updated in students table
+    // Build update object (only user fields for now)
+    const updateData: any = {
+      updatedAt: new Date(),
     };
 
     if (data.name !== undefined) updateData.name = data.name;
     if (data.email !== undefined) updateData.email = data.email;
     if (data.phone !== undefined) updateData.phone = data.phone;
-    if (data.current_level !== undefined) updateData.current_level = data.current_level;
-    if (data.initial_level !== undefined) updateData.initial_level = data.initial_level;
-    if (data.level_status !== undefined) updateData.level_status = data.level_status;
-    if (data.visa_type !== undefined) updateData.visa_type = data.visa_type;
-    if (data.visa_expiry !== undefined) updateData.visa_expiry = data.visa_expiry;
     if (data.status !== undefined) updateData.status = data.status;
+
+    // Store student-specific fields in metadata temporarily until proper refactoring
+    const metadataUpdates: any = {};
+    if (data.current_level !== undefined) metadataUpdates.current_level = data.current_level;
+    if (data.initial_level !== undefined) metadataUpdates.initial_level = data.initial_level;
+    if (data.level_status !== undefined) metadataUpdates.level_status = data.level_status;
+    if (data.visa_type !== undefined) metadataUpdates.visa_type = data.visa_type;
+    if (data.visa_expiry !== undefined) metadataUpdates.visa_expiry = data.visa_expiry;
+
+    if (Object.keys(metadataUpdates).length > 0) {
+      updateData.metadata = sql`COALESCE(metadata, '{}'::jsonb) || ${JSON.stringify(metadataUpdates)}::jsonb`;
+    }
 
     // Update student
     await db
       .update(users)
       .set(updateData)
-      .where(and(eq(users.id, studentId), eq(users.tenant_id, tenantId)));
+      .where(and(eq(users.id, studentId), eq(users.tenantId, tenantId)));
 
     // Create audit log
     await db.execute(sql`
@@ -291,7 +307,7 @@ export async function archiveStudent(studentId: string, reason: string) {
     const [student] = await db
       .select()
       .from(users)
-      .where(and(eq(users.id, studentId), eq(users.tenant_id, tenantId), eq(users.role, 'student')))
+      .where(and(eq(users.id, studentId), eq(users.tenantId, tenantId), eq(users.primaryRole, 'student')))
       .limit(1);
 
     if (!student) {
@@ -303,10 +319,10 @@ export async function archiveStudent(studentId: string, reason: string) {
       .update(users)
       .set({
         status: 'archived',
-        deleted_at: new Date(),
-        updated_at: new Date(),
+        deletedAt: new Date(),
+        updatedAt: new Date(),
       })
-      .where(and(eq(users.id, studentId), eq(users.tenant_id, tenantId)));
+      .where(and(eq(users.id, studentId), eq(users.tenantId, tenantId)));
 
     // Create audit log
     await db.execute(sql`
@@ -348,25 +364,29 @@ export async function approveLevelStatus(studentId: string) {
     const [student] = await db
       .select()
       .from(users)
-      .where(and(eq(users.id, studentId), eq(users.tenant_id, tenantId), eq(users.role, 'student')))
+      .where(and(eq(users.id, studentId), eq(users.tenantId, tenantId), eq(users.primaryRole, 'student')))
       .limit(1);
 
     if (!student) {
       return { success: false, error: 'Student not found' };
     }
 
-    if (student.level_status !== 'provisional' && student.level_status !== 'pending_approval') {
+    // TODO: CRITICAL - level_status and current_level should be in students table or enrollment records
+    const levelStatus = (student.metadata as any)?.level_status;
+    const currentLevel = (student.metadata as any)?.current_level;
+
+    if (levelStatus !== 'provisional' && levelStatus !== 'pending_approval') {
       return { success: false, error: 'Student level is already confirmed' };
     }
 
-    // Update to confirmed
+    // Update to confirmed (stored in metadata until proper refactoring)
     await db
       .update(users)
       .set({
-        level_status: 'confirmed',
-        updated_at: new Date(),
+        metadata: sql`COALESCE(metadata, '{}'::jsonb) || '{"level_status": "confirmed"}'::jsonb`,
+        updatedAt: new Date(),
       })
-      .where(and(eq(users.id, studentId), eq(users.tenant_id, tenantId)));
+      .where(and(eq(users.id, studentId), eq(users.tenantId, tenantId)));
 
     // Create audit log
     await db.execute(sql`
@@ -379,8 +399,8 @@ export async function approveLevelStatus(studentId: string) {
         ${studentId},
         ${JSON.stringify({
           level_status: 'confirmed',
-          approved_level: student.current_level,
-          previous_status: student.level_status,
+          approved_level: currentLevel,
+          previous_status: levelStatus,
         })}
       )
     `);
@@ -452,7 +472,7 @@ async function getOrCreateDiagnosticAssignment(tenantId: string): Promise<string
   `);
 
   if (existing && existing.length > 0) {
-    return existing[0].id;
+    return (existing[0] as any).id as string;
   }
 
   // Create diagnostic assignment
@@ -467,5 +487,5 @@ async function getOrCreateDiagnosticAssignment(tenantId: string): Promise<string
     RETURNING id
   `);
 
-  return result[0].id;
+  return (result[0] as any).id as string;
 }

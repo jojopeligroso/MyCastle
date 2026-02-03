@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { requireAuth, getTenantId } from '@/lib/auth/utils';
+import { requireAuth, getTenantId, getCurrentUser } from '@/lib/auth/utils';
 import { db } from '@/db';
 import { users, students } from '@/db/schema/core';
 import { eq, and, isNull, sql } from 'drizzle-orm';
@@ -43,14 +43,15 @@ interface StudentWithDetails {
 async function getStudents(): Promise<StudentWithDetails[]> {
   try {
     const tenantId = await getTenantId();
-    if (!tenantId) {
-      console.error('No tenant ID available');
+    const user = await getCurrentUser();
+
+    if (!tenantId || !user?.email) {
+      console.error('No tenant ID or user email available');
       return [];
     }
 
-    // Set RLS context (using service role bypass for now)
-    // TODO: Set proper user context when auth is fully integrated
-    await db.execute(sql.raw(`SET app.user_email = 'eoinmaleoin@gmail.com'`));
+    // Set RLS context with authenticated user
+    await db.execute(sql.raw(`SET app.user_email = '${user.email}'`));
     await db.execute(sql.raw(`SET app.tenant_id = '${tenantId}'`));
 
     // Query students table joined with users
