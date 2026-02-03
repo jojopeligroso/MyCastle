@@ -13,7 +13,7 @@ async function getUser(userId: string, tenantId: string) {
   const result = await db
     .select()
     .from(users)
-    .where(and(eq(users.id, userId), eq(users.tenant_id, tenantId)))
+    .where(and(eq(users.id, userId), eq(users.tenantId, tenantId)))
     .limit(1);
 
   return result[0] || null;
@@ -26,9 +26,9 @@ async function getUserEnrollments(userId: string) {
       class: classes,
     })
     .from(enrollments)
-    .innerJoin(classes, eq(enrollments.class_id, classes.id))
-    .where(eq(enrollments.student_id, userId))
-    .orderBy(enrollments.enrollment_date);
+    .innerJoin(classes, eq(enrollments.classId, classes.id))
+    .where(eq(enrollments.studentId, userId))
+    .orderBy(enrollments.enrollmentDate);
 
   return userEnrollments;
 }
@@ -37,8 +37,8 @@ async function getUserClasses(userId: string) {
   const userClasses = await db
     .select()
     .from(classes)
-    .where(eq(classes.teacher_id, userId))
-    .orderBy(classes.start_date);
+    .where(eq(classes.teacherId, userId))
+    .orderBy(classes.startDate);
 
   return userClasses;
 }
@@ -58,8 +58,8 @@ export default async function UserDetailPage({ params }: { params: { id: string 
   }
 
   // Fetch role-specific data
-  const enrollments = user.role === 'student' ? await getUserEnrollments(params.id) : [];
-  const teacherClasses = user.role === 'teacher' ? await getUserClasses(params.id) : [];
+  const enrollments = user.primaryRole === 'student' ? await getUserEnrollments(params.id) : [];
+  const teacherClasses = user.primaryRole === 'teacher' ? await getUserClasses(params.id) : [];
 
   const getStatusBadge = (status: string) => {
     const styles = {
@@ -118,9 +118,9 @@ export default async function UserDetailPage({ params }: { params: { id: string 
                 <dt className="text-sm font-medium text-gray-500">Role</dt>
                 <dd className="mt-1">
                   <span
-                    className={`px-2 py-1 text-xs font-semibold rounded-full ${getRoleBadge(user.role)}`}
+                    className={`px-2 py-1 text-xs font-semibold rounded-full ${getRoleBadge(user.primaryRole)}`}
                   >
-                    {user.role?.replace('_', ' ')}
+                    {user.primaryRole?.replace('_', ' ')}
                   </span>
                 </dd>
               </div>
@@ -137,20 +137,20 @@ export default async function UserDetailPage({ params }: { params: { id: string 
               <div>
                 <dt className="text-sm font-medium text-gray-500">Created</dt>
                 <dd className="mt-1 text-sm text-gray-900">
-                  {new Date(user.created_at).toLocaleDateString()}
+                  {user.createdAt && new Date(user.createdAt).toLocaleDateString()}
                 </dd>
               </div>
               <div>
                 <dt className="text-sm font-medium text-gray-500">Last Login</dt>
                 <dd className="mt-1 text-sm text-gray-900">
-                  {user.last_login ? new Date(user.last_login).toLocaleDateString() : 'Never'}
+                  {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : 'Never'}
                 </dd>
               </div>
             </dl>
           </div>
 
           {/* Role-specific sections */}
-          {user.role === 'student' && (
+          {user.primaryRole === 'student' && (
             <div className="bg-white shadow rounded-lg p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">
                 Enrolled Classes ({enrollments.length})
@@ -187,7 +187,8 @@ export default async function UserDetailPage({ params }: { params: { id: string 
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-900">{enrollment.status}</td>
                           <td className="px-4 py-3 text-sm text-gray-500">
-                            {new Date(enrollment.enrollment_date).toLocaleDateString()}
+                            {enrollment.enrollmentDate &&
+                              new Date(enrollment.enrollmentDate).toLocaleDateString()}
                           </td>
                         </tr>
                       ))}
@@ -198,7 +199,7 @@ export default async function UserDetailPage({ params }: { params: { id: string 
             </div>
           )}
 
-          {user.role === 'teacher' && (
+          {user.primaryRole === 'teacher' && (
             <div className="bg-white shadow rounded-lg p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">
                 Assigned Classes ({teacherClasses.length})
@@ -234,10 +235,10 @@ export default async function UserDetailPage({ params }: { params: { id: string 
                             <div className="text-sm text-gray-500">{cls.code}</div>
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-900">
-                            {cls.schedule_description}
+                            {cls.scheduleDescription}
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-500">
-                            {cls.enrolled_count} / {cls.capacity}
+                            {cls.enrolledCount} / {cls.capacity}
                           </td>
                         </tr>
                       ))}
@@ -261,12 +262,12 @@ export default async function UserDetailPage({ params }: { params: { id: string 
               >
                 Edit Details
               </Link>
-              {user.role === 'student' && (
+              {user.primaryRole === 'student' && (
                 <button className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md">
                   Enroll in Class
                 </button>
               )}
-              {user.role === 'teacher' && (
+              {user.primaryRole === 'teacher' && (
                 <button className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md">
                   Assign to Class
                 </button>

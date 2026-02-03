@@ -161,40 +161,79 @@ const data = await db.select().from(table);
 **Why:** Supabase RLS policies enforce data isolation. Without context = empty results or permission denied.
 **Guide:** `/app/docs/RLS-POLICIES.md`
 
-### 5. Database Naming Convention (CRITICAL!)
+### 5. Database Naming Convention & Drizzle ORM (CRITICAL!)
 
-**Supabase requires snake_case for ALL database identifiers:**
+**CRITICAL RULE: Always use camelCase when accessing Drizzle schema properties in TypeScript code.**
 
-```sql
--- ✅ CORRECT - Database uses snake_case
-CREATE TABLE users (
-  first_name VARCHAR(255),
-  created_at TIMESTAMP
-);
+**Stack architecture:**
+- **Database layer (Supabase/PostgreSQL):** Uses snake_case for column names (SQL standard)
+- **TypeScript layer (Application code):** Uses camelCase for properties (JavaScript convention)
+- **Drizzle ORM:** Automatically bridges the two conventions
 
-CREATE VIEW v_user_summary AS
-  SELECT user_id, total_bookings FROM ...;
-
--- ❌ WRONG - Never use camelCase in database
-CREATE TABLE users (
-  firstName VARCHAR(255),  -- WRONG!
-  createdAt TIMESTAMP      -- WRONG!
-);
+**How Drizzle schema works:**
+```typescript
+// In schema files (src/db/schema/*.ts):
+export const users = pgTable('users', {
+  tenantId: uuid('tenant_id'),        // TS property: camelCase, DB column: snake_case
+  primaryRole: varchar('primary_role'),
+  createdAt: timestamp('created_at'),
+});
 ```
 
-**TypeScript/Drizzle Schema:**
-- Define properties in camelCase in schema files (`src/db/schema/*.ts`)
-- Drizzle automatically maps to snake_case in database
-- Example: `firstName: varchar('first_name')` ✅
+**In your application code - ALWAYS use camelCase:**
+```typescript
+// ✅ CORRECT - Use camelCase schema properties:
+const user = await db.select({
+  id: users.id,
+  name: users.name,
+  tenantId: users.tenantId,        // ✅ camelCase
+  primaryRole: users.primaryRole,  // ✅ camelCase
+  createdAt: users.createdAt,      // ✅ camelCase
+}).from(users);
 
-**When creating views, migrations, or raw SQL:**
-- ALWAYS use snake_case for column names
+// ❌ WRONG - Don't use snake_case (properties don't exist):
+const user = await db.select({
+  tenant_id: users.tenant_id,      // ❌ TypeScript error: Property doesn't exist
+  primary_role: users.primary_role, // ❌ TypeScript error: Property doesn't exist
+  created_at: users.created_at,    // ❌ TypeScript error: Property doesn't exist
+}).from(users);
+```
+
+**Drizzle automatically generates SQL with snake_case:**
+```sql
+-- Generated SQL (automatic conversion):
+SELECT id, name, tenant_id, primary_role, created_at FROM users;
+```
+
+**Common mapping reference:**
+| TypeScript (camelCase) | Database (snake_case) |
+|------------------------|----------------------|
+| `users.tenantId` | `tenant_id` |
+| `users.primaryRole` | `primary_role` |
+| `users.createdAt` | `created_at` |
+| `users.updatedAt` | `updated_at` |
+| `users.deletedAt` | `deleted_at` |
+| `users.lastLogin` | `last_login` |
+| `users.emailVerified` | `email_verified` |
+| `users.avatarUrl` | `avatar_url` |
+| `users.dateOfBirth` | `date_of_birth` |
+| `students.userId` | `user_id` |
+| `students.studentNumber` | `student_number` |
+| `students.visaType` | `visa_type` |
+| `classes.teacherId` | `teacher_id` |
+| `classes.startDate` | `start_date` |
+| `classes.enrolledCount` | `enrolled_count` |
+
+**When writing raw SQL (migrations, views):**
+- ALWAYS use snake_case for column names (database convention)
 - ALWAYS use snake_case for table names
 - ALWAYS use snake_case for view names
+- Convention: Views prefix with `v_` (e.g., `v_admin_kpis_daily`)
 
-**Convention:**
-- Views: Prefix with `v_` (e.g., `v_admin_kpis_daily`)
-- Functions: Use snake_case (e.g., `set_user_context`)
+**Why this matters:**
+- Using wrong property names causes TypeScript compilation errors
+- Runtime errors from accessing undefined properties
+- This was the root cause of admin UI instability (Jan 2026)
 
 ### 6. Testing Requirements
 

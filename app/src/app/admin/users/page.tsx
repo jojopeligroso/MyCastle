@@ -16,14 +16,14 @@ async function getUsers(tenantId: string) {
       id: users.id,
       name: users.name,
       email: users.email,
-      role: users.role,
+      role: users.primaryRole,
       status: users.status,
-      created_at: users.created_at,
-      last_login: users.last_login,
+      createdAt: users.createdAt,
+      lastLogin: users.lastLogin,
     })
     .from(users)
-    .where(eq(users.tenant_id, tenantId))
-    .orderBy(users.created_at);
+    .where(eq(users.tenantId, tenantId))
+    .orderBy(users.createdAt);
 
   return allUsers;
 }
@@ -31,11 +31,11 @@ async function getUsers(tenantId: string) {
 async function getUserStats(tenantId: string) {
   const allUsers = await db
     .select({
-      role: users.role,
+      role: users.primaryRole,
       status: users.status,
     })
     .from(users)
-    .where(eq(users.tenant_id, tenantId));
+    .where(eq(users.tenantId, tenantId));
 
   const totalUsers = allUsers.length;
   const activeUsers = allUsers.filter(u => u.status === 'active').length;
@@ -106,9 +106,13 @@ export default async function UsersPage() {
       {/* Users List */}
       <UserList
         users={users.map(u => ({
-          ...u,
-          created_at: u.created_at.toISOString(),
-          last_login: u.last_login?.toISOString() || null,
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          role: u.role,
+          status: u.status,
+          created_at: u.createdAt?.toISOString() || '',
+          last_login: u.lastLogin?.toISOString() || null,
         }))}
       />
     </div>

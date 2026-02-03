@@ -33,7 +33,7 @@ export default async function AdminDashboard() {
           Welcome back, {user.user_metadata?.name || 'Admin'}!
         </h1>
         <p className="mt-2 text-gray-600">
-          Here's what needs attention today across operations, compliance, and data integrity.
+          Here&apos;s what needs attention today across operations, compliance, and data integrity.
         </p>
       </div>
 
@@ -67,7 +67,7 @@ async function KPISection() {
   try {
     kpis = await getAdminKPIs();
   } catch (_err) {
-    console.error('Failed to load KPIs:', err);
+    console.error('Failed to load KPIs:', _err);
     error = true;
     kpis = {
       activeStudents: 0,
