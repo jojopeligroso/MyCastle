@@ -118,18 +118,32 @@ export const setRLSContext = async (db: any): Promise<void> => {
   // DEFENSIVE: If is_super_admin column doesn't exist, default to regular user
   let isSuperAdmin = false;
   try {
+    console.log('[RLS] Checking super admin status for:', user.email);
+
     const [userRecord] = await db
-      .select({ isSuperAdmin: users.isSuperAdmin })
+      .select({
+        email: users.email,
+        isSuperAdmin: users.isSuperAdmin,
+        tenantId: users.tenantId
+      })
       .from(users)
       .where(eq(users.email, user.email))
       .limit(1);
 
-    isSuperAdmin = userRecord?.isSuperAdmin || false;
+    console.log('[RLS] Query result:', userRecord);
+
+    if (!userRecord) {
+      console.warn('[RLS] No user found in database for email:', user.email);
+      isSuperAdmin = false;
+    } else {
+      isSuperAdmin = userRecord.isSuperAdmin || false;
+      console.log('[RLS] User found - is_super_admin:', isSuperAdmin, 'tenant_id:', userRecord.tenantId);
+    }
   } catch (error) {
-    // Column doesn't exist - migration not run yet
+    // Column doesn't exist or query failed
+    console.error('[RLS] Super admin check failed:', error);
     console.warn(
-      '[RLS] is_super_admin column not found - defaulting to regular user.',
-      'Please run migration: app/migrations/add_is_super_admin.sql'
+      '[RLS] Defaulting to regular user. Check if migration was run: app/migrations/add_is_super_admin.sql'
     );
     isSuperAdmin = false;
   }
@@ -138,10 +152,13 @@ export const setRLSContext = async (db: any): Promise<void> => {
     // Super admin: Bypass tenant restrictions
     await db.execute(sql.raw(`SET app.is_super_admin = 'true'`));
     await db.execute(sql.raw(`SET app.user_email = '${user.email}'`));
-    console.log('[RLS] Super admin context set:', user.email);
+    console.log('[RLS] ✅ Super admin context set:', user.email);
   } else {
     // Regular user: Enforce tenant isolation
+    console.log('[RLS] Regular user - tenant_id:', tenantId);
     if (!tenantId) {
+      console.error('[RLS] ❌ No tenant_id found for non-super-admin user:', user.email);
+      console.error('[RLS] Auth metadata:', { user_metadata: user.user_metadata, app_metadata: user.app_metadata });
       throw new Error('Tenant ID required for non-super-admin users');
     }
     await db.execute(sql.raw(`SET app.is_super_admin = 'false'`));
