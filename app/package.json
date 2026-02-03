@@ -36,8 +36,8 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.21.1",
-    "@supabase/ssr": "^0.7.0",
-    "@supabase/supabase-js": "^2.80.0",
+    "@supabase/ssr": "^0.8.0",
+    "@supabase/supabase-js": "^2.93.3",
     "drizzle-orm": "^0.44.7",
     "exceljs": "^4.4.0",
     "lucide-react": "^0.563.0",
