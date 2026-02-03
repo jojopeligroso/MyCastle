@@ -1,8 +1,6 @@
-import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
-import { sql } from 'drizzle-orm';
 
 // Load environment variables
 dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
@@ -15,7 +13,6 @@ if (!connectionString) {
 }
 
 const client = postgres(connectionString);
-const db = drizzle(client);
 
 async function setSuperAdmin() {
   const targetEmail = 'eoinmaleoin@gmail.com'; // Your email

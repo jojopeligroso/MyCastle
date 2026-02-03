@@ -6,7 +6,6 @@
  */
 
 import { requireAuth, getTenantId, setRLSContext } from '@/lib/auth/utils';
-import { notFound } from 'next/navigation';
 import { EnquiriesListPage } from './_components/EnquiriesListPage';
 import { db } from '@/db';
 import { enquiries } from '@/db/schema';
