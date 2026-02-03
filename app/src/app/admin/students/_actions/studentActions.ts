@@ -7,7 +7,7 @@
  */
 
 import { db } from '@/db';
-import { users, submissions, assignments } from '@/db/schema';
+import { users } from '@/db/schema';
 import { sql, eq, and } from 'drizzle-orm';
 import { getTenantId } from '@/lib/auth/utils';
 import { revalidatePath } from 'next/cache';

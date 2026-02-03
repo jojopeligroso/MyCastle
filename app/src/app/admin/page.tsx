@@ -84,12 +84,46 @@ async function KPISection() {
 }
 
 async function AlertsSection() {
+  // Alerts pipeline not yet implemented - return empty for now
+  // TODO: Implement alerts pipeline (visa expiry, attendance issues, etc.)
   const alerts = await getAdminAlerts();
+
+  if (alerts.length === 0) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Alerts</h3>
+          <p className="text-gray-500">Alerts system coming soon</p>
+          <p className="text-sm text-gray-400 mt-1">
+            Automated alerts for visa expiry, attendance issues, and compliance will appear here
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return <AlertsPanel alerts={alerts} />;
 }
 
 async function WorkQueueSection() {
+  // Work queue not yet implemented - return empty for now
+  // TODO: Implement work queue (level approvals, enrollment reviews, etc.)
   const items = await getAdminWorkQueue();
+
+  if (items.length === 0) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Work Queue</h3>
+          <p className="text-gray-500">Work queue coming soon</p>
+          <p className="text-sm text-gray-400 mt-1">
+            Tasks requiring your action (level approvals, enrollment reviews) will appear here
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return <WorkQueue items={items} />;
 }
 

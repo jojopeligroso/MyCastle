@@ -5,7 +5,6 @@
  */
 
 import { requireAuth, getTenantId, setRLSContext } from '@/lib/auth/utils';
-import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { RoomList } from '@/components/admin/RoomList';
 import { db } from '@/db';
