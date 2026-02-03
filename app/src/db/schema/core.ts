@@ -59,6 +59,7 @@ export const users = pgTable(
     avatarUrl: varchar('avatar_url', { length: 500 }),
     primaryRole: varchar('primary_role', { length: 50 }).notNull().default('student'),
     status: varchar('status', { length: 50 }).notNull().default('active'),
+    isSuperAdmin: boolean('is_super_admin').default(false).notNull(),
     lastLogin: timestamp('last_login'),
     metadata: jsonb('metadata').default({}),
     preferences: jsonb('preferences').default({}),

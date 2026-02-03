@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { requireAuth, getTenantId, getCurrentUser } from '@/lib/auth/utils';
+import { requireAuth, setRLSContext, getTenantId } from '@/lib/auth/utils';
 import { db } from '@/db';
 import { users, students } from '@/db/schema/core';
 import { eq, and, isNull, sql } from 'drizzle-orm';
@@ -42,17 +42,11 @@ interface StudentWithDetails {
 
 async function getStudents(): Promise<StudentWithDetails[]> {
   try {
+    // Set RLS context (super admin gets access to all tenants)
+    await setRLSContext(db);
+
+    // Get tenant ID (may be null for super admin)
     const tenantId = await getTenantId();
-    const user = await getCurrentUser();
-
-    if (!tenantId || !user?.email) {
-      console.error('No tenant ID or user email available');
-      return [];
-    }
-
-    // Set RLS context with authenticated user
-    await db.execute(sql.raw(`SET app.user_email = '${user.email}'`));
-    await db.execute(sql.raw(`SET app.tenant_id = '${tenantId}'`));
 
     // Query students table joined with users
     const result = await db
@@ -83,7 +77,12 @@ async function getStudents(): Promise<StudentWithDetails[]> {
       .from(students)
       .innerJoin(users, eq(students.userId, users.id))
       .where(
-        and(eq(students.tenantId, tenantId), eq(students.status, 'active'), isNull(users.deletedAt))
+        and(
+          // Super admins see all tenants, regular users see their tenant only
+          tenantId ? eq(students.tenantId, tenantId) : sql`true`,
+          eq(students.status, 'active'),
+          isNull(users.deletedAt)
+        )
       )
       .orderBy(users.name);
 
