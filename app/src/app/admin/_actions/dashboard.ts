@@ -2,16 +2,19 @@
 
 import { db } from '@/db';
 import { sql } from 'drizzle-orm';
-import { getTenantId } from '@/lib/auth/utils';
+import { getTenantId, setRLSContext } from '@/lib/auth/utils';
 
 /**
  * Fetch admin alerts from v_admin_alerts view
  */
 export async function getAdminAlerts() {
   const tenantId = await getTenantId();
-  if (!tenantId) throw new Error('Tenant not found');
+
+  // Set RLS context (super admin sees all tenants)
+  await setRLSContext(db);
 
   try {
+    // Filter by tenant for regular admins, show all for super admins
     const result = await db.execute(sql`
       SELECT
         alert_id,
@@ -26,6 +29,8 @@ export async function getAdminAlerts() {
         acknowledged_by,
         acknowledged_by_name
       FROM v_admin_alerts
+      ${tenantId ? sql`WHERE tenant_id = ${tenantId}` : sql``}
+      ORDER BY created_at DESC
       LIMIT 20
     `);
 
@@ -53,9 +58,12 @@ export async function getAdminAlerts() {
  */
 export async function getAdminKPIs() {
   const tenantId = await getTenantId();
-  if (!tenantId) throw new Error('Tenant not found');
+
+  // Set RLS context (super admin sees aggregated data across all tenants)
+  await setRLSContext(db);
 
   try {
+    // Filter by tenant for regular admins, aggregate all for super admins
     const result = await db.execute(sql`
       SELECT
         active_students,
@@ -66,16 +74,18 @@ export async function getAdminKPIs() {
         new_enrolments_7d,
         outstanding_compliance_tasks
       FROM v_admin_kpis_daily
+      ${tenantId ? sql`WHERE tenant_id = ${tenantId}` : sql``}
+      LIMIT 1
     `);
 
     const row = result[0] as Record<string, unknown>;
 
     return {
       activeStudents: Number(row?.active_students || 0),
-      attendanceRate7d: parseFloat(row?.attendance_rate_7d || '0'),
-      attendanceRate30d: parseFloat(row?.attendance_rate_30d || '0'),
+      attendanceRate7d: parseFloat(String(row?.attendance_rate_7d || '0')),
+      attendanceRate30d: parseFloat(String(row?.attendance_rate_30d || '0')),
       classesRunningToday: Number(row?.classes_running_today || 0),
-      capacityUtilisation: parseFloat(row?.capacity_utilisation || '0'),
+      capacityUtilisation: parseFloat(String(row?.capacity_utilisation || '0')),
       newEnrolments7d: Number(row?.new_enrolments_7d || 0),
       outstandingComplianceTasks: Number(row?.outstanding_compliance_tasks || 0),
     };
@@ -98,9 +108,12 @@ export async function getAdminKPIs() {
  */
 export async function getAdminWorkQueue() {
   const tenantId = await getTenantId();
-  if (!tenantId) throw new Error('Tenant not found');
+
+  // Set RLS context (super admin sees all tenants)
+  await setRLSContext(db);
 
   try {
+    // Filter by tenant for regular admins, show all for super admins
     const result = await db.execute(sql`
       SELECT
         item_type,
@@ -110,6 +123,8 @@ export async function getAdminWorkQueue() {
         action_url,
         created_at
       FROM v_admin_work_queue
+      ${tenantId ? sql`WHERE tenant_id = ${tenantId}` : sql``}
+      ORDER BY created_at DESC
       LIMIT 20
     `);
 
