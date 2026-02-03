@@ -217,7 +217,9 @@ export async function updateStudent(studentId: string, data: UpdateStudentData) 
     const [currentStudent] = await db
       .select()
       .from(users)
-      .where(and(eq(users.id, studentId), eq(users.tenantId, tenantId), eq(users.primaryRole, 'student')))
+      .where(
+        and(eq(users.id, studentId), eq(users.tenantId, tenantId), eq(users.primaryRole, 'student'))
+      )
       .limit(1);
 
     if (!currentStudent) {
@@ -307,7 +309,9 @@ export async function archiveStudent(studentId: string, reason: string) {
     const [student] = await db
       .select()
       .from(users)
-      .where(and(eq(users.id, studentId), eq(users.tenantId, tenantId), eq(users.primaryRole, 'student')))
+      .where(
+        and(eq(users.id, studentId), eq(users.tenantId, tenantId), eq(users.primaryRole, 'student'))
+      )
       .limit(1);
 
     if (!student) {
@@ -364,7 +368,9 @@ export async function approveLevelStatus(studentId: string) {
     const [student] = await db
       .select()
       .from(users)
-      .where(and(eq(users.id, studentId), eq(users.tenantId, tenantId), eq(users.primaryRole, 'student')))
+      .where(
+        and(eq(users.id, studentId), eq(users.tenantId, tenantId), eq(users.primaryRole, 'student'))
+      )
       .limit(1);
 
     if (!student) {

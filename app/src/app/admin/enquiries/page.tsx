@@ -46,7 +46,9 @@ async function getEnquiries(tenantId: string | null): Promise<Enquiry[]> {
       phone: enquiry.phone,
       programmeInterest: enquiry.programmeInterest,
       levelEstimate: enquiry.levelEstimate,
-      startDatePreference: enquiry.startDatePreference ? new Date(enquiry.startDatePreference) : null,
+      startDatePreference: enquiry.startDatePreference
+        ? new Date(enquiry.startDatePreference)
+        : null,
       status: enquiry.status,
       source: enquiry.source,
       notes: enquiry.notes,

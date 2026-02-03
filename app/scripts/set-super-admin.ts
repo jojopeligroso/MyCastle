@@ -61,7 +61,6 @@ async function setSuperAdmin() {
       console.log('\n🎉 User', targetEmail, 'is now a super admin');
       console.log('   This user will have access to ALL tenant data');
     }
-
   } catch (error) {
     console.error('❌ Error:', error);
     process.exit(1);
