@@ -147,9 +147,12 @@ export async function getAdminWorkQueue() {
  */
 export async function getRecentAuditEvents() {
   const tenantId = await getTenantId();
-  if (!tenantId) throw new Error('Tenant not found');
+
+  // Set RLS context (super admin sees all tenants)
+  await setRLSContext(db);
 
   try {
+    // Filter by tenant for regular admins, show all for super admins
     const result = await db.execute(sql`
       SELECT
         id,
@@ -162,6 +165,9 @@ export async function getRecentAuditEvents() {
         actor_email,
         actor_role
       FROM v_audit_events_recent
+      ${tenantId ? sql`WHERE tenant_id = ${tenantId}` : sql``}
+      ORDER BY timestamp DESC
+      LIMIT 50
     `);
 
     return result as unknown as Array<{
@@ -186,16 +192,19 @@ export async function getRecentAuditEvents() {
  */
 export async function acknowledgeAlert(alertId: string) {
   const tenantId = await getTenantId();
-  if (!tenantId) throw new Error('Tenant not found');
+
+  // Set RLS context (super admin can acknowledge any alert)
+  await setRLSContext(db);
 
   try {
+    // Super admins can acknowledge any alert, regular admins only their tenant's alerts
     await db.execute(sql`
       UPDATE alerts
       SET acknowledged_at = NOW(),
           acknowledged_by = (SELECT id FROM users WHERE auth_id = auth.uid() LIMIT 1),
           updated_at = NOW()
       WHERE id = ${alertId}
-        AND tenant_id = ${tenantId}
+        ${tenantId ? sql`AND tenant_id = ${tenantId}` : sql``}
         AND acknowledged_at IS NULL
     `);
 
