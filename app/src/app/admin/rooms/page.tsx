@@ -4,10 +4,13 @@
  * Ref: Task 1.8.1 - Rooms List Page
  */
 
-import { requireAuth, getTenantId } from '@/lib/auth/utils';
+import { requireAuth, getTenantId, setRLSContext } from '@/lib/auth/utils';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { RoomList } from '@/components/admin/RoomList';
+import { db } from '@/db';
+import { rooms } from '@/db/schema';
+import { eq, desc } from 'drizzle-orm';
 
 interface Room {
   id: string;
@@ -21,25 +24,29 @@ interface Room {
   createdAt: Date;
 }
 
-async function getRooms(tenantId: string): Promise<Room[]> {
+async function getRooms(tenantId: string | null): Promise<Room[]> {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/admin/rooms`,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        cache: 'no-store',
-      }
-    );
+    // Set RLS context (super admin sees all tenants)
+    await setRLSContext(db);
 
-    if (!response.ok) {
-      console.error('Failed to fetch rooms:', response.statusText);
-      return [];
-    }
+    // Query rooms with tenant filtering (unless super admin)
+    const result = await db
+      .select()
+      .from(rooms)
+      .where(tenantId ? eq(rooms.tenantId, tenantId) : undefined)
+      .orderBy(desc(rooms.createdAt));
 
-    const data = await response.json();
-    return data.rooms || [];
+    return result.map(room => ({
+      id: room.id,
+      name: room.name,
+      description: room.description,
+      capacity: room.capacity,
+      equipment: room.equipment as Record<string, unknown>,
+      facilities: room.facilities as string[],
+      accessibility: room.accessibility || false,
+      status: room.status,
+      createdAt: room.createdAt,
+    }));
   } catch (error) {
     console.error('Error fetching rooms:', error);
     return [];
@@ -50,10 +57,7 @@ export default async function RoomsPage() {
   await requireAuth();
   const tenantId = await getTenantId();
 
-  if (!tenantId) {
-    notFound();
-  }
-
+  // Super admins may have null tenantId (see all tenants)
   const rooms = await getRooms(tenantId);
 
   // Stats calculations

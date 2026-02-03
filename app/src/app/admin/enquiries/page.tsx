@@ -5,9 +5,12 @@
  * DESIGN: Task 1.10.1 - Enquiries List Page
  */
 
-import { requireAuth, getTenantId } from '@/lib/auth/utils';
+import { requireAuth, getTenantId, setRLSContext } from '@/lib/auth/utils';
 import { notFound } from 'next/navigation';
 import { EnquiriesListPage } from './_components/EnquiriesListPage';
+import { db } from '@/db';
+import { enquiries } from '@/db/schema';
+import { eq, desc } from 'drizzle-orm';
 
 interface Enquiry {
   id: string;
@@ -24,25 +27,32 @@ interface Enquiry {
   updatedAt: Date;
 }
 
-async function getEnquiries(tenantId: string): Promise<Enquiry[]> {
+async function getEnquiries(tenantId: string | null): Promise<Enquiry[]> {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/admin/enquiries`,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        cache: 'no-store',
-      }
-    );
+    // Set RLS context (super admin sees all tenants)
+    await setRLSContext(db);
 
-    if (!response.ok) {
-      console.error('Failed to fetch enquiries:', response.statusText);
-      return [];
-    }
+    // Query enquiries with tenant filtering (unless super admin)
+    const result = await db
+      .select()
+      .from(enquiries)
+      .where(tenantId ? eq(enquiries.tenantId, tenantId) : undefined)
+      .orderBy(desc(enquiries.createdAt));
 
-    const data = await response.json();
-    return data.enquiries || [];
+    return result.map(enquiry => ({
+      id: enquiry.id,
+      name: enquiry.name,
+      email: enquiry.email,
+      phone: enquiry.phone,
+      programmeInterest: enquiry.programmeInterest,
+      levelEstimate: enquiry.levelEstimate,
+      startDatePreference: enquiry.startDatePreference ? new Date(enquiry.startDatePreference) : null,
+      status: enquiry.status,
+      source: enquiry.source,
+      notes: enquiry.notes,
+      createdAt: enquiry.createdAt,
+      updatedAt: enquiry.updatedAt,
+    }));
   } catch (error) {
     console.error('Error fetching enquiries:', error);
     return [];
@@ -53,10 +63,7 @@ export default async function EnquiriesPage() {
   await requireAuth(['admin']);
   const tenantId = await getTenantId();
 
-  if (!tenantId) {
-    notFound();
-  }
-
+  // Super admins may have null tenantId (see all tenants)
   const enquiries = await getEnquiries(tenantId);
 
   // Stats calculations
