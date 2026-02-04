@@ -10,16 +10,17 @@ import postgres from 'postgres';
 import * as schema from './schema';
 
 // Load environment variables from .env.local if not already loaded
-if (!process.env.DATABASE_URL) {
+if (!process.env.DIRECT_URL && !process.env.DATABASE_URL) {
   config({ path: resolve(__dirname, '../../.env.local') });
 }
 
-if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL environment variable is not set');
-}
+// Use DIRECT_URL for session variable support (RLS context)
+// Falls back to DATABASE_URL if DIRECT_URL is not set
+const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;
 
-// Create PostgreSQL connection
-const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  throw new Error('DIRECT_URL or DATABASE_URL environment variable must be set');
+}
 
 // For query purposes
 const queryClient = postgres(connectionString);

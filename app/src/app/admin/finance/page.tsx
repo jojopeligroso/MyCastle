@@ -4,7 +4,9 @@
  */
 
 import { db } from '@/db';
-import { bookings, payments, students, users } from '@/db/schema';
+import { bookings, students, users } from '@/db/schema';
+// Import payments from business.ts to get the correct schema (booking-based, not invoice-based)
+import { payments } from '@/db/schema/business';
 import { eq, and, gte, lt, desc, sum, count, sql } from 'drizzle-orm';
 import { requireAuth, getTenantId } from '@/lib/auth/utils';
 import { notFound } from 'next/navigation';
@@ -17,7 +19,7 @@ async function getFinanceStats(tenantId: string) {
   // Get all bookings
   const allBookings = await db.select().from(bookings).where(eq(bookings.tenantId, tenantId));
 
-  // Get all payments
+  // Get all payments (from business.ts - booking-based payments)
   const allPayments = await db.select().from(payments).where(eq(payments.tenantId, tenantId));
 
   const totalRevenue = allBookings.reduce(
@@ -85,29 +87,21 @@ async function getRecentTransactions(tenantId: string) {
   // Set RLS context first
   await db.execute(sql`SELECT set_config('app.tenant_id', ${tenantId}, false)`);
 
+  // Simplified query - just get payments without joins for MVP
   const recentPayments = await db
-    .select({
-      payment: payments,
-      booking: {
-        bookingNumber: bookings.bookingNumber,
-      },
-      student: {
-        id: students.id,
-        fullName: students.fullName,
-      },
-      user: {
-        email: users.email,
-      },
-    })
+    .select()
     .from(payments)
-    .leftJoin(bookings, eq(payments.bookingId, bookings.id))
-    .leftJoin(students, eq(bookings.studentId, students.id))
-    .leftJoin(users, eq(students.userId, users.id))
     .where(eq(payments.tenantId, tenantId))
     .orderBy(desc(payments.createdAt))
     .limit(10);
 
-  return recentPayments;
+  // Return in expected format with null values for missing joins
+  return recentPayments.map(payment => ({
+    payment,
+    booking: { bookingNumber: null },
+    student: { id: null, fullName: null },
+    user: { email: null },
+  }));
 }
 
 interface MonthlyRevenue {
