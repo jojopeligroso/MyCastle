@@ -77,7 +77,7 @@ async function seed() {
     // 5. Test User (eoinmaleoin@gmail.com)
     console.log('Creating test user (eoinmaleoin@gmail.com)...');
     await sql`
-      INSERT INTO users (id, tenant_id, email, email_verified, name, phone, date_of_birth, nationality, primary_role, status)
+      INSERT INTO users (id, tenant_id, email, email_verified, name, phone, date_of_birth, nationality, primary_role, is_super_admin, status)
       VALUES (
         ${USER_ID}::uuid,
         ${TENANT_ID}::uuid,
@@ -88,10 +88,11 @@ async function seed() {
         '1990-01-15',
         'Irish',
         'admin',
+        true,
         'active'
       )
     `;
-    console.log('✓ User created');
+    console.log('✓ User created (with super admin privileges)');
 
     // 6. Grant 3 roles to test user
     console.log('Granting admin + teacher + student roles...');

@@ -48,7 +48,6 @@ async function runMigration() {
     } else {
       console.log('\n⚠️  User not found in database');
     }
-
   } catch (error) {
     console.error('❌ Migration failed:', error);
     process.exit(1);

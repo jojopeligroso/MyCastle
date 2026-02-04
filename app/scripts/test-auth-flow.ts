@@ -64,7 +64,6 @@ async function testAuthFlow() {
     }
 
     console.log('\n🎉 All auth flow tests passed!');
-
   } catch (error) {
     console.error('❌ Auth flow test failed:', error);
   } finally {
