@@ -95,6 +95,47 @@ export default async function BulkUploadPage() {
                   </ul>
                 </div>
 
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-2">Bookings Columns (Full Format)</h4>
+                  <ul className="list-disc list-inside space-y-1 text-xs">
+                    <li>
+                      <strong>Sale Date</strong> (required, YYYY-MM-DD)
+                    </li>
+                    <li>
+                      <strong>Name</strong> (required)
+                    </li>
+                    <li>Source (agency name, defaults to &quot;Direct&quot;)</li>
+                    <li>Visa Type</li>
+                    <li>Nationality</li>
+                    <li>DOB (YYYY-MM-DD)</li>
+                    <li>
+                      <strong>Course</strong> (required, must exist)
+                    </li>
+                    <li>
+                      <strong>Weeks</strong> (required, number)
+                    </li>
+                    <li>
+                      <strong>Start date</strong> (required, YYYY-MM-DD)
+                    </li>
+                    <li>
+                      <strong>End date</strong> (required, YYYY-MM-DD)
+                    </li>
+                    <li>Level/Class</li>
+                    <li>Placement test score</li>
+                    <li>Accom Type (accommodation, must exist)</li>
+                    <li>Deposit Paid (EUR)</li>
+                    <li>Paid (total paid, EUR)</li>
+                    <li>Course Fee Due (EUR)</li>
+                    <li>Accomodation (fee, EUR)</li>
+                    <li>Transfer (EUR)</li>
+                    <li>Exam Fee (EUR)</li>
+                    <li>Registration Fee (EUR)</li>
+                    <li>Learner Protection (EUR)</li>
+                    <li>Medical Insurance (EUR)</li>
+                    <li>Total Booking (EUR)</li>
+                  </ul>
+                </div>
+
                 <div className="pt-4 border-t border-gray-200">
                   <div className="rounded-md bg-blue-50 p-3">
                     <p className="text-xs text-blue-800">
