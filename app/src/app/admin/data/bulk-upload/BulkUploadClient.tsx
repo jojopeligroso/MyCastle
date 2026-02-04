@@ -24,6 +24,9 @@ export default function BulkUploadClient() {
   const [preview, setPreview] = useState<UploadPreview | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
+  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Handle file selection
@@ -48,6 +51,11 @@ export default function BulkUploadClient() {
 
       if (result.success) {
         setUploadState('preview');
+        // Auto-select all valid rows
+        const validRowNumbers = result.records
+          .filter(r => r.errors.length === 0)
+          .map(r => r.rowNumber);
+        setSelectedRows(new Set(validRowNumbers));
       } else {
         setUploadState('error');
         setError('File validation failed. Please check errors below.');
@@ -78,15 +86,35 @@ export default function BulkUploadClient() {
     }
   };
 
-  // Handle commit
-  const handleCommit = async () => {
+  // Show confirmation dialog
+  const handleCommit = () => {
     if (!preview) return;
 
+    if (selectedRows.size === 0) {
+      setError('Please select at least one record to import');
+      return;
+    }
+
+    setError(null);
+    setShowConfirmDialog(true);
+  };
+
+  // Confirm and execute commit
+  const confirmCommit = async () => {
+    if (!preview) return;
+
+    setShowConfirmDialog(false);
     setUploadState('committing');
     setError(null);
 
     try {
-      const result = await commitBulkUpload(preview);
+      // Filter preview to only include selected rows
+      const selectedPreview = {
+        ...preview,
+        records: preview.records.filter(r => selectedRows.has(r.rowNumber)),
+      };
+
+      const result = await commitBulkUpload(selectedPreview);
 
       if (result.success) {
         setUploadState('success');
@@ -106,9 +134,46 @@ export default function BulkUploadClient() {
     setPreview(null);
     setError(null);
     setUploadState('idle');
+    setSelectedRows(new Set());
+    setExpandedRows(new Set());
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  };
+
+  // Toggle row selection
+  const toggleRowSelection = (rowNumber: number) => {
+    const newSelected = new Set(selectedRows);
+    if (newSelected.has(rowNumber)) {
+      newSelected.delete(rowNumber);
+    } else {
+      newSelected.add(rowNumber);
+    }
+    setSelectedRows(newSelected);
+  };
+
+  // Toggle all valid rows
+  const toggleAllRows = () => {
+    if (!preview) return;
+    const validRows = preview.records.filter(r => r.errors.length === 0);
+    if (selectedRows.size === validRows.length) {
+      // Deselect all
+      setSelectedRows(new Set());
+    } else {
+      // Select all valid
+      setSelectedRows(new Set(validRows.map(r => r.rowNumber)));
+    }
+  };
+
+  // Toggle row expansion (for detailed view)
+  const toggleRowExpansion = (rowNumber: number) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(rowNumber)) {
+      newExpanded.delete(rowNumber);
+    } else {
+      newExpanded.add(rowNumber);
+    }
+    setExpandedRows(newExpanded);
   };
 
   return (
@@ -245,12 +310,44 @@ export default function BulkUploadClient() {
               <StatCard label="Updates" value={preview.updates} color="yellow" />
             </div>
 
+            {/* Selection Controls */}
+            {preview.records.length > 0 && (
+              <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={toggleAllRows}
+                    className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                  >
+                    {selectedRows.size === preview.records.filter(r => r.errors.length === 0).length
+                      ? 'Deselect All'
+                      : 'Select All Valid'}
+                  </button>
+                  <span className="text-sm text-gray-600">
+                    {selectedRows.size} of {preview.validRows} selected
+                  </span>
+                </div>
+                <div className="text-xs text-gray-500">Click rows to expand/collapse details</div>
+              </div>
+            )}
+
             {/* Preview Table */}
             {preview.records.length > 0 && (
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-300">
                   <thead className="bg-gray-50">
                     <tr>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
+                        <input
+                          type="checkbox"
+                          checked={
+                            preview.validRows > 0 &&
+                            selectedRows.size ===
+                              preview.records.filter(r => r.errors.length === 0).length
+                          }
+                          onChange={toggleAllRows}
+                          className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                      </th>
                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Row</th>
                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
                         Status
@@ -265,7 +362,14 @@ export default function BulkUploadClient() {
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
                     {preview.records.slice(0, 50).map(record => (
-                      <PreviewRow key={record.rowNumber} record={record} />
+                      <PreviewRow
+                        key={record.rowNumber}
+                        record={record}
+                        isSelected={selectedRows.has(record.rowNumber)}
+                        isExpanded={expandedRows.has(record.rowNumber)}
+                        onToggleSelection={toggleRowSelection}
+                        onToggleExpansion={toggleRowExpansion}
+                      />
                     ))}
                   </tbody>
                 </table>
@@ -327,6 +431,76 @@ export default function BulkUploadClient() {
           </div>
         </div>
       )}
+
+      {/* Confirmation Dialog */}
+      {showConfirmDialog && preview && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">Confirm Import</h3>
+            </div>
+
+            <div className="px-6 py-4 space-y-4">
+              <p className="text-sm text-gray-700">
+                You are about to import <strong>{selectedRows.size}</strong> record(s):
+              </p>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-indigo-50 rounded-lg p-3 border border-indigo-200">
+                  <p className="text-xs text-indigo-600 font-medium mb-1">New Records</p>
+                  <p className="text-2xl font-bold text-indigo-900">
+                    {
+                      preview.records.filter(
+                        r => selectedRows.has(r.rowNumber) && r.changeType === 'insert'
+                      ).length
+                    }
+                  </p>
+                </div>
+
+                <div className="bg-yellow-50 rounded-lg p-3 border border-yellow-200">
+                  <p className="text-xs text-yellow-600 font-medium mb-1">Updates</p>
+                  <p className="text-2xl font-bold text-yellow-900">
+                    {
+                      preview.records.filter(
+                        r => selectedRows.has(r.rowNumber) && r.changeType === 'update'
+                      ).length
+                    }
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-md bg-yellow-50 border border-yellow-200 p-3">
+                <div className="flex">
+                  <AlertCircle className="h-5 w-5 text-yellow-400 mr-2 flex-shrink-0" />
+                  <div>
+                    <h4 className="text-sm font-medium text-yellow-800">Important</h4>
+                    <p className="mt-1 text-xs text-yellow-700">
+                      This action cannot be undone. Please ensure you have reviewed all changes
+                      carefully before proceeding.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="px-6 py-4 bg-gray-50 flex justify-end gap-3 rounded-b-lg">
+              <button
+                onClick={() => setShowConfirmDialog(false)}
+                className="rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmCommit}
+                className="inline-flex items-center rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500"
+              >
+                <CheckCircle className="mr-2 h-4 w-4" />
+                Confirm Import
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -350,59 +524,166 @@ function StatCard({ label, value, color }: { label: string; value: number; color
 }
 
 // Preview Row Component
-function PreviewRow({ record }: { record: PreviewRecord }) {
+function PreviewRow({
+  record,
+  isSelected,
+  isExpanded,
+  onToggleSelection,
+  onToggleExpansion,
+}: {
+  record: PreviewRecord;
+  isSelected: boolean;
+  isExpanded: boolean;
+  onToggleSelection: (rowNumber: number) => void;
+  onToggleExpansion: (rowNumber: number) => void;
+}) {
   const hasErrors = record.errors.length > 0;
+  const changedFields = record.fieldChanges?.filter(f => f.changed) || [];
 
   return (
-    <tr className={hasErrors ? 'bg-red-50' : ''}>
-      <td className="px-3 py-2 text-sm text-gray-900">{record.rowNumber}</td>
-      <td className="px-3 py-2">
-        {hasErrors ? (
-          <span className="inline-flex items-center text-xs text-red-700">
-            <XCircle className="mr-1 h-3 w-3" />
-            Error
+    <>
+      <tr
+        className={`${hasErrors ? 'bg-red-50' : isSelected ? 'bg-indigo-50' : ''} ${!hasErrors ? 'cursor-pointer hover:bg-gray-50' : ''}`}
+        onClick={() => !hasErrors && onToggleExpansion(record.rowNumber)}
+      >
+        <td className="px-3 py-2" onClick={e => e.stopPropagation()}>
+          <input
+            type="checkbox"
+            checked={isSelected}
+            disabled={hasErrors}
+            onChange={() => onToggleSelection(record.rowNumber)}
+            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          />
+        </td>
+        <td className="px-3 py-2 text-sm text-gray-900">{record.rowNumber}</td>
+        <td className="px-3 py-2">
+          {hasErrors ? (
+            <span className="inline-flex items-center text-xs text-red-700">
+              <XCircle className="mr-1 h-3 w-3" />
+              Error
+            </span>
+          ) : (
+            <span className="inline-flex items-center text-xs text-green-700">
+              <CheckCircle className="mr-1 h-3 w-3" />
+              Valid
+            </span>
+          )}
+        </td>
+        <td className="px-3 py-2">
+          <span
+            className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
+              record.changeType === 'insert'
+                ? 'bg-indigo-100 text-indigo-800'
+                : record.changeType === 'update'
+                  ? 'bg-yellow-100 text-yellow-800'
+                  : 'bg-gray-100 text-gray-800'
+            }`}
+          >
+            {record.changeType}
+            {changedFields.length > 0 && ` (${changedFields.length} changes)`}
           </span>
-        ) : (
-          <span className="inline-flex items-center text-xs text-green-700">
-            <CheckCircle className="mr-1 h-3 w-3" />
-            Valid
-          </span>
-        )}
-      </td>
-      <td className="px-3 py-2">
-        <span
-          className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
-            record.changeType === 'insert'
-              ? 'bg-indigo-100 text-indigo-800'
-              : record.changeType === 'update'
-                ? 'bg-yellow-100 text-yellow-800'
-                : 'bg-gray-100 text-gray-800'
-          }`}
-        >
-          {record.changeType}
-        </span>
-      </td>
-      <td className="px-3 py-2">
-        {hasErrors ? (
-          <div className="text-xs text-red-700">
-            {record.errors.map((err, i) => (
-              <div key={i}>
-                <strong>{err.field}:</strong> {err.message}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-xs text-gray-600">
-            {Object.entries(record.data)
-              .slice(0, 3)
-              .map(([key, value]) => (
-                <span key={key} className="mr-2">
-                  <strong>{key}:</strong> {String(value)}
-                </span>
+        </td>
+        <td className="px-3 py-2">
+          {hasErrors ? (
+            <div className="text-xs text-red-700">
+              {record.errors.map((err, i) => (
+                <div key={i}>
+                  <strong>{err.field}:</strong> {err.message}
+                </div>
               ))}
-          </div>
-        )}
-      </td>
-    </tr>
+            </div>
+          ) : (
+            <div className="text-xs text-gray-600">
+              {Object.entries(record.data)
+                .slice(0, 3)
+                .map(([key, value]) => (
+                  <span key={key} className="mr-2">
+                    <strong>{key}:</strong> {String(value)}
+                  </span>
+                ))}
+              {isExpanded ? (
+                <span className="text-indigo-600 font-medium ml-2">▲ Click to collapse</span>
+              ) : (
+                <span className="text-indigo-600 font-medium ml-2">▼ Click to expand</span>
+              )}
+            </div>
+          )}
+        </td>
+      </tr>
+
+      {/* Expanded Diff View */}
+      {isExpanded && !hasErrors && (
+        <tr className="bg-gray-50">
+          <td colSpan={5} className="px-6 py-4">
+            <div className="space-y-3">
+              <h4 className="text-sm font-semibold text-gray-900 mb-3">
+                {record.changeType === 'insert'
+                  ? 'New Record Details'
+                  : 'Field-by-Field Comparison'}
+              </h4>
+
+              {record.changeType === 'update' && changedFields.length === 0 && (
+                <p className="text-sm text-gray-500 italic">No changes detected (duplicate row)</p>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {record.fieldChanges?.map((fieldChange, idx) => (
+                  <div
+                    key={idx}
+                    className={`rounded-md border p-3 ${
+                      fieldChange.changed
+                        ? 'border-yellow-300 bg-yellow-50'
+                        : 'border-gray-200 bg-white'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-medium text-gray-700">{fieldChange.field}</span>
+                      {fieldChange.changed && (
+                        <span className="text-xs font-semibold text-yellow-700 bg-yellow-200 px-2 py-0.5 rounded">
+                          CHANGED
+                        </span>
+                      )}
+                    </div>
+
+                    {record.changeType === 'insert' ? (
+                      <div className="text-sm text-gray-900">
+                        <span className="font-mono">{formatValue(fieldChange.newValue)}</span>
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <div className="text-xs text-gray-500">
+                          <span className="font-medium">Before:</span>{' '}
+                          <span
+                            className={`font-mono ${fieldChange.changed ? 'line-through' : ''}`}
+                          >
+                            {formatValue(fieldChange.oldValue)}
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-900">
+                          <span className="font-medium">After:</span>{' '}
+                          <span
+                            className={`font-mono ${fieldChange.changed ? 'font-semibold' : ''}`}
+                          >
+                            {formatValue(fieldChange.newValue)}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </td>
+        </tr>
+      )}
+    </>
   );
+}
+
+// Helper to format field values for display
+function formatValue(value: unknown): string {
+  if (value === null || value === undefined) return '(empty)';
+  if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+  if (typeof value === 'object') return JSON.stringify(value);
+  return String(value);
 }
