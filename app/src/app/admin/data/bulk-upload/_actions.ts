@@ -6,7 +6,8 @@
  */
 
 import { db } from '@/db';
-import { users, students, classes, enrollments } from '@/db/schema/core';
+import { users, students } from '@/db/schema/core';
+import { classes, enrollments } from '@/db/schema/academic';
 import { bookings, courses, accommodationTypes, agencies } from '@/db/schema/business';
 import { requireAuth, setRLSContext, getTenantId } from '@/lib/auth/utils';
 import { eq, and } from 'drizzle-orm';
