@@ -21,10 +21,10 @@ async function diagnose() {
     console.log('1️⃣ Query users table WITHOUT RLS context:');
     try {
       const [userRecord] = await db
-        .select({ 
+        .select({
           email: users.email,
           isSuperAdmin: users.isSuperAdmin,
-          tenantId: users.tenantId 
+          tenantId: users.tenantId,
         })
         .from(users)
         .where(eq(users.email, testEmail))
@@ -80,7 +80,6 @@ async function diagnose() {
         current_setting('app.is_super_admin', true) as is_super_admin
     `;
     console.log('   Session vars:', sessionVars[0]);
-
   } catch (error) {
     console.error('❌ Diagnosis failed:', error);
   } finally {

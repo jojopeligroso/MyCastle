@@ -114,6 +114,14 @@ export const setRLSContext = async (db: any): Promise<void> => {
   const { eq } = await import('drizzle-orm');
   const { sql } = await import('drizzle-orm');
 
+  // CRITICAL: Set app.user_email FIRST so RLS policies can check is_superuser()
+  // The is_superuser() function checks current_setting('app.user_email', true) = 'eoinmaleoin@gmail.com'
+  // Without this, RLS blocks the query below!
+  // Note: user.email comes from Supabase Auth and is already validated, but we escape single quotes for safety
+  const escapedEmail = user.email.replace(/'/g, "''");
+  await db.execute(sql.raw(`SET app.user_email = '${escapedEmail}'`));
+  console.log('[RLS] Set app.user_email:', user.email);
+
   // Check if user is super admin
   // DEFENSIVE: If is_super_admin column doesn't exist, default to regular user
   let isSuperAdmin = false;
@@ -124,7 +132,7 @@ export const setRLSContext = async (db: any): Promise<void> => {
       .select({
         email: users.email,
         isSuperAdmin: users.isSuperAdmin,
-        tenantId: users.tenantId
+        tenantId: users.tenantId,
       })
       .from(users)
       .where(eq(users.email, user.email))
@@ -137,7 +145,12 @@ export const setRLSContext = async (db: any): Promise<void> => {
       isSuperAdmin = false;
     } else {
       isSuperAdmin = userRecord.isSuperAdmin || false;
-      console.log('[RLS] User found - is_super_admin:', isSuperAdmin, 'tenant_id:', userRecord.tenantId);
+      console.log(
+        '[RLS] User found - is_super_admin:',
+        isSuperAdmin,
+        'tenant_id:',
+        userRecord.tenantId
+      );
     }
   } catch (error) {
     // Column doesn't exist or query failed
@@ -151,19 +164,28 @@ export const setRLSContext = async (db: any): Promise<void> => {
   if (isSuperAdmin) {
     // Super admin: Bypass tenant restrictions
     await db.execute(sql.raw(`SET app.is_super_admin = 'true'`));
-    await db.execute(sql.raw(`SET app.user_email = '${user.email}'`));
     console.log('[RLS] ✅ Super admin context set:', user.email);
   } else {
     // Regular user: Enforce tenant isolation
     console.log('[RLS] Regular user - tenant_id:', tenantId);
     if (!tenantId) {
       console.error('[RLS] ❌ No tenant_id found for non-super-admin user:', user.email);
-      console.error('[RLS] Auth metadata:', { user_metadata: user.user_metadata, app_metadata: user.app_metadata });
+      console.error('[RLS] Auth metadata:', {
+        user_metadata: user.user_metadata,
+        app_metadata: user.app_metadata,
+      });
       throw new Error('Tenant ID required for non-super-admin users');
     }
+
+    // Validate tenant_id is a valid UUID format (防止 SQL injection)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(tenantId)) {
+      console.error('[RLS] ❌ Invalid tenant_id format:', tenantId);
+      throw new Error('Invalid tenant ID format');
+    }
+
     await db.execute(sql.raw(`SET app.is_super_admin = 'false'`));
-    await db.execute(sql.raw(`SET app.user_email = '${user.email}'`));
     await db.execute(sql.raw(`SET app.tenant_id = '${tenantId}'`));
-    console.log('[RLS] Tenant context set:', { email: user.email, tenantId });
+    console.log('[RLS] ✅ Tenant context set:', { email: user.email, tenantId });
   }
 };

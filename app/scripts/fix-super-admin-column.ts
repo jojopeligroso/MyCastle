@@ -41,7 +41,6 @@ async function fix() {
     console.log('✅ Updated column definition:');
     console.log('   Nullable:', columnCheck[0].is_nullable);
     console.log('   Default:', columnCheck[0].column_default);
-
   } catch (error) {
     console.error('❌ Fix failed:', error);
   } finally {

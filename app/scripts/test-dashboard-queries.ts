@@ -11,7 +11,9 @@ async function testDashboard() {
     console.log('🧪 Testing dashboard queries...\n');
 
     // Import functions after env is loaded
-    const { getAdminKPIs, getRecentAuditEvents, getAdminAlerts, getAdminWorkQueue } = await import('../src/app/admin/_actions/dashboard');
+    const { getAdminKPIs, getRecentAuditEvents, getAdminAlerts, getAdminWorkQueue } = await import(
+      '../src/app/admin/_actions/dashboard'
+    );
 
     // Test 1: KPIs (was failing on setRLSContext)
     console.log('1️⃣ Testing getAdminKPIs...');
@@ -37,7 +39,6 @@ async function testDashboard() {
     console.log('   ✅ Success:', workQueue.length, 'items found');
 
     console.log('\n🎉 All dashboard queries passed!');
-
   } catch (error) {
     console.error('❌ Dashboard test failed:', error);
     process.exit(1);

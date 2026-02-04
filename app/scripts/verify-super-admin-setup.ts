@@ -54,7 +54,6 @@ async function verify() {
 
     console.log(`\n📊 Regular users: ${regularUsers[0].count}`);
     console.log('📊 Super admins:', superAdmins.length);
-
   } catch (error) {
     console.error('❌ Verification failed:', error);
   } finally {

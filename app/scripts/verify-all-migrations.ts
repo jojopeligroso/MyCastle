@@ -20,7 +20,11 @@ async function verifyAllMigrations() {
     `;
 
     if (superAdminColumn.length > 0) {
-      console.log('   ✅ EXISTS:', superAdminColumn[0].column_name, `(${superAdminColumn[0].data_type})`);
+      console.log(
+        '   ✅ EXISTS:',
+        superAdminColumn[0].column_name,
+        `(${superAdminColumn[0].data_type})`
+      );
     } else {
       console.log('   ❌ MISSING: is_super_admin column not found');
     }
@@ -66,7 +70,15 @@ async function verifyAllMigrations() {
     `;
 
     console.log('   Total columns:', allColumns.length);
-    const criticalColumns = ['id', 'tenant_id', 'email', 'primary_role', 'is_super_admin', 'created_at', 'updated_at'];
+    const criticalColumns = [
+      'id',
+      'tenant_id',
+      'email',
+      'primary_role',
+      'is_super_admin',
+      'created_at',
+      'updated_at',
+    ];
 
     interface ColumnRow {
       column_name: string;
@@ -74,7 +86,7 @@ async function verifyAllMigrations() {
     }
 
     criticalColumns.forEach(col => {
-      const exists = allColumns.some((c) => (c as ColumnRow).column_name === col);
+      const exists = allColumns.some(c => (c as ColumnRow).column_name === col);
       console.log(`   ${exists ? '✅' : '❌'} ${col}`);
     });
 
@@ -88,7 +100,16 @@ async function verifyAllMigrations() {
       ORDER BY table_name
     `;
 
-    const criticalTables = ['users', 'tenants', 'students', 'classes', 'enrollments', 'bookings', 'payments', 'audit_logs'];
+    const criticalTables = [
+      'users',
+      'tenants',
+      'students',
+      'classes',
+      'enrollments',
+      'bookings',
+      'payments',
+      'audit_logs',
+    ];
     console.log('   Total tables:', tables.length);
 
     interface TableRow {
@@ -96,7 +117,7 @@ async function verifyAllMigrations() {
     }
 
     criticalTables.forEach(table => {
-      const exists = tables.some((t) => (t as TableRow).table_name === table);
+      const exists = tables.some(t => (t as TableRow).table_name === table);
       console.log(`   ${exists ? '✅' : '❌'} ${table}`);
     });
 
@@ -109,10 +130,15 @@ async function verifyAllMigrations() {
       ORDER BY table_name
     `;
 
-    const criticalViews = ['v_admin_kpis_daily', 'v_admin_alerts', 'v_admin_work_queue', 'v_audit_events_recent'];
+    const criticalViews = [
+      'v_admin_kpis_daily',
+      'v_admin_alerts',
+      'v_admin_work_queue',
+      'v_audit_events_recent',
+    ];
     console.log('   Total views:', views.length);
     criticalViews.forEach(view => {
-      const exists = views.some((v) => (v as TableRow).table_name === view);
+      const exists = views.some(v => (v as TableRow).table_name === view);
       console.log(`   ${exists ? '✅' : '❌'} ${view}`);
     });
 
@@ -120,10 +146,11 @@ async function verifyAllMigrations() {
     console.log('\n' + '='.repeat(60));
     console.log('📊 MIGRATION STATUS SUMMARY\n');
 
-    const isSuperAdminComplete = superAdminColumn.length > 0 &&
-                                  superAdminUser.length > 0 &&
-                                  superAdminUser[0].is_super_admin === true &&
-                                  indexes.length > 0;
+    const isSuperAdminComplete =
+      superAdminColumn.length > 0 &&
+      superAdminUser.length > 0 &&
+      superAdminUser[0].is_super_admin === true &&
+      indexes.length > 0;
 
     if (isSuperAdminComplete) {
       console.log('✅ is_super_admin migration: COMPLETE');
@@ -132,7 +159,7 @@ async function verifyAllMigrations() {
     }
 
     const hasAllCriticalTables = criticalTables.every(table =>
-      tables.some((t) => (t as TableRow).table_name === table)
+      tables.some(t => (t as TableRow).table_name === table)
     );
 
     if (hasAllCriticalTables) {
@@ -141,8 +168,12 @@ async function verifyAllMigrations() {
       console.log('❌ Core schema tables: INCOMPLETE');
     }
 
-    console.log('\n🎯 Overall Status:', isSuperAdminComplete && hasAllCriticalTables ? 'ALL MIGRATIONS COMPLETE' : 'MIGRATIONS INCOMPLETE');
-
+    console.log(
+      '\n🎯 Overall Status:',
+      isSuperAdminComplete && hasAllCriticalTables
+        ? 'ALL MIGRATIONS COMPLETE'
+        : 'MIGRATIONS INCOMPLETE'
+    );
   } catch (error) {
     console.error('❌ Verification failed:', error);
   } finally {
