@@ -27,11 +27,19 @@ export type ValidationError = {
 
 export type ChangeType = 'insert' | 'update' | 'skip';
 
+export type FieldChange = {
+  field: string;
+  oldValue: unknown;
+  newValue: unknown;
+  changed: boolean;
+};
+
 export type PreviewRecord = {
   rowNumber: number;
   changeType: ChangeType;
   data: Record<string, unknown>;
   existingData?: Record<string, unknown>;
+  fieldChanges: FieldChange[]; // Detailed field-by-field comparison
   errors: ValidationError[];
 };
 
@@ -207,32 +215,39 @@ async function validateStudents(rows: Record<string, unknown>[]): Promise<Previe
     const existingUser = existingUsersByEmail.get(email);
     const changeType: ChangeType = existingUser ? 'update' : 'insert';
 
+    const newData = {
+      name,
+      email,
+      dateOfBirth: row.dateOfBirth || null,
+      nationality: row.nationality || null,
+      phone: row.phone || null,
+      studentNumber,
+      isVisaStudent,
+      visaType: row.visaType || null,
+      visaExpiryDate: row.visaExpiryDate || null,
+      emergencyContactName: row.emergencyContactName || null,
+      emergencyContactPhone: row.emergencyContactPhone || null,
+      emergencyContactRelationship: row.emergencyContactRelationship || null,
+    };
+
+    const existingData = existingUser
+      ? {
+          name: existingUser.name,
+          email: existingUser.email,
+          dateOfBirth: existingUser.dateOfBirth,
+          nationality: existingUser.nationality,
+          phone: existingUser.phone,
+        }
+      : undefined;
+
+    const fieldChanges = detectFieldChanges(newData, existingData);
+
     return {
       rowNumber,
       changeType,
-      data: {
-        name,
-        email,
-        dateOfBirth: row.dateOfBirth || null,
-        nationality: row.nationality || null,
-        phone: row.phone || null,
-        studentNumber,
-        isVisaStudent,
-        visaType: row.visaType || null,
-        visaExpiryDate: row.visaExpiryDate || null,
-        emergencyContactName: row.emergencyContactName || null,
-        emergencyContactPhone: row.emergencyContactPhone || null,
-        emergencyContactRelationship: row.emergencyContactRelationship || null,
-      },
-      existingData: existingUser
-        ? {
-            name: existingUser.name,
-            email: existingUser.email,
-            dateOfBirth: existingUser.dateOfBirth,
-            nationality: existingUser.nationality,
-            phone: existingUser.phone,
-          }
-        : undefined,
+      data: newData,
+      existingData,
+      fieldChanges,
       errors,
     };
   });
@@ -300,26 +315,33 @@ async function validateClasses(rows: Record<string, unknown>[]): Promise<Preview
     const existingClass = existingClassesByName.get(name.toLowerCase());
     const changeType: ChangeType = existingClass ? 'update' : 'insert';
 
+    const newData = {
+      name,
+      level,
+      startDate,
+      endDate,
+      capacity: row.capacity ? Number(row.capacity) : null,
+      teacherEmail: row.teacherEmail || null,
+    };
+
+    const existingData = existingClass
+      ? {
+          name: existingClass.name,
+          level: existingClass.level,
+          startDate: existingClass.startDate,
+          endDate: existingClass.endDate,
+          capacity: existingClass.capacity,
+        }
+      : undefined;
+
+    const fieldChanges = detectFieldChanges(newData, existingData);
+
     return {
       rowNumber,
       changeType,
-      data: {
-        name,
-        level,
-        startDate,
-        endDate,
-        capacity: row.capacity ? Number(row.capacity) : null,
-        teacherEmail: row.teacherEmail || null,
-      },
-      existingData: existingClass
-        ? {
-            name: existingClass.name,
-            level: existingClass.level,
-            startDate: existingClass.startDate,
-            endDate: existingClass.endDate,
-            capacity: existingClass.capacity,
-          }
-        : undefined,
+      data: newData,
+      existingData,
+      fieldChanges,
       errors,
     };
   });
@@ -426,17 +448,22 @@ async function validateEnrollments(rows: Record<string, unknown>[]): Promise<Pre
       });
     }
 
+    const newData = {
+      studentEmail,
+      className,
+      enrollmentDate,
+      expectedEndDate,
+      bookedWeeks,
+    };
+
+    const fieldChanges = detectFieldChanges(newData, undefined);
+
     return {
       rowNumber,
       changeType: 'insert', // Enrollments are always inserts
-      data: {
-        studentEmail,
-        className,
-        enrollmentDate,
-        expectedEndDate,
-        bookedWeeks,
-      },
+      data: newData,
       existingData: undefined,
+      fieldChanges,
       errors,
     };
   });
@@ -573,46 +600,53 @@ async function validateBookings(rows: Record<string, unknown>[]): Promise<Previe
     const existingUser = usersByEmail.get(email.toLowerCase());
     const changeType: ChangeType = existingUser ? 'update' : 'insert';
 
+    const newData = {
+      // Student fields
+      name,
+      email,
+      nationality,
+      dob,
+      visaType,
+      // Booking fields
+      saleDate,
+      source,
+      courseName,
+      weeks,
+      courseStartDate,
+      courseEndDate,
+      levelClass,
+      placementTestScore,
+      accomType,
+      accomStartDate,
+      accomEndDate,
+      // Financial fields
+      depositPaid,
+      totalPaid,
+      courseFee,
+      accommodationFee,
+      transferFee,
+      examFee,
+      registrationFee,
+      learnerProtection,
+      medicalInsurance,
+      totalBooking,
+    };
+
+    const existingData = existingUser
+      ? {
+          name: existingUser.name,
+          email: existingUser.email,
+        }
+      : undefined;
+
+    const fieldChanges = detectFieldChanges(newData, existingData);
+
     return {
       rowNumber,
       changeType,
-      data: {
-        // Student fields
-        name,
-        email,
-        nationality,
-        dob,
-        visaType,
-        // Booking fields
-        saleDate,
-        source,
-        courseName,
-        weeks,
-        courseStartDate,
-        courseEndDate,
-        levelClass,
-        placementTestScore,
-        accomType,
-        accomStartDate,
-        accomEndDate,
-        // Financial fields
-        depositPaid,
-        totalPaid,
-        courseFee,
-        accommodationFee,
-        transferFee,
-        examFee,
-        registrationFee,
-        learnerProtection,
-        medicalInsurance,
-        totalBooking,
-      },
-      existingData: existingUser
-        ? {
-            name: existingUser.name,
-            email: existingUser.email,
-          }
-        : undefined,
+      data: newData,
+      existingData,
+      fieldChanges,
       errors,
     };
   });
@@ -1002,4 +1036,52 @@ function isValidDate(dateStr: string): boolean {
 
   const date = new Date(dateStr);
   return date instanceof Date && !isNaN(date.getTime());
+}
+
+/**
+ * Compare new data against existing data and return field-level changes
+ */
+function detectFieldChanges(
+  newData: Record<string, unknown>,
+  existingData: Record<string, unknown> | undefined
+): FieldChange[] {
+  if (!existingData) {
+    // New record - all fields are "changes" from null
+    return Object.keys(newData).map(field => ({
+      field,
+      oldValue: null,
+      newValue: newData[field],
+      changed: true,
+    }));
+  }
+
+  // Compare each field
+  const changes: FieldChange[] = [];
+  const allFields = new Set([...Object.keys(newData), ...Object.keys(existingData)]);
+
+  for (const field of allFields) {
+    const oldValue = existingData[field];
+    const newValue = newData[field];
+
+    // Normalize for comparison (handle null/undefined/"" equivalence)
+    const oldNorm =
+      oldValue === null || oldValue === undefined || oldValue === '' ? null : oldValue;
+    const newNorm =
+      newValue === null || newValue === undefined || newValue === '' ? null : newValue;
+
+    // Convert to strings for comparison if both are defined
+    const oldStr = oldNorm !== null ? String(oldNorm) : null;
+    const newStr = newNorm !== null ? String(newNorm) : null;
+
+    const changed = oldStr !== newStr;
+
+    changes.push({
+      field,
+      oldValue: oldNorm,
+      newValue: newNorm,
+      changed,
+    });
+  }
+
+  return changes;
 }
