@@ -117,8 +117,8 @@ export default function BulkUploadClient() {
       <div className="bg-white shadow sm:rounded-lg">
         <div className="px-4 py-5 sm:p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">1. Select Data Type</h3>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {(['students', 'classes', 'enrollments'] as EntityType[]).map(type => (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+            {(['students', 'classes', 'enrollments', 'bookings'] as EntityType[]).map(type => (
               <button
                 key={type}
                 type="button"

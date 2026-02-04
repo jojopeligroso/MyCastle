@@ -7,6 +7,7 @@
 
 import { db } from '@/db';
 import { users, students, classes, enrollments } from '@/db/schema/core';
+import { bookings, courses, accommodationTypes, agencies } from '@/db/schema/business';
 import { requireAuth, setRLSContext, getTenantId } from '@/lib/auth/utils';
 import { eq, and } from 'drizzle-orm';
 import * as XLSX from 'xlsx';
@@ -15,7 +16,7 @@ import * as XLSX from 'xlsx';
 // Types
 // ============================================================================
 
-export type EntityType = 'students' | 'classes' | 'enrollments';
+export type EntityType = 'students' | 'classes' | 'enrollments' | 'bookings';
 
 export type ValidationError = {
   row: number;
@@ -105,6 +106,9 @@ export async function parseAndValidateFile(
         break;
       case 'enrollments':
         records = await validateEnrollments(rows);
+        break;
+      case 'bookings':
+        records = await validateBookings(rows);
         break;
       default:
         throw new Error(`Unsupported entity type: ${entityType}`);
@@ -439,6 +443,182 @@ async function validateEnrollments(rows: Record<string, unknown>[]): Promise<Pre
 }
 
 // ============================================================================
+// Validate Bookings (Combined Student + Booking + Financial Data)
+// ============================================================================
+
+async function validateBookings(rows: Record<string, unknown>[]): Promise<PreviewRecord[]> {
+  const tenantId = await getTenantId();
+  if (!tenantId) throw new Error('Tenant ID required');
+
+  // Fetch reference data
+  const existingCourses = await db.select().from(courses).where(eq(courses.tenantId, tenantId));
+  const coursesByName = new Map(existingCourses.map(c => [c.name.toLowerCase(), c]));
+
+  const existingAccomTypes = await db
+    .select()
+    .from(accommodationTypes)
+    .where(eq(accommodationTypes.tenantId, tenantId));
+  const accomTypesByName = new Map(existingAccomTypes.map(a => [a.name.toLowerCase(), a]));
+
+  const existingAgencies = await db.select().from(agencies).where(eq(agencies.tenantId, tenantId));
+  const agenciesByName = new Map(existingAgencies.map(a => [a.name.toLowerCase(), a]));
+
+  const existingUsers = await db.select().from(users).where(eq(users.tenantId, tenantId));
+  const usersByEmail = new Map(existingUsers.map(u => [u.email.toLowerCase(), u]));
+
+  return rows.map((row, index) => {
+    const errors: ValidationError[] = [];
+    const rowNumber = index + 2;
+
+    // Required student fields
+    const name = String(row['Name'] || row.name || '').trim();
+    const email = name ? `${name.toLowerCase().replace(/\s+/g, '.')}@import.temp` : ''; // Generate temp email if not provided
+    const nationality = String(row['Nationality'] || row.nationality || '').trim();
+    const dob = String(row['DOB'] || row.dateOfBirth || '').trim();
+
+    if (!name) {
+      errors.push({ row: rowNumber, field: 'Name', message: 'Name is required' });
+    }
+
+    // Booking required fields
+    const saleDate = String(row['Sale Date'] || row.saleDate || '').trim();
+    const courseName = String(row['Course'] || row.course || '').trim();
+    const weeks = row['Weeks'] || row.weeks ? Number(row['Weeks'] || row.weeks) : null;
+    const courseStartDate = String(row['Start date'] || row.courseStartDate || '').trim();
+    const courseEndDate = String(row['End date'] || row.courseEndDate || '').trim();
+
+    if (!saleDate) {
+      errors.push({ row: rowNumber, field: 'Sale Date', message: 'Sale Date is required' });
+    } else if (!isValidDate(saleDate)) {
+      errors.push({
+        row: rowNumber,
+        field: 'Sale Date',
+        message: 'Invalid date format (use YYYY-MM-DD)',
+        value: saleDate,
+      });
+    }
+
+    if (!courseName) {
+      errors.push({ row: rowNumber, field: 'Course', message: 'Course is required' });
+    } else {
+      const course = coursesByName.get(courseName.toLowerCase());
+      if (!course) {
+        errors.push({
+          row: rowNumber,
+          field: 'Course',
+          message: 'Course not found',
+          value: courseName,
+        });
+      }
+    }
+
+    if (!weeks || weeks <= 0) {
+      errors.push({ row: rowNumber, field: 'Weeks', message: 'Weeks must be a positive number' });
+    }
+
+    if (!courseStartDate) {
+      errors.push({ row: rowNumber, field: 'Start date', message: 'Start date is required' });
+    } else if (!isValidDate(courseStartDate)) {
+      errors.push({
+        row: rowNumber,
+        field: 'Start date',
+        message: 'Invalid date format',
+        value: courseStartDate,
+      });
+    }
+
+    if (!courseEndDate) {
+      errors.push({ row: rowNumber, field: 'End date', message: 'End date is required' });
+    } else if (!isValidDate(courseEndDate)) {
+      errors.push({
+        row: rowNumber,
+        field: 'End date',
+        message: 'Invalid date format',
+        value: courseEndDate,
+      });
+    }
+
+    // Optional fields
+    const source = String(row['Source'] || row.source || 'Direct').trim();
+    const visaType = String(row['Visa Type'] || row.visaType || '').trim();
+    const levelClass = String(row['Level/Class'] || row.level || '').trim();
+    const placementTestScore = String(
+      row['Placement test score'] || row.placementTestScore || ''
+    ).trim();
+    const accomType = String(row['Accom Type'] || row.accomType || '').trim();
+    const accomStartDate = String(row['Start date'] || row.accommodationStartDate || '').trim(); // Note: might conflict with course start
+    const accomEndDate = String(row['End date'] || row.accommodationEndDate || '').trim(); // Note: might conflict with course end
+
+    // Financial fields (convert to numbers, default to 0)
+    const depositPaid = parseFloat(String(row['Deposit Paid'] || row.depositPaid || '0'));
+    const totalPaid = parseFloat(String(row['Paid'] || row.paid || '0'));
+    const courseFee = parseFloat(String(row['Course Fee Due'] || row.courseFee || '0'));
+    const accommodationFee = parseFloat(
+      String(row['Accomodation'] || row['Accommodation'] || row.accommodationFee || '0')
+    );
+    const transferFee = parseFloat(String(row['Transfer'] || row.transferFee || '0'));
+    const examFee = parseFloat(String(row['Exam Fee'] || row.examFee || '0'));
+    const registrationFee = parseFloat(
+      String(row['Registration Fee'] || row.registrationFee || '0')
+    );
+    const learnerProtection = parseFloat(
+      String(row['Learner Protection'] || row.learnerProtection || '0')
+    );
+    const medicalInsurance = parseFloat(
+      String(row['Medical Insurance'] || row.medicalInsurance || '0')
+    );
+    const totalBooking = parseFloat(String(row['Total Booking'] || row.totalBooking || '0'));
+
+    // Check if user exists
+    const existingUser = usersByEmail.get(email.toLowerCase());
+    const changeType: ChangeType = existingUser ? 'update' : 'insert';
+
+    return {
+      rowNumber,
+      changeType,
+      data: {
+        // Student fields
+        name,
+        email,
+        nationality,
+        dob,
+        visaType,
+        // Booking fields
+        saleDate,
+        source,
+        courseName,
+        weeks,
+        courseStartDate,
+        courseEndDate,
+        levelClass,
+        placementTestScore,
+        accomType,
+        accomStartDate,
+        accomEndDate,
+        // Financial fields
+        depositPaid,
+        totalPaid,
+        courseFee,
+        accommodationFee,
+        transferFee,
+        examFee,
+        registrationFee,
+        learnerProtection,
+        medicalInsurance,
+        totalBooking,
+      },
+      existingData: existingUser
+        ? {
+            name: existingUser.name,
+            email: existingUser.email,
+          }
+        : undefined,
+      errors,
+    };
+  });
+}
+
+// ============================================================================
 // Commit Changes to Database
 // ============================================================================
 
@@ -485,6 +665,11 @@ export async function commitBulkUpload(preview: UploadPreview): Promise<UploadRe
 
           case 'enrollments':
             await insertEnrollment(record.data, tenantId);
+            inserted++;
+            break;
+
+          case 'bookings':
+            await insertBooking(record.data, tenantId);
             inserted++;
             break;
         }
@@ -660,6 +845,149 @@ async function insertEnrollment(data: Record<string, unknown>, tenantId: string)
     expectedEndDate: data.expectedEndDate ? String(data.expectedEndDate) : null,
     bookedWeeks: data.bookedWeeks ? Number(data.bookedWeeks) : null,
     status: 'active',
+  });
+}
+
+async function insertBooking(data: Record<string, unknown>, tenantId: string) {
+  // 1. Create or find student
+  let student;
+  const email = String(data.email);
+  const existingUser = await db.query.users.findFirst({
+    where: (users, { and, eq }) => and(eq(users.tenantId, tenantId), eq(users.email, email)),
+  });
+
+  if (existingUser) {
+    // Update existing user
+    await db
+      .update(users)
+      .set({
+        name: String(data.name),
+        nationality: data.nationality ? String(data.nationality) : null,
+        dateOfBirth: data.dob ? String(data.dob) : null,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, existingUser.id));
+
+    // Find or create student record
+    student = await db.query.students.findFirst({
+      where: (students, { and, eq }) =>
+        and(eq(students.tenantId, tenantId), eq(students.userId, existingUser.id)),
+    });
+
+    if (!student) {
+      [student] = await db
+        .insert(students)
+        .values({
+          userId: existingUser.id,
+          tenantId,
+          studentNumber: `STU-${Date.now()}`,
+          isVisaStudent: !!data.visaType,
+          visaType: data.visaType ? String(data.visaType) : null,
+          status: 'active',
+        })
+        .returning();
+    }
+  } else {
+    // Create new user and student
+    const [newUser] = await db
+      .insert(users)
+      .values({
+        tenantId,
+        email,
+        name: String(data.name),
+        nationality: data.nationality ? String(data.nationality) : null,
+        dateOfBirth: data.dob ? String(data.dob) : null,
+        primaryRole: 'student',
+        status: 'active',
+        emailVerified: false,
+      })
+      .returning();
+
+    [student] = await db
+      .insert(students)
+      .values({
+        userId: newUser.id,
+        tenantId,
+        studentNumber: `STU-${Date.now()}`,
+        isVisaStudent: !!data.visaType,
+        visaType: data.visaType ? String(data.visaType) : null,
+        status: 'active',
+      })
+      .returning();
+  }
+
+  // 2. Look up or create agency
+  let agency = null;
+  const sourceName = String(data.source || 'Direct');
+  if (sourceName && sourceName.toLowerCase() !== 'direct') {
+    agency = await db.query.agencies.findFirst({
+      where: (agencies, { and, eq }) =>
+        and(eq(agencies.tenantId, tenantId), eq(agencies.name, sourceName)),
+    });
+
+    if (!agency) {
+      [agency] = await db
+        .insert(agencies)
+        .values({
+          tenantId,
+          name: sourceName,
+          status: 'active',
+        })
+        .returning();
+    }
+  }
+
+  // 3. Look up course
+  const course = await db.query.courses.findFirst({
+    where: (courses, { and, eq }) =>
+      and(eq(courses.tenantId, tenantId), eq(courses.name, String(data.courseName))),
+  });
+
+  if (!course) {
+    throw new Error(`Course not found: ${data.courseName}`);
+  }
+
+  // 4. Look up accommodation type (if provided)
+  let accommodationType = null;
+  if (data.accomType && String(data.accomType).trim()) {
+    accommodationType = await db.query.accommodationTypes.findFirst({
+      where: (accommodationTypes, { and, eq }) =>
+        and(
+          eq(accommodationTypes.tenantId, tenantId),
+          eq(accommodationTypes.name, String(data.accomType))
+        ),
+    });
+  }
+
+  // 5. Create booking
+  const bookingNumber = `BK-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+  await db.insert(bookings).values({
+    tenantId,
+    bookingNumber,
+    saleDate: String(data.saleDate),
+    studentId: student.id,
+    agencyId: agency?.id || null,
+    courseId: course.id,
+    weeks: Number(data.weeks),
+    courseStartDate: String(data.courseStartDate),
+    courseEndDate: String(data.courseEndDate),
+    placementTestScore: data.placementTestScore ? String(data.placementTestScore) : null,
+    assignedLevel: data.levelClass ? String(data.levelClass) : null,
+    accommodationTypeId: accommodationType?.id || null,
+    accommodationStartDate: data.accomStartDate ? String(data.accomStartDate) : null,
+    accommodationEndDate: data.accomEndDate ? String(data.accomEndDate) : null,
+    courseFeeEur: String(data.courseFee || 0),
+    accommodationFeeEur: String(data.accommodationFee || 0),
+    transferFeeEur: String(data.transferFee || 0),
+    examFeeEur: String(data.examFee || 0),
+    registrationFeeEur: String(data.registrationFee || 0),
+    learnerProtectionFeeEur: String(data.learnerProtection || 0),
+    medicalInsuranceFeeEur: String(data.medicalInsurance || 0),
+    totalBookingEur: String(data.totalBooking || 0),
+    depositPaidEur: String(data.depositPaid || 0),
+    totalPaidEur: String(data.totalPaid || 0),
+    status: 'confirmed',
   });
 }
 
