@@ -23,7 +23,7 @@ Fast-track for developers who want to see the Student Registry running immediate
 ### Prerequisites Checklist
 - [x] Code cloned ✅
 - [ ] Supabase project access
-- [ ] `.env.local` configured with DATABASE_URL
+- [ ] `.env.local` configured with DIRECT_URL (Session Mode Pooler, port 5432)
 - [ ] Node.js 20+ installed
 - [ ] Dependencies installed (`npm install`)
 
@@ -82,7 +82,8 @@ You should see:
 | "relation does not exist" | Migrations not run. Go to Step 1. |
 | "No students found" | Data not seeded. Go to Step 3. |
 | TypeScript errors | Run `npm run db:generate` |
-| Can't connect to database | Check `.env.local` has correct `DATABASE_URL` |
+| "Failed query: SET app.user_email" | Using wrong pooler type. Use Session Mode (port 5432) not Transaction Mode (port 6543). See [Database Requirements](#22-understanding-database-connection-requirements) |
+| Can't connect to database | Check `.env.local` has `DIRECT_URL` with Session Mode Pooler |
 
 **Next:** See [Detailed Setup](#detailed-setup) for full environment configuration.
 
@@ -252,7 +253,8 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 OPENAI_API_KEY=sk-proj-...
 
 # Database Configuration
-DATABASE_URL=postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres
+# ⚠️ CRITICAL: Use Session Mode Pooler (port 5432) for RLS support!
+DIRECT_URL=postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.com:5432/postgres
 
 # Next.js Configuration
 NEXT_PUBLIC_APP_URL=http://localhost:3000
@@ -262,6 +264,44 @@ NODE_ENV=development
 ```
 
 **⚠️ Important:** Never commit `.env.local` to git! It's already in `.gitignore`.
+
+#### 2.2 Understanding Database Connection Requirements
+
+**CRITICAL: RLS Session Variable Support**
+
+MyCastle uses Row Level Security (RLS) with session variables to enforce data isolation. This requires a specific type of database connection.
+
+**Supabase offers 3 connection types:**
+
+| Connection Type | Port | Session Variables | Use for MyCastle |
+|----------------|------|-------------------|------------------|
+| **Session Mode Pooler** | 5432 | ✅ Supported | **✅ REQUIRED** |
+| Direct Connection | 5432 | ✅ Supported | ✅ Alternative |
+| Transaction Mode Pooler | 6543 | ❌ Not Supported | ❌ **BREAKS APP** |
+
+**How to get Session Mode Pooler connection:**
+
+1. In Supabase Dashboard, go to **Settings** → **Database**
+2. Scroll to **Connection Pooling** section
+3. Select **Session** mode (not Transaction!)
+4. Copy the connection string
+5. Use this as your `DIRECT_URL` in `.env.local`
+
+**Why Transaction Mode fails:**
+
+Transaction Mode Pooler (port 6543) routes each query to different PostgreSQL backends, so session state is lost. You'll see this error:
+```
+Failed query: SET app.user_email = 'user@example.com'
+```
+
+This causes complete navigation failure across the entire application.
+
+**Verification:**
+
+Your connection string should contain:
+- ✅ Port `5432` (not 6543)
+- ✅ Either `pooler.supabase.com:5432` (Session Mode) or `db.xxxx.supabase.co:5432` (Direct)
+- ❌ NOT `pooler.supabase.com:6543` (Transaction Mode)
 
 ### Step 3: Test Database Connection
 
