@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState, ComponentType } from 'react';
+import { useState, useEffect, ComponentType } from 'react';
 
 type NavItem = {
   name: string;
@@ -62,30 +62,107 @@ const navigation: (NavItem | NavGroup)[] = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Body scroll lock when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [mobileMenuOpen]);
+
+  // ESC key handler to close mobile menu
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && mobileMenuOpen) {
+        setMobileMenuOpen(false);
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [mobileMenuOpen]);
 
   return (
-    <div className="flex flex-col flex-grow border-r border-gray-200 pt-5 pb-4 bg-white overflow-y-auto">
-      <div className="flex-grow flex flex-col">
-        <nav className="flex-1 px-2 space-y-1 bg-white" aria-label="Sidebar">
-          {navigation.map(item =>
-            'items' in item ? (
-              <NavGroup key={item.name} group={item} pathname={pathname} />
-            ) : (
-              <NavLink key={item.name} item={item} pathname={pathname} />
-            )
-          )}
-        </nav>
+    <>
+      {/* Mobile Hamburger Button */}
+      <button
+        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        className="fixed top-20 left-4 z-50 md:hidden inline-flex items-center justify-center p-2 rounded-md bg-white shadow-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+        aria-label="Toggle sidebar"
+        aria-expanded={mobileMenuOpen}
+      >
+        {!mobileMenuOpen ? (
+          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        ) : (
+          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        )}
+      </button>
+
+      {/* Backdrop Overlay */}
+      <div
+        className={`fixed inset-0 bg-gray-900 z-40 md:hidden transition-opacity duration-300 ${
+          mobileMenuOpen ? 'opacity-50' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={() => setMobileMenuOpen(false)}
+        aria-hidden="true"
+      />
+
+      {/* Sidebar Container */}
+      <div
+        className={`w-64 min-w-fit flex-shrink-0 flex flex-col border-r border-gray-200 pt-5 pb-4 bg-white overflow-y-auto transition-transform duration-300 ease-in-out fixed inset-y-0 left-0 z-50 md:relative md:translate-x-0 transform ${
+          mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        } md:flex`}
+      >
+        <div className="flex-grow flex flex-col">
+          <nav className="flex-1 px-2 space-y-1 bg-white" aria-label="Sidebar">
+            {navigation.map(item =>
+              'items' in item ? (
+                <NavGroup
+                  key={item.name}
+                  group={item}
+                  pathname={pathname}
+                  onNavigate={() => setMobileMenuOpen(false)}
+                />
+              ) : (
+                <NavLink
+                  key={item.name}
+                  item={item}
+                  pathname={pathname}
+                  onNavigate={() => setMobileMenuOpen(false)}
+                />
+              )
+            )}
+          </nav>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
-function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
+function NavLink({
+  item,
+  pathname,
+  onNavigate,
+}: {
+  item: NavItem;
+  pathname: string;
+  onNavigate?: () => void;
+}) {
   const isActive = pathname === item.href;
   const Icon = item.icon;
   return (
     <Link
       href={item.href}
+      onClick={onNavigate}
       className={`${
         isActive
           ? 'bg-indigo-50 text-indigo-600'
@@ -105,7 +182,15 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
   );
 }
 
-function NavGroup({ group, pathname }: { group: NavGroup; pathname: string }) {
+function NavGroup({
+  group,
+  pathname,
+  onNavigate,
+}: {
+  group: NavGroup;
+  pathname: string;
+  onNavigate?: () => void;
+}) {
   // Auto-expand if child is active
   const hasActiveChild = group.items.some(i => pathname.startsWith(i.href));
   const [isOpen, setIsOpen] = useState(hasActiveChild);
@@ -145,6 +230,7 @@ function NavGroup({ group, pathname }: { group: NavGroup; pathname: string }) {
             <Link
               key={subItem.name}
               href={subItem.href}
+              onClick={onNavigate}
               className={`${
                 pathname === subItem.href
                   ? 'bg-indigo-50 text-indigo-600'

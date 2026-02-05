@@ -5,7 +5,6 @@
 
 import { requireAuth } from '@/lib/auth/utils';
 import { redirect } from 'next/navigation';
-import Link from 'next/link';
 import Sidebar from '@/components/admin/Sidebar';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -57,7 +56,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <Sidebar />
 
         {/* Main Content */}
-        <main className="flex-1 p-8 overflow-y-auto h-[calc(100vh-4rem)]">{children}</main>
+        <main className="flex-1 p-4 md:p-8 overflow-y-auto h-[calc(100vh-4rem)] w-full">
+          {children}
+        </main>
       </div>
     </div>
   );
