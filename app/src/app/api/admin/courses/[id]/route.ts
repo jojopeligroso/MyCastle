@@ -15,10 +15,13 @@ const updateCourseSchema = z.object({
   cefr_descriptor_ids: z.array(z.string().uuid()).optional(),
 });
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     await requireAuth(['admin']);
-    const courseId = params.id;
+    const { id: courseId } = await params;
 
     const [course] = await db
       .select()
@@ -37,10 +40,13 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     await requireAuth(['admin']);
-    const courseId = params.id;
+    const { id: courseId } = await params;
     const body = await request.json();
 
     const validationResult = updateCourseSchema.safeParse(body);
@@ -77,10 +83,13 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     await requireAuth(['admin']);
-    const courseId = params.id;
+    const { id: courseId } = await params;
 
     const [deletedCourse] = await db
       .update(courses)

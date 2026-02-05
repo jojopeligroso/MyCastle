@@ -4,7 +4,8 @@
  */
 
 import { db } from '../src/db';
-import { bookings, courses, agencies, payments, sql } from '../src/db/schema';
+import { bookings, courses, agencies, payments } from '../src/db/schema';
+import { sql } from 'drizzle-orm';
 import { eq } from 'drizzle-orm';
 
 async function testReportsData() {

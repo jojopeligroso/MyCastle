@@ -32,7 +32,7 @@ async function runMigrations() {
   console.log('\n🚀 Running New Migrations (FRESH_0004 - FRESH_0009)\n');
   console.log('='.repeat(80));
 
-  const sql = postgres(DATABASE_URL, { max: 1 });
+  const sql = postgres(DATABASE_URL!, { max: 1 });
 
   try {
     for (const migration of MIGRATIONS) {
@@ -70,7 +70,7 @@ async function runMigrations() {
     ];
 
     for (const table of newTables) {
-      const exists = tables.find((t: unknown) => t.tablename === table);
+      const exists = tables.find((t: any) => t.tablename === table);
       if (exists) {
         console.log(`✓ ${table} - created`);
       } else {

@@ -24,7 +24,7 @@ async function runMigrations() {
   console.log('\n🚀 Starting Fresh Database Migration\n');
   console.log('='.repeat(80));
 
-  const sql = postgres(DATABASE_URL, { max: 1 });
+  const sql = postgres(DATABASE_URL!, { max: 1 });
 
   try {
     // Step 1: Nuclear Reset
@@ -74,7 +74,7 @@ async function runMigrations() {
     });
 
     // Reconnect for verification
-    const sql2 = postgres(DATABASE_URL, { max: 1 });
+    const sql2 = postgres(DATABASE_URL!, { max: 1 });
 
     console.log('\n✅ Seed data inserted successfully\n');
 

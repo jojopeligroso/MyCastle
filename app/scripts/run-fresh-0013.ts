@@ -18,7 +18,7 @@ if (!DATABASE_URL) {
 }
 
 async function runMigration() {
-  const sql = postgres(DATABASE_URL, { max: 1 });
+  const sql = postgres(DATABASE_URL!, { max: 1 });
 
   try {
     console.log('📋 Running FRESH_0013: attendance_corrections table...\n');

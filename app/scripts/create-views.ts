@@ -193,8 +193,8 @@ async function createViews() {
       try {
         const result = await sql`SELECT * FROM ${sql(view)} LIMIT 1`;
         console.log(`  ✓ ${view} - OK (${result.length} rows)`);
-      } catch (error: unknown) {
-        console.log(`  ✗ ${view} - ERROR: ${error.message}`);
+      } catch (error) {
+        console.log(`  ✗ ${view} - ERROR: ${(error as Error).message}`);
       }
     }
 
