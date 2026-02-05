@@ -44,15 +44,20 @@ async function getEnrollmentForTransfer(enrollmentId: string) {
     studentName: data.studentName,
     currentClassId: data.classId,
     currentClassName: data.className,
-    currentClassCode: data.classCode,
-    currentClassLevel: data.classLevel,
+    currentClassCode: data.classCode ?? undefined,
+    currentClassLevel: data.classLevel ?? undefined,
   };
 }
 
-export default async function TransferStudentPage({ params }: { params: { id: string } }) {
+export default async function TransferStudentPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   await requireAuth();
+  const { id } = await params;
 
-  const data = await getEnrollmentForTransfer(params.id);
+  const data = await getEnrollmentForTransfer(id);
 
   if (!data) {
     notFound();
@@ -71,7 +76,7 @@ export default async function TransferStudentPage({ params }: { params: { id: st
             Enrolments
           </Link>
           {' > '}
-          <Link href={`/admin/enrolments/${params.id}`} className="hover:text-gray-700">
+          <Link href={`/admin/enrolments/${id}`} className="hover:text-gray-700">
             {data.studentName}
           </Link>
           {' > '}

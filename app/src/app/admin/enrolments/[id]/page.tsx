@@ -94,8 +94,8 @@ async function getEnrollmentData(enrollmentId: string) {
     classInfo: {
       id: data.classId,
       name: data.className,
-      code: data.classCode,
-      level: data.classLevel,
+      code: data.classCode ?? undefined,
+      level: data.classLevel ?? undefined,
       teacherName,
     },
     amendments: amendmentData.map(a => ({
@@ -104,17 +104,22 @@ async function getEnrollmentData(enrollmentId: string) {
       amendmentDate: a.amendmentDate?.toString() || new Date().toISOString(),
       previousValue: a.previousValue,
       newValue: a.newValue,
-      reason: a.reason,
+      reason: a.reason ?? undefined,
       status: a.status,
       metadata: (a.metadata as Record<string, unknown>) || {},
     })),
   };
 }
 
-export default async function EnrollmentDetailPage({ params }: { params: { id: string } }) {
+export default async function EnrollmentDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   await requireAuth();
+  const { id } = await params;
 
-  const data = await getEnrollmentData(params.id);
+  const data = await getEnrollmentData(id);
 
   if (!data) {
     notFound();

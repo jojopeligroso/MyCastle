@@ -121,7 +121,6 @@ export default async function EditClassPage(props: { params: Promise<{ id: strin
         classData={formattedClassData}
         teachers={teachers}
         programmes={programmesList}
-        enrolledCount={classData.enrolledCount}
       />
     </div>
   );
