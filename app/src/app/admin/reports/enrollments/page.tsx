@@ -71,6 +71,14 @@ export default async function EnrollmentReportsPage() {
   await requireAuth();
   const tenantId = await getTenantId();
 
+  if (!tenantId) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-500">Unable to load report. Please try again.</p>
+      </div>
+    );
+  }
+
   const classRosters = await getClassRosterStats(tenantId);
   const enrollmentTrends = await getEnrollmentTrends(tenantId);
 

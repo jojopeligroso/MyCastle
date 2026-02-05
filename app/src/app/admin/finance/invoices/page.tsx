@@ -13,22 +13,22 @@ async function getInvoices(tenantId: string) {
   const allInvoices = await db
     .select({
       id: invoices.id,
-      invoice_number: invoices.invoice_number,
-      student_id: invoices.student_id,
-      student_name: users.name,
-      student_email: users.email,
+      invoiceNumber: invoices.invoiceNumber,
+      studentId: invoices.studentId,
+      studentName: users.name,
+      studentEmail: users.email,
       amount: invoices.amount,
       currency: invoices.currency,
       description: invoices.description,
-      issue_date: invoices.issue_date,
-      due_date: invoices.due_date,
+      issueDate: invoices.issueDate,
+      dueDate: invoices.dueDate,
       status: invoices.status,
-      created_at: invoices.created_at,
+      createdAt: invoices.createdAt,
     })
     .from(invoices)
-    .innerJoin(users, eq(invoices.student_id, users.id))
-    .where(eq(invoices.tenant_id, tenantId))
-    .orderBy(desc(invoices.created_at));
+    .innerJoin(users, eq(invoices.studentId, users.id))
+    .where(eq(invoices.tenantId, tenantId))
+    .orderBy(desc(invoices.createdAt));
 
   return allInvoices;
 }
@@ -40,7 +40,7 @@ async function getInvoiceStats(tenantId: string) {
       amount: invoices.amount,
     })
     .from(invoices)
-    .where(eq(invoices.tenant_id, tenantId));
+    .where(eq(invoices.tenantId, tenantId));
 
   const totalInvoices = allInvoices.length;
   const pendingCount = allInvoices.filter(i => i.status === 'pending').length;
@@ -193,14 +193,14 @@ export default async function InvoicesPage() {
                         href={`/admin/finance/invoices/${invoice.id}`}
                         className="text-sm font-medium text-purple-600 hover:text-purple-900"
                       >
-                        {invoice.invoice_number}
+                        {invoice.invoiceNumber}
                       </Link>
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm font-medium text-gray-900">
-                        {invoice.student_name}
+                        {invoice.studentName}
                       </div>
-                      <div className="text-sm text-gray-500">{invoice.student_email}</div>
+                      <div className="text-sm text-gray-500">{invoice.studentEmail}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-semibold text-gray-900">
@@ -208,10 +208,10 @@ export default async function InvoicesPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(invoice.issue_date).toLocaleDateString()}
+                      {new Date(invoice.issueDate).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(invoice.due_date).toLocaleDateString()}
+                      {new Date(invoice.dueDate).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span

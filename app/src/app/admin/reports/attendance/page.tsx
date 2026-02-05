@@ -111,6 +111,14 @@ export default async function AttendanceReportsPage() {
   await requireAuth();
   const tenantId = await getTenantId();
 
+  if (!tenantId) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-500">Unable to load report. Please try again.</p>
+      </div>
+    );
+  }
+
   const { start, end } = getLast30Days();
   const classStats = await getClassAttendanceStats(tenantId, start, end);
   const studentStats = await getStudentAttendanceStats(tenantId, start, end);

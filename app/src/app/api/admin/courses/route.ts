@@ -1,52 +1,47 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { courses, programmes, cefrDescriptors } from '@/db/schema';
-import { eq, and, isNull, inArray } from 'drizzle-orm';
-import { requireAuth } from '@/lib/auth/utils';
+import { courses } from '@/db/schema';
+import { eq, ne, and } from 'drizzle-orm';
+import { requireAuth, getTenantId } from '@/lib/auth/utils';
 import { z } from 'zod';
 
 const createCourseSchema = z.object({
-  programme_id: z.string().uuid('Valid programme ID is required'),
   name: z.string().min(1, 'Name is required'),
   code: z.string().optional(),
   description: z.string().optional(),
-  level: z.string().min(1, 'CEFR level is required'),
-  duration_weeks: z.number().positive().optional(),
-  objectives: z.string().optional(),
-  cefr_descriptor_ids: z.array(z.string().uuid()).optional(),
+  level: z.string().optional(),
+  hoursPerWeek: z.number().positive().optional(),
+  pricePerWeekEur: z.string().optional(),
 });
 
 export async function GET(request: NextRequest) {
   try {
     await requireAuth(['admin']);
+    const tenantId = await getTenantId();
+
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     const { searchParams } = new URL(request.url);
-    const programmeId = searchParams.get('programme_id');
     const level = searchParams.get('level');
+    const status = searchParams.get('status');
 
     let query = db
-      .select({
-        course: courses,
-        programme: {
-          id: programmes.id,
-          name: programmes.name,
-          code: programmes.code,
-        },
-      })
+      .select()
       .from(courses)
-      .leftJoin(programmes, eq(courses.programme_id, programmes.id))
-      .where(isNull(courses.deleted_at))
+      .where(and(eq(courses.tenantId, tenantId), ne(courses.status, 'deleted')))
       .$dynamic();
-
-    if (programmeId) {
-      query = query.where(eq(courses.programme_id, programmeId));
-    }
 
     if (level) {
       query = query.where(eq(courses.level, level));
     }
 
-    const results = await query.orderBy(courses.level, courses.name);
+    if (status) {
+      query = query.where(eq(courses.status, status));
+    }
+
+    const results = await query.orderBy(courses.name);
 
     return NextResponse.json({ courses: results });
   } catch (error) {
@@ -58,7 +53,12 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     await requireAuth(['admin']);
+    const tenantId = await getTenantId();
     const body = await request.json();
+
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     const validationResult = createCourseSchema.safeParse(body);
     if (!validationResult.success) {
@@ -70,33 +70,20 @@ export async function POST(request: NextRequest) {
 
     const data = validationResult.data;
 
-    // Verify programme exists
-    const [programme] = await db
-      .select()
-      .from(programmes)
-      .where(eq(programmes.id, data.programme_id))
-      .limit(1);
-
-    if (!programme) {
-      return NextResponse.json({ error: 'Programme not found' }, { status: 404 });
-    }
-
     // Generate course code if not provided
-    const courseCode = data.code || `${data.level}-${data.name.substring(0, 3).toUpperCase()}`;
+    const courseCode = data.code || `${(data.level || 'GEN').substring(0, 2).toUpperCase()}-${data.name.substring(0, 3).toUpperCase()}`;
 
     const [newCourse] = await db
       .insert(courses)
       .values({
-        programme_id: data.programme_id,
+        tenantId,
         name: data.name,
         code: courseCode,
-        description: data.description || null,
+        description: data.description,
         level: data.level,
-        duration_weeks: data.duration_weeks || null,
-        objectives: data.objectives || null,
-        cefr_descriptor_ids: data.cefr_descriptor_ids || null,
-        created_at: new Date(),
-        updated_at: new Date(),
+        hoursPerWeek: data.hoursPerWeek,
+        pricePerWeekEur: data.pricePerWeekEur,
+        status: 'active',
       })
       .returning();
 

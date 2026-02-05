@@ -3,8 +3,8 @@
  */
 
 import { db } from '@/db';
-import { payments, invoices, users } from '@/db/schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { invoicePayments, invoices, users } from '@/db/schema';
+import { eq, desc } from 'drizzle-orm';
 import { requireAuth, getTenantId } from '@/lib/auth/utils';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
@@ -12,10 +12,10 @@ import Link from 'next/link';
 async function getPayments(tenantId: string) {
   const allPayments = await db
     .select({
-      payment: payments,
+      payment: invoicePayments,
       invoice: {
         id: invoices.id,
-        invoice_number: invoices.invoice_number,
+        invoiceNumber: invoices.invoiceNumber,
       },
       student: {
         id: users.id,
@@ -23,11 +23,11 @@ async function getPayments(tenantId: string) {
         email: users.email,
       },
     })
-    .from(payments)
-    .innerJoin(invoices, eq(payments.invoice_id, invoices.id))
-    .innerJoin(users, eq(payments.student_id, users.id))
-    .where(eq(payments.tenant_id, tenantId))
-    .orderBy(desc(payments.payment_date));
+    .from(invoicePayments)
+    .innerJoin(invoices, eq(invoicePayments.invoiceId, invoices.id))
+    .innerJoin(users, eq(invoicePayments.studentId, users.id))
+    .where(eq(invoicePayments.tenantId, tenantId))
+    .orderBy(desc(invoicePayments.paymentDate));
 
   return allPayments;
 }
@@ -35,25 +35,25 @@ async function getPayments(tenantId: string) {
 async function getPaymentStats(tenantId: string) {
   const allPayments = await db
     .select({
-      amount: payments.amount,
-      payment_method: payments.payment_method,
-      payment_date: payments.payment_date,
+      amount: invoicePayments.amount,
+      paymentMethod: invoicePayments.paymentMethod,
+      paymentDate: invoicePayments.paymentDate,
     })
-    .from(payments)
-    .where(eq(payments.tenant_id, tenantId));
+    .from(invoicePayments)
+    .where(eq(invoicePayments.tenantId, tenantId));
 
   const totalPayments = allPayments.length;
   const totalAmount = allPayments.reduce((sum, p) => sum + Number(p.amount), 0);
 
   // Payments by method
-  const stripeCount = allPayments.filter(p => p.payment_method === 'stripe').length;
-  const cashCount = allPayments.filter(p => p.payment_method === 'cash').length;
-  const bankTransferCount = allPayments.filter(p => p.payment_method === 'bank_transfer').length;
+  const stripeCount = allPayments.filter(p => p.paymentMethod === 'stripe').length;
+  const cashCount = allPayments.filter(p => p.paymentMethod === 'cash').length;
+  const bankTransferCount = allPayments.filter(p => p.paymentMethod === 'bank_transfer').length;
 
   // This month's payments
   const now = new Date();
   const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const thisMonthPayments = allPayments.filter(p => new Date(p.payment_date) >= firstDayOfMonth);
+  const thisMonthPayments = allPayments.filter(p => new Date(p.paymentDate) >= firstDayOfMonth);
   const thisMonthAmount = thisMonthPayments.reduce((sum, p) => sum + Number(p.amount), 0);
 
   return {
@@ -183,14 +183,14 @@ export default async function PaymentsPage() {
                 {paymentsList.map(({ payment, invoice, student }) => (
                   <tr key={payment.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {new Date(payment.payment_date).toLocaleDateString()}
+                      {new Date(payment.paymentDate).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Link
                         href={`/admin/finance/invoices/${invoice.id}`}
                         className="text-sm font-medium text-purple-600 hover:text-purple-900"
                       >
-                        {invoice.invoice_number}
+                        {invoice.invoiceNumber}
                       </Link>
                     </td>
                     <td className="px-6 py-4">
@@ -205,15 +205,15 @@ export default async function PaymentsPage() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getMethodBadge(
-                          payment.payment_method
+                          payment.paymentMethod
                         )}`}
                       >
-                        {payment.payment_method.replace('_', ' ')}
+                        {payment.paymentMethod.replace('_', ' ')}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {payment.transaction_id ? (
-                        <span className="font-mono text-xs">{payment.transaction_id}</span>
+                      {payment.transactionId ? (
+                        <span className="font-mono text-xs">{payment.transactionId}</span>
                       ) : (
                         <span className="text-gray-400">—</span>
                       )}
@@ -225,11 +225,11 @@ export default async function PaymentsPage() {
                       >
                         View Invoice
                       </Link>
-                      {payment.receipt_url && (
+                      {payment.receiptUrl && (
                         <>
                           {' • '}
                           <a
-                            href={payment.receipt_url}
+                            href={payment.receiptUrl}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-blue-600 hover:text-blue-900"

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { courses } from '@/db/schema';
-import { eq, and, isNull } from 'drizzle-orm';
+import { eq, and, ne } from 'drizzle-orm';
 import { requireAuth } from '@/lib/auth/utils';
 import { z } from 'zod';
 
@@ -10,9 +10,7 @@ const updateCourseSchema = z.object({
   code: z.string().optional(),
   description: z.string().optional(),
   level: z.string().optional(),
-  duration_weeks: z.number().positive().optional(),
-  objectives: z.string().optional(),
-  cefr_descriptor_ids: z.array(z.string().uuid()).optional(),
+  hoursPerWeek: z.number().positive().optional(),
 });
 
 export async function GET(
@@ -26,7 +24,7 @@ export async function GET(
     const [course] = await db
       .select()
       .from(courses)
-      .where(and(eq(courses.id, courseId), isNull(courses.deleted_at)))
+      .where(and(eq(courses.id, courseId), ne(courses.status, 'deleted')))
       .limit(1);
 
     if (!course) {
@@ -58,17 +56,13 @@ export async function PATCH(
     }
 
     const data = validationResult.data;
-    const updateData: Record<string, unknown> = { updated_at: new Date() };
-
-    Object.keys(data).forEach(key => {
-      if (data[key as keyof typeof data] !== undefined) {
-        updateData[key] = data[key as keyof typeof data];
-      }
-    });
 
     const [updatedCourse] = await db
       .update(courses)
-      .set(updateData)
+      .set({
+        ...data,
+        updatedAt: new Date(),
+      })
       .where(eq(courses.id, courseId))
       .returning();
 
@@ -94,8 +88,8 @@ export async function DELETE(
     const [deletedCourse] = await db
       .update(courses)
       .set({
-        deleted_at: new Date(),
-        updated_at: new Date(),
+        status: 'deleted',
+        updatedAt: new Date(),
       })
       .where(eq(courses.id, courseId))
       .returning();

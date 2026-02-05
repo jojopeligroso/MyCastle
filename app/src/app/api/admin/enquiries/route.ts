@@ -153,9 +153,7 @@ export async function POST(request: NextRequest) {
         phone: validatedData.phone || null,
         programmeInterest: validatedData.programmeInterest || null,
         levelEstimate: validatedData.levelEstimate || null,
-        startDatePreference: validatedData.startDatePreference
-          ? new Date(validatedData.startDatePreference)
-          : null,
+        startDatePreference: validatedData.startDatePreference || null,
         source: validatedData.source,
         notes: validatedData.notes || null,
         status: 'new', // Default status for new enquiries
@@ -174,7 +172,7 @@ export async function POST(request: NextRequest) {
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid request data', details: error.errors },
+        { error: 'Invalid request data', details: error.issues },
         { status: 400 }
       );
     }

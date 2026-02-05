@@ -43,11 +43,11 @@ async function logFinanceAudit(params: {
   metadata?: unknown;
 }) {
   await db.insert(auditLogs).values({
-    tenant_id: params.tenantId,
-    user_id: params.userId,
+    tenantId: params.tenantId,
+    userId: params.userId,
     action: params.action,
-    resource_type: params.resourceType,
-    resource_id: params.resourceId,
+    resourceType: params.resourceType,
+    resourceId: params.resourceId,
     changes: params.changes,
     metadata: params.metadata,
   });

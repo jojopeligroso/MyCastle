@@ -130,17 +130,18 @@ export async function POST(request: NextRequest) {
       class: newClass,
       sessionsCreated,
     });
-  } catch (error: unknown) {
+  } catch (error) {
     console.error('Error creating class:', error);
 
-    if (error.name === 'ZodError') {
+    if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid request data', details: error.errors },
+        { error: 'Invalid request data', details: error.issues },
         { status: 400 }
       );
     }
 
-    return NextResponse.json({ error: error.message || 'Failed to create class' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to create class';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 

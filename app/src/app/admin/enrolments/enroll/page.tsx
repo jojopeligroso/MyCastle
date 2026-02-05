@@ -10,6 +10,7 @@ import { requireAuth, getTenantId } from '@/lib/auth/utils';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import EnrollStudentForm from '@/components/admin/enrollments/EnrollStudentForm';
+import { nullToUndefined } from '@/lib/utils/types';
 
 async function getActiveStudents(tenantId: string) {
   try {
@@ -61,9 +62,11 @@ async function getActiveClasses(tenantId: string) {
       .where(and(eq(classes.tenantId, tenantId), eq(classes.status, 'active')))
       .orderBy(classes.name);
 
-    // Convert dates to strings for client component
+    // Normalize nullable fields for client component
     return classList.map(cls => ({
       ...cls,
+      code: nullToUndefined(cls.code),
+      level: nullToUndefined(cls.level),
       startDate: cls.startDate || undefined,
       endDate: cls.endDate || undefined,
     }));

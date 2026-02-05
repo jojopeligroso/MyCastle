@@ -27,16 +27,16 @@ export async function GET(request: NextRequest) {
         },
       })
       .from(auditLogs)
-      .leftJoin(users, eq(auditLogs.user_id, users.id))
+      .leftJoin(users, eq(auditLogs.userId, users.id))
       .$dynamic();
 
     // Apply filters
     if (userId) {
-      query = query.where(eq(auditLogs.user_id, userId));
+      query = query.where(eq(auditLogs.userId, userId));
     }
 
     if (entity) {
-      query = query.where(eq(auditLogs.entity_type, entity));
+      query = query.where(eq(auditLogs.resourceType, entity));
     }
 
     if (action) {
@@ -44,15 +44,15 @@ export async function GET(request: NextRequest) {
     }
 
     if (startDate) {
-      query = query.where(gte(auditLogs.created_at, new Date(startDate)));
+      query = query.where(gte(auditLogs.timestamp, new Date(startDate)));
     }
 
     if (endDate) {
-      query = query.where(lte(auditLogs.created_at, new Date(endDate)));
+      query = query.where(lte(auditLogs.timestamp, new Date(endDate)));
     }
 
     // Execute query with pagination
-    const results = await query.orderBy(desc(auditLogs.created_at)).limit(limit).offset(offset);
+    const results = await query.orderBy(desc(auditLogs.timestamp)).limit(limit).offset(offset);
 
     // Get total count for pagination
     const [{ count }] = await db.select({ count: sql<number>`count(*)::int` }).from(auditLogs);

@@ -77,6 +77,14 @@ export default async function TeachersPage() {
   await requireAuth();
   const tenantId = await getTenantId();
 
+  if (!tenantId) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-500">Unable to load teachers. Please try again.</p>
+      </div>
+    );
+  }
+
   const teachers = await getTeachers(tenantId);
   const activeClasses = await getActiveClasses(tenantId);
 
