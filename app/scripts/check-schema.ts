@@ -37,7 +37,7 @@ async function checkSchema() {
     console.log('📋 USERS TABLE COLUMNS (actual database):');
     console.log('=====================================');
     usersColumns.forEach(col => {
-      const colInfo = col as ColumnInfo;
+      const colInfo = col as unknown as ColumnInfo;
       console.log(`  ${colInfo.column_name} (${colInfo.data_type})`);
     });
 
@@ -54,7 +54,7 @@ async function checkSchema() {
     console.log('\n📋 STUDENTS TABLE COLUMNS (actual database):');
     console.log('=====================================');
     studentsColumns.forEach(col => {
-      const colInfo = col as ColumnInfo;
+      const colInfo = col as unknown as ColumnInfo;
       console.log(`  ${colInfo.column_name} (${colInfo.data_type})`);
     });
 
@@ -71,7 +71,7 @@ async function checkSchema() {
     console.log('\n📋 CLASSES TABLE COLUMNS (actual database):');
     console.log('=====================================');
     classesColumns.forEach(col => {
-      const colInfo = col as ColumnInfo;
+      const colInfo = col as unknown as ColumnInfo;
       console.log(`  ${colInfo.column_name} (${colInfo.data_type})`);
     });
 
@@ -79,8 +79,8 @@ async function checkSchema() {
     console.log('\n🔍 NAMING CONVENTION ANALYSIS:');
 
     const allColumns = [...usersColumns, ...studentsColumns, ...classesColumns];
-    const hasSnakeCase = allColumns.some(col => (col as ColumnInfo).column_name.includes('_'));
-    const hasCamelCase = allColumns.some(col => /[a-z][A-Z]/.test((col as ColumnInfo).column_name));
+    const hasSnakeCase = allColumns.some(col => (col as unknown as ColumnInfo).column_name.includes('_'));
+    const hasCamelCase = allColumns.some(col => /[a-z][A-Z]/.test((col as unknown as ColumnInfo).column_name));
 
     console.log(`  Snake_case columns found: ${hasSnakeCase ? 'YES' : 'NO'}`);
     console.log(`  camelCase columns found: ${hasCamelCase ? 'YES' : 'NO'}`);

@@ -18,10 +18,13 @@ const createAmendmentSchema = z.object({
   metadata: z.record(z.any()).optional(),
 });
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     await requireAuth(['admin']);
-    const enrollmentId = params.id;
+    const { id: enrollmentId } = await params;
 
     const [enrollment] = await db
       .select()
@@ -47,10 +50,13 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     await requireAuth(['admin']);
-    const enrollmentId = params.id;
+    const { id: enrollmentId } = await params;
     const body = await request.json();
 
     const validationResult = updateEnrollmentSchema.safeParse(body);
@@ -89,11 +95,14 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 }
 
 // Amendment creation endpoint
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const user = await requireAuth();
     const tenantId = await getTenantId();
-    const enrollmentId = params.id;
+    const { id: enrollmentId } = await params;
     const body = await request.json();
 
     if (!tenantId) {
@@ -179,10 +188,13 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     await requireAuth(['admin']);
-    const enrollmentId = params.id;
+    const { id: enrollmentId } = await params;
 
     // Get enrollment to decrement class count
     const [enrollment] = await db

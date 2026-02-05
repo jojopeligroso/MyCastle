@@ -272,7 +272,7 @@ async function seedStudents() {
       throw new Error('No tenants found. Please run base migrations first.');
     }
 
-    const tenantId = tenants[0].id;
+    const tenantId = (tenants[0] as { id: string }).id;
     console.log(`✓ Found tenant: ${tenantId}\n`);
 
     let createdCount = 0;
@@ -290,21 +290,23 @@ async function seedStudents() {
         continue;
       }
 
-      // Insert student
+      // Insert user with student role
       await db.insert(users).values({
-        tenant_id: tenantId,
+        tenantId: tenantId,
         email: student.email,
         name: student.name,
         phone: student.phone,
-        role: 'student',
+        primaryRole: 'student',
         status: student.status,
-        current_level: student.current_level,
-        initial_level: student.initial_level,
-        level_status: student.level_status,
-        visa_type: student.visa_type || null,
-        visa_expiry: student.visa_expiry || null,
-        metadata: student.metadata,
-        email_verified: true,
+        metadata: {
+          ...student.metadata,
+          currentLevel: student.current_level,
+          initialLevel: student.initial_level,
+          levelStatus: student.level_status,
+          visaType: student.visa_type || null,
+          visaExpiry: student.visa_expiry || null,
+        },
+        emailVerified: true,
       });
 
       createdCount++;

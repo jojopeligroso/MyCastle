@@ -14,10 +14,13 @@ const updateProgrammeSchema = z.object({
   is_active: z.boolean().optional(),
 });
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     await requireAuth(['admin']);
-    const programmeId = params.id;
+    const { id: programmeId } = await params;
 
     const [programme] = await db
       .select()
@@ -43,10 +46,13 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     await requireAuth(['admin']);
-    const programmeId = params.id;
+    const { id: programmeId } = await params;
     const body = await request.json();
 
     const validationResult = updateProgrammeSchema.safeParse(body);
@@ -83,10 +89,13 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     await requireAuth(['admin']);
-    const programmeId = params.id;
+    const { id: programmeId } = await params;
 
     const [deletedProgramme] = await db
       .update(programmes)

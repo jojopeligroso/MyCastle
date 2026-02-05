@@ -12,10 +12,13 @@ import {
 import { eq, and, isNull, sql, desc } from 'drizzle-orm';
 import { requireAuth } from '@/lib/auth/utils';
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     await requireAuth(['admin']);
-    const studentId = params.id;
+    const { id: studentId } = await params;
 
     // Fetch student basic info
     const [student] = await db
@@ -134,10 +137,13 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const user = await requireAuth(['admin']);
-    const studentId = params.id;
+    const { id: studentId } = await params;
     const body = await request.json();
 
     // Validate that the user exists and is a student
@@ -197,10 +203,13 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     await requireAuth(['admin']);
-    const studentId = params.id;
+    const { id: studentId } = await params;
 
     // Soft delete the student
     const [deletedStudent] = await db

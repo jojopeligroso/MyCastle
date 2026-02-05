@@ -4,10 +4,13 @@ import { auditLogs, users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { requireAuth } from '@/lib/auth/utils';
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     await requireAuth(['admin']);
-    const logId = params.id;
+    const { id: logId } = await params;
 
     const [log] = await db
       .select({

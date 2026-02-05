@@ -21,7 +21,7 @@ async function checkRLS() {
     `;
 
     console.log('📋 RLS Status:');
-    rlsEnabled.forEach((t: unknown) => {
+    rlsEnabled.forEach((t: any) => {
       const status = t.rowsecurity ? '✅ Enabled' : '❌ Disabled';
       console.log(`   ${status} - ${t.tablename}`);
     });
@@ -44,7 +44,7 @@ async function checkRLS() {
 
     console.log(`\n📜 Current Policies: ${policies.length} total\n`);
 
-    const grouped = policies.reduce((acc: unknown, p: unknown) => {
+    const grouped = policies.reduce((acc: any, p: any) => {
       if (!acc[p.tablename]) acc[p.tablename] = [];
       acc[p.tablename].push(p);
       return acc;
@@ -52,7 +52,7 @@ async function checkRLS() {
 
     Object.entries(grouped).forEach(([table, pols]: [string, any]) => {
       console.log(`\n🗂️  ${table}:`);
-      pols.forEach((p: unknown) => {
+      pols.forEach((p: any) => {
         console.log(`   - ${p.policyname}`);
         console.log(`     Command: ${p.cmd}`);
         console.log(`     Roles: ${p.roles.join(', ')}`);
@@ -62,13 +62,13 @@ async function checkRLS() {
     });
 
     // Identify missing policies
-    const tables = rlsEnabled.map((t: unknown) => t.tablename);
+    const tables = rlsEnabled.map((t: any) => t.tablename);
     const commands = ['SELECT', 'INSERT', 'UPDATE', 'DELETE'];
 
     console.log('\n⚠️  Missing Policies:\n');
-    tables.forEach((table: unknown) => {
+    tables.forEach((table: any) => {
       const tablePolicies = grouped[table] || [];
-      const existingCmds = tablePolicies.map((p: unknown) => p.cmd);
+      const existingCmds = tablePolicies.map((p: any) => p.cmd);
 
       commands.forEach(cmd => {
         if (!existingCmds.includes(cmd)) {

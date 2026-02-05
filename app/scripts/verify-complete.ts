@@ -17,17 +17,17 @@ async function verify() {
       SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename
     `;
     console.log('✅ Tables (9 expected):');
-    tables.forEach((t: unknown) => console.log(`   - ${t.tablename}`));
+    tables.forEach((t: any) => console.log(`   - ${t.tablename}`));
 
     // 2. Check tenant
     const tenants = await sql`SELECT id, name, subdomain, status FROM tenants`;
     console.log(`\n✅ Tenants: ${tenants.length}`);
-    tenants.forEach((t: unknown) => console.log(`   - ${t.name} (${t.subdomain}) - ${t.status}`));
+    tenants.forEach((t: any) => console.log(`   - ${t.name} (${t.subdomain}) - ${t.status}`));
 
     // 3. Check user with multi-role support
     const users = await sql`SELECT id, email, name, primary_role, status FROM public.users`;
     console.log(`\n✅ Users: ${users.length}`);
-    users.forEach((u: unknown) =>
+    users.forEach((u: any) =>
       console.log(`   - ${u.email} (${u.name}) - Role: ${u.primary_role}`)
     );
 
@@ -39,7 +39,7 @@ async function verify() {
       WHERE ur.revoked_at IS NULL
     `;
     console.log(`\n✅ User Roles: ${roles.length}`);
-    roles.forEach((r: unknown) => console.log(`   - ${r.email}: ${r.role}`));
+    roles.forEach((r: any) => console.log(`   - ${r.email}: ${r.role}`));
 
     // 5. Check student record
     const students = await sql`
@@ -48,26 +48,26 @@ async function verify() {
       JOIN public.users u ON s.user_id = u.id
     `;
     console.log(`\n✅ Students: ${students.length}`);
-    students.forEach((s: unknown) =>
+    students.forEach((s: any) =>
       console.log(`   - ${s.email}: ${s.student_number} (Visa: ${s.is_visa_student})`)
     );
 
     // 6. Check courses
     const courses = await sql`SELECT code, name, level, price_per_week_eur FROM courses`;
     console.log(`\n✅ Courses: ${courses.length}`);
-    courses.forEach((c: unknown) =>
+    courses.forEach((c: any) =>
       console.log(`   - ${c.code}: ${c.name} (${c.level}) - €${c.price_per_week_eur}/week`)
     );
 
     // 7. Check accommodation types
     const accom = await sql`SELECT name, price_per_week_eur FROM accommodation_types`;
     console.log(`\n✅ Accommodation Types: ${accom.length}`);
-    accom.forEach((a: unknown) => console.log(`   - ${a.name}: €${a.price_per_week_eur}/week`));
+    accom.forEach((a: any) => console.log(`   - ${a.name}: €${a.price_per_week_eur}/week`));
 
     // 8. Check agencies
     const agencies = await sql`SELECT name, status FROM agencies`;
     console.log(`\n✅ Agencies: ${agencies.length}`);
-    agencies.forEach((a: unknown) => console.log(`   - ${a.name} (${a.status})`));
+    agencies.forEach((a: any) => console.log(`   - ${a.name} (${a.status})`));
 
     // 9. Check bookings with financial breakdown
     const bookings = await sql`
@@ -76,7 +76,7 @@ async function verify() {
       FROM bookings
     `;
     console.log(`\n✅ Bookings: ${bookings.length}`);
-    bookings.forEach((b: unknown) =>
+    bookings.forEach((b: any) =>
       console.log(
         `   - ${b.booking_number}: ${b.weeks} weeks, Total: €${b.total_booking_eur}, Paid: €${b.total_paid_eur} (${b.status})`
       )
@@ -88,7 +88,7 @@ async function verify() {
       FROM payments
     `;
     console.log(`\n✅ Payments: ${payments.length}`);
-    payments.forEach((p: unknown) =>
+    payments.forEach((p: any) =>
       console.log(
         `   - ${p.payment_date}: €${p.amount_eur} via ${p.payment_method} (${p.reference_number})`
       )
@@ -106,7 +106,7 @@ async function verify() {
     `;
     if (multiRoleUser.length > 0) {
       console.log('   ✅ Multi-role support working:');
-      multiRoleUser.forEach((u: unknown) =>
+      multiRoleUser.forEach((u: any) =>
         console.log(`      - ${u.email} has roles: ${u.roles.join(', ')}`)
       );
     } else {
@@ -121,7 +121,7 @@ async function verify() {
       ORDER BY tablename, policyname
     `;
     console.log(`\n✅ RLS Policies: ${rlsPolicies.length}`);
-    const policyGroups = rlsPolicies.reduce((acc: unknown, p: unknown) => {
+    const policyGroups = rlsPolicies.reduce((acc: Record<string, number>, p: any) => {
       acc[p.tablename] = (acc[p.tablename] || 0) + 1;
       return acc;
     }, {});

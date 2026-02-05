@@ -1,14 +1,14 @@
 ---
 status: STABILIZATION
-last_updated: 2026-02-03
-next_review: 2026-02-04
+last_updated: 2026-02-05
+next_review: 2026-02-06
 owner: Eoin Malone
 phase: Phase 1 - Admin UI/UX (Stabilization In Progress)
 ---
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-02-03 (Stabilization Phase - Critical Bugs Discovered)
+**Last Updated:** 2026-02-05 (Stabilization Phase - 89% Complete)
 **Current Phase:** Phase 1 (Admin UI/UX) - Stabilization In Progress
 **Current Sprint:** Week 7 of Phase 1
 **Next Milestone:** Complete Stabilization → Production Testing
@@ -31,7 +31,7 @@ phase: Phase 1 - Admin UI/UX (Stabilization In Progress)
 - Multi-tenant security compromised (hard-coded RLS context)
 - All quality checks failing (lint, test, build, typecheck)
 
-**Stabilization Tasks (18 total) - 15/18 complete (83%):**
+**Stabilization Tasks (18 total) - 16/18 complete (89%):**
 
 **Phase 0 - Critical Blockers (7/7) ✅ COMPLETE**
 - ✅ Fix dashboard KPI error handling crash (err vs _err)
@@ -54,26 +54,26 @@ phase: Phase 1 - Admin UI/UX (Stabilization In Progress)
 - ✅ Gate alerts UI with 'not yet available' state
 - ✅ Gate work queue UI with 'not yet available' state
 
-**Phase 3 - Hardening & CI/CD (1/4)**
-- ⏳ Add error boundaries to admin routes
+**Phase 3 - Hardening & CI/CD (2/4)**
+- ✅ Add error boundaries to admin routes
 - ✅ Fix lint errors in stabilization files (scripts, removed unused imports)
 - ⏳ Resolve test failures (pre-existing issues)
 - ⏳ Fix build errors (pre-existing issues)
 
 **Detailed findings:** See `CODE_REVIEW.md` for complete analysis
 
-**Status Update (2026-02-03 evening):**
-All critical stabilization tasks complete (15/18 = 83%):
+**Status Update (2026-02-05 morning):**
+Stabilization nearly complete (16/18 = 89%):
 - ✅ Schema mismatches fixed across all admin pages
 - ✅ Security vulnerabilities patched (RLS context, super admin)
 - ✅ Server-side fetch anti-patterns replaced with direct DB access
 - ✅ Stubbed UI gated with user-friendly messages
 - ✅ Lint errors in stabilization files resolved
+- ✅ Error boundaries added to all admin routes (7 total: main + 6 modules)
 
-Remaining 3 tasks are pre-existing tech debt (not blockers):
-- Error boundaries (enhancement)
-- Pre-existing test failures (require configuration)
-- Pre-existing lint warnings (scattered tech debt)
+Remaining 2 tasks are pre-existing tech debt (not blockers):
+- Pre-existing test failures (63 tests with mocking issues)
+- Pre-existing build warnings (TypeScript async params pattern)
 
 **Commits:**
 - `3e49877` - Phase 0: Dashboard, users list/detail/edit pages
@@ -118,6 +118,18 @@ All core admin features implemented and ready for production testing:
 **Context:** All Phase 1 tasks complete. System ready for production MVP deployment.
 
 ---
+
+### Recent Wins (Feb 5 - Stabilization 89% Complete)
+
+- ✅ **Error Boundaries implemented** (Task 3.1):
+  - Created 7 error.tsx files for graceful error handling
+  - Main admin error boundary at /admin/error.tsx
+  - Module-specific boundaries: students, classes, bookings, attendance, enrolments, data
+  - Next.js 16 App Router pattern with 'use client' directive
+  - User-friendly error messages with "Try Again" and "Back to Dashboard" buttons
+  - Development mode shows detailed stack traces
+  - Error logging to console for debugging
+  - **Stabilization now 16/18 tasks complete (89%)**
 
 ### Recent Wins (Jan 30 - Data Management Module Complete! 🎉)
 

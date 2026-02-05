@@ -53,8 +53,8 @@ export const learner = pgTable(
     firstName: text('first_name').notNull(),
     lastName: text('last_name').notNull(),
     dob: date().notNull(),
-    // TODO: failed to parse database type 'citext'
-    email: unknown('email'),
+    // citext (case-insensitive text) - using text() as Drizzle equivalent
+    email: text('email'),
     phone: text(),
     citizenshipCode: char('citizenship_code', { length: 2 }),
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
@@ -406,8 +406,8 @@ export const adminUser = pgTable(
       .primaryKey()
       .notNull(),
     supabaseUid: uuid('supabase_uid').notNull(),
-    // TODO: failed to parse database type 'citext'
-    email: unknown('email').notNull(),
+    // citext (case-insensitive text) - using text() as Drizzle equivalent
+    email: text('email').notNull(),
     role: text().notNull(),
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
       .default(sql`CURRENT_TIMESTAMP`)

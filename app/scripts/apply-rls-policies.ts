@@ -32,7 +32,7 @@ async function applyRLS() {
     `;
 
     console.log('📊 Policy counts per table:');
-    policies.forEach((p: unknown) => {
+    (policies as unknown as { tablename: string; policy_count: number }[]).forEach(p => {
       console.log(`   - ${p.tablename}: ${p.policy_count} policies`);
     });
 
@@ -44,7 +44,7 @@ async function applyRLS() {
     `;
 
     console.log('\n✅ Helper functions created:');
-    functions.forEach((f: unknown) => {
+    (functions as unknown as { proname: string }[]).forEach(f => {
       console.log(`   - ${f.proname}()`);
     });
 

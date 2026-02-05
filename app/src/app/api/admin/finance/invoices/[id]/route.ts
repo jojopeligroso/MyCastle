@@ -4,10 +4,13 @@ import { invoices, payments } from '@/db/schema';
 import { eq, and, isNull, desc } from 'drizzle-orm';
 import { requireAuth } from '@/lib/auth/utils';
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     await requireAuth(['admin']);
-    const invoiceId = params.id;
+    const { id: invoiceId } = await params;
 
     const [invoice] = await db
       .select()
@@ -33,10 +36,13 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     await requireAuth(['admin']);
-    const invoiceId = params.id;
+    const { id: invoiceId } = await params;
 
     // Soft delete invoice
     const [deletedInvoice] = await db
