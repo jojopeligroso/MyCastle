@@ -23,4 +23,4 @@ export * from './programmes';
 export * from './facilities';
 
 // Old schemas - commenting out until updated to match new database
-// export * from './curriculum';
+export * from './curriculum';
