@@ -1,6 +1,10 @@
 // Learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
 
+// Ensure NODE_ENV is set to 'test' for Jest environment
+process.env.NODE_ENV = 'test';
+
+// Remove DEV_AUTH_BYPASS to ensure tests run without auth bypass
 delete process.env.DEV_AUTH_BYPASS;
 
 if (typeof global.Request === 'undefined') {

@@ -46,8 +46,11 @@ export function validateDevBypassConfig(): void {
   const nodeEnv = process.env.NODE_ENV;
   const devAuthBypass = process.env.DEV_AUTH_BYPASS;
 
-  // CRITICAL: Hard failure if bypass is enabled outside development
-  if (devAuthBypass === 'true' && nodeEnv !== 'development') {
+  // Allow test environment (Jest) to run without DEV_AUTH_BYPASS
+  const allowedEnvironments = ['development', 'test'];
+
+  // CRITICAL: Hard failure if bypass is enabled outside development/test
+  if (devAuthBypass === 'true' && !allowedEnvironments.includes(nodeEnv || '')) {
     const errorMessage = [
       '🚨 FATAL SECURITY ERROR 🚨',
       '',
