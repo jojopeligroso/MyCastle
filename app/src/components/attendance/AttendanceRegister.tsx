@@ -139,7 +139,7 @@ export function AttendanceRegister({ teacherId, classes: classesProp }: Attendan
 
           setClasses(mappedClasses);
         }
-      } catch (_err) {
+      } catch (err) {
         console.error('[AttendanceRegister] Error fetching classes:', err);
       }
     };
@@ -183,7 +183,7 @@ export function AttendanceRegister({ teacherId, classes: classesProp }: Attendan
       } else {
         setError(data.error || 'Unknown error');
       }
-    } catch (_err) {
+    } catch (err) {
       console.error('[AttendanceRegister] Fetch error:', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
@@ -256,7 +256,7 @@ export function AttendanceRegister({ teacherId, classes: classesProp }: Attendan
       await fetchSessionData();
 
       alert(`Marked ${data.data.processed} students as present`);
-    } catch (_err) {
+    } catch (err) {
       console.error('[AttendanceRegister] Bulk save error:', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
 
@@ -298,7 +298,7 @@ export function AttendanceRegister({ teacherId, classes: classesProp }: Attendan
       setOptimisticUpdates(new Set());
 
       alert(`Saved attendance for ${data.data.processed} students`);
-    } catch (_err) {
+    } catch (err) {
       console.error('[AttendanceRegister] Save error:', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
 
