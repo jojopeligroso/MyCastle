@@ -25,7 +25,9 @@ if (!connectionString) {
 
 // Environment validation: Warn if using Transaction Mode Pooler (incompatible with RLS)
 if (connectionString.includes(':6543')) {
-  console.error('\n⚠️  CRITICAL WARNING: Database connection uses port 6543 (Transaction Mode Pooler)');
+  console.error(
+    '\n⚠️  CRITICAL WARNING: Database connection uses port 6543 (Transaction Mode Pooler)'
+  );
   console.error('   Transaction Mode Pooler does NOT support session variables required for RLS.');
   console.error('   Navigation will fail with "Failed query: SET app.user_email" errors.');
   console.error('\n   Solution: Use Session Mode Pooler (port 5432) via DIRECT_URL');
@@ -56,9 +58,9 @@ export async function validateRLSSupport(): Promise<void> {
     await db.execute(sql`SET app.validation_test = 'rls_check'`);
 
     // Test reading it back
-    const [result] = await db.execute(
+    const [result] = (await db.execute(
       sql`SELECT current_setting('app.validation_test', true) as test_value`
-    ) as any[];
+    )) as any[];
 
     if (result.test_value !== 'rls_check') {
       throw new Error('Session variable was not preserved');
@@ -66,7 +68,9 @@ export async function validateRLSSupport(): Promise<void> {
 
     console.log('✅ Database connection supports RLS session variables');
   } catch (error) {
-    console.error('\n❌ CRITICAL: Database connection does NOT support session variables required for RLS');
+    console.error(
+      '\n❌ CRITICAL: Database connection does NOT support session variables required for RLS'
+    );
     console.error('   Error:', error instanceof Error ? error.message : String(error));
     console.error('\n   This will cause navigation failures across the entire application.');
     console.error('   Fix: Use DIRECT_URL with Session Mode Pooler (port 5432)');

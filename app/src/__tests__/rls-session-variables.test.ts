@@ -118,8 +118,7 @@ describe('RLS Session Variables Support', () => {
 
   describe('Connection Type Detection', () => {
     it('should be using Session Mode Pooler or Direct Connection', () => {
-      const connectionString =
-        process.env.DIRECT_URL || process.env.DATABASE_URL || '';
+      const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL || '';
 
       // Should NOT be using Transaction Mode Pooler (port 6543)
       expect(connectionString).not.toContain(':6543');
