@@ -2,13 +2,35 @@
 
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { type User } from '@/db/schema/core';
 import { StudentFilters } from './StudentFilters';
 import { StudentList } from './StudentList';
 import { StudentDetailDrawer } from './StudentDetailDrawer';
 import { approveLevelStatus } from '@/app/admin/students/_actions/studentActions';
 
-interface StudentWithMetadata extends User {
+// Explicit interface matching what the page provides
+interface StudentWithMetadata {
+  id: string;
+  email: string;
+  name: string;
+  phone: string | null;
+  date_of_birth: string | null;
+  nationality: string | null;
+  avatar_url: string | null;
+  status: string;
+  created_at: Date;
+  deleted_at: Date | null;
+  student_id: string;
+  student_number: string | null;
+  is_visa_student: boolean | null;
+  visa_type: string | null;
+  visa_expiry_date: string | null;
+  visa_expiry?: string | null;
+  current_level?: string | null;
+  emergency_contact_name: string | null;
+  emergency_contact_phone: string | null;
+  emergency_contact_relationship: string | null;
+  medical_conditions: string | null;
+  dietary_requirements: string | null;
   active_enrollments?: number;
   attendance_rate?: number | null;
   visa_expiring_soon?: boolean;

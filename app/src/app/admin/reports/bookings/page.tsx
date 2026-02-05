@@ -4,7 +4,7 @@
  */
 
 import { db } from '@/db';
-import { bookings, payments, students, courses, agencies } from '@/db/schema';
+import { bookings, payments, students, courses, agencies, users } from '@/db/schema';
 import { eq, and, gte, lte, sql } from 'drizzle-orm';
 import { requireAuth, getTenantId } from '@/lib/auth/utils';
 import { notFound } from 'next/navigation';
@@ -74,11 +74,15 @@ async function getBookingReportData(
       course: courses,
       agency: agencies,
       student: students,
+      user: {
+        name: users.name,
+      },
     })
     .from(bookings)
     .innerJoin(courses, eq(bookings.courseId, courses.id))
     .innerJoin(agencies, eq(bookings.agencyId, agencies.id))
     .innerJoin(students, eq(bookings.studentId, students.id))
+    .innerJoin(users, eq(students.userId, users.id))
     .where(and(...filters));
 
   // Get all payments
@@ -192,7 +196,7 @@ async function getBookingReportData(
 
     if (outstanding > 0) {
       const current = outstandingByStudentMap.get(studentId) || {
-        studentName: b.student.fullName || 'Unknown',
+        studentName: b.user.name || 'Unknown',
         studentNumber: b.student.studentNumber,
         outstandingAmount: 0,
         bookingCount: 0,

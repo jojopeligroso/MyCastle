@@ -22,7 +22,7 @@ export async function GET(
         },
       })
       .from(auditLogs)
-      .leftJoin(users, eq(auditLogs.user_id, users.id))
+      .leftJoin(users, eq(auditLogs.userId, users.id))
       .where(eq(auditLogs.id, logId))
       .limit(1);
 
@@ -30,20 +30,22 @@ export async function GET(
       return NextResponse.json({ error: 'Audit log not found' }, { status: 404 });
     }
 
-    // Fetch related logs for the same entity
-    const relatedLogs = await db
-      .select({
-        log: auditLogs,
-        user: {
-          id: users.id,
-          name: users.name,
-        },
-      })
-      .from(auditLogs)
-      .leftJoin(users, eq(auditLogs.user_id, users.id))
-      .where(eq(auditLogs.entity_id, log.log.entity_id))
-      .orderBy(auditLogs.created_at)
-      .limit(50);
+    // Fetch related logs for the same resource
+    const relatedLogs = log.log.resourceId
+      ? await db
+          .select({
+            log: auditLogs,
+            user: {
+              id: users.id,
+              name: users.name,
+            },
+          })
+          .from(auditLogs)
+          .leftJoin(users, eq(auditLogs.userId, users.id))
+          .where(eq(auditLogs.resourceId, log.log.resourceId))
+          .orderBy(auditLogs.timestamp)
+          .limit(50)
+      : [];
 
     return NextResponse.json({
       ...log,

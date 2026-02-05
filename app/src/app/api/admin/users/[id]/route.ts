@@ -111,7 +111,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     if (error.name === 'ZodError') {
       return NextResponse.json(
-        { error: 'Invalid request data', details: error.errors },
+        { error: 'Invalid request data', details: error.issues },
         { status: 400 }
       );
     }

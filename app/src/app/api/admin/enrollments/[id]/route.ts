@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { enrollments, enrollmentAmendments, classes, auditLogs } from '@/db/schema';
-import { eq, and, isNull, sql } from 'drizzle-orm';
+import { eq, and, ne, desc, sql } from 'drizzle-orm';
 import { requireAuth, getTenantId } from '@/lib/auth/utils';
 import { z } from 'zod';
 
@@ -15,7 +15,7 @@ const createAmendmentSchema = z.object({
   previous_value: z.string().optional(),
   new_value: z.string().optional(),
   reason: z.string().optional(),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.string(), z.any()).optional(),
 });
 
 export async function GET(
@@ -29,7 +29,7 @@ export async function GET(
     const [enrollment] = await db
       .select()
       .from(enrollments)
-      .where(and(eq(enrollments.id, enrollmentId), isNull(enrollments.deleted_at)))
+      .where(and(eq(enrollments.id, enrollmentId), ne(enrollments.status, 'dropped')))
       .limit(1);
 
     if (!enrollment) {
@@ -40,8 +40,8 @@ export async function GET(
     const amendments = await db
       .select()
       .from(enrollmentAmendments)
-      .where(eq(enrollmentAmendments.enrollment_id, enrollmentId))
-      .orderBy(enrollmentAmendments.created_at);
+      .where(eq(enrollmentAmendments.enrollmentId, enrollmentId))
+      .orderBy(desc(enrollmentAmendments.createdAt));
 
     return NextResponse.json({ ...enrollment, amendments });
   } catch (error) {
@@ -134,13 +134,13 @@ export async function POST(
     const [newAmendment] = await db
       .insert(enrollmentAmendments)
       .values({
-        enrollment_id: enrollmentId,
-        amendment_type: data.amendment_type,
-        previous_value: data.previous_value || null,
-        new_value: data.new_value || null,
+        tenantId: tenantId,
+        enrollmentId: enrollmentId,
+        amendmentType: data.amendment_type,
         reason: data.reason || null,
-        metadata: data.metadata || null,
-        created_at: new Date(),
+        metadata: data.metadata || {},
+        requestedBy: user.id,
+        status: 'approved', // Auto-approve for now
       })
       .returning();
 
@@ -149,8 +149,8 @@ export async function POST(
       await db
         .update(enrollments)
         .set({
-          end_date: new Date(data.new_value),
-          updated_at: new Date(),
+          expectedEndDate: data.new_value,
+          updatedAt: new Date(),
         })
         .where(eq(enrollments.id, enrollmentId));
     }
@@ -159,8 +159,8 @@ export async function POST(
       await db
         .update(enrollments)
         .set({
-          end_date: new Date(data.new_value),
-          updated_at: new Date(),
+          expectedEndDate: data.new_value,
+          updatedAt: new Date(),
         })
         .where(eq(enrollments.id, enrollmentId));
     }
@@ -207,24 +207,20 @@ export async function DELETE(
       return NextResponse.json({ error: 'Enrollment not found' }, { status: 404 });
     }
 
-    // Soft delete enrollment
+    // Soft delete enrollment by setting status to dropped
     await db
       .update(enrollments)
       .set({
-        deleted_at: new Date(),
-        updated_at: new Date(),
+        status: 'dropped',
+        updatedAt: new Date(),
       })
       .where(eq(enrollments.id, enrollmentId));
 
     // Decrement class enrolled count if enrollment was active
     if (enrollment.status === 'active') {
-      await db
-        .update(classes)
-        .set({
-          enrolled_count: sql`GREATEST(0, ${classes.enrolled_count} - 1)`,
-          updated_at: new Date(),
-        })
-        .where(eq(classes.id, enrollment.class_id));
+      await db.execute(
+        sql`UPDATE classes SET enrolled_count = GREATEST(0, enrolled_count - 1), updated_at = NOW() WHERE id = ${enrollment.classId}`
+      );
     }
 
     return NextResponse.json({ success: true });

@@ -172,7 +172,7 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
     if (existingClass.endTime !== validatedData.end_time) {
       changes.endTime = { old: existingClass.endTime, new: validatedData.end_time };
     }
-    if (existingClass.status !== (validatedData.status || existingClass.status)) {
+    if (validatedData.status && existingClass.status !== validatedData.status) {
       changes.status = { old: existingClass.status, new: validatedData.status };
     }
 
@@ -201,7 +201,7 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid request data', details: error.errors },
+        { error: 'Invalid request data', details: error.issues },
         { status: 400 }
       );
     }

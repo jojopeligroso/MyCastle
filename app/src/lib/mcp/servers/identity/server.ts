@@ -109,19 +109,17 @@ async function logAuditEvent(params: {
   metadata?: unknown;
 }) {
   try {
-    const insertData: unknown = {
-      tenant_id: params.tenantId,
-      user_id: params.userId,
+    await db.insert(auditLogs).values({
+      tenantId: params.tenantId,
+      userId: params.userId,
       action: params.action,
-      resource_type: params.resourceType,
-      resource_id: params.resourceId,
+      resourceType: params.resourceType,
+      resourceId: params.resourceId,
       changes: params.changes,
       metadata: params.metadata,
-    };
-
-    await db.insert(auditLogs).values(insertData);
-  } catch (_err) {
-    console.error('Audit Log Failed:', err);
+    });
+  } catch (logErr) {
+    console.error('Audit Log Failed:', logErr);
   }
 }
 

@@ -11,9 +11,9 @@ import { useCallback, useState, useTransition } from 'react';
 interface EnrollmentData {
   enrolment: {
     id: string;
-    enrollmentDate: Date;
-    expectedEndDate: Date | null;
-    completionDate: Date | null;
+    enrollmentDate: string | Date;
+    expectedEndDate: string | Date | null;
+    completionDate: string | Date | null;
     status: string;
     attendanceRate: string | null;
     currentGrade: string | null;

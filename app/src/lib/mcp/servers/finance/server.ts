@@ -28,21 +28,29 @@ function generateInvoiceNumber(tenantId: string): string {
   return `INV-${tenantId.substring(0, 4)}-${timestamp}-${random}`;
 }
 
-async function logFinanceAudit(params: unknown) {
+interface AuditLogParams {
+  tenantId: string;
+  userId: string;
+  action: string;
+  resourceType: string;
+  resourceId?: string;
+  changes?: unknown;
+  metadata?: unknown;
+}
+
+async function logFinanceAudit(params: AuditLogParams) {
   try {
-    const insertData: unknown = {
-      tenant_id: params.tenantId,
-      user_id: params.userId,
+    await db.insert(auditLogs).values({
+      tenantId: params.tenantId,
+      userId: params.userId,
       action: params.action,
-      resource_type: params.resourceType,
-      resource_id: params.resourceId,
+      resourceType: params.resourceType,
+      resourceId: params.resourceId,
       changes: params.changes,
       metadata: params.metadata,
-    };
-
-    await db.insert(auditLogs).values(insertData);
-  } catch (_err) {
-    console.error('Audit Log Failed:', err);
+    });
+  } catch (logErr) {
+    console.error('Audit Log Failed:', logErr);
   }
 }
 

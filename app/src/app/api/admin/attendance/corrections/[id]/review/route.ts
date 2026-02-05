@@ -75,11 +75,11 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
       // Create audit log entry
       await db.insert(auditLogs).values({
-        tenant_id: tenantId,
-        user_id: user.id,
+        tenantId: tenantId,
+        userId: user.id,
         action: 'CORRECTION_APPLIED',
-        resource_type: 'attendance',
-        resource_id: correction.attendanceId,
+        resourceType: 'attendance',
+        resourceId: correction.attendanceId,
         changes: {
           correctionId: correction.id,
           originalStatus: correction.originalStatus,
