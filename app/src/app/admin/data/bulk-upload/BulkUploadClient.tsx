@@ -296,7 +296,7 @@ export default function BulkUploadClient() {
       </div>
 
       {/* Preview Section */}
-      {preview && uploadState === 'preview' && (
+      {preview && (uploadState === 'preview' || uploadState === 'committing') && (
         <div className="bg-white shadow sm:rounded-lg">
           <div className="px-4 py-5 sm:p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">3. Review Changes</h3>

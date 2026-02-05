@@ -817,10 +817,10 @@ async function insertClass(data: Record<string, unknown>, tenantId: string) {
   await db.insert(classes).values({
     tenantId,
     name: String(data.name),
-    level: String(data.level),
-    startDate: data.startDate ? String(data.startDate) : null,
-    endDate: data.endDate ? String(data.endDate) : null,
-    capacity: data.capacity ? Number(data.capacity) : null,
+    level: data.level ? String(data.level) : undefined,
+    startDate: data.startDate ? String(data.startDate) : new Date().toISOString().split('T')[0],
+    endDate: data.endDate ? String(data.endDate) : undefined,
+    capacity: data.capacity ? Number(data.capacity) : 20,
     status: 'active',
   });
 }
@@ -829,10 +829,10 @@ async function updateClass(data: Record<string, unknown>, tenantId: string) {
   await db
     .update(classes)
     .set({
-      level: String(data.level),
-      startDate: data.startDate ? String(data.startDate) : null,
-      endDate: data.endDate ? String(data.endDate) : null,
-      capacity: data.capacity ? Number(data.capacity) : null,
+      level: data.level ? String(data.level) : undefined,
+      startDate: data.startDate ? String(data.startDate) : undefined,
+      endDate: data.endDate ? String(data.endDate) : undefined,
+      capacity: data.capacity ? Number(data.capacity) : undefined,
       updatedAt: new Date(),
     })
     .where(and(eq(classes.tenantId, tenantId), eq(classes.name, String(data.name))));

@@ -126,13 +126,23 @@ export default async function ClassesPage({
       params.sortOrder === 'asc' || params.sortOrder === 'desc' ? params.sortOrder : 'desc',
   };
 
-  const classData = await getClasses(tenantId, filters);
+  const rawClassData = await getClasses(tenantId, filters);
   const teachers = await getTeachers(tenantId);
 
+  // Normalize data to ensure nullable fields have proper defaults
+  const classData = rawClassData.map(item => ({
+    ...item,
+    class: {
+      ...item.class,
+      daysOfWeek: item.class.daysOfWeek ?? [],
+      showCapacityPublicly: item.class.showCapacityPublicly ?? true,
+    },
+  }));
+
   const stats = {
-    total: classData.length,
-    active: classData.filter(c => c.class.status === 'active').length,
-    completed: classData.filter(c => c.class.status === 'completed').length,
+    total: rawClassData.length,
+    active: rawClassData.filter(c => c.class.status === 'active').length,
+    completed: rawClassData.filter(c => c.class.status === 'completed').length,
   };
 
   return (

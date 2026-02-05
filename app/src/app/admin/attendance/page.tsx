@@ -50,10 +50,10 @@ export default async function AttendanceDashboard({ searchParams }: PageProps) {
     sessionConditions.push(eq(classSessions.classId, selectedClassId));
   }
   if (startDate) {
-    sessionConditions.push(gte(classSessions.sessionDate, startDate));
+    sessionConditions.push(gte(classSessions.sessionDate, startDate.toISOString().split('T')[0]));
   }
   if (endDate) {
-    sessionConditions.push(lte(classSessions.sessionDate, endDate));
+    sessionConditions.push(lte(classSessions.sessionDate, endDate.toISOString().split('T')[0]));
   }
 
   const classesList = await db

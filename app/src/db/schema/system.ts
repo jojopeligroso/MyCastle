@@ -135,25 +135,25 @@ export const conversations = pgTable('conversations', {
  */
 export const exports = pgTable('exports', {
   id: uuid('id').primaryKey().defaultRandom(),
-  tenant_id: uuid('tenant_id')
+  tenantId: uuid('tenant_id')
     .notNull()
     .references(() => tenants.id),
 
-  template_id: varchar('template_id', { length: 100 }).notNull(), // e.g., "user_roster_v1"
-  template_version: varchar('template_version', { length: 20 }).notNull(),
+  templateId: varchar('template_id', { length: 100 }).notNull(), // e.g., "user_roster_v1"
+  templateVersion: varchar('template_version', { length: 20 }).notNull(),
 
   filename: varchar('filename', { length: 255 }).notNull(),
-  file_url: varchar('file_url', { length: 500 }), // Signed URL
-  file_size: integer('file_size'), // Bytes
+  fileUrl: varchar('file_url', { length: 500 }), // Signed URL
+  fileSize: integer('file_size'), // Bytes
 
   filters: jsonb('filters'), // Applied filters
-  row_count: integer('row_count'),
+  rowCount: integer('row_count'),
 
-  requested_by: uuid('requested_by')
+  requestedBy: uuid('requested_by')
     .notNull()
     .references(() => users.id),
-  created_at: timestamp('created_at').defaultNow().notNull(),
-  expires_at: timestamp('expires_at'), // Signed URL expiry
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  expiresAt: timestamp('expires_at'), // Signed URL expiry
 });
 
 /**

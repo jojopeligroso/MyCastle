@@ -43,17 +43,22 @@ async function getEnrollmentForAmendment(enrollmentId: string) {
   return {
     enrollmentId: data.enrollmentId,
     currentEndDate: data.expectedEndDate?.toString(),
-    currentLevel: data.classLevel,
+    currentLevel: data.classLevel ?? undefined,
     studentName: data.studentName,
     className: data.className,
     startDate: data.enrollmentDate?.toString(),
   };
 }
 
-export default async function AmendEnrollmentPage({ params }: { params: { id: string } }) {
+export default async function AmendEnrollmentPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   await requireAuth();
+  const { id } = await params;
 
-  const data = await getEnrollmentForAmendment(params.id);
+  const data = await getEnrollmentForAmendment(id);
 
   if (!data) {
     notFound();
@@ -72,7 +77,7 @@ export default async function AmendEnrollmentPage({ params }: { params: { id: st
             Enrolments
           </Link>
           {' > '}
-          <Link href={`/admin/enrolments/${params.id}`} className="hover:text-gray-700">
+          <Link href={`/admin/enrolments/${id}`} className="hover:text-gray-700">
             {data.studentName}
           </Link>
           {' > '}
