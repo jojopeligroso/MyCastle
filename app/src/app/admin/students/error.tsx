@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import Link from 'next/link';
 
 export default function StudentsError({
   error,
@@ -53,18 +54,18 @@ export default function StudentsError({
         >
           Try Again
         </button>
-        <a
+        <Link
           href="/admin/students"
           className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm font-medium"
         >
           Reload Page
-        </a>
-        <a
+        </Link>
+        <Link
           href="/admin"
           className="px-4 py-2 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 text-sm font-medium"
         >
           Back to Dashboard
-        </a>
+        </Link>
       </div>
     </div>
   );

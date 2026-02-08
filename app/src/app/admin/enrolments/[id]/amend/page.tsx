@@ -50,11 +50,7 @@ async function getEnrollmentForAmendment(enrollmentId: string) {
   };
 }
 
-export default async function AmendEnrollmentPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function AmendEnrollmentPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAuth();
   const { id } = await params;
 

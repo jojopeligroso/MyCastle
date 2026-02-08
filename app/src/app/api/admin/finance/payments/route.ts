@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { payments, invoices, users } from '@/db/schema';
-import { eq, and, isNull, sql, desc } from 'drizzle-orm';
-import { requireAuth } from '@/lib/auth/utils';
+import { invoicePayments, invoices, users } from '@/db/schema';
+import { eq, desc } from 'drizzle-orm';
+import { requireAuth, getTenantId } from '@/lib/auth/utils';
 import { z } from 'zod';
 
 const createPaymentSchema = z.object({
   invoice_id: z.string().uuid('Valid invoice ID is required'),
-  amount: z.number(),
+  amount: z.number().positive('Amount must be positive'),
+  currency: z.string().length(3).default('USD'),
   payment_method: z.string(),
   payment_date: z.string().optional(),
-  reference: z.string().optional(),
+  transaction_id: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -24,31 +25,30 @@ export async function GET(request: NextRequest) {
 
     let query = db
       .select({
-        payment: payments,
+        payment: invoicePayments,
         invoice: {
           id: invoices.id,
-          invoice_number: invoices.invoice_number,
+          invoiceNumber: invoices.invoiceNumber,
         },
         student: {
           id: users.id,
           name: users.name,
         },
       })
-      .from(payments)
-      .leftJoin(invoices, eq(payments.invoice_id, invoices.id))
-      .leftJoin(users, eq(invoices.student_id, users.id))
-      .where(isNull(payments.deleted_at))
+      .from(invoicePayments)
+      .leftJoin(invoices, eq(invoicePayments.invoiceId, invoices.id))
+      .leftJoin(users, eq(invoicePayments.studentId, users.id))
       .$dynamic();
 
     if (invoiceId) {
-      query = query.where(eq(payments.invoice_id, invoiceId));
+      query = query.where(eq(invoicePayments.invoiceId, invoiceId));
     }
 
     if (studentId) {
-      query = query.where(eq(invoices.student_id, studentId));
+      query = query.where(eq(invoicePayments.studentId, studentId));
     }
 
-    const results = await query.orderBy(desc(payments.payment_date));
+    const results = await query.orderBy(desc(invoicePayments.paymentDate));
 
     return NextResponse.json({ payments: results });
   } catch (error) {
@@ -59,7 +59,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    await requireAuth(['admin']);
+    const user = await requireAuth(['admin']);
+    const tenantId = await getTenantId();
     const body = await request.json();
 
     const validationResult = createPaymentSchema.safeParse(body);
@@ -83,44 +84,57 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
     }
 
-    // Validate payment amount
-    if (Math.abs(data.amount) > Math.abs(invoice.amount_due) && data.amount > 0) {
-      return NextResponse.json(
-        { error: 'Payment amount exceeds outstanding balance' },
-        { status: 400 }
-      );
+    // Use invoice's tenantId if current user doesn't have one (super admin case)
+    const effectiveTenantId = tenantId || invoice.tenantId;
+
+    if (!effectiveTenantId) {
+      return NextResponse.json({ error: 'No tenant context available' }, { status: 400 });
     }
 
     // Create payment
     const [newPayment] = await db
-      .insert(payments)
+      .insert(invoicePayments)
       .values({
-        invoice_id: data.invoice_id,
-        amount: data.amount,
-        payment_method: data.payment_method,
-        payment_date: data.payment_date ? new Date(data.payment_date) : new Date(),
-        reference: data.reference || null,
+        tenantId: effectiveTenantId,
+        invoiceId: data.invoice_id,
+        studentId: invoice.studentId,
+        amount: String(data.amount),
+        currency: data.currency || 'USD',
+        paymentMethod: data.payment_method,
+        paymentDate: data.payment_date || new Date().toISOString().split('T')[0],
+        transactionId: data.transaction_id || null,
         notes: data.notes || null,
-        created_at: new Date(),
-        updated_at: new Date(),
+        recordedBy: user.id,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       })
       .returning();
 
-    // Update invoice amounts
-    const newAmountPaid = invoice.amount_paid + data.amount;
-    const newAmountDue = invoice.amount - newAmountPaid;
-    const newStatus =
-      newAmountDue <= 0 ? 'paid' : newAmountDue < invoice.amount ? 'partial' : 'pending';
+    // Calculate total payments for this invoice and update status
+    const allPayments = await db
+      .select({ amount: invoicePayments.amount })
+      .from(invoicePayments)
+      .where(eq(invoicePayments.invoiceId, data.invoice_id));
 
-    await db
-      .update(invoices)
-      .set({
-        amount_paid: newAmountPaid,
-        amount_due: newAmountDue,
-        status: newStatus,
-        updated_at: new Date(),
-      })
-      .where(eq(invoices.id, data.invoice_id));
+    const totalPaid = allPayments.reduce((sum, p) => sum + parseFloat(p.amount), 0);
+    const invoiceAmount = parseFloat(invoice.amount);
+
+    let newStatus = invoice.status;
+    if (totalPaid >= invoiceAmount) {
+      newStatus = 'paid';
+    } else if (totalPaid > 0) {
+      newStatus = 'partial';
+    }
+
+    if (newStatus !== invoice.status) {
+      await db
+        .update(invoices)
+        .set({
+          status: newStatus,
+          updatedAt: new Date(),
+        })
+        .where(eq(invoices.id, data.invoice_id));
+    }
 
     return NextResponse.json(newPayment, { status: 201 });
   } catch (error) {

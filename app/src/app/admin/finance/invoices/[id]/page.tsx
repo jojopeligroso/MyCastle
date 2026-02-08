@@ -44,11 +44,7 @@ async function getInvoicePaymentsData(invoiceId: string) {
   return paymentsData;
 }
 
-export default async function InvoiceDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function InvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAuth();
   const tenantId = await getTenantId();
   const { id } = await params;

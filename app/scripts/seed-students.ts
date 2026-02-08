@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Seed Sample Students
  * Creates realistic sample student data for testing the Student Registry

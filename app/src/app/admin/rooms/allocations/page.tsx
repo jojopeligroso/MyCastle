@@ -46,7 +46,7 @@ export default async function RoomAllocationsPage() {
           <li>Room allocations link class sessions to specific rooms</li>
           <li>Each session can only be assigned to one room at a time</li>
           <li>Use the date picker to view allocations for different days</li>
-          <li>Remove allocations by clicking "Remove" next to each session</li>
+          <li>Remove allocations by clicking &quot;Remove&quot; next to each session</li>
           <li>
             To create new allocations, use the{' '}
             <Link href="/admin/timetable" className="underline font-medium">

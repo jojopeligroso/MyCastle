@@ -49,23 +49,28 @@ export async function POST(request: NextRequest) {
     // Execute query with RLS enforced
     const result = await db.execute(sql.raw(safeSqlQuery));
 
+    // result is an array of rows
+    const rows = Array.isArray(result) ? result : [];
+
     return NextResponse.json({
-      data: result.rows || [],
-      rowCount: result.rows?.length || 0,
+      data: rows,
+      rowCount: rows.length,
     });
   } catch (error: unknown) {
     console.error('Error executing query:', error);
 
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
     // Handle specific database errors
-    if (error.message?.includes('timeout')) {
+    if (errorMessage.includes('timeout')) {
       return NextResponse.json(
         { error: 'Query timed out. Please refine your query to be more specific.' },
         { status: 400 }
       );
     }
 
-    if (error.message?.includes('syntax error')) {
-      return NextResponse.json({ error: `SQL syntax error: ${error.message}` }, { status: 400 });
+    if (errorMessage.includes('syntax error')) {
+      return NextResponse.json({ error: `SQL syntax error: ${errorMessage}` }, { status: 400 });
     }
 
     return NextResponse.json(

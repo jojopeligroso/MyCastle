@@ -52,7 +52,7 @@ export default async function ProgrammesPage() {
               <ul className="list-disc list-inside mt-1 space-y-1">
                 <li>id (uuid, primary key)</li>
                 <li>tenant_id (uuid, references tenants)</li>
-                <li>name (varchar) - e.g., "General English"</li>
+                <li>name (varchar) - e.g., &quot;General English&quot;</li>
                 <li>code (varchar) - e.g., &quot;GE&quot;</li>
                 <li>description (text)</li>
                 <li>levels (jsonb) - Array of CEFR levels [A1, A2, B1, B2, C1, C2]</li>

@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { roomAllocations, rooms, classSessions, classes } from '@/db/schema';
 import { requireAuth, getTenantId } from '@/lib/auth/utils';
-import { eq, and, gte, lte, desc } from 'drizzle-orm';
+import { eq, and, desc } from 'drizzle-orm';
 import { z } from 'zod';
 
 const createAllocationSchema = z.object({
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
 
     // Apply date filter if provided
     if (dateFilter) {
-      query = query.where(eq(classSessions.date, dateFilter));
+      query = query.where(eq(classSessions.sessionDate, dateFilter));
     }
 
     const allocations = await query.orderBy(desc(roomAllocations.createdAt));

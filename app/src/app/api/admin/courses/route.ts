@@ -71,7 +71,9 @@ export async function POST(request: NextRequest) {
     const data = validationResult.data;
 
     // Generate course code if not provided
-    const courseCode = data.code || `${(data.level || 'GEN').substring(0, 2).toUpperCase()}-${data.name.substring(0, 3).toUpperCase()}`;
+    const courseCode =
+      data.code ||
+      `${(data.level || 'GEN').substring(0, 2).toUpperCase()}-${data.name.substring(0, 3).toUpperCase()}`;
 
     const [newCourse] = await db
       .insert(courses)

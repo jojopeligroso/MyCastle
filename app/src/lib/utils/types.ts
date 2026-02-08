@@ -53,7 +53,7 @@ export function normalizeNullFields<T extends Record<string, unknown>>(
   const result = {} as { [K in keyof T]: T[K] extends null ? undefined : T[K] };
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      result[key] = (obj[key] ?? undefined) as typeof result[typeof key];
+      result[key] = (obj[key] ?? undefined) as (typeof result)[typeof key];
     }
   }
   return result;

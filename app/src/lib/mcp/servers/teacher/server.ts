@@ -11,7 +11,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import { db } from '@/db';
 import { lessonPlans, assignments, grades } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+// Imports for future use - drizzle-orm operators reserved for query filtering
 
 function getSessionFromContext(extra?: unknown) {
   return {
@@ -121,7 +121,7 @@ async function main() {
         status: 'active',
       };
 
-      const [assignment] = await db.insert(assignments).values(insertData).returning();
+      await db.insert(assignments).values(insertData).returning();
 
       return {
         content: [
@@ -144,7 +144,7 @@ async function main() {
       grade: z.string().optional().describe('Letter grade (e.g. A, B+)'),
     },
     async (args, extra) => {
-      const _session = getSessionFromContext(extra);
+      const session = getSessionFromContext(extra);
       const { submission_id, score, feedback, grade } = args;
 
       const insertData: unknown = {
@@ -157,7 +157,7 @@ async function main() {
         graded_at: new Date(),
       };
 
-      const [newGrade] = await db.insert(grades).values(insertData).returning();
+      await db.insert(grades).values(insertData).returning();
 
       return {
         content: [

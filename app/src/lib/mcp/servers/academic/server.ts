@@ -11,7 +11,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import { db } from '@/db';
 import { classes, enrollments } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+// Imports for future use - drizzle-orm operators reserved for query filtering
 
 function getSessionFromContext(extra?: unknown) {
   return {
@@ -115,7 +115,7 @@ async function main() {
         status: 'active',
       };
 
-      const [enrollment] = await db.insert(enrollments).values(insertData).returning();
+      await db.insert(enrollments).values(insertData).returning();
 
       return {
         content: [

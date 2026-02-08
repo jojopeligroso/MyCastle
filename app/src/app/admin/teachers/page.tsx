@@ -230,7 +230,7 @@ export default async function TeachersPage() {
           <Link href="/admin/users/create" className="underline font-medium">
             Users page
           </Link>{' '}
-          by setting their role to "teacher".
+          by setting their role to &quot;teacher&quot;.
         </p>
       </div>
     </div>

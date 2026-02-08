@@ -60,7 +60,7 @@ export async function validateRLSSupport(): Promise<void> {
     // Test reading it back
     const [result] = (await db.execute(
       sql`SELECT current_setting('app.validation_test', true) as test_value`
-    )) as any[];
+    )) as { test_value: string }[];
 
     if (result.test_value !== 'rls_check') {
       throw new Error('Session variable was not preserved');

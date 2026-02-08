@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Seed Fresh Database with Test Data
  * TypeScript approach - more reliable than complex SQL

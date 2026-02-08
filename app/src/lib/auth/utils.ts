@@ -101,6 +101,7 @@ export const requireTenant = async (): Promise<string> => {
  * @param db - Drizzle database instance
  * @returns Promise<void>
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const setRLSContext = async (db: any): Promise<void> => {
   const user = await getCurrentUser();
   const tenantId = await getTenantId();

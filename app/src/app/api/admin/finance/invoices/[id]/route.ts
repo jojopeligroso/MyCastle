@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { invoices, payments } from '@/db/schema';
-import { eq, and, isNull, desc } from 'drizzle-orm';
+import { invoices, invoicePayments } from '@/db/schema';
+import { eq, desc } from 'drizzle-orm';
 import { requireAuth } from '@/lib/auth/utils';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAuth(['admin']);
     const { id: invoiceId } = await params;
@@ -15,24 +12,72 @@ export async function GET(
     const [invoice] = await db
       .select()
       .from(invoices)
-      .where(and(eq(invoices.id, invoiceId), isNull(invoices.deleted_at)))
+      .where(eq(invoices.id, invoiceId))
       .limit(1);
 
     if (!invoice) {
       return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
     }
 
-    // Fetch payment history
+    // Fetch payment history for this invoice
     const paymentHistory = await db
       .select()
-      .from(payments)
-      .where(and(eq(payments.invoice_id, invoiceId), isNull(payments.deleted_at)))
-      .orderBy(desc(payments.payment_date));
+      .from(invoicePayments)
+      .where(eq(invoicePayments.invoiceId, invoiceId))
+      .orderBy(desc(invoicePayments.paymentDate));
 
     return NextResponse.json({ ...invoice, payments: paymentHistory });
   } catch (error) {
     console.error('Error fetching invoice:', error);
     return NextResponse.json({ error: 'Failed to fetch invoice' }, { status: 500 });
+  }
+}
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    await requireAuth(['admin']);
+    const { id: invoiceId } = await params;
+    const body = await request.json();
+
+    // Verify invoice exists
+    const [existingInvoice] = await db
+      .select()
+      .from(invoices)
+      .where(eq(invoices.id, invoiceId))
+      .limit(1);
+
+    if (!existingInvoice) {
+      return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
+    }
+
+    // Build update data
+    const updateData: Record<string, unknown> = {
+      updatedAt: new Date(),
+    };
+
+    if (body.status !== undefined) {
+      updateData.status = body.status;
+    }
+    if (body.due_date !== undefined) {
+      updateData.dueDate = body.due_date;
+    }
+    if (body.description !== undefined) {
+      updateData.description = body.description;
+    }
+
+    const [updatedInvoice] = await db
+      .update(invoices)
+      .set(updateData)
+      .where(eq(invoices.id, invoiceId))
+      .returning();
+
+    return NextResponse.json(updatedInvoice);
+  } catch (error) {
+    console.error('Error updating invoice:', error);
+    return NextResponse.json({ error: 'Failed to update invoice' }, { status: 500 });
   }
 }
 
@@ -44,17 +89,17 @@ export async function DELETE(
     await requireAuth(['admin']);
     const { id: invoiceId } = await params;
 
-    // Soft delete invoice
-    const [deletedInvoice] = await db
+    // Cancel invoice by updating status (no soft delete column in schema)
+    const [cancelledInvoice] = await db
       .update(invoices)
       .set({
-        deleted_at: new Date(),
-        updated_at: new Date(),
+        status: 'cancelled',
+        updatedAt: new Date(),
       })
       .where(eq(invoices.id, invoiceId))
       .returning();
 
-    if (!deletedInvoice) {
+    if (!cancelledInvoice) {
       return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
     }
 

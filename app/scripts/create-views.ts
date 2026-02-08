@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Create Database Views for Admin Dashboard
  * Creates all missing views required by the admin UI

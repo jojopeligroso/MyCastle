@@ -241,7 +241,7 @@ export async function updateStudent(studentId: string, data: UpdateStudentData) 
 
     // TODO: CRITICAL - Student-specific fields need to be updated in students table
     // Build update object (only user fields for now)
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       updatedAt: new Date(),
     };
 
@@ -251,7 +251,7 @@ export async function updateStudent(studentId: string, data: UpdateStudentData) 
     if (data.status !== undefined) updateData.status = data.status;
 
     // Store student-specific fields in metadata temporarily until proper refactoring
-    const metadataUpdates: any = {};
+    const metadataUpdates: Record<string, unknown> = {};
     if (data.current_level !== undefined) metadataUpdates.current_level = data.current_level;
     if (data.initial_level !== undefined) metadataUpdates.initial_level = data.initial_level;
     if (data.level_status !== undefined) metadataUpdates.level_status = data.level_status;
@@ -378,8 +378,8 @@ export async function approveLevelStatus(studentId: string) {
     }
 
     // TODO: CRITICAL - level_status and current_level should be in students table or enrollment records
-    const levelStatus = (student.metadata as any)?.level_status;
-    const currentLevel = (student.metadata as any)?.current_level;
+    const levelStatus = (student.metadata as Record<string, unknown>)?.level_status;
+    const currentLevel = (student.metadata as Record<string, unknown>)?.current_level;
 
     if (levelStatus !== 'provisional' && levelStatus !== 'pending_approval') {
       return { success: false, error: 'Student level is already confirmed' };
@@ -478,7 +478,7 @@ async function getOrCreateDiagnosticAssignment(tenantId: string): Promise<string
   `);
 
   if (existing && existing.length > 0) {
-    return (existing[0] as any).id as string;
+    return (existing[0] as { id: string }).id;
   }
 
   // Create diagnostic assignment
@@ -493,5 +493,5 @@ async function getOrCreateDiagnosticAssignment(tenantId: string): Promise<string
     RETURNING id
   `);
 
-  return (result[0] as any).id as string;
+  return (result[0] as { id: string }).id;
 }

@@ -139,7 +139,7 @@ export async function GET(request: NextRequest) {
     const sessionId = searchParams.get('sessionId');
     const limit = parseInt(searchParams.get('limit') || '50');
 
-    let query = db
+    const query = db
       .select({
         id: attendanceCorrections.id,
         sessionId: attendanceCorrections.classSessionId,

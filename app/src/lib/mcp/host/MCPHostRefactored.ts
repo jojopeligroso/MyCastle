@@ -237,7 +237,7 @@ export class MCPHost {
   async fetchResource(
     resourceUri: string,
     session: MCPSession,
-    params?: Record<string, string>
+    _params?: Record<string, string>
   ): Promise<{
     success: boolean;
     data?: unknown;
@@ -353,7 +353,7 @@ export class MCPHost {
   /**
    * List all available tools across all servers
    */
-  async listTools(session: MCPSession): Promise<any[]> {
+  async listTools(_session: MCPSession): Promise<unknown[]> {
     const allTools: unknown[] = [];
 
     for (const [_prefix, server] of this.servers.entries()) {
@@ -373,7 +373,7 @@ export class MCPHost {
   /**
    * List all available resources across all servers
    */
-  async listResources(session: MCPSession): Promise<any[]> {
+  async listResources(_session: MCPSession): Promise<unknown[]> {
     const allResources: unknown[] = [];
 
     for (const [_prefix, server] of this.servers.entries()) {
@@ -393,7 +393,7 @@ export class MCPHost {
   /**
    * List all available prompts across all servers
    */
-  async listPrompts(session: MCPSession): Promise<any[]> {
+  async listPrompts(_session: MCPSession): Promise<unknown[]> {
     const allPrompts: unknown[] = [];
 
     for (const [_prefix, server] of this.servers.entries()) {
@@ -428,7 +428,7 @@ export class MCPHost {
           status: 'healthy',
           connected: true,
         });
-      } catch (error: unknown) {
+      } catch (_error: unknown) {
         serverStatuses.push({
           name: server.config.name,
           status: 'error',
