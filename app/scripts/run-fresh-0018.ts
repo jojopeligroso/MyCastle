@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Run FRESH_0018 Migration - Enquiries Table
  * Executes the enquiries migration against the database

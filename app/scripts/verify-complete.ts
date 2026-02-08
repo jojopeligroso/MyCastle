@@ -27,9 +27,7 @@ async function verify() {
     // 3. Check user with multi-role support
     const users = await sql`SELECT id, email, name, primary_role, status FROM public.users`;
     console.log(`\n✅ Users: ${users.length}`);
-    users.forEach((u: any) =>
-      console.log(`   - ${u.email} (${u.name}) - Role: ${u.primary_role}`)
-    );
+    users.forEach((u: any) => console.log(`   - ${u.email} (${u.name}) - Role: ${u.primary_role}`));
 
     // 4. Check user_roles (multi-role verification)
     const roles = await sql`

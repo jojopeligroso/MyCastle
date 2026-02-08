@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from '../src/db';
 import { students, users } from '../src/db/schema/core';
 import { eq, sql } from 'drizzle-orm';

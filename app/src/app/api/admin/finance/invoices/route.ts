@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { invoices, users } from '@/db/schema';
-import { eq, and, isNull, sql, desc } from 'drizzle-orm';
-import { requireAuth } from '@/lib/auth/utils';
+import { eq, desc } from 'drizzle-orm';
+import { requireAuth, getTenantId } from '@/lib/auth/utils';
 import { z } from 'zod';
 
 const createInvoiceSchema = z.object({
   student_id: z.string().uuid('Valid student ID is required'),
   amount: z.number().positive('Amount must be positive'),
+  currency: z.string().length(3).default('USD'),
   due_date: z.string(),
+  issue_date: z.string().optional(),
   description: z.string().optional(),
   line_items: z
     .array(
@@ -20,7 +22,6 @@ const createInvoiceSchema = z.object({
       })
     )
     .optional(),
-  notes: z.string().optional(),
 });
 
 export async function GET(request: NextRequest) {
@@ -41,19 +42,18 @@ export async function GET(request: NextRequest) {
         },
       })
       .from(invoices)
-      .leftJoin(users, eq(invoices.student_id, users.id))
-      .where(isNull(invoices.deleted_at))
+      .leftJoin(users, eq(invoices.studentId, users.id))
       .$dynamic();
 
     if (studentId) {
-      query = query.where(eq(invoices.student_id, studentId));
+      query = query.where(eq(invoices.studentId, studentId));
     }
 
     if (status) {
       query = query.where(eq(invoices.status, status));
     }
 
-    const results = await query.orderBy(desc(invoices.created_at));
+    const results = await query.orderBy(desc(invoices.createdAt));
 
     return NextResponse.json({ invoices: results });
   } catch (error) {
@@ -65,6 +65,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     await requireAuth(['admin']);
+    const tenantId = await getTenantId();
     const body = await request.json();
 
     const validationResult = createInvoiceSchema.safeParse(body);
@@ -81,7 +82,7 @@ export async function POST(request: NextRequest) {
     const [student] = await db
       .select()
       .from(users)
-      .where(and(eq(users.id, data.student_id), eq(users.role, 'student')))
+      .where(eq(users.id, data.student_id))
       .limit(1);
 
     if (!student) {
@@ -89,26 +90,38 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate invoice number
-    const [{ count }] = await db.select({ count: sql<number>`count(*)::int` }).from(invoices);
+    const [countResult] = await db
+      .select({
+        count: db.$count(invoices),
+      })
+      .from(invoices);
 
+    const count = countResult?.count ?? 0;
     const invoiceNumber = `INV-${new Date().getFullYear()}-${String(count + 1).padStart(6, '0')}`;
+
+    // Use student's tenantId if current user doesn't have one (super admin case)
+    const effectiveTenantId = tenantId || student.tenantId;
+
+    if (!effectiveTenantId) {
+      return NextResponse.json({ error: 'No tenant context available' }, { status: 400 });
+    }
 
     // Create invoice
     const [newInvoice] = await db
       .insert(invoices)
       .values({
-        student_id: data.student_id,
-        invoice_number: invoiceNumber,
-        amount: data.amount,
-        amount_paid: 0,
-        amount_due: data.amount,
-        due_date: new Date(data.due_date),
+        tenantId: effectiveTenantId,
+        studentId: data.student_id,
+        invoiceNumber: invoiceNumber,
+        amount: String(data.amount),
+        currency: data.currency || 'USD',
+        dueDate: data.due_date,
+        issueDate: data.issue_date || new Date().toISOString().split('T')[0],
         description: data.description || null,
-        line_items: data.line_items || null,
-        notes: data.notes || null,
+        lineItems: data.line_items || null,
         status: 'pending',
-        created_at: new Date(),
-        updated_at: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       })
       .returning();
 

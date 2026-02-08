@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Seed Academic Tables with Test Data
  * Seeds: classes, enrollments, class_sessions, attendance, assignments

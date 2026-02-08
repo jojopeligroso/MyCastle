@@ -329,7 +329,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     let fileContent: Uint8Array;
     let contentType: string;
     let fileExtension: string;
-    let filename: string;
 
     if (format === 'xlsx') {
       const buffer = await generateXLSX(exportRecords, metadata);
@@ -350,7 +349,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       fileExtension = 'csv';
     }
 
-    filename = `attendance_export_${startDate}_to_${finalEndDate}.${fileExtension}`;
+    const filename = `attendance_export_${startDate}_to_${finalEndDate}.${fileExtension}`;
 
     const executionTime = Date.now() - startTime;
 

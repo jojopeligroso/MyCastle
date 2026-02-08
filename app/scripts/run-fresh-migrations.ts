@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Run Fresh Migrations Directly
  * Executes nuclear reset + fresh schema + seed data

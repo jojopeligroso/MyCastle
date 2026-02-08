@@ -79,8 +79,12 @@ async function checkSchema() {
     console.log('\n🔍 NAMING CONVENTION ANALYSIS:');
 
     const allColumns = [...usersColumns, ...studentsColumns, ...classesColumns];
-    const hasSnakeCase = allColumns.some(col => (col as unknown as ColumnInfo).column_name.includes('_'));
-    const hasCamelCase = allColumns.some(col => /[a-z][A-Z]/.test((col as unknown as ColumnInfo).column_name));
+    const hasSnakeCase = allColumns.some(col =>
+      (col as unknown as ColumnInfo).column_name.includes('_')
+    );
+    const hasCamelCase = allColumns.some(col =>
+      /[a-z][A-Z]/.test((col as unknown as ColumnInfo).column_name)
+    );
 
     console.log(`  Snake_case columns found: ${hasSnakeCase ? 'YES' : 'NO'}`);
     console.log(`  camelCase columns found: ${hasCamelCase ? 'YES' : 'NO'}`);

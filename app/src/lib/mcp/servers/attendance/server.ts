@@ -60,7 +60,7 @@ async function main() {
         recorded_at: new Date(),
       };
 
-      const [record] = await db.insert(attendance).values(insertData).returning();
+      await db.insert(attendance).values(insertData).returning();
 
       return {
         content: [

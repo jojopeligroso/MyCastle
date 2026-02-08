@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Run Migration Script
  * Executes a SQL migration file against the database

@@ -13,7 +13,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import { db } from '@/db';
 import { users, auditLogs } from '@/db/schema';
-import { eq, and, gte, lte, desc } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import crypto from 'crypto';
 
 /**
@@ -193,8 +193,8 @@ async function main() {
         .describe('Send welcome email with login instructions'),
     },
     async (args, extra) => {
-      const _session = getSessionFromContext(extra);
-      const { email, name, role, scopes, password, require_mfa, send_welcome_email } = args;
+      const session = getSessionFromContext(extra);
+      const { email, name, role, scopes, require_mfa, send_welcome_email } = args;
 
       // Check if user exists
       const existing = await db
@@ -283,7 +283,7 @@ async function main() {
       mimeType: 'application/json',
     },
     async (uri, extra) => {
-      const _session = getSessionFromContext(extra);
+      const session = getSessionFromContext(extra);
 
       const allUsers = await db
         .select()
@@ -297,9 +297,10 @@ async function main() {
           email: u.email,
           name: u.name,
           role: u.role,
-          scopes: (u.metadata as any)?.scopes || getDefaultScopesForRole(u.role),
+          scopes:
+            (u.metadata as Record<string, unknown>)?.scopes || getDefaultScopesForRole(u.role),
           status: u.status,
-          mfa_enabled: (u.metadata as any)?.require_mfa || false,
+          mfa_enabled: (u.metadata as Record<string, unknown>)?.require_mfa || false,
           created_at: u.created_at,
           last_login: u.last_login,
         })),

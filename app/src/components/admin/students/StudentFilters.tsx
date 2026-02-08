@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback } from 'react';
+import Link from 'next/link';
 
 const SAVED_VIEWS = [
   { id: 'all', label: 'All Students', icon: '👥' },
@@ -68,7 +69,7 @@ export function StudentFilters() {
       {/* Header with Add Student button */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Student Registry</h1>
-        <a
+        <Link
           href="/admin/students/create"
           className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors"
         >
@@ -76,7 +77,7 @@ export function StudentFilters() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
           Add Student
-        </a>
+        </Link>
       </div>
 
       {/* Saved Views */}
@@ -217,7 +218,7 @@ export function StudentFilters() {
           )}
           {searchQuery && (
             <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-700 rounded">
-              Search: "{searchQuery}"
+              Search: &quot;{searchQuery}&quot;
               <button
                 onClick={() => updateParams({ search: null })}
                 className="ml-1 hover:text-gray-900"

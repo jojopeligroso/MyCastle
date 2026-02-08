@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { programmes, courses } from '@/db/schema';
+import { programmes, programmeCourses } from '@/db/schema';
 import { eq, isNull, sql } from 'drizzle-orm';
-import { requireAuth } from '@/lib/auth/utils';
+import { requireAuth, getTenantId } from '@/lib/auth/utils';
 import { z } from 'zod';
 
 const createProgrammeSchema = z.object({
@@ -10,8 +10,9 @@ const createProgrammeSchema = z.object({
   code: z.string().optional(),
   description: z.string().optional(),
   duration_weeks: z.number().positive().optional(),
-  cefr_levels: z.array(z.string()).optional(),
-  is_active: z.boolean().default(true),
+  hours_per_week: z.number().positive().optional(),
+  levels: z.array(z.string()).optional(),
+  status: z.enum(['active', 'archived']).default('active'),
 });
 
 export async function GET(request: NextRequest) {
@@ -19,21 +20,21 @@ export async function GET(request: NextRequest) {
     await requireAuth(['admin']);
 
     const { searchParams } = new URL(request.url);
-    const isActive = searchParams.get('is_active');
+    const status = searchParams.get('status');
 
     let query = db
       .select({
         programme: programmes,
-        courseCount: sql<number>`count(${courses.id})::int`,
+        courseCount: sql<number>`count(${programmeCourses.id})::int`,
       })
       .from(programmes)
-      .leftJoin(courses, eq(programmes.id, courses.programme_id))
+      .leftJoin(programmeCourses, eq(programmes.id, programmeCourses.programme_id))
       .where(isNull(programmes.deleted_at))
       .groupBy(programmes.id)
       .$dynamic();
 
-    if (isActive !== null) {
-      query = query.where(eq(programmes.is_active, isActive === 'true'));
+    if (status) {
+      query = query.where(eq(programmes.status, status));
     }
 
     const results = await query.orderBy(programmes.name);
@@ -48,6 +49,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     await requireAuth(['admin']);
+    const tenantId = await getTenantId();
     const body = await request.json();
 
     const validationResult = createProgrammeSchema.safeParse(body);
@@ -60,18 +62,24 @@ export async function POST(request: NextRequest) {
 
     const data = validationResult.data;
 
+    if (!tenantId) {
+      return NextResponse.json({ error: 'No tenant context available' }, { status: 400 });
+    }
+
     // Generate programme code if not provided
     const programmeCode = data.code || data.name.substring(0, 3).toUpperCase();
 
     const [newProgramme] = await db
       .insert(programmes)
       .values({
+        tenant_id: tenantId,
         name: data.name,
         code: programmeCode,
         description: data.description || null,
-        duration_weeks: data.duration_weeks || null,
-        cefr_levels: data.cefr_levels || null,
-        is_active: data.is_active,
+        duration_weeks: data.duration_weeks || 12,
+        hours_per_week: data.hours_per_week || 15,
+        levels: data.levels || ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'],
+        status: data.status,
         created_at: new Date(),
         updated_at: new Date(),
       })

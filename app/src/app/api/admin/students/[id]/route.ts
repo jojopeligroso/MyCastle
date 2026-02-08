@@ -9,13 +9,10 @@ import {
   submissions,
   classes,
 } from '@/db/schema';
-import { eq, and, isNull, sql, desc } from 'drizzle-orm';
+import { eq, and, isNull, sql, desc, ne } from 'drizzle-orm';
 import { requireAuth } from '@/lib/auth/utils';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAuth(['admin']);
     const { id: studentId } = await params;
@@ -24,7 +21,9 @@ export async function GET(
     const [student] = await db
       .select()
       .from(users)
-      .where(and(eq(users.id, studentId), eq(users.role, 'student'), isNull(users.deleted_at)))
+      .where(
+        and(eq(users.id, studentId), eq(users.primaryRole, 'student'), isNull(users.deletedAt))
+      )
       .limit(1);
 
     if (!student) {
@@ -35,18 +34,18 @@ export async function GET(
     const enrollmentHistory = await db
       .select({
         id: enrollments.id,
-        classId: enrollments.class_id,
+        classId: enrollments.classId,
         className: classes.name,
         classLevel: classes.level,
-        startDate: enrollments.start_date,
-        endDate: enrollments.end_date,
+        enrollmentDate: enrollments.enrollmentDate,
+        expectedEndDate: enrollments.expectedEndDate,
         status: enrollments.status,
-        createdAt: enrollments.created_at,
+        createdAt: enrollments.createdAt,
       })
       .from(enrollments)
-      .leftJoin(classes, eq(enrollments.class_id, classes.id))
-      .where(and(eq(enrollments.student_id, studentId), isNull(enrollments.deleted_at)))
-      .orderBy(desc(enrollments.start_date));
+      .leftJoin(classes, eq(enrollments.classId, classes.id))
+      .where(and(eq(enrollments.studentId, studentId), ne(enrollments.status, 'deleted')))
+      .orderBy(desc(enrollments.enrollmentDate));
 
     // Fetch amendments for each enrollment
     const enrollmentIds = enrollmentHistory.map(e => e.id);
@@ -55,8 +54,8 @@ export async function GET(
         ? await db
             .select()
             .from(enrollmentAmendments)
-            .where(sql`${enrollmentAmendments.enrollment_id} IN ${enrollmentIds}`)
-            .orderBy(desc(enrollmentAmendments.created_at))
+            .where(sql`${enrollmentAmendments.enrollmentId} IN ${enrollmentIds}`)
+            .orderBy(desc(enrollmentAmendments.createdAt))
         : [];
 
     // Fetch attendance summary
@@ -66,7 +65,7 @@ export async function GET(
         count: sql<number>`count(*)::int`,
       })
       .from(attendance)
-      .where(and(eq(attendance.student_id, studentId), isNull(attendance.deleted_at)))
+      .where(and(eq(attendance.studentId, studentId), isNull(attendance.deletedAt)))
       .groupBy(attendance.status);
 
     const attendanceSummary = {
@@ -90,26 +89,28 @@ export async function GET(
     const studentGrades = await db
       .select({
         gradeId: grades.id,
-        assignmentId: grades.assignment_id,
+        assignmentId: grades.assignmentId,
         score: grades.score,
-        maxScore: grades.max_score,
+        maxScore: grades.maxScore,
         feedback: grades.feedback,
-        cefrLevel: grades.cefr_level,
-        gradedAt: grades.graded_at,
+        cefrLevel: grades.cefrLevel,
+        gradedAt: grades.gradedAt,
         submissionId: submissions.id,
-        submittedAt: submissions.submitted_at,
+        submittedAt: submissions.submittedAt,
         status: submissions.status,
       })
       .from(grades)
-      .leftJoin(submissions, eq(grades.submission_id, submissions.id))
-      .where(and(eq(grades.student_id, studentId), isNull(grades.deleted_at)))
-      .orderBy(desc(grades.graded_at));
+      .leftJoin(submissions, eq(grades.submissionId, submissions.id))
+      .where(and(eq(grades.studentId, studentId), isNull(grades.deletedAt)))
+      .orderBy(desc(grades.gradedAt));
 
     // Calculate average grade
     const averageGrade =
       studentGrades.length > 0
         ? studentGrades.reduce((acc, g) => {
-            const percentage = g.maxScore ? (g.score / g.maxScore) * 100 : 0;
+            const score = parseFloat(g.score || '0');
+            const maxScore = parseFloat(g.maxScore || '100');
+            const percentage = maxScore ? (score / maxScore) * 100 : 0;
             return acc + percentage;
           }, 0) / studentGrades.length
         : null;
@@ -119,7 +120,7 @@ export async function GET(
       ...student,
       enrollments: enrollmentHistory.map(e => ({
         ...e,
-        amendments: amendments.filter(a => a.enrollment_id === e.id),
+        amendments: amendments.filter(a => a.enrollmentId === e.id),
       })),
       attendance: {
         summary: attendanceSummary,
@@ -137,12 +138,9 @@ export async function GET(
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const user = await requireAuth(['admin']);
+    await requireAuth(['admin']);
     const { id: studentId } = await params;
     const body = await request.json();
 
@@ -150,18 +148,36 @@ export async function PATCH(
     const [existingStudent] = await db
       .select()
       .from(users)
-      .where(and(eq(users.id, studentId), eq(users.role, 'student'), isNull(users.deleted_at)))
+      .where(
+        and(eq(users.id, studentId), eq(users.primaryRole, 'student'), isNull(users.deletedAt))
+      )
       .limit(1);
 
     if (!existingStudent) {
       return NextResponse.json({ error: 'Student not found' }, { status: 404 });
     }
 
-    // Extract allowed fields for update
-    const allowedFields = [
-      'name',
-      'email',
-      'phone',
+    // Build update data from allowed fields
+    const updateData: Record<string, unknown> = {
+      updatedAt: new Date(),
+    };
+
+    // Map snake_case input fields to camelCase schema fields
+    const fieldMapping: Record<string, string> = {
+      name: 'name',
+      email: 'email',
+      phone: 'phone',
+      status: 'status',
+    };
+
+    for (const [inputField, schemaField] of Object.entries(fieldMapping)) {
+      if (body[inputField] !== undefined) {
+        updateData[schemaField] = body[inputField];
+      }
+    }
+
+    // Store additional fields in metadata
+    const metadataFields = [
       'date_of_birth',
       'address',
       'city',
@@ -175,24 +191,24 @@ export async function PATCH(
       'visa_type',
       'visa_expiry',
       'visa_conditions',
-      'status',
       'notes',
     ];
 
-    const updateData: Record<string, any> = {};
-    for (const field of allowedFields) {
+    const metadata: Record<string, unknown> =
+      (existingStudent.metadata as Record<string, unknown>) || {};
+    for (const field of metadataFields) {
       if (body[field] !== undefined) {
-        updateData[field] = body[field];
+        metadata[field] = body[field];
       }
+    }
+    if (Object.keys(metadata).length > 0) {
+      updateData.metadata = metadata;
     }
 
     // Update student
     const [updatedStudent] = await db
       .update(users)
-      .set({
-        ...updateData,
-        updated_at: new Date(),
-      })
+      .set(updateData)
       .where(eq(users.id, studentId))
       .returning();
 
@@ -215,10 +231,10 @@ export async function DELETE(
     const [deletedStudent] = await db
       .update(users)
       .set({
-        deleted_at: new Date(),
-        updated_at: new Date(),
+        deletedAt: new Date(),
+        updatedAt: new Date(),
       })
-      .where(and(eq(users.id, studentId), eq(users.role, 'student')))
+      .where(and(eq(users.id, studentId), eq(users.primaryRole, 'student')))
       .returning();
 
     if (!deletedStudent) {

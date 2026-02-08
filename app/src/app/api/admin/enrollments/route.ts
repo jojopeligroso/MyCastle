@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { enrollments, classes, users } from '@/db/schema';
-import { eq, and, isNull, sql } from 'drizzle-orm';
+import { eq, and, sql, ne } from 'drizzle-orm';
 import { requireAuth } from '@/lib/auth/utils';
 import { z } from 'zod';
 
@@ -37,17 +37,17 @@ export async function GET(request: NextRequest) {
         },
       })
       .from(enrollments)
-      .leftJoin(users, eq(enrollments.student_id, users.id))
-      .leftJoin(classes, eq(enrollments.class_id, classes.id))
-      .where(isNull(enrollments.deleted_at))
+      .leftJoin(users, eq(enrollments.studentId, users.id))
+      .leftJoin(classes, eq(enrollments.classId, classes.id))
+      .where(ne(enrollments.status, 'deleted'))
       .$dynamic();
 
     if (studentId) {
-      query = query.where(eq(enrollments.student_id, studentId));
+      query = query.where(eq(enrollments.studentId, studentId));
     }
 
     if (classId) {
-      query = query.where(eq(enrollments.class_id, classId));
+      query = query.where(eq(enrollments.classId, classId));
     }
 
     if (status) {
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
     const [student] = await db
       .select()
       .from(users)
-      .where(and(eq(users.id, data.student_id), eq(users.role, 'student')))
+      .where(and(eq(users.id, data.student_id), eq(users.primaryRole, 'student')))
       .limit(1);
 
     if (!student) {
@@ -104,29 +104,24 @@ export async function POST(request: NextRequest) {
     const [{ count }] = await db
       .select({ count: sql<number>`count(*)::int` })
       .from(enrollments)
-      .where(
-        and(
-          eq(enrollments.class_id, data.class_id),
-          eq(enrollments.status, 'active'),
-          isNull(enrollments.deleted_at)
-        )
-      );
+      .where(and(eq(enrollments.classId, data.class_id), eq(enrollments.status, 'active')));
 
     if (count >= classData.capacity) {
       return NextResponse.json({ error: 'Class is at full capacity' }, { status: 409 });
     }
 
-    // Create enrollment
+    // Create enrollment (tenantId comes from student's tenant)
     const [newEnrollment] = await db
       .insert(enrollments)
       .values({
-        student_id: data.student_id,
-        class_id: data.class_id,
-        start_date: new Date(data.start_date),
-        end_date: data.end_date ? new Date(data.end_date) : null,
+        tenantId: student.tenantId,
+        studentId: data.student_id,
+        classId: data.class_id,
+        enrollmentDate: new Date(data.start_date).toISOString().split('T')[0],
+        expectedEndDate: data.end_date ? new Date(data.end_date).toISOString().split('T')[0] : null,
         status: data.status,
-        created_at: new Date(),
-        updated_at: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       })
       .returning();
 
@@ -134,8 +129,8 @@ export async function POST(request: NextRequest) {
     await db
       .update(classes)
       .set({
-        enrolled_count: sql`${classes.enrolled_count} + 1`,
-        updated_at: new Date(),
+        enrolledCount: sql`${classes.enrolledCount} + 1`,
+        updatedAt: new Date(),
       })
       .where(eq(classes.id, data.class_id));
 

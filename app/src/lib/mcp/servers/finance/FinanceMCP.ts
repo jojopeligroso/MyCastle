@@ -27,8 +27,8 @@
 import { z } from 'zod';
 import { db } from '@/db';
 import { invoices, payments, users, enrollments, classes, auditLogs } from '@/db/schema';
-import { eq, and, gte, lte, desc, sql, sum, count } from 'drizzle-orm';
-import { MCPServerConfig, MCPTool, MCPResource, MCPPrompt, MCPSession } from '../../types';
+import { eq, and, gte, lte, desc, sql } from 'drizzle-orm';
+import { MCPServerConfig, MCPTool, MCPResource, MCPPrompt } from '../../types';
 
 /**
  * Helper: Log financial audit event
@@ -304,11 +304,7 @@ const editBookingTool: MCPTool = {
     }
 
     // Update invoice
-    const [updated] = await db
-      .update(invoices)
-      .set(updates)
-      .where(eq(invoices.id, invoice_id))
-      .returning();
+    await db.update(invoices).set(updates).where(eq(invoices.id, invoice_id)).returning();
 
     // Log audit event
     await logFinanceAudit({
@@ -701,7 +697,7 @@ const ledgerExportTool: MCPTool = {
     include_refunds: z.boolean().default(true),
   }),
   handler: async (input, session) => {
-    const { start_date, end_date, format, include_refunds } = input as Record<string, unknown>;
+    const { start_date, end_date, format } = input as Record<string, unknown>;
 
     // Query all financial transactions
     const transactions = await db
@@ -980,7 +976,7 @@ const outstandingResource: MCPResource = {
   description: 'Unpaid invoices and overdue amounts',
   requiredScopes: ['finance:read'],
   mimeType: 'application/json',
-  handler: async (session: unknown, params) => {
+  handler: async (session: { tenantId: string }, _params) => {
     const unpaid = await db
       .select({
         invoice: invoices,

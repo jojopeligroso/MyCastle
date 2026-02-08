@@ -49,11 +49,7 @@ async function getEnrollmentForTransfer(enrollmentId: string) {
   };
 }
 
-export default async function TransferStudentPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function TransferStudentPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAuth();
   const { id } = await params;
 
