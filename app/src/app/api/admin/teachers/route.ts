@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { users, classes } from '@/db/schema';
+import { users } from '@/db/schema/core';
+import { classes } from '@/db/schema/academic';
 import { eq, and, isNull, sql, or, ilike } from 'drizzle-orm';
 import { requireAuth } from '@/lib/auth/utils';
 
@@ -18,8 +19,8 @@ export async function GET(request: NextRequest) {
         assignedClasses: sql<number>`count(DISTINCT ${classes.id})::int`,
       })
       .from(users)
-      .leftJoin(classes, eq(users.id, classes.teacher_id))
-      .where(and(eq(users.role, 'teacher'), isNull(users.deleted_at)))
+      .leftJoin(classes, eq(users.id, classes.teacherId))
+      .where(and(eq(users.primaryRole, 'teacher'), isNull(users.deletedAt)))
       .groupBy(users.id)
       .$dynamic();
 
