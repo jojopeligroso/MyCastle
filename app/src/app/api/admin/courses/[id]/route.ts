@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { courses } from '@/db/schema';
+import { programmeCourses } from '@/db/schema/programmes';
 import { eq, and, isNull } from 'drizzle-orm';
 import { requireAuth } from '@/lib/auth/utils';
 import { z } from 'zod';
@@ -15,18 +15,15 @@ const updateCourseSchema = z.object({
   cefr_descriptor_ids: z.array(z.string().uuid()).optional(),
 });
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAuth(['admin']);
     const { id: courseId } = await params;
 
     const [course] = await db
       .select()
-      .from(courses)
-      .where(and(eq(courses.id, courseId), isNull(courses.deleted_at)))
+      .from(programmeCourses)
+      .where(and(eq(programmeCourses.id, courseId), isNull(programmeCourses.deleted_at)))
       .limit(1);
 
     if (!course) {
@@ -40,10 +37,7 @@ export async function GET(
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAuth(['admin']);
     const { id: courseId } = await params;
@@ -60,16 +54,16 @@ export async function PATCH(
     const data = validationResult.data;
     const updateData: Record<string, unknown> = { updated_at: new Date() };
 
-    Object.keys(data).forEach(key => {
-      if (data[key as keyof typeof data] !== undefined) {
-        updateData[key] = data[key as keyof typeof data];
-      }
-    });
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.code !== undefined) updateData.code = data.code;
+    if (data.description !== undefined) updateData.description = data.description;
+    if (data.level !== undefined) updateData.cefr_level = data.level;
+    if (data.duration_weeks !== undefined) updateData.duration_weeks = data.duration_weeks;
 
     const [updatedCourse] = await db
-      .update(courses)
+      .update(programmeCourses)
       .set(updateData)
-      .where(eq(courses.id, courseId))
+      .where(eq(programmeCourses.id, courseId))
       .returning();
 
     if (!updatedCourse) {
@@ -92,12 +86,12 @@ export async function DELETE(
     const { id: courseId } = await params;
 
     const [deletedCourse] = await db
-      .update(courses)
+      .update(programmeCourses)
       .set({
         deleted_at: new Date(),
         updated_at: new Date(),
       })
-      .where(eq(courses.id, courseId))
+      .where(eq(programmeCourses.id, courseId))
       .returning();
 
     if (!deletedCourse) {

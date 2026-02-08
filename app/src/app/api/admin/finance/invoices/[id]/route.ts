@@ -1,33 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { invoices, payments } from '@/db/schema';
-import { eq, and, isNull, desc } from 'drizzle-orm';
+import { invoices, payments as systemPayments } from '@/db/schema/system';
+import { eq, desc } from 'drizzle-orm';
 import { requireAuth } from '@/lib/auth/utils';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAuth(['admin']);
     const { id: invoiceId } = await params;
 
-    const [invoice] = await db
-      .select()
-      .from(invoices)
-      .where(and(eq(invoices.id, invoiceId), isNull(invoices.deleted_at)))
-      .limit(1);
+    const [invoice] = await db.select().from(invoices).where(eq(invoices.id, invoiceId)).limit(1);
 
     if (!invoice) {
       return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
     }
 
-    // Fetch payment history
     const paymentHistory = await db
       .select()
-      .from(payments)
-      .where(and(eq(payments.invoice_id, invoiceId), isNull(payments.deleted_at)))
-      .orderBy(desc(payments.payment_date));
+      .from(systemPayments)
+      .where(eq(systemPayments.invoice_id, invoiceId))
+      .orderBy(desc(systemPayments.payment_date));
 
     return NextResponse.json({ ...invoice, payments: paymentHistory });
   } catch (error) {
@@ -44,13 +36,8 @@ export async function DELETE(
     await requireAuth(['admin']);
     const { id: invoiceId } = await params;
 
-    // Soft delete invoice
     const [deletedInvoice] = await db
-      .update(invoices)
-      .set({
-        deleted_at: new Date(),
-        updated_at: new Date(),
-      })
+      .delete(invoices)
       .where(eq(invoices.id, invoiceId))
       .returning();
 

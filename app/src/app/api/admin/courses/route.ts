@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { courses, programmes, cefrDescriptors } from '@/db/schema';
-import { eq, and, isNull, inArray } from 'drizzle-orm';
+import { programmes, programmeCourses } from '@/db/schema/programmes';
+import { eq, isNull } from 'drizzle-orm';
 import { requireAuth } from '@/lib/auth/utils';
 import { z } from 'zod';
 
@@ -26,27 +26,27 @@ export async function GET(request: NextRequest) {
 
     let query = db
       .select({
-        course: courses,
+        course: programmeCourses,
         programme: {
           id: programmes.id,
           name: programmes.name,
           code: programmes.code,
         },
       })
-      .from(courses)
-      .leftJoin(programmes, eq(courses.programme_id, programmes.id))
-      .where(isNull(courses.deleted_at))
+      .from(programmeCourses)
+      .leftJoin(programmes, eq(programmeCourses.programme_id, programmes.id))
+      .where(isNull(programmeCourses.deleted_at))
       .$dynamic();
 
     if (programmeId) {
-      query = query.where(eq(courses.programme_id, programmeId));
+      query = query.where(eq(programmeCourses.programme_id, programmeId));
     }
 
     if (level) {
-      query = query.where(eq(courses.level, level));
+      query = query.where(eq(programmeCourses.cefr_level, level));
     }
 
-    const results = await query.orderBy(courses.level, courses.name);
+    const results = await query.orderBy(programmeCourses.cefr_level, programmeCourses.name);
 
     return NextResponse.json({ courses: results });
   } catch (error) {
@@ -70,7 +70,6 @@ export async function POST(request: NextRequest) {
 
     const data = validationResult.data;
 
-    // Verify programme exists
     const [programme] = await db
       .select()
       .from(programmes)
@@ -81,20 +80,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Programme not found' }, { status: 404 });
     }
 
-    // Generate course code if not provided
     const courseCode = data.code || `${data.level}-${data.name.substring(0, 3).toUpperCase()}`;
 
     const [newCourse] = await db
-      .insert(courses)
+      .insert(programmeCourses)
       .values({
+        tenant_id: programme.tenant_id,
         programme_id: data.programme_id,
         name: data.name,
         code: courseCode,
         description: data.description || null,
-        level: data.level,
-        duration_weeks: data.duration_weeks || null,
-        objectives: data.objectives || null,
-        cefr_descriptor_ids: data.cefr_descriptor_ids || null,
+        cefr_level: data.level,
+        duration_weeks: data.duration_weeks || 12,
+        status: 'active',
         created_at: new Date(),
         updated_at: new Date(),
       })

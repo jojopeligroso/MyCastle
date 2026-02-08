@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { enrollments, classes, users } from '@/db/schema';
-import { eq, and, isNull, sql } from 'drizzle-orm';
-import { requireAuth } from '@/lib/auth/utils';
+import { users } from '@/db/schema/core';
+import { enrollments, classes } from '@/db/schema/academic';
+import { eq, and, sql } from 'drizzle-orm';
+import { requireAuth, getTenantId } from '@/lib/auth/utils';
 import { z } from 'zod';
 
 const createEnrollmentSchema = z.object({
@@ -37,17 +38,16 @@ export async function GET(request: NextRequest) {
         },
       })
       .from(enrollments)
-      .leftJoin(users, eq(enrollments.student_id, users.id))
-      .leftJoin(classes, eq(enrollments.class_id, classes.id))
-      .where(isNull(enrollments.deleted_at))
+      .leftJoin(users, eq(enrollments.studentId, users.id))
+      .leftJoin(classes, eq(enrollments.classId, classes.id))
       .$dynamic();
 
     if (studentId) {
-      query = query.where(eq(enrollments.student_id, studentId));
+      query = query.where(eq(enrollments.studentId, studentId));
     }
 
     if (classId) {
-      query = query.where(eq(enrollments.class_id, classId));
+      query = query.where(eq(enrollments.classId, classId));
     }
 
     if (status) {
@@ -66,7 +66,12 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     await requireAuth(['admin']);
+    const tenantId = await getTenantId();
     const body = await request.json();
+
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Tenant not found' }, { status: 400 });
+    }
 
     const validationResult = createEnrollmentSchema.safeParse(body);
     if (!validationResult.success) {
@@ -78,18 +83,16 @@ export async function POST(request: NextRequest) {
 
     const data = validationResult.data;
 
-    // Check if student exists
     const [student] = await db
       .select()
       .from(users)
-      .where(and(eq(users.id, data.student_id), eq(users.role, 'student')))
+      .where(and(eq(users.id, data.student_id), eq(users.primaryRole, 'student')))
       .limit(1);
 
     if (!student) {
       return NextResponse.json({ error: 'Student not found' }, { status: 404 });
     }
 
-    // Check if class exists and has capacity
     const [classData] = await db
       .select()
       .from(classes)
@@ -100,42 +103,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Class not found' }, { status: 404 });
     }
 
-    // Check current enrollment count
     const [{ count }] = await db
       .select({ count: sql<number>`count(*)::int` })
       .from(enrollments)
-      .where(
-        and(
-          eq(enrollments.class_id, data.class_id),
-          eq(enrollments.status, 'active'),
-          isNull(enrollments.deleted_at)
-        )
-      );
+      .where(and(eq(enrollments.classId, data.class_id), eq(enrollments.status, 'active')));
 
     if (count >= classData.capacity) {
       return NextResponse.json({ error: 'Class is at full capacity' }, { status: 409 });
     }
 
-    // Create enrollment
     const [newEnrollment] = await db
       .insert(enrollments)
       .values({
-        student_id: data.student_id,
-        class_id: data.class_id,
-        start_date: new Date(data.start_date),
-        end_date: data.end_date ? new Date(data.end_date) : null,
+        tenantId,
+        studentId: data.student_id,
+        classId: data.class_id,
+        enrollmentDate: new Date(data.start_date),
+        completionDate: data.end_date ? new Date(data.end_date) : null,
         status: data.status,
-        created_at: new Date(),
-        updated_at: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       })
       .returning();
 
-    // Update class enrolled count
     await db
       .update(classes)
       .set({
-        enrolled_count: sql`${classes.enrolled_count} + 1`,
-        updated_at: new Date(),
+        enrolledCount: sql`${classes.enrolledCount} + 1`,
+        updatedAt: new Date(),
       })
       .where(eq(classes.id, data.class_id));
 

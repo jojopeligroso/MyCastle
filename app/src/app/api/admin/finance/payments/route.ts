@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { payments, invoices, users } from '@/db/schema';
-import { eq, and, isNull, sql, desc } from 'drizzle-orm';
-import { requireAuth } from '@/lib/auth/utils';
+import { users } from '@/db/schema/core';
+import { invoices, payments as systemPayments } from '@/db/schema/system';
+import { eq, desc } from 'drizzle-orm';
+import { requireAuth, getTenantId } from '@/lib/auth/utils';
 import { z } from 'zod';
 
 const createPaymentSchema = z.object({
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
 
     let query = db
       .select({
-        payment: payments,
+        payment: systemPayments,
         invoice: {
           id: invoices.id,
           invoice_number: invoices.invoice_number,
@@ -34,21 +35,20 @@ export async function GET(request: NextRequest) {
           name: users.name,
         },
       })
-      .from(payments)
-      .leftJoin(invoices, eq(payments.invoice_id, invoices.id))
+      .from(systemPayments)
+      .leftJoin(invoices, eq(systemPayments.invoice_id, invoices.id))
       .leftJoin(users, eq(invoices.student_id, users.id))
-      .where(isNull(payments.deleted_at))
       .$dynamic();
 
     if (invoiceId) {
-      query = query.where(eq(payments.invoice_id, invoiceId));
+      query = query.where(eq(systemPayments.invoice_id, invoiceId));
     }
 
     if (studentId) {
       query = query.where(eq(invoices.student_id, studentId));
     }
 
-    const results = await query.orderBy(desc(payments.payment_date));
+    const results = await query.orderBy(desc(systemPayments.payment_date));
 
     return NextResponse.json({ payments: results });
   } catch (error) {
@@ -60,7 +60,12 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     await requireAuth(['admin']);
+    const tenantId = await getTenantId();
     const body = await request.json();
+
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Tenant not found' }, { status: 400 });
+    }
 
     const validationResult = createPaymentSchema.safeParse(body);
     if (!validationResult.success) {
@@ -72,7 +77,6 @@ export async function POST(request: NextRequest) {
 
     const data = validationResult.data;
 
-    // Verify invoice exists
     const [invoice] = await db
       .select()
       .from(invoices)
@@ -83,44 +87,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
     }
 
-    // Validate payment amount
-    if (Math.abs(data.amount) > Math.abs(invoice.amount_due) && data.amount > 0) {
+    if (Math.abs(data.amount) > Math.abs(Number(invoice.amount)) && data.amount > 0) {
       return NextResponse.json(
         { error: 'Payment amount exceeds outstanding balance' },
         { status: 400 }
       );
     }
 
-    // Create payment
     const [newPayment] = await db
-      .insert(payments)
+      .insert(systemPayments)
       .values({
+        tenant_id: tenantId,
         invoice_id: data.invoice_id,
-        amount: data.amount,
+        student_id: invoice.student_id,
+        amount: data.amount.toString(),
+        currency: invoice.currency,
         payment_method: data.payment_method,
         payment_date: data.payment_date ? new Date(data.payment_date) : new Date(),
-        reference: data.reference || null,
+        transaction_id: data.reference || null,
         notes: data.notes || null,
         created_at: new Date(),
         updated_at: new Date(),
       })
       .returning();
-
-    // Update invoice amounts
-    const newAmountPaid = invoice.amount_paid + data.amount;
-    const newAmountDue = invoice.amount - newAmountPaid;
-    const newStatus =
-      newAmountDue <= 0 ? 'paid' : newAmountDue < invoice.amount ? 'partial' : 'pending';
-
-    await db
-      .update(invoices)
-      .set({
-        amount_paid: newAmountPaid,
-        amount_due: newAmountDue,
-        status: newStatus,
-        updated_at: new Date(),
-      })
-      .where(eq(invoices.id, data.invoice_id));
 
     return NextResponse.json(newPayment, { status: 201 });
   } catch (error) {

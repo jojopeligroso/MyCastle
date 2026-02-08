@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { invoices, users } from '@/db/schema';
-import { eq, and, isNull, sql, desc } from 'drizzle-orm';
-import { requireAuth } from '@/lib/auth/utils';
+import { users } from '@/db/schema/core';
+import { invoices } from '@/db/schema/system';
+import { eq, and, sql, desc } from 'drizzle-orm';
+import { requireAuth, getTenantId } from '@/lib/auth/utils';
 import { z } from 'zod';
 
 const createInvoiceSchema = z.object({
@@ -42,7 +43,6 @@ export async function GET(request: NextRequest) {
       })
       .from(invoices)
       .leftJoin(users, eq(invoices.student_id, users.id))
-      .where(isNull(invoices.deleted_at))
       .$dynamic();
 
     if (studentId) {
@@ -65,7 +65,12 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     await requireAuth(['admin']);
+    const tenantId = await getTenantId();
     const body = await request.json();
+
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Tenant not found' }, { status: 400 });
+    }
 
     const validationResult = createInvoiceSchema.safeParse(body);
     if (!validationResult.success) {
@@ -77,35 +82,32 @@ export async function POST(request: NextRequest) {
 
     const data = validationResult.data;
 
-    // Verify student exists
     const [student] = await db
       .select()
       .from(users)
-      .where(and(eq(users.id, data.student_id), eq(users.role, 'student')))
+      .where(and(eq(users.id, data.student_id), eq(users.primaryRole, 'student')))
       .limit(1);
 
     if (!student) {
       return NextResponse.json({ error: 'Student not found' }, { status: 404 });
     }
 
-    // Generate invoice number
     const [{ count }] = await db.select({ count: sql<number>`count(*)::int` }).from(invoices);
 
     const invoiceNumber = `INV-${new Date().getFullYear()}-${String(count + 1).padStart(6, '0')}`;
 
-    // Create invoice
     const [newInvoice] = await db
       .insert(invoices)
       .values({
+        tenant_id: tenantId,
         student_id: data.student_id,
         invoice_number: invoiceNumber,
-        amount: data.amount,
-        amount_paid: 0,
-        amount_due: data.amount,
+        amount: data.amount.toString(),
+        currency: 'USD',
+        issue_date: new Date(),
         due_date: new Date(data.due_date),
         description: data.description || null,
         line_items: data.line_items || null,
-        notes: data.notes || null,
         status: 'pending',
         created_at: new Date(),
         updated_at: new Date(),
