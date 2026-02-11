@@ -3,7 +3,7 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 > **Purpose:** Primary instructions for Claude Code working with MyCastle
-> **Last Updated:** 2026-01-19
+> **Last Updated:** 2026-02-11
 > **Keep it under 250 lines** - Use progressive disclosure for details
 
 ---
@@ -477,6 +477,22 @@ npm run check          # Verify quality (format, lint, test, typecheck, build)
 /clear                 # Clear context
 /MyCastle-next-task    # Load next task
 ```
+
+### Context Window Management (AUTO-COMPACT)
+
+**CRITICAL RULE:** When context window exceeds **100k tokens**, Claude MUST:
+
+1. **Commit current work** with a detailed message describing:
+   - What was completed
+   - What's still in progress
+   - Any blockers or issues discovered
+   - Files modified
+
+2. **Sign off** with model name (e.g., "— Claude Opus 4.5")
+
+3. **Run `/compact`** to summarize and clear context
+
+This prevents context overflow and ensures work is never lost. The compacted summary preserves continuity for the next session.
 
 ---
 
