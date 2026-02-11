@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     let query = db
       .select()
       .from(users)
-      .where(and(eq(users.role, 'student'), isNull(users.deleted_at)))
+      .where(and(eq(users.primaryRole, 'student'), isNull(users.deletedAt)))
       .$dynamic();
 
     // Apply search filter
@@ -52,9 +52,9 @@ export async function GET(request: NextRequest) {
       query = query.where(eq(users.status, status));
     }
 
-    // Apply level filter
+    // Apply level filter - check metadata for current_level since it's not on users table
     if (level) {
-      query = query.where(eq(users.current_level, level));
+      query = query.where(sql`${users.metadata}->>'current_level' = ${level}`);
     }
 
     // Apply pagination
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
     const [{ count }] = await db
       .select({ count: sql<number>`count(*)::int` })
       .from(users)
-      .where(and(eq(users.role, 'student'), isNull(users.deleted_at)));
+      .where(and(eq(users.primaryRole, 'student'), isNull(users.deletedAt)));
 
     return NextResponse.json({
       students,
@@ -108,31 +108,37 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'A user with this email already exists' }, { status: 409 });
     }
 
-    // Create student user
+    // Create student user - store student-specific fields in metadata
+    const metadata = {
+      date_of_birth: data.date_of_birth || null,
+      address: data.address || null,
+      city: data.city || null,
+      country: data.country || null,
+      postal_code: data.postal_code || null,
+      emergency_contact_name: data.emergency_contact_name || null,
+      emergency_contact_phone: data.emergency_contact_phone || null,
+      emergency_contact_relationship: data.emergency_contact_relationship || null,
+      current_level: data.current_level || null,
+      target_level: data.target_level || null,
+      visa_type: data.visa_type || null,
+      visa_expiry: data.visa_expiry || null,
+      visa_conditions: data.visa_conditions || null,
+      notes: data.notes || null,
+    };
+
     const [newStudent] = await db
       .insert(users)
       .values({
+        tenantId: '00000000-0000-0000-0000-000000000001', // Default tenant - should come from auth context
         name: data.name,
         email: data.email,
-        role: 'student',
+        primaryRole: 'student',
         phone: data.phone || null,
-        date_of_birth: data.date_of_birth ? new Date(data.date_of_birth) : null,
-        address: data.address || null,
-        city: data.city || null,
-        country: data.country || null,
-        postal_code: data.postal_code || null,
-        emergency_contact_name: data.emergency_contact_name || null,
-        emergency_contact_phone: data.emergency_contact_phone || null,
-        emergency_contact_relationship: data.emergency_contact_relationship || null,
-        current_level: data.current_level || null,
-        target_level: data.target_level || null,
-        visa_type: data.visa_type || null,
-        visa_expiry: data.visa_expiry ? new Date(data.visa_expiry) : null,
-        visa_conditions: data.visa_conditions || null,
-        notes: data.notes || null,
+        dateOfBirth: data.date_of_birth ? data.date_of_birth : null,
+        metadata,
         status: 'active',
-        created_at: new Date(),
-        updated_at: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       })
       .returning();
 

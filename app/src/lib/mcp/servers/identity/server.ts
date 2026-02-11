@@ -123,6 +123,13 @@ async function logAuditEvent(params: {
   }
 }
 
+interface MCPMeta {
+  tenant_id?: string;
+  user_id?: string;
+  role?: string;
+  scopes?: string[];
+}
+
 /**
  * Extract session info from request context
  * In MCP protocol, session info comes from request metadata
@@ -133,11 +140,12 @@ function getSessionFromContext(extra?: unknown): {
   role: string;
   scopes: string[];
 } {
+  const meta = (extra as { _meta?: MCPMeta } | undefined)?._meta;
   return {
-    tenantId: extra?._meta?.tenant_id || 'default-tenant',
-    userId: extra?._meta?.user_id || 'system',
-    role: extra?._meta?.role || 'admin',
-    scopes: extra?._meta?.scopes || ['identity:*'],
+    tenantId: meta?.tenant_id || 'default-tenant',
+    userId: meta?.user_id || 'system',
+    role: meta?.role || 'admin',
+    scopes: meta?.scopes || ['identity:*'],
   };
 }
 
@@ -200,7 +208,7 @@ async function main() {
       const existing = await db
         .select()
         .from(users)
-        .where(and(eq(users.tenant_id, session.tenantId), eq(users.email, email)))
+        .where(and(eq(users.tenantId, session.tenantId), eq(users.email, email)))
         .limit(1);
 
       if (existing.length > 0) {
@@ -223,10 +231,10 @@ async function main() {
       const finalRequireMfa = isAdminRole ? true : require_mfa;
 
       const insertData: unknown = {
-        tenant_id: session.tenantId,
+        tenantId: session.tenantId,
         email,
         name,
-        role,
+        primaryRole: role,
         status: 'active',
         metadata: {
           scopes: finalScopes,
@@ -288,21 +296,22 @@ async function main() {
       const allUsers = await db
         .select()
         .from(users)
-        .where(and(eq(users.tenant_id, session.tenantId), eq(users.status, 'active')))
-        .orderBy(users.created_at);
+        .where(and(eq(users.tenantId, session.tenantId), eq(users.status, 'active')))
+        .orderBy(users.createdAt);
 
       const userData = {
         users: allUsers.map(u => ({
           id: u.id,
           email: u.email,
           name: u.name,
-          role: u.role,
+          role: u.primaryRole,
           scopes:
-            (u.metadata as Record<string, unknown>)?.scopes || getDefaultScopesForRole(u.role),
+            (u.metadata as Record<string, unknown>)?.scopes ||
+            getDefaultScopesForRole(u.primaryRole),
           status: u.status,
           mfa_enabled: (u.metadata as Record<string, unknown>)?.require_mfa || false,
-          created_at: u.created_at,
-          last_login: u.last_login,
+          created_at: u.createdAt,
+          last_login: u.lastLogin,
         })),
         total: allUsers.length,
       };

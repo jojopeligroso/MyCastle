@@ -71,9 +71,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .select({
         session: {
           id: classSessions.id,
-          sessionDate: classSessions.session_date,
-          startTime: classSessions.start_time,
-          endTime: classSessions.end_time,
+          sessionDate: classSessions.sessionDate,
+          startTime: classSessions.startTime,
+          endTime: classSessions.endTime,
           topic: classSessions.topic,
           notes: classSessions.notes,
           status: classSessions.status,
@@ -84,22 +84,22 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           code: classes.code,
           level: classes.level,
           subject: classes.subject,
-          enrolledCount: classes.enrolled_count,
+          enrolledCount: classes.enrolledCount,
           capacity: classes.capacity,
         },
       })
       .from(classSessions)
-      .innerJoin(classes, eq(classSessions.class_id, classes.id))
+      .innerJoin(classes, eq(classSessions.classId, classes.id))
       .where(
         and(
-          eq(classes.teacher_id, user.id),
-          eq(classes.tenant_id, tenantId),
+          eq(classes.teacherId, user.id),
+          eq(classes.tenantId, tenantId),
           eq(classes.status, 'active'),
-          gte(classSessions.session_date, weekStart),
-          lte(classSessions.session_date, weekEnd)
+          gte(classSessions.sessionDate, weekStart),
+          lte(classSessions.sessionDate, weekEnd)
         )
       )
-      .orderBy(classSessions.session_date, classSessions.start_time);
+      .orderBy(classSessions.sessionDate, classSessions.startTime);
 
     const executionTime = Date.now() - startTime;
 

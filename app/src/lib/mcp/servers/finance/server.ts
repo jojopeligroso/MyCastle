@@ -13,12 +13,20 @@ import { db } from '@/db';
 import { invoices, auditLogs } from '@/db/schema';
 import { eq, desc } from 'drizzle-orm';
 
+interface MCPMeta {
+  tenant_id?: string;
+  user_id?: string;
+  role?: string;
+  scopes?: string[];
+}
+
 function getSessionFromContext(extra?: unknown) {
+  const meta = (extra as { _meta?: MCPMeta } | undefined)?._meta;
   return {
-    tenantId: extra?._meta?.tenant_id || 'default-tenant',
-    userId: extra?._meta?.user_id || 'system',
-    role: extra?._meta?.role || 'admin',
-    scopes: extra?._meta?.scopes || ['finance:*'],
+    tenantId: meta?.tenant_id || 'default-tenant',
+    userId: meta?.user_id || 'system',
+    role: meta?.role || 'admin',
+    scopes: meta?.scopes || ['finance:*'],
   };
 }
 
@@ -80,7 +88,7 @@ async function main() {
       due_date: z.string().optional().describe('Invoice due date (ISO 8601)'),
     },
     async (args, extra) => {
-      const _session = getSessionFromContext(extra);
+      const session = getSessionFromContext(extra);
       const { student_id, class_id, amount, currency, due_date } = args;
 
       const invoiceNumber = generateInvoiceNumber(session.tenantId);
@@ -89,14 +97,14 @@ async function main() {
         : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
       const insertData: unknown = {
-        tenant_id: session.tenantId,
-        invoice_number: invoiceNumber,
-        student_id,
+        tenantId: session.tenantId,
+        invoiceNumber: invoiceNumber,
+        studentId: student_id,
         amount: amount.toString(),
         currency,
         status: 'pending',
-        due_date: dueDate,
-        issue_date: new Date(),
+        dueDate: dueDate,
+        issueDate: new Date(),
         description: `Booking for class ${class_id}`,
       };
 
@@ -130,7 +138,8 @@ async function main() {
       send_email: z.boolean().default(true).describe('Send invoice via email'),
     },
     async (args, extra) => {
-      const _session = getSessionFromContext(extra);
+      const session = getSessionFromContext(extra);
+      void session; // Used for future implementation
       const { booking_id, send_email } = args;
 
       // Implementation here
@@ -153,13 +162,13 @@ async function main() {
       mimeType: 'application/json',
     },
     async (uri, extra) => {
-      const _session = getSessionFromContext(extra);
+      const session = getSessionFromContext(extra);
 
       const allInvoices = await db
         .select()
         .from(invoices)
-        .where(eq(invoices.tenant_id, session.tenantId))
-        .orderBy(desc(invoices.created_at))
+        .where(eq(invoices.tenantId, session.tenantId))
+        .orderBy(desc(invoices.createdAt))
         .limit(100);
 
       return {

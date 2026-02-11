@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { type User } from '@/db/schema/core';
 
@@ -8,6 +9,9 @@ interface StudentWithMetadata extends User {
   attendance_rate?: number | null;
   visa_expiring_soon?: boolean;
   at_risk_attendance?: boolean;
+  currentLevel?: string | null;
+  levelStatus?: 'confirmed' | 'provisional' | 'pending_approval' | null;
+  visaExpiry?: string | Date | null;
 }
 
 interface StudentListProps {
@@ -31,20 +35,20 @@ export function StudentList({ students, onStudentClick }: StudentListProps) {
     return colors[level] || 'bg-gray-100 text-gray-600';
   };
 
-  const getLevelDisplay = (student: StudentWithMetadata): JSX.Element => {
-    if (!student.current_level) {
+  const getLevelDisplay = (student: StudentWithMetadata): ReactNode => {
+    if (!student.currentLevel) {
       return <span className="text-gray-400 text-sm">Not assessed</span>;
     }
 
-    const isProvisional = student.level_status === 'provisional';
-    const isPending = student.level_status === 'pending_approval';
+    const isProvisional = student.levelStatus === 'provisional';
+    const isPending = student.levelStatus === 'pending_approval';
 
     return (
       <div className="flex items-center gap-1.5">
         <span
-          className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded ${getLevelBadgeColor(student.current_level)}`}
+          className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded ${getLevelBadgeColor(student.currentLevel)}`}
         >
-          {student.current_level}
+          {student.currentLevel}
         </span>
         {isProvisional && (
           <span className="text-amber-500" title="Provisional level - requires approval">
@@ -60,7 +64,7 @@ export function StudentList({ students, onStudentClick }: StudentListProps) {
     );
   };
 
-  const getAttendanceDisplay = (rate: number | null | undefined): JSX.Element => {
+  const getAttendanceDisplay = (rate: number | null | undefined): ReactNode => {
     if (rate === null || rate === undefined) {
       return <span className="text-gray-400 text-sm">N/A</span>;
     }
@@ -78,10 +82,10 @@ export function StudentList({ students, onStudentClick }: StudentListProps) {
     return <span className={`font-medium ${color}`}>{percentage}%</span>;
   };
 
-  const getVisaStatusBadge = (student: StudentWithMetadata): JSX.Element | null => {
-    if (!student.visa_expiry) return null;
+  const getVisaStatusBadge = (student: StudentWithMetadata): ReactNode | null => {
+    if (!student.visaExpiry) return null;
 
-    const expiryDate = new Date(student.visa_expiry);
+    const expiryDate = new Date(student.visaExpiry);
     const today = new Date();
     const daysUntilExpiry = Math.floor(
       (expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
@@ -110,7 +114,7 @@ export function StudentList({ students, onStudentClick }: StudentListProps) {
     );
   };
 
-  const getStatusBadge = (status: string): JSX.Element => {
+  const getStatusBadge = (status: string): ReactNode => {
     const colors: Record<string, string> = {
       active: 'bg-green-100 text-green-800',
       suspended: 'bg-red-100 text-red-800',
@@ -210,8 +214,8 @@ export function StudentList({ students, onStudentClick }: StudentListProps) {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="flex-shrink-0 h-10 w-10">
-                      {student.avatar_url ? (
-                        <img className="h-10 w-10 rounded-full" src={student.avatar_url} alt="" />
+                      {student.avatarUrl ? (
+                        <img className="h-10 w-10 rounded-full" src={student.avatarUrl} alt="" />
                       ) : (
                         <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
                           <span className="text-sm font-medium text-purple-600">
@@ -261,8 +265,8 @@ export function StudentList({ students, onStudentClick }: StudentListProps) {
             className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-purple-300 cursor-pointer transition-colors"
           >
             <div className="flex items-center gap-3 mb-3">
-              {student.avatar_url ? (
-                <img className="h-12 w-12 rounded-full" src={student.avatar_url} alt="" />
+              {student.avatarUrl ? (
+                <img className="h-12 w-12 rounded-full" src={student.avatarUrl} alt="" />
               ) : (
                 <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
                   <span className="text-base font-medium text-purple-600">

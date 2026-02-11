@@ -2,7 +2,10 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createStudent } from '@/app/admin/students/_actions/studentActions';
+import {
+  createStudent,
+  type CreateStudentData,
+} from '@/app/admin/students/_actions/studentActions';
 
 const CEFR_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
@@ -52,25 +55,24 @@ export function CreateStudentForm() {
       }
 
       // Prepare data
-      const data: unknown = {
+      const data: CreateStudentData = {
         name,
         email,
         phone: phone || undefined,
         visa_type: visaType || undefined,
         visa_expiry: visaExpiry || undefined,
+        current_level: levelMethod === 'manual' ? currentLevel : undefined,
+        initial_level: levelMethod === 'manual' ? initialLevel || currentLevel : undefined,
+        level_status: levelMethod === 'manual' ? 'confirmed' : undefined,
+        diagnostic_test:
+          levelMethod === 'diagnostic'
+            ? {
+                score: parseInt(diagnosticScore, 10),
+                max_score: parseInt(diagnosticMaxScore, 10),
+                suggested_level: suggestedLevel,
+              }
+            : undefined,
       };
-
-      if (levelMethod === 'manual') {
-        data.current_level = currentLevel;
-        data.initial_level = initialLevel || currentLevel;
-        data.level_status = 'confirmed';
-      } else {
-        data.diagnostic_test = {
-          score: parseInt(diagnosticScore, 10),
-          max_score: parseInt(diagnosticMaxScore, 10),
-          suggested_level: suggestedLevel,
-        };
-      }
 
       const result = await createStudent(data);
 
@@ -80,7 +82,7 @@ export function CreateStudentForm() {
       } else {
         throw new Error(result.error || 'Failed to create student');
       }
-    } catch (_err) {
+    } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setIsSubmitting(false);

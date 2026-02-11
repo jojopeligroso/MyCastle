@@ -13,12 +13,20 @@ import { db } from '@/db';
 import { classes, enrollments } from '@/db/schema';
 // Imports for future use - drizzle-orm operators reserved for query filtering
 
+interface MCPMeta {
+  tenant_id?: string;
+  user_id?: string;
+  role?: string;
+  scopes?: string[];
+}
+
 function getSessionFromContext(extra?: unknown) {
+  const meta = (extra as { _meta?: MCPMeta } | undefined)?._meta;
   return {
-    tenantId: extra?._meta?.tenant_id || 'default-tenant',
-    userId: extra?._meta?.user_id || 'system',
-    role: extra?._meta?.role || 'admin',
-    scopes: extra?._meta?.scopes || ['academic:*'],
+    tenantId: meta?.tenant_id || 'default-tenant',
+    userId: meta?.user_id || 'system',
+    role: meta?.role || 'admin',
+    scopes: meta?.scopes || ['academic:*'],
   };
 }
 
@@ -53,7 +61,7 @@ async function main() {
       max_students: z.number().int().positive().default(20).describe('Capacity'),
     },
     async (args, extra) => {
-      const _session = getSessionFromContext(extra);
+      const session = getSessionFromContext(extra);
       const {
         name,
         code,
@@ -68,16 +76,16 @@ async function main() {
       } = args;
 
       const insertData: unknown = {
-        tenant_id: session.tenantId,
+        tenantId: session.tenantId,
         name,
         code,
-        teacher_id,
+        teacherId: teacher_id,
         description,
         level,
         subject,
-        start_date: new Date(start_date),
-        end_date: end_date ? new Date(end_date) : undefined,
-        schedule_description: schedule,
+        startDate: new Date(start_date),
+        endDate: end_date ? new Date(end_date) : undefined,
+        scheduleDescription: schedule,
         capacity: max_students,
         status: 'active',
       };
@@ -104,14 +112,14 @@ async function main() {
       enrollment_date: z.string().optional().describe('Enrollment date (defaults to now)'),
     },
     async (args, extra) => {
-      const _session = getSessionFromContext(extra);
+      const session = getSessionFromContext(extra);
       const { student_id, class_id, enrollment_date } = args;
 
       const insertData: unknown = {
-        tenant_id: session.tenantId,
-        student_id,
-        class_id,
-        enrollment_date: enrollment_date ? new Date(enrollment_date) : new Date(),
+        tenantId: session.tenantId,
+        studentId: student_id,
+        classId: class_id,
+        enrollmentDate: enrollment_date ? new Date(enrollment_date) : new Date(),
         status: 'active',
       };
 

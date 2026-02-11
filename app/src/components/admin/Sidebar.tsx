@@ -2,18 +2,20 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState, useEffect, ComponentType } from 'react';
+import { useState, useEffect, ComponentType, SVGProps } from 'react';
+
+type IconProps = SVGProps<SVGSVGElement>;
 
 type NavItem = {
   name: string;
   href: string;
-  icon?: ComponentType<unknown>;
+  icon?: ComponentType<IconProps>;
 };
 
 type NavGroup = {
   name: string;
   items: NavItem[];
-  icon?: ComponentType<unknown>;
+  icon?: ComponentType<IconProps>;
 };
 
 const navigation: (NavItem | NavGroup)[] = [
@@ -257,7 +259,7 @@ function NavGroup({
 }
 
 // Icons
-function HomeIcon(props: unknown) {
+function HomeIcon(props: IconProps) {
   return (
     <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path
@@ -269,7 +271,7 @@ function HomeIcon(props: unknown) {
     </svg>
   );
 }
-function UsersIcon(props: unknown) {
+function UsersIcon(props: IconProps) {
   return (
     <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path
@@ -281,7 +283,7 @@ function UsersIcon(props: unknown) {
     </svg>
   );
 }
-function AcademicCapIcon(props: unknown) {
+function AcademicCapIcon(props: IconProps) {
   return (
     <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path
@@ -305,7 +307,7 @@ function AcademicCapIcon(props: unknown) {
     </svg>
   );
 }
-function ClipboardCheckIcon(props: unknown) {
+function ClipboardCheckIcon(props: IconProps) {
   return (
     <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path
@@ -317,7 +319,7 @@ function ClipboardCheckIcon(props: unknown) {
     </svg>
   );
 }
-function CogIcon(props: unknown) {
+function CogIcon(props: IconProps) {
   return (
     <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path
@@ -335,7 +337,7 @@ function CogIcon(props: unknown) {
     </svg>
   );
 }
-function QuestionMarkCircleIcon(props: unknown) {
+function QuestionMarkCircleIcon(props: IconProps) {
   return (
     <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path

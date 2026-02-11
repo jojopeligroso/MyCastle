@@ -11,8 +11,14 @@ import {
   DocumentsTab,
 } from './tabs';
 
+// Extended student data type with CEFR level information
+interface StudentData extends User {
+  currentLevel?: string | null;
+  levelStatus?: 'confirmed' | 'provisional' | 'pending_approval' | null;
+}
+
 interface StudentDetailDrawerProps {
-  student: User | null;
+  student: StudentData | null;
   isOpen: boolean;
   onClose: () => void;
   onApproveLevel?: (studentId: string) => Promise<void>;
@@ -109,9 +115,9 @@ export function StudentDetailDrawer({
         <div className="bg-purple-600 text-white p-6">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">
-              {student.avatar_url ? (
+              {student.avatarUrl ? (
                 <img
-                  src={student.avatar_url}
+                  src={student.avatarUrl}
                   alt={student.name}
                   className="h-16 w-16 rounded-full border-2 border-white"
                 />
@@ -123,11 +129,11 @@ export function StudentDetailDrawer({
               <div>
                 <h2 className="text-xl font-bold">{student.name}</h2>
                 <p className="text-purple-100 text-sm">{student.email}</p>
-                {student.current_level && (
+                {student.currentLevel && (
                   <div className="mt-1">
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold bg-white/20 rounded">
-                      CEFR {student.current_level}
-                      {student.level_status === 'provisional' && ' (Provisional)'}
+                      CEFR {student.currentLevel}
+                      {student.levelStatus === 'provisional' && ' (Provisional)'}
                     </span>
                   </div>
                 )}
