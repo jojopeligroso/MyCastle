@@ -9,11 +9,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     await requireAuth(['admin']);
     const { id: invoiceId } = await params;
 
-    const [invoice] = await db
-      .select()
-      .from(invoices)
-      .where(eq(invoices.id, invoiceId))
-      .limit(1);
+    const [invoice] = await db.select().from(invoices).where(eq(invoices.id, invoiceId)).limit(1);
 
     if (!invoice) {
       return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
@@ -33,10 +29,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAuth(['admin']);
     const { id: invoiceId } = await params;
