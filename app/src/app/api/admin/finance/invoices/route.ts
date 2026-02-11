@@ -79,11 +79,7 @@ export async function POST(request: NextRequest) {
     const data = validationResult.data;
 
     // Verify student exists
-    const [student] = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, data.student_id))
-      .limit(1);
+    const [student] = await db.select().from(users).where(eq(users.id, data.student_id)).limit(1);
 
     if (!student) {
       return NextResponse.json({ error: 'Student not found' }, { status: 404 });
