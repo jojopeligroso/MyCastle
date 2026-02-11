@@ -1,14 +1,14 @@
 ---
 status: STABILIZATION
-last_updated: 2026-02-05
-next_review: 2026-02-06
+last_updated: 2026-02-11
+next_review: 2026-02-12
 owner: Eoin Malone
 phase: Phase 1 - Admin UI/UX (Stabilization In Progress)
 ---
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-02-05 (Stabilization Phase - 89% Complete)
+**Last Updated:** 2026-02-11 (Stabilization Phase - Schema Fixes Applied)
 **Current Phase:** Phase 1 (Admin UI/UX) - Stabilization In Progress
 **Current Sprint:** Week 7 of Phase 1
 **Next Milestone:** Complete Stabilization → Production Testing
@@ -83,8 +83,20 @@ Remaining 2 tasks are pre-existing tech debt (not blockers):
 - `c36a7e0` - Phase 1-2: Dashboard tenant filtering, direct DB access
 - `ed8cc1f` - Formatting
 - `bff9bdf` - Phase 2-3: Gated UI, lint fixes
+- `a32ea41` - **2026-02-11**: Fix ~500 TypeScript errors in API routes (schema mismatch fixes)
+- `f837dbf` - **2026-02-11**: Prettier formatting for finance/programmes routes
 
-**Next recommended action:** Production testing with real tenant data
+**Status Update (2026-02-11):**
+Major schema mismatch fix applied across 66 files:
+- ✅ Fixed API routes using snake_case instead of camelCase Drizzle properties
+- ✅ Fixed finance routes to use `invoicePayments` (not booking `payments`)
+- ✅ Fixed programmes routes to use `programmeCourses` table
+- ✅ Fixed enrollments routes (uses `status` not `deletedAt`, uses `enrollmentDate`)
+- ✅ Fixed MCP servers (identity, teacher) - critical `_session`/`session` bug fixed
+- ✅ Fixed query builder routes with proper `$dynamic()` usage
+- ⚠️ Some TypeScript errors remain in teacher/server.ts, middleware.ts
+
+**Next recommended action:** Fix remaining TypeScript errors, then production testing
 
 ---
 
