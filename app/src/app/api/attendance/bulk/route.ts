@@ -95,12 +95,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const [classSession] = await db
       .select({ session: classSessions, class: classes })
       .from(classSessions)
-      .innerJoin(classes, eq(classSessions.class_id, classes.id))
+      .innerJoin(classes, eq(classSessions.classId, classes.id))
       .where(
         and(
           eq(classSessions.id, sessionId),
-          eq(classSessions.tenant_id, tenantId),
-          eq(classes.tenant_id, tenantId)
+          eq(classSessions.tenantId, tenantId),
+          eq(classes.tenantId, tenantId)
         )
       )
       .limit(1);
@@ -118,7 +118,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Check authorization (teacher or admin)
     const isAuthorized =
       user.role === 'admin' ||
-      (user.role === 'teacher' && classSession.class.teacher_id === user.id);
+      (user.role === 'teacher' && classSession.class.teacherId === user.id);
 
     if (!isAuthorized) {
       return NextResponse.json(
@@ -132,10 +132,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Get last hash for the session
     const sessionRecords = await db
-      .select({ hash: attendance.hash, created_at: attendance.created_at })
+      .select({ hash: attendance.hash, createdAt: attendance.createdAt })
       .from(attendance)
-      .where(and(eq(attendance.class_session_id, sessionId), eq(attendance.tenant_id, tenantId)))
-      .orderBy(sql`${attendance.created_at} DESC`)
+      .where(and(eq(attendance.classSessionId, sessionId), eq(attendance.tenantId, tenantId)))
+      .orderBy(sql`${attendance.createdAt} DESC`)
       .limit(1);
 
     let currentHash = getLastHash(sessionRecords);
@@ -168,31 +168,31 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         const [record] = await db
           .insert(attendance)
           .values({
-            tenant_id: tenantId,
-            class_session_id: sessionId,
-            student_id: item.studentId,
+            tenantId: tenantId,
+            classSessionId: sessionId,
+            studentId: item.studentId,
             status: item.status,
             notes: item.notes || null,
-            minutes_late: item.minutesLate || 0,
-            minutes_left_early: item.minutesLeftEarly || 0,
-            recorded_by: user.id,
+            minutesLate: item.minutesLate || 0,
+            minutesLeftEarly: item.minutesLeftEarly || 0,
+            recordedBy: user.id,
             hash,
-            previous_hash: currentHash,
-            is_within_edit_window: 'false',
+            previousHash: currentHash,
+            isWithinEditWindow: false,
           })
           .onConflictDoUpdate({
-            target: [attendance.class_session_id, attendance.student_id],
+            target: [attendance.classSessionId, attendance.studentId],
             set: {
               status: item.status,
               notes: item.notes || null,
-              minutes_late: item.minutesLate || 0,
-              minutes_left_early: item.minutesLeftEarly || 0,
+              minutesLate: item.minutesLate || 0,
+              minutesLeftEarly: item.minutesLeftEarly || 0,
               hash,
-              edited_by: user.id,
-              edited_at: now,
-              edit_count: sql`${attendance.edit_count} + 1`,
-              is_within_edit_window: 'true',
-              updated_at: now,
+              editedBy: user.id,
+              editedAt: now,
+              editCount: sql`${attendance.editCount} + 1`,
+              isWithinEditWindow: true,
+              updatedAt: now,
             },
           })
           .returning();

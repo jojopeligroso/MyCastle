@@ -13,12 +13,20 @@ import { db } from '@/db';
 import { lessonPlans, assignments, grades } from '@/db/schema';
 // Imports for future use - drizzle-orm operators reserved for query filtering
 
+interface MCPMeta {
+  tenant_id?: string;
+  user_id?: string;
+  role?: string;
+  scopes?: string[];
+}
+
 function getSessionFromContext(extra?: unknown) {
+  const meta = (extra as { _meta?: MCPMeta } | undefined)?._meta;
   return {
-    tenantId: extra?._meta?.tenant_id || 'default-tenant',
-    userId: extra?._meta?.user_id || 'system',
-    role: extra?._meta?.role || 'teacher',
-    scopes: extra?._meta?.scopes || ['teacher:*'],
+    tenantId: meta?.tenant_id || 'default-tenant',
+    userId: meta?.user_id || 'system',
+    role: meta?.role || 'teacher',
+    scopes: meta?.scopes || ['teacher:*'],
   };
 }
 
@@ -50,7 +58,7 @@ async function main() {
         .describe('Focus language skills'),
     },
     async (args, extra) => {
-      const _session = getSessionFromContext(extra);
+      const session = getSessionFromContext(extra);
       const { class_id, topic, cefr_level, duration_minutes, focus_skills } = args;
 
       // Generate lesson plan using AI (simplified)
@@ -69,14 +77,14 @@ async function main() {
       };
 
       const insertData: unknown = {
-        tenant_id: session.tenantId,
-        class_id,
-        teacher_id: session.userId,
+        tenantId: session.tenantId,
+        classId: class_id,
+        teacherId: session.userId,
         title: `${topic} - ${cefr_level}`,
-        cefr_level,
-        duration_minutes,
-        json_plan: lessonContent,
-        is_ai_generated: 'true',
+        cefrLevel: cefr_level,
+        durationMinutes: duration_minutes,
+        jsonPlan: lessonContent,
+        isAiGenerated: true,
         status: 'draft',
       };
 
@@ -106,17 +114,24 @@ async function main() {
       type: z.enum(['homework', 'quiz', 'exam', 'project']).describe('Assignment type'),
     },
     async (args: unknown, extra: unknown) => {
-      const _session = getSessionFromContext(extra);
-      const { class_id, title, description, due_date, max_score, type } = args;
+      const session = getSessionFromContext(extra);
+      const { class_id, title, description, due_date, max_score, type } = args as {
+        class_id: string;
+        title: string;
+        description: string;
+        due_date: string;
+        max_score: number;
+        type: string;
+      };
 
       const insertData: unknown = {
-        tenant_id: session.tenantId,
-        class_id,
+        tenantId: session.tenantId,
+        classId: class_id,
         title,
         description,
-        due_date: new Date(due_date),
-        assigned_date: new Date(),
-        max_score,
+        dueDate: new Date(due_date),
+        assignedDate: new Date(),
+        maxScore: max_score,
         type,
         status: 'active',
       };
@@ -148,13 +163,13 @@ async function main() {
       const { submission_id, score, feedback, grade } = args;
 
       const insertData: unknown = {
-        tenant_id: session.tenantId,
-        submission_id,
+        tenantId: session.tenantId,
+        submissionId: submission_id,
         score: score.toString(),
         feedback,
         grade,
-        graded_by: session.userId,
-        graded_at: new Date(),
+        gradedBy: session.userId,
+        gradedAt: new Date(),
       };
 
       await db.insert(grades).values(insertData).returning();
@@ -178,11 +193,11 @@ async function main() {
       mimeType: 'application/json',
     },
     async (uri, extra) => {
-      const _session = getSessionFromContext(extra);
+      const session = getSessionFromContext(extra);
 
       // Fetch teacher's classes (simplified - would access DB)
       const data = {
-        teacher_id: session.userId,
+        teacherId: session.userId,
         classes: [],
         message: 'This resource would return actual classes from DB',
       };

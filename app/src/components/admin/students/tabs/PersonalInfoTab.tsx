@@ -2,8 +2,17 @@
 
 import { type User } from '@/db/schema/core';
 
+// Extended student data type with CEFR level and visa information
+interface StudentData extends User {
+  currentLevel?: string | null;
+  initialLevel?: string | null;
+  levelStatus?: 'confirmed' | 'provisional' | 'pending_approval' | null;
+  visaType?: string | null;
+  visaExpiry?: string | Date | null;
+}
+
 interface PersonalInfoTabProps {
-  student: User;
+  student: StudentData;
   onApproveLevel?: () => void;
   isApproving?: boolean;
   canApproveLevel?: boolean;
@@ -41,7 +50,7 @@ export function PersonalInfoTab({
   };
 
   const getLevelStatusBadge = () => {
-    const status = student.level_status;
+    const status = student.levelStatus;
 
     if (!status || status === 'confirmed') {
       return (
@@ -111,9 +120,9 @@ export function PersonalInfoTab({
   };
 
   const getVisaStatusBadge = () => {
-    if (!student.visa_expiry) return null;
+    if (!student.visaExpiry) return null;
 
-    const expiryDate = new Date(student.visa_expiry);
+    const expiryDate = new Date(student.visaExpiry);
     const today = new Date();
     const daysUntilExpiry = Math.floor(
       (expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
@@ -215,13 +224,13 @@ export function PersonalInfoTab({
 
           <div>
             <dt className="text-xs font-medium text-gray-500">Joined</dt>
-            <dd className="mt-1 text-sm text-gray-900">{formatDate(student.created_at)}</dd>
+            <dd className="mt-1 text-sm text-gray-900">{formatDate(student.createdAt)}</dd>
           </div>
 
-          {student.last_login && (
+          {student.lastLogin && (
             <div>
               <dt className="text-xs font-medium text-gray-500">Last Login</dt>
-              <dd className="mt-1 text-sm text-gray-900">{formatDate(student.last_login)}</dd>
+              <dd className="mt-1 text-sm text-gray-900">{formatDate(student.lastLogin)}</dd>
             </div>
           )}
         </dl>
@@ -234,12 +243,12 @@ export function PersonalInfoTab({
           <div>
             <dt className="text-xs font-medium text-gray-500">Current Level</dt>
             <dd className="mt-1 flex items-center gap-2">
-              {student.current_level ? (
+              {student.currentLevel ? (
                 <>
                   <span
-                    className={`inline-flex px-2 py-1 text-sm font-semibold rounded ${getLevelBadgeColor(student.current_level)}`}
+                    className={`inline-flex px-2 py-1 text-sm font-semibold rounded ${getLevelBadgeColor(student.currentLevel)}`}
                   >
-                    {student.current_level}
+                    {student.currentLevel}
                   </span>
                   {getLevelStatusBadge()}
                 </>
@@ -249,21 +258,21 @@ export function PersonalInfoTab({
             </dd>
           </div>
 
-          {student.initial_level && (
+          {student.initialLevel && (
             <div>
               <dt className="text-xs font-medium text-gray-500">Initial Level</dt>
               <dd className="mt-1">
                 <span
-                  className={`inline-flex px-2 py-1 text-sm font-semibold rounded ${getLevelBadgeColor(student.initial_level)}`}
+                  className={`inline-flex px-2 py-1 text-sm font-semibold rounded ${getLevelBadgeColor(student.initialLevel)}`}
                 >
-                  {student.initial_level}
+                  {student.initialLevel}
                 </span>
               </dd>
             </div>
           )}
         </dl>
 
-        {student.level_status === 'provisional' && (
+        {student.levelStatus === 'provisional' && (
           <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
             <p className="text-xs text-amber-800">
               <strong>Note:</strong> This student current level was assigned based on a diagnostic
@@ -274,22 +283,22 @@ export function PersonalInfoTab({
       </section>
 
       {/* Visa Information */}
-      {(student.visa_type || student.visa_expiry) && (
+      {(student.visaType || student.visaExpiry) && (
         <section>
           <h3 className="text-sm font-semibold text-gray-900 mb-4">Visa Information</h3>
           <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {student.visa_type && (
+            {student.visaType && (
               <div>
                 <dt className="text-xs font-medium text-gray-500">Visa Type</dt>
-                <dd className="mt-1 text-sm text-gray-900">{student.visa_type}</dd>
+                <dd className="mt-1 text-sm text-gray-900">{student.visaType}</dd>
               </div>
             )}
 
-            {student.visa_expiry && (
+            {student.visaExpiry && (
               <div>
                 <dt className="text-xs font-medium text-gray-500">Visa Expiry</dt>
                 <dd className="mt-1 flex items-center gap-2">
-                  <span className="text-sm text-gray-900">{formatDate(student.visa_expiry)}</span>
+                  <span className="text-sm text-gray-900">{formatDate(student.visaExpiry)}</span>
                   {getVisaStatusBadge()}
                 </dd>
               </div>

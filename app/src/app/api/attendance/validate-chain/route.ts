@@ -47,7 +47,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const [classSession] = await db
       .select({ session: classSessions, class: classes })
       .from(classSessions)
-      .innerJoin(classes, eq(classSessions.class_id, classes.id))
+      .innerJoin(classes, eq(classSessions.classId, classes.id))
       .where(eq(classSessions.id, sessionId))
       .limit(1);
 
@@ -63,7 +63,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     // Check authorization (teacher or admin)
     const isAuthorized =
-      userRole === 'admin' || (userRole === 'teacher' && classSession.class.teacher_id === user.id);
+      userRole === 'admin' || (userRole === 'teacher' && classSession.class.teacherId === user.id);
 
     if (!isAuthorized) {
       return NextResponse.json(
@@ -79,15 +79,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const records = await db
       .select()
       .from(attendance)
-      .where(eq(attendance.class_session_id, sessionId))
-      .orderBy(attendance.created_at);
+      .where(eq(attendance.classSessionId, sessionId))
+      .orderBy(attendance.createdAt);
 
     // Validate hash chain
-    // Map records to ensure recorded_by is non-null (fallback to empty string if null)
+    // Map records to ensure recordedBy is non-null (fallback to empty string if null)
     const validation = validateHashChain(
       records.map(r => ({
         ...r,
-        recorded_by: r.recorded_by || '',
+        recordedBy: r.recordedBy || '',
       }))
     );
 
@@ -98,7 +98,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           sessionId,
           validation,
           sessionDetails: {
-            date: classSession.session.session_date,
+            date: classSession.session.sessionDate,
             topic: classSession.session.topic,
             className: classSession.class.name,
           },

@@ -58,7 +58,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const [existingUser] = await db
       .select()
       .from(users)
-      .where(and(eq(users.id, id), eq(users.tenant_id, tenantId)))
+      .where(and(eq(users.id, id), eq(users.tenantId, tenantId)))
       .limit(1);
 
     if (!existingUser) {
@@ -97,9 +97,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       .update(users)
       .set({
         ...validatedData,
-        updated_at: new Date(),
+        updatedAt: new Date(),
       })
-      .where(and(eq(users.id, id), eq(users.tenant_id, tenantId)))
+      .where(and(eq(users.id, id), eq(users.tenantId, tenantId)))
       .returning();
 
     return NextResponse.json({
@@ -109,13 +109,16 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   } catch (error: unknown) {
     console.error('Error updating user:', error);
 
-    if (error.name === 'ZodError') {
+    if (error instanceof Error && error.name === 'ZodError') {
       return NextResponse.json(
-        { error: 'Invalid request data', details: error.issues },
+        { error: 'Invalid request data', details: (error as { issues: unknown[] }).issues },
         { status: 400 }
       );
     }
 
-    return NextResponse.json({ error: error.message || 'Failed to update user' }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Failed to update user' },
+      { status: 500 }
+    );
   }
 }

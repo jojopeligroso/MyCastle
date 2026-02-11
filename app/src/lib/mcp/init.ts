@@ -4,6 +4,7 @@
  * Each server runs as a standalone process and communicates via stdio using JSON-RPC 2.0
  */
 
+import path from 'path';
 import { getMCPHost } from './host/MCPHostRefactored';
 
 /**

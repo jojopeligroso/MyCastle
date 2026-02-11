@@ -61,7 +61,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const [classRecord] = await db
       .select()
       .from(classes)
-      .where(and(eq(classes.id, classId), eq(classes.tenant_id, tenantId)))
+      .where(and(eq(classes.id, classId), eq(classes.tenantId, tenantId)))
       .limit(1);
 
     if (!classRecord) {
@@ -75,7 +75,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     const isAuthorized =
-      userRole === 'admin' || (userRole === 'teacher' && classRecord.teacher_id === user.id);
+      userRole === 'admin' || (userRole === 'teacher' && classRecord.teacherId === user.id);
 
     if (!isAuthorized) {
       return NextResponse.json(
@@ -93,10 +93,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .from(classSessions)
       .where(
         and(
-          eq(classSessions.class_id, classId),
-          eq(classSessions.session_date, date),
-          eq(classSessions.start_time, startTime),
-          eq(classSessions.tenant_id, tenantId)
+          eq(classSessions.classId, classId),
+          eq(classSessions.sessionDate, date),
+          eq(classSessions.startTime, startTime),
+          eq(classSessions.tenantId, tenantId)
         )
       )
       .limit(1);
@@ -108,11 +108,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       [session] = await db
         .insert(classSessions)
         .values({
-          tenant_id: tenantId,
-          class_id: classId,
-          session_date: date,
-          start_time: startTime,
-          end_time: endTime,
+          tenantId: tenantId,
+          classId: classId,
+          sessionDate: date,
+          startTime: startTime,
+          endTime: endTime,
           status: 'scheduled',
         })
         .returning();
@@ -127,33 +127,33 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           email: sql`users.email`,
         },
         enrollment: {
-          enrollmentDate: enrollments.enrollment_date,
-          attendanceRate: enrollments.attendance_rate,
-          currentGrade: enrollments.current_grade,
+          enrollmentDate: enrollments.enrollmentDate,
+          attendanceRate: enrollments.attendanceRate,
+          currentGrade: enrollments.currentGrade,
         },
         attendance: {
           id: attendance.id,
           status: attendance.status,
           notes: attendance.notes,
-          recordedAt: attendance.recorded_at,
+          recordedAt: attendance.recordedAt,
           hash: attendance.hash,
         },
       })
       .from(enrollments)
-      .innerJoin(sql`users`, eq(enrollments.student_id, sql`users.id`))
+      .innerJoin(sql`users`, eq(enrollments.studentId, sql`users.id`))
       .leftJoin(
         attendance,
         and(
-          eq(attendance.student_id, sql`users.id`),
-          eq(attendance.class_session_id, session.id),
-          eq(attendance.tenant_id, tenantId)
+          eq(attendance.studentId, sql`users.id`),
+          eq(attendance.classSessionId, session.id),
+          eq(attendance.tenantId, tenantId)
         )
       )
       .where(
         and(
-          eq(enrollments.class_id, classId),
+          eq(enrollments.classId, classId),
           eq(enrollments.status, 'active'),
-          eq(enrollments.tenant_id, tenantId)
+          eq(enrollments.tenantId, tenantId)
         )
       )
       .orderBy(sql`users.name`);
@@ -164,10 +164,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         data: {
           session: {
             id: session.id,
-            classId: session.class_id,
-            sessionDate: session.session_date,
-            startTime: session.start_time,
-            endTime: session.end_time,
+            classId: session.classId,
+            sessionDate: session.sessionDate,
+            startTime: session.startTime,
+            endTime: session.endTime,
             topic: session.topic,
             status: session.status,
           },
@@ -281,7 +281,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const [classRecord] = await db
       .select()
       .from(classes)
-      .where(and(eq(classes.id, classId), eq(classes.tenant_id, tenantId)))
+      .where(and(eq(classes.id, classId), eq(classes.tenantId, tenantId)))
       .limit(1);
 
     if (!classRecord) {
@@ -295,7 +295,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     const isAuthorized =
-      userRole === 'admin' || (userRole === 'teacher' && classRecord.teacher_id === user.id);
+      userRole === 'admin' || (userRole === 'teacher' && classRecord.teacherId === user.id);
 
     if (!isAuthorized) {
       return NextResponse.json(
@@ -311,11 +311,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const [session] = await db
       .insert(classSessions)
       .values({
-        tenant_id: tenantId,
-        class_id: classId,
-        session_date: sessionDate,
-        start_time: startTime,
-        end_time: endTime,
+        tenantId: tenantId,
+        classId: classId,
+        sessionDate: sessionDate,
+        startTime: startTime,
+        endTime: endTime,
         topic,
         status: 'scheduled',
       })
@@ -326,10 +326,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         success: true,
         data: {
           sessionId: session.id,
-          classId: session.class_id,
-          sessionDate: session.session_date,
-          startTime: session.start_time,
-          endTime: session.end_time,
+          classId: session.classId,
+          sessionDate: session.sessionDate,
+          startTime: session.startTime,
+          endTime: session.endTime,
           topic: session.topic,
         },
       },

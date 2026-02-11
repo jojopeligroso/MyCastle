@@ -26,9 +26,15 @@
 
 import { z } from 'zod';
 import { db } from '@/db';
-import { invoices, payments, users, enrollments, classes, auditLogs } from '@/db/schema';
+import { invoices, invoicePayments, users, enrollments, classes, auditLogs } from '@/db/schema';
 import { eq, and, gte, lte, desc, sql } from 'drizzle-orm';
 import { MCPServerConfig, MCPTool, MCPResource, MCPPrompt } from '../../types';
+
+// Session type for MCP handlers
+interface MCPSession {
+  tenantId: string;
+  userId: string;
+}
 
 /**
  * Helper: Log financial audit event
@@ -66,9 +72,9 @@ function generateInvoiceNumber(tenantId: string): string {
 /**
  * Helper: Calculate invoice status
  */
-function calculateInvoiceStatus(invoice: unknown): string {
+function calculateInvoiceStatus(invoice: { dueDate: string; status: string }): string {
   const now = new Date();
-  const dueDate = new Date(invoice.due_date);
+  const dueDate = new Date(invoice.dueDate);
 
   if (invoice.status === 'paid' || invoice.status === 'cancelled') {
     return invoice.status;
@@ -110,7 +116,7 @@ const createBookingTool: MCPTool = {
       .default(true)
       .describe('Automatically enroll student in class'),
   }),
-  handler: async (input, session) => {
+  handler: async (input, session: MCPSession) => {
     const {
       student_id,
       class_id,
@@ -120,16 +126,25 @@ const createBookingTool: MCPTool = {
       line_items,
       due_date,
       auto_confirm_enrollment,
-    } = input as Record<string, unknown>;
+    } = input as {
+      student_id: string;
+      class_id: string;
+      amount: number;
+      currency: string;
+      description?: string;
+      line_items?: Array<{ description: string; quantity: number; unit_price: number }>;
+      due_date: string;
+      auto_confirm_enrollment: boolean;
+    };
 
     // Verify student exists
     const [student] = await db
       .select()
       .from(users)
-      .where(and(eq(users.id, student_id), eq(users.tenant_id, session.tenantId)))
+      .where(and(eq(users.id, student_id), eq(users.tenantId, session.tenantId)))
       .limit(1);
 
-    if (!student || student.role !== 'student') {
+    if (!student || student.primaryRole !== 'student') {
       throw new Error('Student not found or invalid user type');
     }
 
@@ -137,7 +152,7 @@ const createBookingTool: MCPTool = {
     const [classInfo] = await db
       .select()
       .from(classes)
-      .where(and(eq(classes.id, class_id), eq(classes.tenant_id, session.tenantId)))
+      .where(and(eq(classes.id, class_id), eq(classes.tenantId, session.tenantId)))
       .limit(1);
 
     if (!classInfo) {
@@ -145,7 +160,7 @@ const createBookingTool: MCPTool = {
     }
 
     // Check if class is full
-    if (classInfo.enrolled_count >= classInfo.capacity) {
+    if (classInfo.enrolledCount >= classInfo.capacity) {
       throw new Error(`Class is full (capacity: ${classInfo.capacity})`);
     }
 
@@ -154,21 +169,21 @@ const createBookingTool: MCPTool = {
     const [invoice] = await db
       .insert(invoices)
       .values({
-        tenant_id: session.tenantId,
-        invoice_number: invoiceNumber,
-        student_id,
+        tenantId: session.tenantId,
+        invoiceNumber: invoiceNumber,
+        studentId: student_id,
         amount: amount.toFixed(2),
         currency,
         description: description || `Booking for ${classInfo.name}`,
-        line_items: line_items || [
+        lineItems: line_items || [
           {
             description: classInfo.name,
             quantity: 1,
             unit_price: amount,
           },
         ],
-        issue_date: new Date().toISOString().split('T')[0],
-        due_date,
+        issueDate: new Date().toISOString().split('T')[0],
+        dueDate: due_date,
         status: 'pending',
       })
       .returning();
@@ -179,10 +194,10 @@ const createBookingTool: MCPTool = {
       const [enrollment] = await db
         .insert(enrollments)
         .values({
-          tenant_id: session.tenantId,
-          student_id,
-          class_id,
-          enrollment_date: new Date().toISOString().split('T')[0],
+          tenantId: session.tenantId,
+          studentId: student_id,
+          classId: class_id,
+          enrollmentDate: new Date().toISOString().split('T')[0],
           status: 'active',
         })
         .returning();
@@ -193,8 +208,8 @@ const createBookingTool: MCPTool = {
       await db
         .update(classes)
         .set({
-          enrolled_count: sql`${classes.enrolled_count} + 1`,
-          updated_at: new Date(),
+          enrolledCount: sql`${classes.enrolledCount} + 1`,
+          updatedAt: new Date(),
         })
         .where(eq(classes.id, class_id));
     }
@@ -260,17 +275,21 @@ const editBookingTool: MCPTool = {
       .describe('Updated line items'),
     reason: z.string().describe('Reason for modification (required for audit)'),
   }),
-  handler: async (input, session) => {
-    const { invoice_id, amount, due_date, description, line_items, reason } = input as Record<
-      string,
-      unknown
-    >;
+  handler: async (input, session: MCPSession) => {
+    const { invoice_id, amount, due_date, description, line_items, reason } = input as {
+      invoice_id: string;
+      amount?: number;
+      due_date?: string;
+      description?: string;
+      line_items?: Array<{ description: string; quantity: number; unit_price: number }>;
+      reason: string;
+    };
 
     // Get existing invoice
     const [invoice] = await db
       .select()
       .from(invoices)
-      .where(and(eq(invoices.id, invoice_id), eq(invoices.tenant_id, session.tenantId)))
+      .where(and(eq(invoices.id, invoice_id), eq(invoices.tenantId, session.tenantId)))
       .limit(1);
 
     if (!invoice) {
@@ -286,21 +305,21 @@ const editBookingTool: MCPTool = {
     }
 
     // Build update object
-    const updates: unknown = {
-      updated_at: new Date(),
+    const updates: Record<string, unknown> = {
+      updatedAt: new Date(),
     };
 
     if (amount !== undefined) {
       updates.amount = amount.toFixed(2);
     }
     if (due_date !== undefined) {
-      updates.due_date = due_date;
+      updates.dueDate = due_date;
     }
     if (description !== undefined) {
       updates.description = description;
     }
     if (line_items !== undefined) {
-      updates.line_items = line_items;
+      updates.lineItems = line_items;
     }
 
     // Update invoice
@@ -316,7 +335,7 @@ const editBookingTool: MCPTool = {
       changes: {
         old_values: {
           amount: invoice.amount,
-          due_date: invoice.due_date,
+          due_date: invoice.dueDate,
           description: invoice.description,
         },
         new_values: updates,
@@ -325,10 +344,10 @@ const editBookingTool: MCPTool = {
     });
 
     let response = `Invoice updated successfully.\n\n`;
-    response += `Invoice: ${invoice.invoice_number}\n`;
+    response += `Invoice: ${invoice.invoiceNumber}\n`;
     response += `Changes:\n`;
     if (amount !== undefined) response += `- Amount: ${invoice.amount} → ${amount.toFixed(2)}\n`;
-    if (due_date !== undefined) response += `- Due Date: ${invoice.due_date} → ${due_date}\n`;
+    if (due_date !== undefined) response += `- Due Date: ${invoice.dueDate} → ${due_date}\n`;
     if (description !== undefined) response += `- Description updated\n`;
     if (line_items !== undefined) response += `- Line items updated\n`;
     response += `\nReason: ${reason}`;
@@ -362,7 +381,7 @@ const issueInvoiceTool: MCPTool = {
     due_date: z.string().describe('Payment due date (YYYY-MM-DD)'),
     send_email: z.boolean().default(true).describe('Send invoice email to student'),
   }),
-  handler: async (input, session) => {
+  handler: async (input, session: MCPSession) => {
     const {
       student_id,
       amount,
@@ -372,16 +391,25 @@ const issueInvoiceTool: MCPTool = {
       issue_date,
       due_date,
       send_email,
-    } = input as Record<string, unknown>;
+    } = input as {
+      student_id: string;
+      amount: number;
+      currency: string;
+      description: string;
+      line_items: Array<{ description: string; quantity: number; unit_price: number }>;
+      issue_date?: string;
+      due_date: string;
+      send_email: boolean;
+    };
 
     // Verify student exists
     const [student] = await db
       .select()
       .from(users)
-      .where(and(eq(users.id, student_id), eq(users.tenant_id, session.tenantId)))
+      .where(and(eq(users.id, student_id), eq(users.tenantId, session.tenantId)))
       .limit(1);
 
-    if (!student || student.role !== 'student') {
+    if (!student || student.primaryRole !== 'student') {
       throw new Error('Student not found');
     }
 
@@ -390,15 +418,15 @@ const issueInvoiceTool: MCPTool = {
     const [invoice] = await db
       .insert(invoices)
       .values({
-        tenant_id: session.tenantId,
-        invoice_number: invoiceNumber,
-        student_id,
+        tenantId: session.tenantId,
+        invoiceNumber: invoiceNumber,
+        studentId: student_id,
         amount: amount.toFixed(2),
         currency,
         description,
-        line_items,
-        issue_date: issue_date || new Date().toISOString().split('T')[0],
-        due_date,
+        lineItems: line_items,
+        issueDate: issue_date || new Date().toISOString().split('T')[0],
+        dueDate: due_date,
         status: 'pending',
       })
       .returning();
@@ -422,7 +450,7 @@ const issueInvoiceTool: MCPTool = {
     response += `Invoice Number: ${invoiceNumber}\n`;
     response += `Student: ${student.name} (${student.email})\n`;
     response += `Amount: ${currency} ${amount.toFixed(2)}\n`;
-    response += `Issue Date: ${invoice.issue_date}\n`;
+    response += `Issue Date: ${invoice.issueDate}\n`;
     response += `Due Date: ${due_date}\n`;
 
     if (send_email) {
@@ -446,14 +474,19 @@ const applyDiscountTool: MCPTool = {
     discount_value: z.number().positive().describe('Discount value (% or fixed amount)'),
     reason: z.string().describe('Reason for discount (required for audit)'),
   }),
-  handler: async (input, session) => {
-    const { invoice_id, discount_type, discount_value, reason } = input as Record<string, unknown>;
+  handler: async (input, session: MCPSession) => {
+    const { invoice_id, discount_type, discount_value, reason } = input as {
+      invoice_id: string;
+      discount_type: 'percentage' | 'fixed';
+      discount_value: number;
+      reason: string;
+    };
 
     // Get invoice
     const [invoice] = await db
       .select()
       .from(invoices)
-      .where(and(eq(invoices.id, invoice_id), eq(invoices.tenant_id, session.tenantId)))
+      .where(and(eq(invoices.id, invoice_id), eq(invoices.tenantId, session.tenantId)))
       .limit(1);
 
     if (!invoice) {
@@ -488,7 +521,7 @@ const applyDiscountTool: MCPTool = {
       .set({
         amount: newAmount.toFixed(2),
         description: `${invoice.description} (Discount applied: ${discount_type === 'percentage' ? discount_value + '%' : invoice.currency + ' ' + discount_value})`,
-        updated_at: new Date(),
+        updatedAt: new Date(),
       })
       .where(eq(invoices.id, invoice_id));
 
@@ -510,7 +543,7 @@ const applyDiscountTool: MCPTool = {
     });
 
     let response = `Discount applied successfully.\n\n`;
-    response += `Invoice: ${invoice.invoice_number}\n`;
+    response += `Invoice: ${invoice.invoiceNumber}\n`;
     response += `Original Amount: ${invoice.currency} ${originalAmount.toFixed(2)}\n`;
     response += `Discount: ${discount_type === 'percentage' ? discount_value + '%' : invoice.currency + ' ' + discount_value.toFixed(2)}\n`;
     response += `Discount Amount: ${invoice.currency} ${discountAmount.toFixed(2)}\n`;
@@ -534,14 +567,21 @@ const refundPaymentTool: MCPTool = {
     reason: z.string().describe('Reason for refund (required)'),
     refund_method: z.enum(['original_method', 'bank_transfer', 'cash']).default('original_method'),
   }),
-  handler: async (input, session) => {
-    const { payment_id, refund_amount, reason, refund_method } = input as Record<string, unknown>;
+  handler: async (input, session: MCPSession) => {
+    const { payment_id, refund_amount, reason, refund_method } = input as {
+      payment_id: string;
+      refund_amount?: number;
+      reason: string;
+      refund_method: string;
+    };
 
     // Get payment
     const [payment] = await db
       .select()
-      .from(payments)
-      .where(and(eq(payments.id, payment_id), eq(payments.tenant_id, session.tenantId)))
+      .from(invoicePayments)
+      .where(
+        and(eq(invoicePayments.id, payment_id), eq(invoicePayments.tenantId, session.tenantId))
+      )
       .limit(1);
 
     if (!payment) {
@@ -557,18 +597,17 @@ const refundPaymentTool: MCPTool = {
 
     // Create refund record (negative payment)
     const [refund] = await db
-      .insert(payments)
+      .insert(invoicePayments)
       .values({
-        tenant_id: session.tenantId,
-        invoice_id: payment.invoice_id,
-        student_id: payment.student_id,
+        tenantId: session.tenantId,
+        invoiceId: payment.invoiceId,
+        studentId: payment.studentId,
         amount: (-finalRefundAmount).toFixed(2),
         currency: payment.currency,
-        payment_method:
-          refund_method === 'original_method' ? payment.payment_method : refund_method,
-        payment_date: new Date().toISOString().split('T')[0],
+        paymentMethod: refund_method === 'original_method' ? payment.paymentMethod : refund_method,
+        paymentDate: new Date().toISOString().split('T')[0],
         notes: `Refund for payment ${payment_id}. Reason: ${reason}`,
-        recorded_by: session.userId,
+        recordedBy: session.userId,
       })
       .returning();
 
@@ -578,9 +617,9 @@ const refundPaymentTool: MCPTool = {
         .update(invoices)
         .set({
           status: 'cancelled',
-          updated_at: new Date(),
+          updatedAt: new Date(),
         })
-        .where(eq(invoices.id, payment.invoice_id));
+        .where(eq(invoices.id, payment.invoiceId));
     }
 
     // Log audit event
@@ -625,34 +664,37 @@ const reconcilePayoutsTool: MCPTool = {
     end_date: z.string().describe('Reconciliation period end (YYYY-MM-DD)'),
     payment_method: z.enum(['stripe', 'cash', 'bank_transfer', 'all']).default('all'),
   }),
-  handler: async (input, session) => {
-    const { start_date, end_date, payment_method } = input as Record<string, unknown>;
+  handler: async (input, session: MCPSession) => {
+    const { start_date, end_date, payment_method } = input as {
+      start_date: string;
+      end_date: string;
+      payment_method: string;
+    };
 
     // Build query conditions
     const conditions = [
-      eq(payments.tenant_id, session.tenantId),
-      gte(payments.payment_date, start_date),
-      lte(payments.payment_date, end_date),
+      eq(invoicePayments.tenantId, session.tenantId),
+      gte(invoicePayments.paymentDate, start_date),
+      lte(invoicePayments.paymentDate, end_date),
     ];
 
     if (payment_method !== 'all') {
-      conditions.push(eq(payments.payment_method, payment_method));
+      conditions.push(eq(invoicePayments.paymentMethod, payment_method));
     }
 
     // Query payments
     const paymentRecords = await db
       .select()
-      .from(payments)
+      .from(invoicePayments)
       .where(and(...conditions))
-      .orderBy(payments.payment_date);
+      .orderBy(invoicePayments.paymentDate);
 
     // Calculate totals
-    const _totalAmount = paymentRecords.reduce((sum, p) => sum + parseFloat(p.amount), 0);
     const byMethod: Record<string, number> = {};
     const byCurrency: Record<string, number> = {};
 
     paymentRecords.forEach(p => {
-      byMethod[p.payment_method] = (byMethod[p.payment_method] || 0) + parseFloat(p.amount);
+      byMethod[p.paymentMethod] = (byMethod[p.paymentMethod] || 0) + parseFloat(p.amount);
       byCurrency[p.currency] = (byCurrency[p.currency] || 0) + parseFloat(p.amount);
     });
 
@@ -672,7 +714,7 @@ const reconcilePayoutsTool: MCPTool = {
 
     response += `\nRecent Transactions:\n`;
     paymentRecords.slice(0, 10).forEach((p, idx) => {
-      response += `${idx + 1}. ${p.payment_date} - ${p.currency} ${p.amount} (${p.payment_method})\n`;
+      response += `${idx + 1}. ${p.paymentDate} - ${p.currency} ${p.amount} (${p.paymentMethod})\n`;
     });
 
     if (paymentRecords.length > 10) {
@@ -696,31 +738,35 @@ const ledgerExportTool: MCPTool = {
     format: z.enum(['csv', 'json']).default('csv'),
     include_refunds: z.boolean().default(true),
   }),
-  handler: async (input, session) => {
-    const { start_date, end_date, format } = input as Record<string, unknown>;
+  handler: async (input, session: MCPSession) => {
+    const { start_date, end_date, format } = input as {
+      start_date: string;
+      end_date: string;
+      format: string;
+    };
 
     // Query all financial transactions
     const transactions = await db
       .select({
-        date: payments.payment_date,
-        invoice_number: invoices.invoice_number,
+        date: invoicePayments.paymentDate,
+        invoice_number: invoices.invoiceNumber,
         student_name: users.name,
-        amount: payments.amount,
-        currency: payments.currency,
-        method: payments.payment_method,
-        notes: payments.notes,
+        amount: invoicePayments.amount,
+        currency: invoicePayments.currency,
+        method: invoicePayments.paymentMethod,
+        notes: invoicePayments.notes,
       })
-      .from(payments)
-      .innerJoin(invoices, eq(payments.invoice_id, invoices.id))
-      .innerJoin(users, eq(payments.student_id, users.id))
+      .from(invoicePayments)
+      .innerJoin(invoices, eq(invoicePayments.invoiceId, invoices.id))
+      .innerJoin(users, eq(invoicePayments.studentId, users.id))
       .where(
         and(
-          eq(payments.tenant_id, session.tenantId),
-          gte(payments.payment_date, start_date),
-          lte(payments.payment_date, end_date)
+          eq(invoicePayments.tenantId, session.tenantId),
+          gte(invoicePayments.paymentDate, start_date),
+          lte(invoicePayments.paymentDate, end_date)
         )
       )
-      .orderBy(payments.payment_date);
+      .orderBy(invoicePayments.paymentDate);
 
     let response = `Ledger export generated.\n\n`;
     response += `Period: ${start_date} to ${end_date}\n`;
@@ -754,8 +800,8 @@ const agingReportTool: MCPTool = {
   inputSchema: z.object({
     as_of_date: z.string().optional().describe('Report as of date (defaults to today)'),
   }),
-  handler: async (input, session) => {
-    const { as_of_date } = input as Record<string, unknown>;
+  handler: async (input, session: MCPSession) => {
+    const { as_of_date } = input as { as_of_date?: string };
     const reportDate = new Date(as_of_date || Date.now());
 
     // Query unpaid invoices
@@ -765,20 +811,26 @@ const agingReportTool: MCPTool = {
         student: users,
       })
       .from(invoices)
-      .innerJoin(users, eq(invoices.student_id, users.id))
-      .where(and(eq(invoices.tenant_id, session.tenantId), eq(invoices.status, 'pending')));
+      .innerJoin(users, eq(invoices.studentId, users.id))
+      .where(and(eq(invoices.tenantId, session.tenantId), eq(invoices.status, 'pending')));
 
     // Categorize by age
+    type AgingItem = {
+      invoice: typeof invoices.$inferSelect;
+      student: typeof users.$inferSelect;
+      daysOverdue: number;
+    };
+
     const aging = {
-      current: [] as unknown[],
-      days_30: [] as unknown[],
-      days_60: [] as unknown[],
-      days_90: [] as unknown[],
-      days_90_plus: [] as unknown[],
+      current: [] as AgingItem[],
+      days_30: [] as AgingItem[],
+      days_60: [] as AgingItem[],
+      days_90: [] as AgingItem[],
+      days_90_plus: [] as AgingItem[],
     };
 
     unpaidInvoices.forEach(({ invoice, student }) => {
-      const dueDate = new Date(invoice.due_date);
+      const dueDate = new Date(invoice.dueDate);
       const daysOverdue = Math.floor(
         (reportDate.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24)
       );
@@ -799,7 +851,7 @@ const agingReportTool: MCPTool = {
     });
 
     // Calculate totals
-    const calculateTotal = (items: unknown[]) =>
+    const calculateTotal = (items: AgingItem[]) =>
       items.reduce((sum, item) => sum + parseFloat(item.invoice.amount), 0);
 
     let response = `Accounts Receivable Aging Report\n\n`;
@@ -814,7 +866,7 @@ const agingReportTool: MCPTool = {
 
     response += `⚠️ Priority Collections (90+ Days Overdue):\n`;
     aging.days_90_plus.slice(0, 5).forEach((item, idx) => {
-      response += `${idx + 1}. ${item.student.name} - ${item.invoice.invoice_number} - ${item.invoice.currency} ${item.invoice.amount} (${item.daysOverdue} days overdue)\n`;
+      response += `${idx + 1}. ${item.student.name} - ${item.invoice.invoiceNumber} - ${item.invoice.currency} ${item.invoice.amount} (${item.daysOverdue} days overdue)\n`;
     });
 
     return { text: response };
@@ -834,8 +886,13 @@ const confirmIntakeTool: MCPTool = {
     start_date: z.string().describe('Student start date (YYYY-MM-DD)'),
     notes: z.string().optional().describe('Additional intake notes'),
   }),
-  handler: async (input, session) => {
-    const { invoice_id, payment_confirmed, start_date, notes } = input as Record<string, unknown>;
+  handler: async (input, session: MCPSession) => {
+    const { invoice_id, payment_confirmed, start_date, notes } = input as {
+      invoice_id: string;
+      payment_confirmed: boolean;
+      start_date: string;
+      notes?: string;
+    };
 
     if (!payment_confirmed) {
       throw new Error('Cannot confirm intake without payment verification');
@@ -845,7 +902,7 @@ const confirmIntakeTool: MCPTool = {
     const [invoice] = await db
       .select()
       .from(invoices)
-      .where(and(eq(invoices.id, invoice_id), eq(invoices.tenant_id, session.tenantId)))
+      .where(and(eq(invoices.id, invoice_id), eq(invoices.tenantId, session.tenantId)))
       .limit(1);
 
     if (!invoice) {
@@ -860,7 +917,7 @@ const confirmIntakeTool: MCPTool = {
     await db
       .update(invoices)
       .set({
-        updated_at: new Date(),
+        updatedAt: new Date(),
       })
       .where(eq(invoices.id, invoice_id));
 
@@ -878,7 +935,7 @@ const confirmIntakeTool: MCPTool = {
     });
 
     let response = `Student intake confirmed successfully.\n\n`;
-    response += `Invoice: ${invoice.invoice_number}\n`;
+    response += `Invoice: ${invoice.invoiceNumber}\n`;
     response += `Student Start Date: ${start_date}\n`;
     response += `Payment Status: Confirmed\n`;
     if (notes) {
@@ -900,7 +957,7 @@ const invoicesResource: MCPResource = {
   description: 'Complete list of invoices with current status',
   requiredScopes: ['finance:read'],
   mimeType: 'application/json',
-  handler: async (session: unknown, params) => {
+  handler: async (session: MCPSession, params) => {
     const limit = parseInt(params?.limit || '50', 10);
 
     const allInvoices = await db
@@ -909,22 +966,22 @@ const invoicesResource: MCPResource = {
         student: users,
       })
       .from(invoices)
-      .innerJoin(users, eq(invoices.student_id, users.id))
-      .where(eq(invoices.tenant_id, session.tenantId))
-      .orderBy(desc(invoices.created_at))
+      .innerJoin(users, eq(invoices.studentId, users.id))
+      .where(eq(invoices.tenantId, session.tenantId))
+      .orderBy(desc(invoices.createdAt))
       .limit(Math.min(limit, 100));
 
     return {
       invoices: allInvoices.map(({ invoice, student }) => ({
         id: invoice.id,
-        invoice_number: invoice.invoice_number,
+        invoice_number: invoice.invoiceNumber,
         student_name: student.name,
         student_email: student.email,
         amount: invoice.amount,
         currency: invoice.currency,
         status: calculateInvoiceStatus(invoice),
-        issue_date: invoice.issue_date,
-        due_date: invoice.due_date,
+        issue_date: invoice.issueDate,
+        due_date: invoice.dueDate,
         description: invoice.description,
       })),
       total: allInvoices.length,
@@ -938,32 +995,32 @@ const paymentsResource: MCPResource = {
   description: 'All recorded payments',
   requiredScopes: ['finance:read'],
   mimeType: 'application/json',
-  handler: async (session: unknown, params) => {
+  handler: async (session: MCPSession, params) => {
     const limit = parseInt(params?.limit || '50', 10);
 
     const allPayments = await db
       .select({
-        payment: payments,
+        payment: invoicePayments,
         invoice: invoices,
         student: users,
       })
-      .from(payments)
-      .innerJoin(invoices, eq(payments.invoice_id, invoices.id))
-      .innerJoin(users, eq(payments.student_id, users.id))
-      .where(eq(payments.tenant_id, session.tenantId))
-      .orderBy(desc(payments.created_at))
+      .from(invoicePayments)
+      .innerJoin(invoices, eq(invoicePayments.invoiceId, invoices.id))
+      .innerJoin(users, eq(invoicePayments.studentId, users.id))
+      .where(eq(invoicePayments.tenantId, session.tenantId))
+      .orderBy(desc(invoicePayments.createdAt))
       .limit(Math.min(limit, 100));
 
     return {
       payments: allPayments.map(({ payment, invoice, student }) => ({
         id: payment.id,
-        invoice_number: invoice.invoice_number,
+        invoice_number: invoice.invoiceNumber,
         student_name: student.name,
         amount: payment.amount,
         currency: payment.currency,
-        payment_method: payment.payment_method,
-        payment_date: payment.payment_date,
-        transaction_id: payment.transaction_id,
+        payment_method: payment.paymentMethod,
+        payment_date: payment.paymentDate,
+        transaction_id: payment.transactionId,
       })),
       total: allPayments.length,
     };
@@ -976,16 +1033,16 @@ const outstandingResource: MCPResource = {
   description: 'Unpaid invoices and overdue amounts',
   requiredScopes: ['finance:read'],
   mimeType: 'application/json',
-  handler: async (session: { tenantId: string }, _params) => {
+  handler: async (session: MCPSession) => {
     const unpaid = await db
       .select({
         invoice: invoices,
         student: users,
       })
       .from(invoices)
-      .innerJoin(users, eq(invoices.student_id, users.id))
-      .where(and(eq(invoices.tenant_id, session.tenantId), eq(invoices.status, 'pending')))
-      .orderBy(invoices.due_date);
+      .innerJoin(users, eq(invoices.studentId, users.id))
+      .where(and(eq(invoices.tenantId, session.tenantId), eq(invoices.status, 'pending')))
+      .orderBy(invoices.dueDate);
 
     const totalOutstanding = unpaid.reduce(
       (sum, { invoice }) => sum + parseFloat(invoice.amount),
@@ -994,14 +1051,14 @@ const outstandingResource: MCPResource = {
 
     return {
       outstanding_invoices: unpaid.map(({ invoice, student }) => ({
-        invoice_number: invoice.invoice_number,
+        invoice_number: invoice.invoiceNumber,
         student_name: student.name,
         amount: invoice.amount,
         currency: invoice.currency,
-        due_date: invoice.due_date,
+        due_date: invoice.dueDate,
         days_overdue: Math.max(
           0,
-          Math.floor((Date.now() - new Date(invoice.due_date).getTime()) / (1000 * 60 * 60 * 24))
+          Math.floor((Date.now() - new Date(invoice.dueDate).getTime()) / (1000 * 60 * 60 * 24))
         ),
       })),
       total_outstanding: totalOutstanding.toFixed(2),
@@ -1016,7 +1073,7 @@ const revenueSummaryResource: MCPResource = {
   description: 'Revenue analytics and trends',
   requiredScopes: ['finance:read'],
   mimeType: 'application/json',
-  handler: async (session: unknown, params) => {
+  handler: async (session: MCPSession, params) => {
     const period = params?.period || 'month'; // day, week, month, year
 
     // Calculate revenue for current period
@@ -1042,9 +1099,9 @@ const revenueSummaryResource: MCPResource = {
       .from(invoices)
       .where(
         and(
-          eq(invoices.tenant_id, session.tenantId),
+          eq(invoices.tenantId, session.tenantId),
           eq(invoices.status, 'paid'),
-          gte(invoices.issue_date, startDate.toISOString().split('T')[0])
+          gte(invoices.issueDate, startDate.toISOString().split('T')[0])
         )
       );
 

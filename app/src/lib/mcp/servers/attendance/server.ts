@@ -13,12 +13,20 @@ import { db } from '@/db';
 import { attendance } from '@/db/schema';
 import { eq, and, gte, lte, desc } from 'drizzle-orm';
 
+interface MCPMeta {
+  tenant_id?: string;
+  user_id?: string;
+  role?: string;
+  scopes?: string[];
+}
+
 function getSessionFromContext(extra?: unknown) {
+  const meta = (extra as { _meta?: MCPMeta } | undefined)?._meta;
   return {
-    tenantId: extra?._meta?.tenant_id || 'default-tenant',
-    userId: extra?._meta?.user_id || 'system',
-    role: extra?._meta?.role || 'teacher',
-    scopes: extra?._meta?.scopes || ['attendance:*'],
+    tenantId: meta?.tenant_id || 'default-tenant',
+    userId: meta?.user_id || 'system',
+    role: meta?.role || 'teacher',
+    scopes: meta?.scopes || ['attendance:*'],
   };
 }
 
@@ -47,17 +55,17 @@ async function main() {
       notes: z.string().optional().describe('Additional notes'),
     },
     async (args, extra) => {
-      const _session = getSessionFromContext(extra);
+      const session = getSessionFromContext(extra);
       const { class_session_id, student_id, status, notes } = args;
 
       const insertData: unknown = {
-        tenant_id: session.tenantId,
-        class_session_id,
-        student_id,
+        tenantId: session.tenantId,
+        classSessionId: class_session_id,
+        studentId: student_id,
         status,
         notes,
-        recorded_by: session.userId,
-        recorded_at: new Date(),
+        recordedBy: session.userId,
+        recordedAt: new Date(),
       };
 
       await db.insert(attendance).values(insertData).returning();
@@ -82,22 +90,22 @@ async function main() {
       end_date: z.string().describe('Report end date'),
     },
     async (args, extra) => {
-      const _session = getSessionFromContext(extra);
+      const session = getSessionFromContext(extra);
       const { student_id, start_date, end_date } = args;
 
       const conditions = [
-        eq(attendance.tenant_id, session.tenantId),
-        gte(attendance.recorded_at, new Date(start_date)),
-        lte(attendance.recorded_at, new Date(end_date)),
+        eq(attendance.tenantId, session.tenantId),
+        gte(attendance.recordedAt, new Date(start_date)),
+        lte(attendance.recordedAt, new Date(end_date)),
       ];
 
-      if (student_id) conditions.push(eq(attendance.student_id, student_id));
+      if (student_id) conditions.push(eq(attendance.studentId, student_id));
 
       const records = await db
         .select()
         .from(attendance)
         .where(and(...conditions))
-        .orderBy(desc(attendance.recorded_at));
+        .orderBy(desc(attendance.recordedAt));
 
       const summary = {
         total: records.length,
@@ -126,13 +134,13 @@ async function main() {
       mimeType: 'application/json',
     },
     async (uri, extra) => {
-      const _session = getSessionFromContext(extra);
+      const session = getSessionFromContext(extra);
 
       const records = await db
         .select()
         .from(attendance)
-        .where(eq(attendance.tenant_id, session.tenantId))
-        .orderBy(desc(attendance.recorded_at))
+        .where(eq(attendance.tenantId, session.tenantId))
+        .orderBy(desc(attendance.recordedAt))
         .limit(100);
 
       return {

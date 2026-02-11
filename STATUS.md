@@ -85,6 +85,7 @@ Remaining 2 tasks are pre-existing tech debt (not blockers):
 - `bff9bdf` - Phase 2-3: Gated UI, lint fixes
 - `a32ea41` - **2026-02-11**: Fix ~500 TypeScript errors in API routes (schema mismatch fixes)
 - `f837dbf` - **2026-02-11**: Prettier formatting for finance/programmes routes
+- `pending` - **2026-02-11**: Fix 188 more TypeScript errors (MCP servers, components, API routes)
 
 **Status Update (2026-02-11):**
 Major schema mismatch fix applied across 66 files:
@@ -94,9 +95,19 @@ Major schema mismatch fix applied across 66 files:
 - ✅ Fixed enrollments routes (uses `status` not `deletedAt`, uses `enrollmentDate`)
 - ✅ Fixed MCP servers (identity, teacher) - critical `_session`/`session` bug fixed
 - ✅ Fixed query builder routes with proper `$dynamic()` usage
-- ⚠️ Some TypeScript errors remain in teacher/server.ts, middleware.ts
 
-**Next recommended action:** Fix remaining TypeScript errors, then production testing
+**Additional fixes (2026-02-11 continued):**
+- ✅ Fixed all 5 MCP servers (teacher, attendance, academic, finance, identity) - MCPMeta typing, camelCase inserts
+- ✅ Fixed attendance routes (session, bulk, validate-chain) - classSessions, attendance properties
+- ✅ Fixed timetable route - classSessions, classes camelCase properties
+- ✅ Fixed student components (PersonalInfoTab, StudentList, StudentDetailDrawer, CreateStudentForm)
+- ✅ Fixed Sidebar component - SVG icon prop types
+- ✅ Fixed students API route - primaryRole, deletedAt, metadata storage
+- ✅ Fixed mcp/init.ts - added missing path import
+- ✅ Fixed mcp/capabilities route - proper map callback types
+- ⚠️ 291 TypeScript errors remain (190 in test files, 101 in other files)
+
+**Next recommended action:** Fix test file Jest mock typing + Next.js 15 params patterns
 
 ---
 
