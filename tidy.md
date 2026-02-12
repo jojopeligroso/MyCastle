@@ -1,8 +1,10 @@
 # Code Cleanup Tasks
 
-**Last Updated:** 2026-01-26
+**Last Updated:** 2026-02-12
 
-**Notes:** 2026-02-12 - Ran `FRESH_0015_email_logs.sql` migration to add email logs table; no regressions observed.
+**Notes:**
+- 2026-02-12 - Ran `FRESH_0015_email_logs.sql` migration to add email logs table; no regressions observed.
+- 2026-02-12 - **Payments table consolidation question:** Two payments tables exist (`payments` for bookings in business.ts, `invoicePayments` for invoices in system.ts). Question: should all payments go through invoices? If so, the booking payments table is redundant. **Action:** Consult business owner to determine if payments should always be invoice-linked. Migration `FRESH_0019` renames the DB table to `invoice_payments` to fix namespace collision in the meantime.
 
 This file tracks pre-existing code quality issues that should be addressed in a future cleanup sprint.
 
