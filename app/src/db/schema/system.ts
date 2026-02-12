@@ -79,9 +79,8 @@ export const invoices = pgTable('invoices', {
 /**
  * Invoice Payments Table
  * Payment records against invoices
- * Note: Named invoicePayments to avoid conflict with business.ts payments table
  */
-export const invoicePayments = pgTable('payments', {
+export const invoicePayments = pgTable('invoice_payments', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id')
     .notNull()
