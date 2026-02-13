@@ -2,16 +2,39 @@
 
 import type { ReactNode } from 'react';
 import Link from 'next/link';
-import { type User } from '@/db/schema/core';
 
-interface StudentWithMetadata extends User {
+// Flexible interface that accepts both snake_case (from DB) and camelCase (from components)
+export interface StudentWithMetadata {
+  id: string;
+  email: string;
+  name: string;
+  phone?: string | null;
+  status: string;
+  // Both naming conventions supported
+  avatarUrl?: string | null;
+  avatar_url?: string | null;
+  createdAt?: Date;
+  created_at?: Date;
+  // Extended metadata
   active_enrollments?: number;
   attendance_rate?: number | null;
   visa_expiring_soon?: boolean;
   at_risk_attendance?: boolean;
   currentLevel?: string | null;
+  current_level?: string | null;
   levelStatus?: 'confirmed' | 'provisional' | 'pending_approval' | null;
   visaExpiry?: string | Date | null;
+  visa_expiry?: string | null;
+  student_id?: string;
+  student_number?: string | null;
+  is_visa_student?: boolean | null;
+  visa_type?: string | null;
+  visa_expiry_date?: string | null;
+  emergency_contact_name?: string | null;
+  emergency_contact_phone?: string | null;
+  emergency_contact_relationship?: string | null;
+  medical_conditions?: string | null;
+  dietary_requirements?: string | null;
 }
 
 interface StudentListProps {
@@ -214,8 +237,8 @@ export function StudentList({ students, onStudentClick }: StudentListProps) {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="flex-shrink-0 h-10 w-10">
-                      {student.avatarUrl ? (
-                        <img className="h-10 w-10 rounded-full" src={student.avatarUrl} alt="" />
+                      {(student.avatarUrl || student.avatar_url) ? (
+                        <img className="h-10 w-10 rounded-full" src={student.avatarUrl || student.avatar_url || ''} alt="" />
                       ) : (
                         <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
                           <span className="text-sm font-medium text-purple-600">
@@ -265,8 +288,8 @@ export function StudentList({ students, onStudentClick }: StudentListProps) {
             className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-purple-300 cursor-pointer transition-colors"
           >
             <div className="flex items-center gap-3 mb-3">
-              {student.avatarUrl ? (
-                <img className="h-12 w-12 rounded-full" src={student.avatarUrl} alt="" />
+              {(student.avatarUrl || student.avatar_url) ? (
+                <img className="h-12 w-12 rounded-full" src={student.avatarUrl || student.avatar_url || ''} alt="" />
               ) : (
                 <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
                   <span className="text-base font-medium text-purple-600">

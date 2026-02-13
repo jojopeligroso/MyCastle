@@ -76,19 +76,20 @@ async function main() {
         focus_skills,
       };
 
-      const insertData: unknown = {
-        tenantId: session.tenantId,
-        classId: class_id,
-        teacherId: session.userId,
-        title: `${topic} - ${cefr_level}`,
-        cefrLevel: cefr_level,
-        durationMinutes: duration_minutes,
-        jsonPlan: lessonContent,
-        isAiGenerated: true,
-        status: 'draft',
-      };
-
-      const [plan] = await db.insert(lessonPlans).values(insertData).returning();
+      const [plan] = await db
+        .insert(lessonPlans)
+        .values({
+          tenant_id: session.tenantId,
+          class_id: class_id,
+          teacher_id: session.userId,
+          title: `${topic} - ${cefr_level}`,
+          cefr_level: cefr_level,
+          duration_minutes: duration_minutes,
+          json_plan: lessonContent,
+          is_ai_generated: 'true',
+          status: 'draft',
+        } as typeof lessonPlans.$inferInsert)
+        .returning();
 
       return {
         content: [
@@ -124,19 +125,20 @@ async function main() {
         type: string;
       };
 
-      const insertData: unknown = {
-        tenantId: session.tenantId,
-        classId: class_id,
-        title,
-        description,
-        dueDate: new Date(due_date),
-        assignedDate: new Date(),
-        maxScore: max_score,
-        type,
-        status: 'active',
-      };
-
-      await db.insert(assignments).values(insertData).returning();
+      await db
+        .insert(assignments)
+        .values({
+          tenantId: session.tenantId,
+          classId: class_id,
+          title,
+          description,
+          dueDate: due_date,
+          assignedDate: new Date().toISOString().split('T')[0],
+          maxScore: max_score,
+          type,
+          status: 'active',
+        } as typeof assignments.$inferInsert)
+        .returning();
 
       return {
         content: [
@@ -162,17 +164,18 @@ async function main() {
       const session = getSessionFromContext(extra);
       const { submission_id, score, feedback, grade } = args;
 
-      const insertData: unknown = {
-        tenantId: session.tenantId,
-        submissionId: submission_id,
-        score: score.toString(),
-        feedback,
-        grade,
-        gradedBy: session.userId,
-        gradedAt: new Date(),
-      };
-
-      await db.insert(grades).values(insertData).returning();
+      await db
+        .insert(grades)
+        .values({
+          tenantId: session.tenantId,
+          submissionId: submission_id,
+          score: score.toString(),
+          feedback,
+          grade,
+          gradedBy: session.userId,
+          gradedAt: new Date(),
+        } as typeof grades.$inferInsert)
+        .returning();
 
       return {
         content: [

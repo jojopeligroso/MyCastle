@@ -11,7 +11,7 @@
 
 import { createServerClient as createSupabaseClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import type { SupabaseClient, User } from '@supabase/supabase-js';
 import { isDevBypassActive, DEV_USER_IDENTITY } from '@/lib/auth/dev-bypass-guard';
 
 /**
@@ -67,7 +67,7 @@ export const createClient = async () => {
   wrappedClient.auth.getUser = async () => {
     return {
       data: {
-        user: DEV_USER_IDENTITY as unknown, // Type cast needed for dev bypass
+        user: DEV_USER_IDENTITY as unknown as User,
       },
       error: null,
     };
@@ -82,8 +82,8 @@ export const createClient = async () => {
           refresh_token: 'dev-bypass-refresh',
           expires_in: 3600,
           expires_at: Math.floor(Date.now() / 1000) + 3600,
-          token_type: 'bearer',
-          user: DEV_USER_IDENTITY as unknown,
+          token_type: 'bearer' as const,
+          user: DEV_USER_IDENTITY as unknown as User,
         },
       },
       error: null,

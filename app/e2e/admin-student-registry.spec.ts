@@ -10,11 +10,11 @@
  * - Search and filter functionality
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 
 test.describe('Admin Student Registry', () => {
   // Helper function to log in as admin
-  async function loginAsAdmin(page: unknown) {
+  async function loginAsAdmin(page: Page) {
     // Skip auth in test mode or use test credentials
     // For now, we'll assume auth is handled or bypass it
     await page.goto('/admin/students');

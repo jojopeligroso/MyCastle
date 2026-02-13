@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { type User } from '@/db/schema/core';
 import {
   PersonalInfoTab,
   CourseHistoryTab,
@@ -11,10 +10,28 @@ import {
   DocumentsTab,
 } from './tabs';
 
-// Extended student data type with CEFR level information
-interface StudentData extends User {
+// Flexible student data type that accepts both DB snake_case and app camelCase
+export interface StudentData {
+  id: string;
+  email: string;
+  name: string;
+  phone?: string | null;
+  status: string;
+  avatarUrl?: string | null;
+  avatar_url?: string | null;
+  createdAt?: Date;
+  created_at?: Date;
+  lastLogin?: Date | null;
+  dateOfBirth?: string | Date | null;
+  date_of_birth?: string | null;
+  nationality?: string | null;
   currentLevel?: string | null;
+  current_level?: string | null;
   levelStatus?: 'confirmed' | 'provisional' | 'pending_approval' | null;
+  visaExpiry?: string | Date | null;
+  visa_expiry?: string | null;
+  visaType?: string | null;
+  visa_type?: string | null;
 }
 
 interface StudentDetailDrawerProps {
