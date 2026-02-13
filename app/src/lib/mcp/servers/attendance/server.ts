@@ -58,17 +58,18 @@ async function main() {
       const session = getSessionFromContext(extra);
       const { class_session_id, student_id, status, notes } = args;
 
-      const insertData: unknown = {
-        tenantId: session.tenantId,
-        classSessionId: class_session_id,
-        studentId: student_id,
-        status,
-        notes,
-        recordedBy: session.userId,
-        recordedAt: new Date(),
-      };
-
-      await db.insert(attendance).values(insertData).returning();
+      await db
+        .insert(attendance)
+        .values({
+          tenantId: session.tenantId,
+          classSessionId: class_session_id,
+          studentId: student_id,
+          status,
+          notes,
+          recordedBy: session.userId,
+          recordedAt: new Date(),
+        } as typeof attendance.$inferInsert)
+        .returning();
 
       return {
         content: [

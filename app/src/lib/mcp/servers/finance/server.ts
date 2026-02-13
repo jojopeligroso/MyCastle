@@ -92,23 +92,25 @@ async function main() {
       const { student_id, class_id, amount, currency, due_date } = args;
 
       const invoiceNumber = generateInvoiceNumber(session.tenantId);
-      const dueDate = due_date
-        ? new Date(due_date)
-        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      const dueDateStr = due_date
+        ? due_date.split('T')[0]
+        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const issueDateStr = new Date().toISOString().split('T')[0];
 
-      const insertData: unknown = {
-        tenantId: session.tenantId,
-        invoiceNumber: invoiceNumber,
-        studentId: student_id,
-        amount: amount.toString(),
-        currency,
-        status: 'pending',
-        dueDate: dueDate,
-        issueDate: new Date(),
-        description: `Booking for class ${class_id}`,
-      };
-
-      const [invoice] = await db.insert(invoices).values(insertData).returning();
+      const [invoice] = await db
+        .insert(invoices)
+        .values({
+          tenantId: session.tenantId,
+          invoiceNumber: invoiceNumber,
+          studentId: student_id,
+          amount: amount.toString(),
+          currency,
+          status: 'pending',
+          dueDate: dueDateStr,
+          issueDate: issueDateStr,
+          description: `Booking for class ${class_id}`,
+        } as typeof invoices.$inferInsert)
+        .returning();
 
       await logFinanceAudit({
         tenantId: session.tenantId,
@@ -123,7 +125,7 @@ async function main() {
         content: [
           {
             type: 'text',
-            text: `Booking created successfully.\n\nInvoice: ${invoiceNumber}\nAmount: ${currency} ${amount}\nDue: ${dueDate.toISOString().split('T')[0]}`,
+            text: `Booking created successfully.\n\nInvoice: ${invoiceNumber}\nAmount: ${currency} ${amount}\nDue: ${dueDateStr}`,
           },
         ],
       };

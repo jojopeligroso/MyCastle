@@ -11,7 +11,7 @@
 
 import { type NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import type { SupabaseClient, User } from '@supabase/supabase-js';
 import { isDevBypassActive, DEV_USER_IDENTITY } from '@/lib/auth/dev-bypass-guard';
 
 export async function middleware(request: NextRequest) {
@@ -99,7 +99,7 @@ function applyDevBypass(client: SupabaseClient): SupabaseClient {
   wrappedClient.auth.getUser = async () => {
     return {
       data: {
-        user: DEV_USER_IDENTITY as unknown,
+        user: DEV_USER_IDENTITY as unknown as User,
       },
       error: null,
     };
@@ -114,8 +114,8 @@ function applyDevBypass(client: SupabaseClient): SupabaseClient {
           refresh_token: 'dev-bypass-refresh',
           expires_in: 3600,
           expires_at: Math.floor(Date.now() / 1000) + 3600,
-          token_type: 'bearer',
-          user: DEV_USER_IDENTITY as unknown,
+          token_type: 'bearer' as const,
+          user: DEV_USER_IDENTITY as unknown as User,
         },
       },
       error: null,

@@ -75,22 +75,23 @@ async function main() {
         max_students,
       } = args;
 
-      const insertData: unknown = {
-        tenantId: session.tenantId,
-        name,
-        code,
-        teacherId: teacher_id,
-        description,
-        level,
-        subject,
-        startDate: new Date(start_date),
-        endDate: end_date ? new Date(end_date) : undefined,
-        scheduleDescription: schedule,
-        capacity: max_students,
-        status: 'active',
-      };
-
-      const [newClass] = await db.insert(classes).values(insertData).returning();
+      const [newClass] = await db
+        .insert(classes)
+        .values({
+          tenantId: session.tenantId,
+          name,
+          code,
+          teacherId: teacher_id,
+          description,
+          level,
+          subject,
+          startDate: start_date,
+          endDate: end_date || undefined,
+          scheduleDescription: schedule,
+          capacity: max_students,
+          status: 'active',
+        } as typeof classes.$inferInsert)
+        .returning();
 
       return {
         content: [
@@ -115,15 +116,16 @@ async function main() {
       const session = getSessionFromContext(extra);
       const { student_id, class_id, enrollment_date } = args;
 
-      const insertData: unknown = {
-        tenantId: session.tenantId,
-        studentId: student_id,
-        classId: class_id,
-        enrollmentDate: enrollment_date ? new Date(enrollment_date) : new Date(),
-        status: 'active',
-      };
-
-      await db.insert(enrollments).values(insertData).returning();
+      await db
+        .insert(enrollments)
+        .values({
+          tenantId: session.tenantId,
+          studentId: student_id,
+          classId: class_id,
+          enrollmentDate: enrollment_date || new Date().toISOString().split('T')[0],
+          status: 'active',
+        } as typeof enrollments.$inferInsert)
+        .returning();
 
       return {
         content: [

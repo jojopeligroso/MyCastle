@@ -112,16 +112,19 @@ export async function createNotificationWithRecipients({
 
     recipientUserIds = [userMatch.id];
   } else {
-    let userQuery = db.select({ id: users.id }).from(users).where(eq(users.tenantId, tenantId));
+    const conditions = [eq(users.tenantId, tenantId)];
 
     if (targetScope === 'role') {
       if (!payload.recipientRole) {
         throw new Error('Role is required when targeting a role.');
       }
-      userQuery = userQuery.where(eq(users.primaryRole, payload.recipientRole));
+      conditions.push(eq(users.primaryRole, payload.recipientRole));
     }
 
-    const usersList = await userQuery;
+    const usersList = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(and(...conditions));
     recipientUserIds = usersList.map(user => user.id);
   }
 

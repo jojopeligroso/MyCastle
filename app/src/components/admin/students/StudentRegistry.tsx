@@ -3,39 +3,9 @@
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { StudentFilters } from './StudentFilters';
-import { StudentList } from './StudentList';
+import { StudentList, type StudentWithMetadata } from './StudentList';
 import { StudentDetailDrawer } from './StudentDetailDrawer';
 import { approveLevelStatus } from '@/app/admin/students/_actions/studentActions';
-
-// Explicit interface matching what the page provides
-interface StudentWithMetadata {
-  id: string;
-  email: string;
-  name: string;
-  phone: string | null;
-  date_of_birth: string | null;
-  nationality: string | null;
-  avatar_url: string | null;
-  status: string;
-  created_at: Date;
-  deleted_at: Date | null;
-  student_id: string;
-  student_number: string | null;
-  is_visa_student: boolean | null;
-  visa_type: string | null;
-  visa_expiry_date: string | null;
-  visa_expiry?: string | null;
-  current_level?: string | null;
-  emergency_contact_name: string | null;
-  emergency_contact_phone: string | null;
-  emergency_contact_relationship: string | null;
-  medical_conditions: string | null;
-  dietary_requirements: string | null;
-  active_enrollments?: number;
-  attendance_rate?: number | null;
-  visa_expiring_soon?: boolean;
-  at_risk_attendance?: boolean;
-}
 
 interface StudentRegistryProps {
   students: StudentWithMetadata[];
@@ -75,7 +45,7 @@ export function StudentRegistry({ students, currentUserRole = 'admin' }: Student
         break;
       case 'new-this-week':
         filtered = filtered.filter(s => {
-          const createdDate = new Date(s.created_at);
+          const createdDate = new Date(s.createdAt || s.created_at || 0);
           const weekAgo = new Date();
           weekAgo.setDate(weekAgo.getDate() - 7);
           return createdDate >= weekAgo;
@@ -98,7 +68,7 @@ export function StudentRegistry({ students, currentUserRole = 'admin' }: Student
 
     // Apply level filter
     if (currentLevel) {
-      filtered = filtered.filter(s => s.current_level === currentLevel);
+      filtered = filtered.filter(s => s.currentLevel === currentLevel || s.current_level === currentLevel);
     }
 
     // Apply search query

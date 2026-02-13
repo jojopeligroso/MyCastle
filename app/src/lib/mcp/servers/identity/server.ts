@@ -230,21 +230,22 @@ async function main() {
       const isAdminRole = role === 'super_admin' || role.startsWith('admin');
       const finalRequireMfa = isAdminRole ? true : require_mfa;
 
-      const insertData: unknown = {
-        tenantId: session.tenantId,
-        email,
-        name,
-        primaryRole: role,
-        status: 'active',
-        metadata: {
-          scopes: finalScopes,
-          require_mfa: finalRequireMfa,
-          created_by: session.userId,
-        },
-      };
-
       // Create user
-      const [newUser] = await db.insert(users).values(insertData).returning();
+      const [newUser] = await db
+        .insert(users)
+        .values({
+          tenantId: session.tenantId,
+          email,
+          name,
+          primaryRole: role,
+          status: 'active',
+          metadata: {
+            scopes: finalScopes,
+            require_mfa: finalRequireMfa,
+            created_by: session.userId,
+          },
+        } as typeof users.$inferInsert)
+        .returning();
 
       // Log audit event
       await logAuditEvent({

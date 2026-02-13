@@ -15,7 +15,7 @@ import { revalidatePath } from 'next/cache';
 /**
  * Student creation data interface
  */
-interface CreateStudentData {
+export interface CreateStudentData {
   name: string;
   email: string;
   phone?: string;
@@ -36,7 +36,7 @@ interface CreateStudentData {
 /**
  * Student update data interface
  */
-interface UpdateStudentData {
+export interface UpdateStudentData {
   name?: string;
   email?: string;
   phone?: string;

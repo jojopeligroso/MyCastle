@@ -178,8 +178,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             recordedBy: user.id,
             hash,
             previousHash: currentHash,
-            isWithinEditWindow: false,
-          })
+            isWithinEditWindow: 'false',
+          } as typeof attendance.$inferInsert)
           .onConflictDoUpdate({
             target: [attendance.classSessionId, attendance.studentId],
             set: {
@@ -191,7 +191,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
               editedBy: user.id,
               editedAt: now,
               editCount: sql`${attendance.editCount} + 1`,
-              isWithinEditWindow: true,
+              isWithinEditWindow: 'true',
               updatedAt: now,
             },
           })
