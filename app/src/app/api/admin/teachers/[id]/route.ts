@@ -13,7 +13,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const [teacher] = await db
       .select()
       .from(users)
-      .where(and(eq(users.id, teacherId), eq(users.role, 'teacher'), isNull(users.deleted_at)))
+      .where(and(eq(users.id, teacherId), eq(users.primaryRole, 'teacher'), isNull(users.deletedAt)))
       .limit(1);
 
     if (!teacher) {
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const assignedClasses = await db
       .select()
       .from(classes)
-      .where(and(eq(classes.teacher_id, teacherId), isNull(classes.deleted_at)))
+      .where(and(eq(classes.teacherId, teacherId), isNull(classes.deletedAt)))
       .orderBy(classes.name);
 
     return NextResponse.json({

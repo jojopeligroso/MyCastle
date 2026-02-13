@@ -254,7 +254,7 @@ describe('Enrollment Management APIs', () => {
     it('should return enrollment detail with amendments', async () => {
       const enrollmentId = 'enrollment-123';
       const mockRequest = new NextRequest(`http://localhost/api/admin/enrollments/${enrollmentId}`);
-      const mockParams = { params: { id: enrollmentId } };
+      const mockParams = { params: Promise.resolve({ id: enrollmentId }) };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -277,7 +277,7 @@ describe('Enrollment Management APIs', () => {
       });
 
       const mockRequest = new NextRequest('http://localhost/api/admin/enrollments/non-existent');
-      const mockParams = { params: { id: 'non-existent' } };
+      const mockParams = { params: Promise.resolve({ id: 'non-existent' }) };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -289,7 +289,7 @@ describe('Enrollment Management APIs', () => {
     it('should include student and class details', async () => {
       const enrollmentId = 'enrollment-123';
       const mockRequest = new NextRequest(`http://localhost/api/admin/enrollments/${enrollmentId}`);
-      const mockParams = { params: { id: enrollmentId } };
+      const mockParams = { params: Promise.resolve({ id: enrollmentId }) };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -316,7 +316,7 @@ describe('Enrollment Management APIs', () => {
           body: JSON.stringify(updateData),
         }
       );
-      const mockParams = { params: { id: enrollmentId } };
+      const mockParams = { params: Promise.resolve({ id: enrollmentId }) };
 
       const response = await PATCH(mockRequest, mockParams);
       const data = await response.json();
@@ -338,7 +338,7 @@ describe('Enrollment Management APIs', () => {
           body: JSON.stringify(invalidData),
         }
       );
-      const mockParams = { params: { id: enrollmentId } };
+      const mockParams = { params: Promise.resolve({ id: enrollmentId }) };
 
       const response = await PATCH(mockRequest, mockParams);
 
@@ -359,7 +359,7 @@ describe('Enrollment Management APIs', () => {
           body: JSON.stringify(maliciousData),
         }
       );
-      const mockParams = { params: { id: enrollmentId } };
+      const mockParams = { params: Promise.resolve({ id: enrollmentId }) };
 
       const response = await PATCH(mockRequest, mockParams);
 
@@ -386,7 +386,7 @@ describe('Enrollment Management APIs', () => {
           body: JSON.stringify(amendmentData),
         }
       );
-      const mockParams = { params: { id: enrollmentId } };
+      const mockParams = { params: Promise.resolve({ id: enrollmentId }) };
 
       const response = await CREATE_AMENDMENT(mockRequest, mockParams);
       const data = await response.json();
@@ -413,7 +413,7 @@ describe('Enrollment Management APIs', () => {
           body: JSON.stringify(amendmentData),
         }
       );
-      const mockParams = { params: { id: enrollmentId } };
+      const mockParams = { params: Promise.resolve({ id: enrollmentId }) };
 
       const response = await CREATE_AMENDMENT(mockRequest, mockParams);
       const data = await response.json();
@@ -438,7 +438,7 @@ describe('Enrollment Management APIs', () => {
           body: JSON.stringify(amendmentData),
         }
       );
-      const mockParams = { params: { id: enrollmentId } };
+      const mockParams = { params: Promise.resolve({ id: enrollmentId }) };
 
       const response = await CREATE_AMENDMENT(mockRequest, mockParams);
       const data = await response.json();
@@ -463,7 +463,7 @@ describe('Enrollment Management APIs', () => {
           body: JSON.stringify(amendmentData),
         }
       );
-      const mockParams = { params: { id: enrollmentId } };
+      const mockParams = { params: Promise.resolve({ id: enrollmentId }) };
 
       const response = await CREATE_AMENDMENT(mockRequest, mockParams);
       const data = await response.json();
@@ -487,7 +487,7 @@ describe('Enrollment Management APIs', () => {
           body: JSON.stringify(invalidData),
         }
       );
-      const mockParams = { params: { id: enrollmentId } };
+      const mockParams = { params: Promise.resolve({ id: enrollmentId }) };
 
       const response = await CREATE_AMENDMENT(mockRequest, mockParams);
 
@@ -513,7 +513,7 @@ describe('Enrollment Management APIs', () => {
           body: JSON.stringify(amendmentData),
         }
       );
-      const mockParams = { params: { id: enrollmentId } };
+      const mockParams = { params: Promise.resolve({ id: enrollmentId }) };
 
       await CREATE_AMENDMENT(mockRequest, mockParams);
 
@@ -542,7 +542,7 @@ describe('Enrollment Management APIs', () => {
           body: JSON.stringify(amendmentData),
         }
       );
-      const mockParams = { params: { id: enrollmentId } };
+      const mockParams = { params: Promise.resolve({ id: enrollmentId }) };
 
       const response = await CREATE_AMENDMENT(mockRequest, mockParams);
       const data = await response.json();
@@ -561,7 +561,7 @@ describe('Enrollment Management APIs', () => {
           method: 'DELETE',
         }
       );
-      const mockParams = { params: { id: enrollmentId } };
+      const mockParams = { params: Promise.resolve({ id: enrollmentId }) };
 
       const response = await DELETE_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -582,7 +582,7 @@ describe('Enrollment Management APIs', () => {
           method: 'DELETE',
         }
       );
-      const mockParams = { params: { id: enrollmentId } };
+      const mockParams = { params: Promise.resolve({ id: enrollmentId }) };
 
       await DELETE_BY_ID(mockRequest, mockParams);
 
@@ -601,7 +601,7 @@ describe('Enrollment Management APIs', () => {
       const mockRequest = new NextRequest('http://localhost/api/admin/enrollments/non-existent', {
         method: 'DELETE',
       });
-      const mockParams = { params: { id: 'non-existent' } };
+      const mockParams = { params: Promise.resolve({ id: 'non-existent' }) };
 
       const response = await DELETE_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -618,7 +618,7 @@ describe('Enrollment Management APIs', () => {
           method: 'DELETE',
         }
       );
-      const mockParams = { params: { id: enrollmentId } };
+      const mockParams = { params: Promise.resolve({ id: enrollmentId }) };
 
       const { db } = await import('@/db');
       const updateSpy = jest.spyOn(db, 'update');

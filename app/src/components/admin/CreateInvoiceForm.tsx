@@ -75,7 +75,7 @@ export function CreateInvoiceForm({ students }: { students: Student[] }) {
       router.push('/admin/finance/invoices');
       router.refresh();
     } catch (err: unknown) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : 'An error occurred');
       setLoading(false);
     }
   };

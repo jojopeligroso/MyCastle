@@ -55,7 +55,7 @@ export function CreateUserForm() {
         router.refresh();
       }
     } catch (err: unknown) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : 'An error occurred');
       setLoading(false);
     }
   };

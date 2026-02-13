@@ -34,13 +34,13 @@ async function seedProgrammes() {
 
     const programmesData = [
       {
-        tenant_id: sql`${TENANT_ID}::uuid`,
+        tenantId: sql`${TENANT_ID}::uuid`,
         name: 'General English',
         code: 'GE',
         description: 'General English courses for all levels',
         levels: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'],
-        duration_weeks: 12,
-        hours_per_week: 15,
+        durationWeeks: 12,
+        hoursPerWeek: 15,
         status: 'active' as const,
         metadata: {
           description: 'Core English language programme covering all CEFR levels',
@@ -51,13 +51,13 @@ async function seedProgrammes() {
         },
       },
       {
-        tenant_id: sql`${TENANT_ID}::uuid`,
+        tenantId: sql`${TENANT_ID}::uuid`,
         name: 'IELTS Preparation',
         code: 'IELTS',
         description: 'IELTS exam preparation course',
         levels: ['B1', 'B2', 'C1'],
-        duration_weeks: 8,
-        hours_per_week: 10,
+        durationWeeks: 8,
+        hoursPerWeek: 10,
         status: 'active' as const,
         metadata: {
           description: 'Intensive IELTS preparation focusing on exam techniques',
@@ -69,13 +69,13 @@ async function seedProgrammes() {
         },
       },
       {
-        tenant_id: sql`${TENANT_ID}::uuid`,
+        tenantId: sql`${TENANT_ID}::uuid`,
         name: 'Conversation Classes',
         code: 'CONV',
         description: 'Conversational English practice',
         levels: ['A2', 'B1', 'B2', 'C1'],
-        duration_weeks: 6,
-        hours_per_week: 5,
+        durationWeeks: 6,
+        hoursPerWeek: 5,
         status: 'active' as const,
         metadata: {
           description: 'Supplementary conversation-focused classes',
@@ -86,13 +86,13 @@ async function seedProgrammes() {
         },
       },
       {
-        tenant_id: sql`${TENANT_ID}::uuid`,
+        tenantId: sql`${TENANT_ID}::uuid`,
         name: 'Business English',
         code: 'BE',
         description: 'English for professional contexts',
         levels: ['B1', 'B2', 'C1'],
-        duration_weeks: 10,
-        hours_per_week: 12,
+        durationWeeks: 10,
+        hoursPerWeek: 12,
         status: 'active' as const,
         metadata: {
           description: 'Professional English for business contexts',

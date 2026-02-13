@@ -74,7 +74,7 @@ export function CreateClassForm({ teachers, programmes }: Props) {
       router.push('/admin/classes');
       router.refresh();
     } catch (err: unknown) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : 'An error occurred');
       setLoading(false);
     }
   };

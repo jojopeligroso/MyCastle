@@ -16,7 +16,7 @@ const createRoomSchema = z.object({
   name: z.string().min(1, 'Room name is required'),
   description: z.string().optional(),
   capacity: z.number().positive('Capacity must be a positive number').default(20),
-  equipment: z.record(z.unknown()).optional().default({}),
+  equipment: z.record(z.string(), z.unknown()).optional().default({}),
   facilities: z.array(z.string()).optional().default([]),
   accessibility: z.boolean().default(false),
   status: z.enum(['available', 'maintenance', 'unavailable']).default('available'),

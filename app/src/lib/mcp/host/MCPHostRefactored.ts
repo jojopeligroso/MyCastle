@@ -174,7 +174,9 @@ export class MCPHost {
       for (const [_prefix, server] of this.servers.entries()) {
         // List tools from this server
         const toolsList = await server.client.listTools();
-        const hasTool = toolsList.tools?.some((t: unknown) => t.name === toolName);
+        const hasTool = toolsList.tools?.some(
+          (t: unknown) => (t as { name: string }).name === toolName
+        );
 
         if (hasTool) {
           targetServer = server;
@@ -249,7 +251,9 @@ export class MCPHost {
 
       for (const [_prefix, server] of this.servers.entries()) {
         const resourcesList = await server.client.listResources();
-        const hasResource = resourcesList.resources?.some((r: unknown) => r.uri === resourceUri);
+        const hasResource = resourcesList.resources?.some(
+          (r: unknown) => (r as { uri: string }).uri === resourceUri
+        );
 
         if (hasResource) {
           targetServer = server;
@@ -309,7 +313,9 @@ export class MCPHost {
 
       for (const [_prefix, server] of this.servers.entries()) {
         const promptsList = await server.client.listPrompts();
-        const hasPrompt = promptsList.prompts?.some((p: unknown) => p.name === promptName);
+        const hasPrompt = promptsList.prompts?.some(
+          (p: unknown) => (p as { name: string }).name === promptName
+        );
 
         if (hasPrompt) {
           targetServer = server;

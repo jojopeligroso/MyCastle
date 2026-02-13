@@ -202,7 +202,7 @@ describe('Audit Log APIs', () => {
     it('should return audit log detail with user information', async () => {
       const logId = 'log-123';
       const mockRequest = new NextRequest(`http://localhost/api/admin/audit-log/${logId}`);
-      const mockParams = { params: { id: logId } };
+      const mockParams = { params: Promise.resolve({ id: logId }) };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -224,7 +224,7 @@ describe('Audit Log APIs', () => {
       });
 
       const mockRequest = new NextRequest('http://localhost/api/admin/audit-log/non-existent');
-      const mockParams = { params: { id: 'non-existent' } };
+      const mockParams = { params: Promise.resolve({ id: 'non-existent' }) };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -236,7 +236,7 @@ describe('Audit Log APIs', () => {
     it('should include related logs for the same entity', async () => {
       const logId = 'log-123';
       const mockRequest = new NextRequest(`http://localhost/api/admin/audit-log/${logId}`);
-      const mockParams = { params: { id: logId } };
+      const mockParams = { params: Promise.resolve({ id: logId }) };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -248,7 +248,7 @@ describe('Audit Log APIs', () => {
     it('should limit related logs to 50 entries', async () => {
       const logId = 'log-123';
       const mockRequest = new NextRequest(`http://localhost/api/admin/audit-log/${logId}`);
-      const mockParams = { params: { id: logId } };
+      const mockParams = { params: Promise.resolve({ id: logId }) };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -263,7 +263,7 @@ describe('Audit Log APIs', () => {
     it('should sort related logs by created_at (chronological timeline)', async () => {
       const logId = 'log-123';
       const mockRequest = new NextRequest(`http://localhost/api/admin/audit-log/${logId}`);
-      const mockParams = { params: { id: logId } };
+      const mockParams = { params: Promise.resolve({ id: logId }) };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -276,7 +276,7 @@ describe('Audit Log APIs', () => {
     it('should include user info for related logs', async () => {
       const logId = 'log-123';
       const mockRequest = new NextRequest(`http://localhost/api/admin/audit-log/${logId}`);
-      const mockParams = { params: { id: logId } };
+      const mockParams = { params: Promise.resolve({ id: logId }) };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -290,7 +290,7 @@ describe('Audit Log APIs', () => {
     it('should show complete change history for an entity', async () => {
       const logId = 'log-123';
       const mockRequest = new NextRequest(`http://localhost/api/admin/audit-log/${logId}`);
-      const mockParams = { params: { id: logId } };
+      const mockParams = { params: Promise.resolve({ id: logId }) };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -381,7 +381,7 @@ describe('Audit Log APIs', () => {
     it('should provide entity timeline via related logs', async () => {
       const logId = 'log-123';
       const mockRequest = new NextRequest(`http://localhost/api/admin/audit-log/${logId}`);
-      const mockParams = { params: { id: logId } };
+      const mockParams = { params: Promise.resolve({ id: logId }) };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -452,7 +452,7 @@ describe('Audit Log APIs', () => {
     it('should limit related logs to prevent massive responses', async () => {
       const logId = 'log-123';
       const mockRequest = new NextRequest(`http://localhost/api/admin/audit-log/${logId}`);
-      const mockParams = { params: { id: logId } };
+      const mockParams = { params: Promise.resolve({ id: logId }) };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
       const data = await response.json();

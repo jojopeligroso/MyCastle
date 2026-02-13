@@ -290,7 +290,7 @@ describe('Invoice Management APIs', () => {
       const mockRequest = new NextRequest(
         `http://localhost/api/admin/finance/invoices/${invoiceId}`
       );
-      const mockParams = { params: { id: invoiceId } };
+      const mockParams = { params: Promise.resolve({ id: invoiceId }) };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -314,7 +314,7 @@ describe('Invoice Management APIs', () => {
       const mockRequest = new NextRequest(
         'http://localhost/api/admin/finance/invoices/non-existent'
       );
-      const mockParams = { params: { id: 'non-existent' } };
+      const mockParams = { params: Promise.resolve({ id: 'non-existent' }) };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -328,7 +328,7 @@ describe('Invoice Management APIs', () => {
       const mockRequest = new NextRequest(
         `http://localhost/api/admin/finance/invoices/${invoiceId}`
       );
-      const mockParams = { params: { id: invoiceId } };
+      const mockParams = { params: Promise.resolve({ id: invoiceId }) };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -341,7 +341,7 @@ describe('Invoice Management APIs', () => {
       const mockRequest = new NextRequest(
         `http://localhost/api/admin/finance/invoices/${invoiceId}`
       );
-      const mockParams = { params: { id: invoiceId } };
+      const mockParams = { params: Promise.resolve({ id: invoiceId }) };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -355,7 +355,7 @@ describe('Invoice Management APIs', () => {
       const mockRequest = new NextRequest(
         `http://localhost/api/admin/finance/invoices/${invoiceId}`
       );
-      const mockParams = { params: { id: invoiceId } };
+      const mockParams = { params: Promise.resolve({ id: invoiceId }) };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -374,7 +374,7 @@ describe('Invoice Management APIs', () => {
           method: 'DELETE',
         }
       );
-      const mockParams = { params: { id: invoiceId } };
+      const mockParams = { params: Promise.resolve({ id: invoiceId }) };
 
       const response = await DELETE_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -397,7 +397,7 @@ describe('Invoice Management APIs', () => {
           method: 'DELETE',
         }
       );
-      const mockParams = { params: { id: 'non-existent' } };
+      const mockParams = { params: Promise.resolve({ id: 'non-existent' }) };
 
       const response = await DELETE_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -414,7 +414,7 @@ describe('Invoice Management APIs', () => {
           method: 'DELETE',
         }
       );
-      const mockParams = { params: { id: invoiceId } };
+      const mockParams = { params: Promise.resolve({ id: invoiceId }) };
 
       const { db } = await import('@/db');
       const updateSpy = jest.spyOn(db, 'update');

@@ -7,6 +7,7 @@ import {
   attendance,
   grades,
   submissions,
+  assignments,
   classes,
 } from '@/db/schema';
 import { eq, and, isNull, sql, desc, ne } from 'drizzle-orm';
@@ -65,7 +66,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         count: sql<number>`count(*)::int`,
       })
       .from(attendance)
-      .where(and(eq(attendance.studentId, studentId), isNull(attendance.deletedAt)))
+      .where(eq(attendance.studentId, studentId))
       .groupBy(attendance.status);
 
     const attendanceSummary = {
@@ -86,30 +87,32 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         : null;
 
     // Fetch grades and submissions
+    // Join: grades → submissions → assignments to get all relevant data
     const studentGrades = await db
       .select({
         gradeId: grades.id,
-        assignmentId: grades.assignmentId,
+        assignmentId: submissions.assignmentId,
         score: grades.score,
-        maxScore: grades.maxScore,
+        maxScore: assignments.maxScore,
         feedback: grades.feedback,
-        cefrLevel: grades.cefrLevel,
+        grade: grades.grade,
         gradedAt: grades.gradedAt,
         submissionId: submissions.id,
         submittedAt: submissions.submittedAt,
         status: submissions.status,
       })
       .from(grades)
-      .leftJoin(submissions, eq(grades.submissionId, submissions.id))
-      .where(and(eq(grades.studentId, studentId), isNull(grades.deletedAt)))
+      .innerJoin(submissions, eq(grades.submissionId, submissions.id))
+      .innerJoin(assignments, eq(submissions.assignmentId, assignments.id))
+      .where(eq(submissions.studentId, studentId))
       .orderBy(desc(grades.gradedAt));
 
     // Calculate average grade
     const averageGrade =
       studentGrades.length > 0
         ? studentGrades.reduce((acc, g) => {
-            const score = parseFloat(g.score || '0');
-            const maxScore = parseFloat(g.maxScore || '100');
+            const score = parseFloat(g.score ?? '0');
+            const maxScore = g.maxScore ?? 100;
             const percentage = maxScore ? (score / maxScore) * 100 : 0;
             return acc + percentage;
           }, 0) / studentGrades.length

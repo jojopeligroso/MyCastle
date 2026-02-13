@@ -89,13 +89,17 @@ export function NaturalLanguageQuery() {
   };
 
   const handleExport = () => {
-    if (!result?.data) return;
+    if (!result?.data || result.data.length === 0) return;
 
     // Convert to CSV
-    const headers = Object.keys(result.data[0]);
+    const firstRow = result.data[0] as Record<string, unknown>;
+    const headers = Object.keys(firstRow);
     const csvContent = [
       headers.join(','),
-      ...result.data.map(row => headers.map(h => JSON.stringify(row[h] || '')).join(',')),
+      ...result.data.map(row => {
+        const typedRow = row as Record<string, unknown>;
+        return headers.map(h => JSON.stringify(typedRow[h] || '')).join(',');
+      }),
     ].join('\n');
 
     // Download
@@ -190,8 +194,8 @@ export function NaturalLanguageQuery() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b">
                 <tr>
-                  {result.data[0] &&
-                    Object.keys(result.data[0]).map(key => (
+                  {result.data.length > 0 &&
+                    Object.keys(result.data[0] as Record<string, unknown>).map(key => (
                       <th key={key} className="px-4 py-2 text-left font-medium text-gray-700">
                         {key}
                       </th>
@@ -199,15 +203,18 @@ export function NaturalLanguageQuery() {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {result.data.map((row, i) => (
-                  <tr key={i} className="hover:bg-gray-50">
-                    {Object.values(row).map((value, j) => (
-                      <td key={j} className="px-4 py-2 text-gray-600">
-                        {String(value || '')}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
+                {result.data.map((row, i) => {
+                  const typedRow = row as Record<string, unknown>;
+                  return (
+                    <tr key={i} className="hover:bg-gray-50">
+                      {Object.values(typedRow).map((value, j) => (
+                        <td key={j} className="px-4 py-2 text-gray-600">
+                          {String(value ?? '')}
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

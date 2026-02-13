@@ -195,7 +195,7 @@ describe('Student Management APIs', () => {
     it('should return detailed student information', async () => {
       const studentId = 'student-123';
       const mockRequest = new NextRequest(`http://localhost/api/admin/students/${studentId}`);
-      const mockParams = { params: { id: studentId } };
+      const mockParams = { params: Promise.resolve({ id: studentId }) };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -218,7 +218,7 @@ describe('Student Management APIs', () => {
       });
 
       const mockRequest = new NextRequest('http://localhost/api/admin/students/non-existent');
-      const mockParams = { params: { id: 'non-existent' } };
+      const mockParams = { params: Promise.resolve({ id: 'non-existent' }) };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -230,7 +230,7 @@ describe('Student Management APIs', () => {
     it('should include enrollment history with amendments', async () => {
       const studentId = 'student-123';
       const mockRequest = new NextRequest(`http://localhost/api/admin/students/${studentId}`);
-      const mockParams = { params: { id: studentId } };
+      const mockParams = { params: Promise.resolve({ id: studentId }) };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -246,7 +246,7 @@ describe('Student Management APIs', () => {
     it('should calculate attendance rate correctly', async () => {
       const studentId = 'student-123';
       const mockRequest = new NextRequest(`http://localhost/api/admin/students/${studentId}`);
-      const mockParams = { params: { id: studentId } };
+      const mockParams = { params: Promise.resolve({ id: studentId }) };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -270,7 +270,7 @@ describe('Student Management APIs', () => {
         method: 'PATCH',
         body: JSON.stringify(updateData),
       });
-      const mockParams = { params: { id: studentId } };
+      const mockParams = { params: Promise.resolve({ id: studentId }) };
 
       const response = await PATCH(mockRequest, mockParams);
       const data = await response.json();
@@ -290,7 +290,7 @@ describe('Student Management APIs', () => {
         method: 'PATCH',
         body: JSON.stringify(maliciousData),
       });
-      const mockParams = { params: { id: studentId } };
+      const mockParams = { params: Promise.resolve({ id: studentId }) };
 
       const response = await PATCH(mockRequest, mockParams);
 
@@ -308,7 +308,7 @@ describe('Student Management APIs', () => {
         method: 'PATCH',
         body: JSON.stringify(invalidData),
       });
-      const mockParams = { params: { id: studentId } };
+      const mockParams = { params: Promise.resolve({ id: studentId }) };
 
       const response = await PATCH(mockRequest, mockParams);
 
@@ -328,7 +328,7 @@ describe('Student Management APIs', () => {
         method: 'PATCH',
         body: JSON.stringify(visaUpdate),
       });
-      const mockParams = { params: { id: studentId } };
+      const mockParams = { params: Promise.resolve({ id: studentId }) };
 
       const response = await PATCH(mockRequest, mockParams);
 
@@ -342,7 +342,7 @@ describe('Student Management APIs', () => {
       const mockRequest = new NextRequest(`http://localhost/api/admin/students/${studentId}`, {
         method: 'DELETE',
       });
-      const mockParams = { params: { id: studentId } };
+      const mockParams = { params: Promise.resolve({ id: studentId }) };
 
       const response = await DELETE_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -362,7 +362,7 @@ describe('Student Management APIs', () => {
       const mockRequest = new NextRequest('http://localhost/api/admin/students/non-existent', {
         method: 'DELETE',
       });
-      const mockParams = { params: { id: 'non-existent' } };
+      const mockParams = { params: Promise.resolve({ id: 'non-existent' }) };
 
       const response = await DELETE_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -377,7 +377,7 @@ describe('Student Management APIs', () => {
       const mockRequest = new NextRequest(`http://localhost/api/admin/students/${studentId}`, {
         method: 'DELETE',
       });
-      const mockParams = { params: { id: studentId } };
+      const mockParams = { params: Promise.resolve({ id: studentId }) };
 
       const { db } = await import('@/db');
       const updateSpy = jest.spyOn(db, 'update');

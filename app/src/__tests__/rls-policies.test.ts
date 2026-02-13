@@ -83,7 +83,7 @@ describe('RLS Policies - Setup', () => {
       .values({
         name: 'Test School 1',
         subdomain: 'test-rls-1',
-        contact_email: 'admin@test1.com',
+        contactEmail: 'admin@test1.com',
       })
       .returning();
     tenant1Id = tenant1.id;
@@ -93,7 +93,7 @@ describe('RLS Policies - Setup', () => {
       .values({
         name: 'Test School 2',
         subdomain: 'test-rls-2',
-        contact_email: 'admin@test2.com',
+        contactEmail: 'admin@test2.com',
       })
       .returning();
     tenant2Id = tenant2.id;
@@ -102,10 +102,10 @@ describe('RLS Policies - Setup', () => {
     const [admin1] = await db
       .insert(users)
       .values({
-        tenant_id: tenant1Id,
+        tenantId: tenant1Id,
         email: 'admin1@test1.com',
         name: 'Admin One',
-        role: 'admin',
+        primaryRole: 'admin',
       })
       .returning();
     admin1Id = admin1.id;
@@ -113,10 +113,10 @@ describe('RLS Policies - Setup', () => {
     const [teacher1] = await db
       .insert(users)
       .values({
-        tenant_id: tenant1Id,
+        tenantId: tenant1Id,
         email: 'teacher1@test1.com',
         name: 'Teacher One',
-        role: 'teacher',
+        primaryRole: 'teacher',
       })
       .returning();
     teacher1Id = teacher1.id;
@@ -124,10 +124,10 @@ describe('RLS Policies - Setup', () => {
     const [teacher2] = await db
       .insert(users)
       .values({
-        tenant_id: tenant2Id,
+        tenantId: tenant2Id,
         email: 'teacher2@test2.com',
         name: 'Teacher Two',
-        role: 'teacher',
+        primaryRole: 'teacher',
       })
       .returning();
     teacher2Id = teacher2.id;
@@ -135,10 +135,10 @@ describe('RLS Policies - Setup', () => {
     const [student1] = await db
       .insert(users)
       .values({
-        tenant_id: tenant1Id,
+        tenantId: tenant1Id,
         email: 'student1@test1.com',
         name: 'Student One',
-        role: 'student',
+        primaryRole: 'student',
       })
       .returning();
     student1Id = student1.id;
@@ -146,10 +146,10 @@ describe('RLS Policies - Setup', () => {
     const [student2] = await db
       .insert(users)
       .values({
-        tenant_id: tenant1Id,
+        tenantId: tenant1Id,
         email: 'student2@test1.com',
         name: 'Student Two',
-        role: 'student',
+        primaryRole: 'student',
       })
       .returning();
     student2Id = student2.id;
@@ -158,11 +158,11 @@ describe('RLS Policies - Setup', () => {
     const [class1] = await db
       .insert(classes)
       .values({
-        tenant_id: tenant1Id,
+        tenantId: tenant1Id,
         name: 'Math 101',
         code: 'MATH-101',
-        teacher_id: teacher1Id,
-        start_date: '2025-01-01',
+        teacherId: teacher1Id,
+        startDate: '2025-01-01',
       })
       .returning();
     class1Id = class1.id;
@@ -170,21 +170,21 @@ describe('RLS Policies - Setup', () => {
     const [class2] = await db
       .insert(classes)
       .values({
-        tenant_id: tenant1Id,
+        tenantId: tenant1Id,
         name: 'English 101',
         code: 'ENG-101',
-        teacher_id: teacher2Id, // Teacher from different tenant!
-        start_date: '2025-01-01',
+        teacherId: teacher2Id, // Teacher from different tenant!
+        startDate: '2025-01-01',
       })
       .returning();
     class2Id = class2.id;
 
     // Create enrollments
     await db.insert(enrollments).values({
-      tenant_id: tenant1Id,
-      student_id: student1Id,
-      class_id: class1Id,
-      enrollment_date: '2025-01-01',
+      tenantId: tenant1Id,
+      studentId: student1Id,
+      classId: class1Id,
+      enrollmentDate: '2025-01-01',
     });
 
     await db.execute(sql`SET session_replication_role = 'origin'`);
@@ -269,7 +269,7 @@ describe('RLS Policies - Users Table', () => {
 
     // Should see admin1, teacher1, student1, student2 (all in tenant1)
     expect(result.length).toBeGreaterThanOrEqual(4);
-    expect(result.every(u => u.tenant_id === tenant1Id)).toBe(true);
+    expect(result.every(u => u.tenantId === tenant1Id)).toBe(true);
   });
 
   it('should prevent users from seeing users in other tenants', async () => {
@@ -289,7 +289,7 @@ describe('RLS Policies - Classes Table', () => {
     const result = await db.select().from(classes);
 
     expect(result.length).toBeGreaterThanOrEqual(2);
-    expect(result.every(c => c.tenant_id === tenant1Id)).toBe(true);
+    expect(result.every(c => c.tenantId === tenant1Id)).toBe(true);
   });
 
   it('should allow teacher to see only their assigned classes', async () => {
@@ -329,7 +329,7 @@ describe('RLS Policies - Enrollments Table', () => {
     const result = await db.select().from(enrollments);
 
     expect(result.length).toBeGreaterThanOrEqual(1);
-    expect(result.every(e => e.tenant_id === tenant1Id)).toBe(true);
+    expect(result.every(e => e.tenantId === tenant1Id)).toBe(true);
   });
 
   it('should allow teacher to see enrollments for their classes', async () => {
@@ -339,7 +339,7 @@ describe('RLS Policies - Enrollments Table', () => {
 
     // Teacher1 should see enrollments for class1
     expect(result.length).toBeGreaterThanOrEqual(1);
-    expect(result.every(e => e.class_id === class1Id)).toBe(true);
+    expect(result.every(e => e.classId === class1Id)).toBe(true);
   });
 
   it('should allow student to see only their own enrollments', async () => {
@@ -348,7 +348,7 @@ describe('RLS Policies - Enrollments Table', () => {
     const result = await db.select().from(enrollments);
 
     expect(result.length).toBeGreaterThanOrEqual(1);
-    expect(result.every(e => e.student_id === student1Id)).toBe(true);
+    expect(result.every(e => e.studentId === student1Id)).toBe(true);
   });
 });
 
@@ -373,8 +373,8 @@ describe('RLS Policies - Multi-Tenant Isolation', () => {
 
     // All queries should only return tenant1 data
     expect(allTenants.every(t => t.id === tenant1Id)).toBe(true);
-    expect(allUsers.every(u => u.tenant_id === tenant1Id)).toBe(true);
-    expect(allClasses.every(c => c.tenant_id === tenant1Id)).toBe(true);
+    expect(allUsers.every(u => u.tenantId === tenant1Id)).toBe(true);
+    expect(allClasses.every(c => c.tenantId === tenant1Id)).toBe(true);
   });
 });
 
@@ -394,10 +394,10 @@ describe('RLS Policies - Negative Cases', () => {
     // Students should not be able to create classes
     await expect(async () => {
       await db.insert(classes).values({
-        tenant_id: tenant1Id,
+        tenantId: tenant1Id,
         name: 'Unauthorized Class',
         code: 'HACK-101',
-        start_date: '2025-01-01',
+        startDate: '2025-01-01',
       });
     }).rejects.toThrow();
   });
@@ -431,15 +431,15 @@ describe('RLS Policies - Admin Privileges', () => {
     const [newUser] = await db
       .insert(users)
       .values({
-        tenant_id: tenant1Id,
+        tenantId: tenant1Id,
         email: 'newuser@test1.com',
         name: 'New User',
-        role: 'student',
+        primaryRole: 'student',
       })
       .returning();
 
     expect(newUser).toBeDefined();
-    expect(newUser.tenant_id).toBe(tenant1Id);
+    expect(newUser.tenantId).toBe(tenant1Id);
 
     // Clean up
     await db.delete(users).where(sql`id = ${newUser.id}::uuid`);
@@ -469,15 +469,15 @@ describe('RLS Policies - Admin Privileges', () => {
     const [newClass] = await db
       .insert(classes)
       .values({
-        tenant_id: tenant1Id,
+        tenantId: tenant1Id,
         name: 'Science 101',
         code: 'SCI-101',
-        start_date: '2025-01-01',
+        startDate: '2025-01-01',
       })
       .returning();
 
     expect(newClass).toBeDefined();
-    expect(newClass.tenant_id).toBe(tenant1Id);
+    expect(newClass.tenantId).toBe(tenant1Id);
 
     // Clean up
     await db.delete(classes).where(sql`id = ${newClass.id}::uuid`);
@@ -520,10 +520,10 @@ describe('RLS Policies - Rollback Safety', () => {
       await db.transaction(async tx => {
         // This should fail due to RLS policy
         await tx.insert(classes).values({
-          tenant_id: tenant1Id,
+          tenantId: tenant1Id,
           name: 'Unauthorized Class',
           code: 'HACK-101',
-          start_date: '2025-01-01',
+          startDate: '2025-01-01',
         });
       });
     } catch {

@@ -54,7 +54,7 @@ export function EditUserForm({ userData }: Props) {
       router.push(`/admin/users/${userData.id}`);
       router.refresh();
     } catch (err: unknown) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : 'An error occurred');
       setLoading(false);
     }
   };

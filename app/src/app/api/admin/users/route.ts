@@ -85,10 +85,10 @@ export async function POST(request: NextRequest) {
       .insert(users)
       .values({
         id: authData.user.id,
-        tenant_id: tenantId,
+        tenantId: tenantId,
         email: validatedData.email,
         name: validatedData.name,
-        role: validatedData.role,
+        primaryRole: validatedData.role,
         status: validatedData.status,
       })
       .returning();
@@ -101,14 +101,17 @@ export async function POST(request: NextRequest) {
   } catch (error: unknown) {
     console.error('Error creating user:', error);
 
-    if (error.name === 'ZodError') {
+    if (error instanceof Error && error.name === 'ZodError') {
       return NextResponse.json(
-        { error: 'Invalid request data', details: error.issues },
+        { error: 'Invalid request data', details: (error as unknown as { issues: unknown[] }).issues },
         { status: 400 }
       );
     }
 
-    return NextResponse.json({ error: error.message || 'Failed to create user' }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Failed to create user' },
+      { status: 500 }
+    );
   }
 }
 

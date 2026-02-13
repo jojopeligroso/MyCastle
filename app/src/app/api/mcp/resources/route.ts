@@ -72,12 +72,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     if (response.success) {
       return NextResponse.json(response, { status: 200 });
     } else {
+      const errorCode = (response.error as { code?: string })?.code;
       const statusCode =
-        response.error?.code === 'UNAUTHORIZED'
+        errorCode === 'UNAUTHORIZED'
           ? 401
-          : response.error?.code === 'FORBIDDEN'
+          : errorCode === 'FORBIDDEN'
             ? 403
-            : response.error?.code === 'RESOURCE_NOT_FOUND'
+            : errorCode === 'RESOURCE_NOT_FOUND'
               ? 404
               : 500;
 

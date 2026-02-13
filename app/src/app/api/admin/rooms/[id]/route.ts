@@ -17,7 +17,7 @@ const updateRoomSchema = z.object({
   name: z.string().min(1, 'Room name is required').optional(),
   description: z.string().optional(),
   capacity: z.number().positive('Capacity must be a positive number').optional(),
-  equipment: z.record(z.unknown()).optional(),
+  equipment: z.record(z.string(), z.unknown()).optional(),
   facilities: z.array(z.string()).optional(),
   accessibility: z.boolean().optional(),
   status: z.enum(['available', 'maintenance', 'unavailable']).optional(),
