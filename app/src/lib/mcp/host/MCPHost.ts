@@ -110,7 +110,7 @@ export class MCPHost {
    * Get session by ID
    */
   getSession(sessionId: string): MCPSession | null {
-    const _session = this.sessions.get(sessionId);
+    const session = this.sessions.get(sessionId);
 
     if (!session) {
       return null;

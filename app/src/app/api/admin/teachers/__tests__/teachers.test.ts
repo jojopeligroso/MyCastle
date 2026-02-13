@@ -98,7 +98,7 @@ describe('Teachers Management APIs', () => {
     it('should return teacher detail with assigned classes', async () => {
       const teacherId = 'teacher-123';
       const mockRequest = new NextRequest(`http://localhost/api/admin/teachers/${teacherId}`);
-      const mockParams = { params: { id: teacherId } };
+      const mockParams = { params: Promise.resolve({ id: teacherId }) };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -118,7 +118,7 @@ describe('Teachers Management APIs', () => {
       });
 
       const mockRequest = new NextRequest('http://localhost/api/admin/teachers/non-existent');
-      const mockParams = { params: { id: 'non-existent' } };
+      const mockParams = { params: Promise.resolve({ id: 'non-existent' }) };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -130,7 +130,7 @@ describe('Teachers Management APIs', () => {
     it('should include full class details for assigned classes', async () => {
       const teacherId = 'teacher-123';
       const mockRequest = new NextRequest(`http://localhost/api/admin/teachers/${teacherId}`);
-      const mockParams = { params: { id: teacherId } };
+      const mockParams = { params: Promise.resolve({ id: teacherId }) };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -147,7 +147,7 @@ describe('Teachers Management APIs', () => {
     it('should include teacher profile information', async () => {
       const teacherId = 'teacher-123';
       const mockRequest = new NextRequest(`http://localhost/api/admin/teachers/${teacherId}`);
-      const mockParams = { params: { id: teacherId } };
+      const mockParams = { params: Promise.resolve({ id: teacherId }) };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -161,7 +161,7 @@ describe('Teachers Management APIs', () => {
     it('should handle teachers with no assigned classes', async () => {
       const teacherId = 'teacher-123';
       const mockRequest = new NextRequest(`http://localhost/api/admin/teachers/${teacherId}`);
-      const mockParams = { params: { id: teacherId } };
+      const mockParams = { params: Promise.resolve({ id: teacherId }) };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -174,7 +174,7 @@ describe('Teachers Management APIs', () => {
     it('should filter out deleted classes', async () => {
       const teacherId = 'teacher-123';
       const mockRequest = new NextRequest(`http://localhost/api/admin/teachers/${teacherId}`);
-      const mockParams = { params: { id: teacherId } };
+      const mockParams = { params: Promise.resolve({ id: teacherId }) };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -213,7 +213,7 @@ describe('Teachers Management APIs', () => {
       });
 
       const mockRequest = new NextRequest('http://localhost/api/admin/teachers/user-123');
-      const mockParams = { params: { id: 'user-123' } };
+      const mockParams = { params: Promise.resolve({ id: 'user-123' }) };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
       const data = await response.json();

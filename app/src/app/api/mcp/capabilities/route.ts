@@ -50,28 +50,33 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
             scopes: session.scopes,
           },
           capabilities: {
-            tools: tools.map(
-              (t: { name: string; description?: string; inputSchema?: unknown }) => ({
-                name: t.name,
-                description: t.description,
-                inputSchema: t.inputSchema,
-              })
-            ),
-            resources: resources.map(
-              (r: { uri: string; name: string; description?: string; mimeType?: string }) => ({
-                uri: r.uri,
-                name: r.name,
-                description: r.description,
-                mimeType: r.mimeType,
-              })
-            ),
-            prompts: prompts.map(
-              (p: { name: string; description?: string; arguments?: unknown[] }) => ({
-                name: p.name,
-                description: p.description,
-                arguments: p.arguments,
-              })
-            ),
+            tools: (
+              tools as Array<{ name: string; description?: string; inputSchema?: unknown }>
+            ).map(t => ({
+              name: t.name,
+              description: t.description,
+              inputSchema: t.inputSchema,
+            })),
+            resources: (
+              resources as Array<{
+                uri: string;
+                name: string;
+                description?: string;
+                mimeType?: string;
+              }>
+            ).map(r => ({
+              uri: r.uri,
+              name: r.name,
+              description: r.description,
+              mimeType: r.mimeType,
+            })),
+            prompts: (
+              prompts as Array<{ name: string; description?: string; arguments?: unknown[] }>
+            ).map(p => ({
+              name: p.name,
+              description: p.description,
+              arguments: p.arguments,
+            })),
           },
           servers: health.servers.map(s => ({
             name: s.name,

@@ -53,7 +53,7 @@ export function ClassAnalytics({ classId }: ClassAnalyticsProps) {
         } else {
           setError(data.error?.message || 'Unknown error');
         }
-      } catch (_err) {
+      } catch (err) {
         console.error('[ClassAnalytics] Fetch error:', err);
         setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {

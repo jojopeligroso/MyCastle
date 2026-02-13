@@ -67,7 +67,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     // Update user metadata in Supabase Auth if email or role changed
     if (validatedData.email || validatedData.role || validatedData.name) {
-      const authUpdates: unknown = {};
+      const authUpdates: {
+        email?: string;
+        user_metadata?: Record<string, unknown>;
+      } = {};
 
       if (validatedData.email) {
         authUpdates.email = validatedData.email;
@@ -75,7 +78,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
       if (validatedData.role || validatedData.name) {
         authUpdates.user_metadata = {
-          ...existingUser,
+          ...(existingUser.metadata as Record<string, unknown>),
           ...(validatedData.name && { name: validatedData.name }),
           ...(validatedData.role && { role: validatedData.role }),
         };
@@ -111,7 +114,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     if (error instanceof Error && error.name === 'ZodError') {
       return NextResponse.json(
-        { error: 'Invalid request data', details: (error as { issues: unknown[] }).issues },
+        { error: 'Invalid request data', details: (error as unknown as { issues: unknown[] }).issues },
         { status: 400 }
       );
     }

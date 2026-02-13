@@ -28,8 +28,8 @@ export async function GET(request: NextRequest) {
         courseCount: sql<number>`count(${programmeCourses.id})::int`,
       })
       .from(programmes)
-      .leftJoin(programmeCourses, eq(programmes.id, programmeCourses.programme_id))
-      .where(isNull(programmes.deleted_at))
+      .leftJoin(programmeCourses, eq(programmes.id, programmeCourses.programmeId))
+      .where(isNull(programmes.deletedAt))
       .groupBy(programmes.id)
       .$dynamic();
 
@@ -72,16 +72,16 @@ export async function POST(request: NextRequest) {
     const [newProgramme] = await db
       .insert(programmes)
       .values({
-        tenant_id: tenantId,
+        tenantId: tenantId,
         name: data.name,
         code: programmeCode,
         description: data.description || null,
-        duration_weeks: data.duration_weeks || 12,
-        hours_per_week: data.hours_per_week || 15,
+        durationWeeks: data.duration_weeks || 12,
+        hoursPerWeek: data.hours_per_week || 15,
         levels: data.levels || ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'],
         status: data.status,
-        created_at: new Date(),
-        updated_at: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       })
       .returning();
 

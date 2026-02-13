@@ -54,14 +54,15 @@ export async function POST(
     if (response.success) {
       return NextResponse.json(response, { status: 200 });
     } else {
+      const errorCode = (response.error as { code?: string })?.code;
       const statusCode =
-        response.error?.code === 'UNAUTHORIZED'
+        errorCode === 'UNAUTHORIZED'
           ? 401
-          : response.error?.code === 'FORBIDDEN'
+          : errorCode === 'FORBIDDEN'
             ? 403
-            : response.error?.code === 'TOOL_NOT_FOUND'
+            : errorCode === 'TOOL_NOT_FOUND'
               ? 404
-              : response.error?.code === 'INVALID_INPUT'
+              : errorCode === 'INVALID_INPUT'
                 ? 400
                 : 500;
 

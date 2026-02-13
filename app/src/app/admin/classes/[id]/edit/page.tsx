@@ -72,7 +72,7 @@ async function getProgrammes(tenantId: string) {
       code: programmes.code,
     })
     .from(programmes)
-    .where(eq(programmes.tenant_id, sql`${tenantId}::uuid`))
+    .where(eq(programmes.tenantId, sql`${tenantId}::uuid`))
     .orderBy(programmes.name);
 
   return programmesList;

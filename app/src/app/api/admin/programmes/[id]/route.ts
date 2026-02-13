@@ -23,7 +23,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const [programme] = await db
       .select()
       .from(programmes)
-      .where(and(eq(programmes.id, programmeId), isNull(programmes.deleted_at)))
+      .where(and(eq(programmes.id, programmeId), isNull(programmes.deletedAt)))
       .limit(1);
 
     if (!programme) {
@@ -35,9 +35,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       .select()
       .from(programmeCourses)
       .where(
-        and(eq(programmeCourses.programme_id, programmeId), isNull(programmeCourses.deleted_at))
+        and(eq(programmeCourses.programmeId, programmeId), isNull(programmeCourses.deletedAt))
       )
-      .orderBy(programmeCourses.cefr_level, programmeCourses.name);
+      .orderBy(programmeCourses.cefrLevel, programmeCourses.name);
 
     return NextResponse.json({ ...programme, courses });
   } catch (error) {
@@ -99,8 +99,8 @@ export async function DELETE(
     const [deletedProgramme] = await db
       .update(programmes)
       .set({
-        deleted_at: new Date(),
-        updated_at: new Date(),
+        deletedAt: new Date(),
+        updatedAt: new Date(),
       })
       .where(eq(programmes.id, programmeId))
       .returning();

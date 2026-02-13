@@ -18,8 +18,8 @@ export async function GET(request: NextRequest) {
         assignedClasses: sql<number>`count(DISTINCT ${classes.id})::int`,
       })
       .from(users)
-      .leftJoin(classes, eq(users.id, classes.teacher_id))
-      .where(and(eq(users.role, 'teacher'), isNull(users.deleted_at)))
+      .leftJoin(classes, eq(users.id, classes.teacherId))
+      .where(and(eq(users.primaryRole, 'teacher'), isNull(users.deletedAt)))
       .groupBy(users.id)
       .$dynamic();
 

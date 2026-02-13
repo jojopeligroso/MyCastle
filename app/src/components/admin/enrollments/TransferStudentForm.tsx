@@ -58,7 +58,7 @@ export default function TransferStudentForm({
           );
           setClasses(filteredClasses);
         }
-      } catch (_err) {
+      } catch (err) {
         console.error('Failed to fetch classes:', err);
       }
     }
@@ -136,7 +136,7 @@ export default function TransferStudentForm({
       // Success - redirect to new enrollment detail page
       router.push(`/admin/enrolments/${newEnrollment.id}`);
       router.refresh();
-    } catch (_err) {
+    } catch (err) {
       const message = err instanceof Error ? err.message : 'An error occurred during transfer';
       setError(message);
     } finally {

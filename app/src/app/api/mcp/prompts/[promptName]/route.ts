@@ -45,12 +45,13 @@ export async function GET(
     if (response.success) {
       return NextResponse.json(response, { status: 200 });
     } else {
+      const errorCode = (response.error as { code?: string })?.code;
       const statusCode =
-        response.error?.code === 'UNAUTHORIZED'
+        errorCode === 'UNAUTHORIZED'
           ? 401
-          : response.error?.code === 'FORBIDDEN'
+          : errorCode === 'FORBIDDEN'
             ? 403
-            : response.error?.code === 'PROMPT_NOT_FOUND'
+            : errorCode === 'PROMPT_NOT_FOUND'
               ? 404
               : 500;
 

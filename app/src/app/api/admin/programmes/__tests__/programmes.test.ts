@@ -193,7 +193,7 @@ describe('Programmes Management APIs', () => {
     it('should return programme detail with associated courses', async () => {
       const programmeId = 'programme-123';
       const mockRequest = new NextRequest(`http://localhost/api/admin/programmes/${programmeId}`);
-      const mockParams = { params: { id: programmeId } };
+      const mockParams = { params: Promise.resolve({ id: programmeId }) };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -213,7 +213,7 @@ describe('Programmes Management APIs', () => {
       });
 
       const mockRequest = new NextRequest('http://localhost/api/admin/programmes/non-existent');
-      const mockParams = { params: { id: 'non-existent' } };
+      const mockParams = { params: Promise.resolve({ id: 'non-existent' }) };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -225,7 +225,7 @@ describe('Programmes Management APIs', () => {
     it('should include all programme fields', async () => {
       const programmeId = 'programme-123';
       const mockRequest = new NextRequest(`http://localhost/api/admin/programmes/${programmeId}`);
-      const mockParams = { params: { id: programmeId } };
+      const mockParams = { params: Promise.resolve({ id: programmeId }) };
 
       const response = await GET_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -252,7 +252,7 @@ describe('Programmes Management APIs', () => {
         method: 'PATCH',
         body: JSON.stringify(updateData),
       });
-      const mockParams = { params: { id: programmeId } };
+      const mockParams = { params: Promise.resolve({ id: programmeId }) };
 
       const response = await PATCH(mockRequest, mockParams);
       const data = await response.json();
@@ -271,7 +271,7 @@ describe('Programmes Management APIs', () => {
         method: 'PATCH',
         body: JSON.stringify(updateData),
       });
-      const mockParams = { params: { id: programmeId } };
+      const mockParams = { params: Promise.resolve({ id: programmeId }) };
 
       const response = await PATCH(mockRequest, mockParams);
 
@@ -288,7 +288,7 @@ describe('Programmes Management APIs', () => {
         method: 'PATCH',
         body: JSON.stringify(invalidData),
       });
-      const mockParams = { params: { id: programmeId } };
+      const mockParams = { params: Promise.resolve({ id: programmeId }) };
 
       const response = await PATCH(mockRequest, mockParams);
 
@@ -305,7 +305,7 @@ describe('Programmes Management APIs', () => {
         method: 'PATCH',
         body: JSON.stringify(maliciousData),
       });
-      const mockParams = { params: { id: programmeId } };
+      const mockParams = { params: Promise.resolve({ id: programmeId }) };
 
       const response = await PATCH(mockRequest, mockParams);
 
@@ -323,7 +323,7 @@ describe('Programmes Management APIs', () => {
         method: 'PATCH',
         body: JSON.stringify(updateData),
       });
-      const mockParams = { params: { id: programmeId } };
+      const mockParams = { params: Promise.resolve({ id: programmeId }) };
 
       const response = await PATCH(mockRequest, mockParams);
       const data = await response.json();
@@ -339,7 +339,7 @@ describe('Programmes Management APIs', () => {
       const mockRequest = new NextRequest(`http://localhost/api/admin/programmes/${programmeId}`, {
         method: 'DELETE',
       });
-      const mockParams = { params: { id: programmeId } };
+      const mockParams = { params: Promise.resolve({ id: programmeId }) };
 
       const response = await DELETE_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -359,7 +359,7 @@ describe('Programmes Management APIs', () => {
       const mockRequest = new NextRequest('http://localhost/api/admin/programmes/non-existent', {
         method: 'DELETE',
       });
-      const mockParams = { params: { id: 'non-existent' } };
+      const mockParams = { params: Promise.resolve({ id: 'non-existent' }) };
 
       const response = await DELETE_BY_ID(mockRequest, mockParams);
       const data = await response.json();
@@ -373,7 +373,7 @@ describe('Programmes Management APIs', () => {
       const mockRequest = new NextRequest(`http://localhost/api/admin/programmes/${programmeId}`, {
         method: 'DELETE',
       });
-      const mockParams = { params: { id: programmeId } };
+      const mockParams = { params: Promise.resolve({ id: programmeId }) };
 
       const { db } = await import('@/db');
       const updateSpy = jest.spyOn(db, 'update');

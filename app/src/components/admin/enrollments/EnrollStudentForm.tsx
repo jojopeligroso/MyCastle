@@ -68,7 +68,7 @@ export default function EnrollStudentForm({
           const classesData = await classesRes.json();
           setClasses(classesData.classes || []);
         }
-      } catch (_err) {
+      } catch (err) {
         console.error('Failed to fetch data:', err);
       }
     }
@@ -134,7 +134,7 @@ export default function EnrollStudentForm({
         router.push('/admin/enrolments');
         router.refresh();
       }, 1500);
-    } catch (_err) {
+    } catch (err) {
       const message = err instanceof Error ? err.message : 'An error occurred';
       setError(message);
     } finally {

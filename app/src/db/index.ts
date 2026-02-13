@@ -74,7 +74,7 @@ export async function validateRLSSupport(): Promise<void> {
     console.error('   Error:', error instanceof Error ? error.message : String(error));
     console.error('\n   This will cause navigation failures across the entire application.');
     console.error('   Fix: Use DIRECT_URL with Session Mode Pooler (port 5432)');
-    console.error('   Current connection:', connectionString.replace(/:[^:@]+@/, ':****@'), '\n');
+    console.error('   Current connection:', connectionString!.replace(/:[^:@]+@/, ':****@'), '\n');
 
     throw new Error(
       'Database connection does not support session variables required for RLS. ' +

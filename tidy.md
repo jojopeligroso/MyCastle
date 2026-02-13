@@ -326,6 +326,67 @@ export * from './system';
 
 ---
 
+## TypeScript Error Cleanup (2026-02-13)
+
+### Two Main Categories of Errors Identified:
+
+1. **snake_case vs camelCase in Drizzle ORM (190+ errors)**
+   - **Issue:** Test files and some production code use snake_case property names (`tenant_id`, `student_id`, `class_id`) instead of Drizzle's camelCase properties (`tenantId`, `studentId`, `classId`)
+   - **Root cause:** Drizzle ORM schema defines TypeScript properties in camelCase but maps to snake_case PostgreSQL columns automatically. Code must use camelCase when accessing schema properties.
+   - **Example fix:**
+     ```typescript
+     // WRONG:
+     await db.insert(users).values({ tenant_id: '...', role: 'admin' })
+     expect(result[0].tenant_id).toBe(tenantId)
+
+     // CORRECT:
+     await db.insert(users).values({ tenantId: '...', primaryRole: 'admin' })
+     expect(result[0].tenantId).toBe(tenantId)
+     ```
+   - **Affected files:** `rls-policies.test.ts`, test files in `__tests__/` folders, seed scripts
+
+2. **Next.js 15 async params pattern in tests (100+ errors)**
+   - **Issue:** Test mocks use synchronous params `{ params: { id: string } }` but Next.js 15 routes expect async `{ params: Promise<{ id: string }> }`
+   - **Root cause:** Next.js 15 made route handler params async. Tests need to mock this correctly.
+   - **Example fix:**
+     ```typescript
+     // WRONG:
+     const mockParams = { params: { id: 'test-id' } };
+     await GET_BY_ID(mockRequest, mockParams);
+
+     // CORRECT:
+     const mockParams = { params: Promise.resolve({ id: 'test-id' }) };
+     await GET_BY_ID(mockRequest, mockParams);
+     ```
+   - **Affected files:** All API route test files (`courses.test.ts`, `enrollments.test.ts`, `students.test.ts`, etc.)
+
+### Progress (2026-02-13):
+- Fixed `rls-policies.test.ts` snake_case → camelCase (23 errors)
+- Fixed query components unknown type issues (8 errors)
+- Fixed 6 test files with Promise.resolve params pattern (~100 errors)
+- Fixed `programmes.ts` schema snake_case → camelCase
+- Fixed `teachers/route.ts`, `users/route.ts`, `users/[id]/route.ts` snake_case issues
+- Fixed `rooms/route.ts` Zod 4.x `z.record()` argument issue
+- Fixed `students/[id]/route.ts` - attendance/grades schema alignment
+- Fixed `MCP routes` error code type assertions
+- Fixed form components `err` is unknown type issues
+- Fixed `MCPHost.ts` session variable naming
+- Fixed `db/index.ts` connectionString possibly undefined
+- Fixed `MCPHostRefactored.ts` unknown type issues in .some() callbacks
+- Fixed `hash-chain.ts` snake_case → camelCase for Drizzle compatibility
+- Fixed `cumulative-lateness.ts` metadata type assertions
+- Fixed `mcp/capabilities/route.ts` array type assertions
+- Fixed multiple "Cannot find name 'err'" issues (catch block typos)
+- **Reduced from 291 → 119 errors (59% reduction, 172 errors fixed)**
+
+### Remaining Error Categories (2026-02-13):
+- **Test files:** ~100 errors (Jest mock typing, snake_case in hash-chain tests)
+- **MCP servers:** ~8 errors (Drizzle query overload issues)
+- **Supabase mocks:** ~4 errors (middleware.ts, server.ts mock type compatibility)
+- **Other:** ~7 errors (StudentRegistry types, notifications.ts, attendance routes)
+
+---
+
 ## Notes
 
 - **Task 1.2 (Student Detail Page) introduced ZERO new errors** ✅

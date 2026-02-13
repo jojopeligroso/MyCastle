@@ -105,9 +105,9 @@ async function getProgrammeLatenessPolicy(
   const metadata = programme[0].metadata as Record<string, unknown>;
 
   return {
-    cumulativeLatenessEnabled: metadata.cumulativeLatenessEnabled ?? false,
-    latenessThresholdMinutes: metadata.latenessThresholdMinutes ?? 15,
-    lateAbsentThresholdMinutes: metadata.lateAbsentThresholdMinutes ?? 17,
+    cumulativeLatenessEnabled: (metadata.cumulativeLatenessEnabled as boolean) ?? false,
+    latenessThresholdMinutes: (metadata.latenessThresholdMinutes as number) ?? 15,
+    lateAbsentThresholdMinutes: (metadata.lateAbsentThresholdMinutes as number) ?? 17,
   };
 }
 

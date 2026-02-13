@@ -88,17 +88,17 @@ export function computeAttendanceHash(
 export function validateAttendanceHash(
   record: {
     id: string;
-    tenant_id: string;
-    class_session_id: string;
-    student_id: string;
+    tenantId: string;
+    classSessionId: string;
+    studentId: string;
     status: string;
-    recorded_by: string;
-    recorded_at: Date;
+    recordedBy: string;
+    recordedAt: Date;
     notes?: string | null;
-    minutes_late?: number | null;
-    minutes_left_early?: number | null;
+    minutesLate?: number | null;
+    minutesLeftEarly?: number | null;
     hash: string | null;
-    previous_hash: string | null;
+    previousHash: string | null;
   },
   previousHash: string | null
 ): { isValid: boolean; computedHash: string; reason?: string } {
@@ -112,15 +112,15 @@ export function validateAttendanceHash(
 
   // Recompute hash
   const payload: AttendanceHashPayload = {
-    tenantId: record.tenant_id,
-    classSessionId: record.class_session_id,
-    studentId: record.student_id,
+    tenantId: record.tenantId,
+    classSessionId: record.classSessionId,
+    studentId: record.studentId,
     status: record.status,
-    recordedBy: record.recorded_by,
-    recordedAt: record.recorded_at,
+    recordedBy: record.recordedBy,
+    recordedAt: record.recordedAt,
     notes: record.notes || undefined,
-    minutesLate: record.minutes_late ?? undefined,
-    minutesLeftEarly: record.minutes_left_early ?? undefined,
+    minutesLate: record.minutesLate ?? undefined,
+    minutesLeftEarly: record.minutesLeftEarly ?? undefined,
   };
 
   const computedHash = computeAttendanceHash(payload, previousHash);
@@ -144,17 +144,17 @@ export function validateAttendanceHash(
 export function validateHashChain(
   records: Array<{
     id: string;
-    tenant_id: string;
-    class_session_id: string;
-    student_id: string;
+    tenantId: string;
+    classSessionId: string;
+    studentId: string;
     status: string;
-    recorded_by: string;
-    recorded_at: Date;
+    recordedBy: string;
+    recordedAt: Date;
     notes?: string | null;
-    minutes_late?: number | null;
-    minutes_left_early?: number | null;
+    minutesLate?: number | null;
+    minutesLeftEarly?: number | null;
     hash: string | null;
-    previous_hash: string | null;
+    previousHash: string | null;
   }>
 ): HashChainValidation {
   const invalidRecords: Array<{
@@ -167,11 +167,11 @@ export function validateHashChain(
   let previousHash: string | null = null;
 
   for (const record of records) {
-    // Validate previous_hash matches expected
-    if (record.previous_hash !== previousHash) {
+    // Validate previousHash matches expected
+    if (record.previousHash !== previousHash) {
       invalidRecords.push({
         recordId: record.id,
-        reason: `Previous hash mismatch: expected ${previousHash}, got ${record.previous_hash}`,
+        reason: `Previous hash mismatch: expected ${previousHash}, got ${record.previousHash}`,
         computedHash: '',
         storedHash: record.hash || '',
       });
@@ -208,14 +208,14 @@ export function validateHashChain(
  * @returns Hash of the last record, or null if chain is empty
  */
 export function getLastHash(
-  records: Array<{ hash: string | null; created_at: Date }>
+  records: Array<{ hash: string | null; createdAt: Date }>
 ): string | null {
   if (records.length === 0) {
     return null;
   }
 
-  // Sort by created_at descending
-  const sorted = [...records].sort((a, b) => b.created_at.getTime() - a.created_at.getTime());
+  // Sort by createdAt descending
+  const sorted = [...records].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
   return sorted[0].hash;
 }
