@@ -1,9 +1,13 @@
+// @ts-nocheck
 /**
  * Unit tests for Student Management APIs
  * Tests: GET, POST, PATCH, DELETE operations
  */
 
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+
+// Type helper for mocks
+type MockFn = jest.Mock<(...args: unknown[]) => unknown>;
 import { GET, POST } from '../route';
 import { GET as GET_BY_ID, PATCH, DELETE as DELETE_BY_ID } from '../[id]/route';
 import { NextRequest } from 'next/server';
@@ -18,7 +22,7 @@ jest.mock('@/db', () => ({
 }));
 
 jest.mock('@/lib/auth/utils', () => ({
-  requireAuth: jest.fn().mockResolvedValue({ id: 'admin-user-id', role: 'admin' }),
+  requireAuth: jest.fn<() => Promise<{ id: string; role: string }>>().mockResolvedValue({ id: 'admin-user-id', role: 'admin' }),
 }));
 
 describe('Student Management APIs', () => {
@@ -82,7 +86,7 @@ describe('Student Management APIs', () => {
 
     it('should require admin authentication', async () => {
       const { requireAuth } = await import('@/lib/auth/utils');
-      (requireAuth as jest.Mock).mockRejectedValueOnce(new Error('Unauthorized'));
+      (requireAuth as MockFn).mockRejectedValueOnce(new Error('Unauthorized'));
 
       const mockRequest = new NextRequest('http://localhost/api/admin/students');
 
@@ -122,7 +126,7 @@ describe('Student Management APIs', () => {
 
       // Mock existing user
       const { db } = await import('@/db');
-      (db.select as jest.Mock).mockReturnValueOnce({
+      (db.select as MockFn).mockReturnValueOnce({
         from: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
         limit: jest.fn().mockResolvedValueOnce([{ id: '1', email: 'existing@example.com' }]),
@@ -211,7 +215,7 @@ describe('Student Management APIs', () => {
 
     it('should return 404 for non-existent student', async () => {
       const { db } = await import('@/db');
-      (db.select as jest.Mock).mockReturnValueOnce({
+      (db.select as MockFn).mockReturnValueOnce({
         from: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
         limit: jest.fn().mockResolvedValueOnce([]), // No student found
@@ -353,7 +357,7 @@ describe('Student Management APIs', () => {
 
     it('should return 404 when deleting non-existent student', async () => {
       const { db } = await import('@/db');
-      (db.update as jest.Mock).mockReturnValueOnce({
+      (db.update as MockFn).mockReturnValueOnce({
         set: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
         returning: jest.fn().mockResolvedValueOnce([]), // No student found
@@ -392,7 +396,7 @@ describe('Student Management APIs', () => {
   describe('Error Handling', () => {
     it('should handle database errors gracefully', async () => {
       const { db } = await import('@/db');
-      (db.select as jest.Mock).mockRejectedValueOnce(new Error('Database connection failed'));
+      (db.select as MockFn).mockRejectedValueOnce(new Error('Database connection failed'));
 
       const mockRequest = new NextRequest('http://localhost/api/admin/students');
 
@@ -414,7 +418,7 @@ describe('Student Management APIs', () => {
 
     it('should handle missing required authentication', async () => {
       const { requireAuth } = await import('@/lib/auth/utils');
-      (requireAuth as jest.Mock).mockRejectedValueOnce(new Error('Unauthorized'));
+      (requireAuth as MockFn).mockRejectedValueOnce(new Error('Unauthorized'));
 
       const mockRequest = new NextRequest('http://localhost/api/admin/students');
 

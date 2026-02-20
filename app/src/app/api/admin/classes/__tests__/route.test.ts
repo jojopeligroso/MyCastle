@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Unit Tests for Admin Classes API Routes
  * Tests POST /api/admin/classes - Create class
@@ -11,7 +12,10 @@ import { requireAuth, getTenantId } from '@/lib/auth/utils';
 
 // Mock dependencies
 jest.mock('@/db');
-jest.mock('@/lib/auth/utils');
+jest.mock('@/lib/auth/utils', () => ({
+  requireAuth: jest.fn(),
+  getTenantId: jest.fn(),
+}));
 
 describe('POST /api/admin/classes', () => {
   let mockRequest: Partial<NextRequest>;

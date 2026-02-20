@@ -89,14 +89,14 @@ describe('Hash-Chain', () => {
 
       const record = {
         id: '123e4567-e89b-12d3-a456-426614174100',
-        tenant_id: payload.tenantId,
-        class_session_id: payload.classSessionId,
-        student_id: payload.studentId,
+        tenantId: payload.tenantId,
+        classSessionId: payload.classSessionId,
+        studentId: payload.studentId,
         status: payload.status,
-        recorded_by: payload.recordedBy,
-        recorded_at: recordedAt,
+        recordedBy: payload.recordedBy,
+        recordedAt: recordedAt,
         hash,
-        previous_hash: null,
+        previousHash: null,
       };
 
       const validation = validateAttendanceHash(record, null);
@@ -110,14 +110,14 @@ describe('Hash-Chain', () => {
 
       const record = {
         id: '123e4567-e89b-12d3-a456-426614174100',
-        tenant_id: '123e4567-e89b-12d3-a456-426614174000',
-        class_session_id: '123e4567-e89b-12d3-a456-426614174001',
-        student_id: '123e4567-e89b-12d3-a456-426614174002',
+        tenantId: '123e4567-e89b-12d3-a456-426614174000',
+        classSessionId: '123e4567-e89b-12d3-a456-426614174001',
+        studentId: '123e4567-e89b-12d3-a456-426614174002',
         status: 'present',
-        recorded_by: '123e4567-e89b-12d3-a456-426614174003',
-        recorded_at: recordedAt,
+        recordedBy: '123e4567-e89b-12d3-a456-426614174003',
+        recordedAt: recordedAt,
         hash: 'tampered_hash_0000000000000000000000000000000000000000000000000000',
-        previous_hash: null,
+        previousHash: null,
       };
 
       const validation = validateAttendanceHash(record, null);
@@ -152,25 +152,25 @@ describe('Hash-Chain', () => {
       const records = [
         {
           id: '123e4567-e89b-12d3-a456-426614174100',
-          tenant_id: payload1.tenantId,
-          class_session_id: payload1.classSessionId,
-          student_id: payload1.studentId,
+          tenantId: payload1.tenantId,
+          classSessionId: payload1.classSessionId,
+          studentId: payload1.studentId,
           status: payload1.status,
-          recorded_by: payload1.recordedBy,
-          recorded_at: recordedAt,
+          recordedBy: payload1.recordedBy,
+          recordedAt: recordedAt,
           hash: hash1,
-          previous_hash: null,
+          previousHash: null,
         },
         {
           id: '123e4567-e89b-12d3-a456-426614174101',
-          tenant_id: payload2.tenantId,
-          class_session_id: payload2.classSessionId,
-          student_id: payload2.studentId,
+          tenantId: payload2.tenantId,
+          classSessionId: payload2.classSessionId,
+          studentId: payload2.studentId,
           status: payload2.status,
-          recorded_by: payload2.recordedBy,
-          recorded_at: recordedAt,
+          recordedBy: payload2.recordedBy,
+          recordedAt: recordedAt,
           hash: hash2,
-          previous_hash: hash1,
+          previousHash: hash1,
         },
       ];
 
@@ -188,25 +188,25 @@ describe('Hash-Chain', () => {
       const records = [
         {
           id: '123e4567-e89b-12d3-a456-426614174100',
-          tenant_id: '123e4567-e89b-12d3-a456-426614174000',
-          class_session_id: '123e4567-e89b-12d3-a456-426614174001',
-          student_id: '123e4567-e89b-12d3-a456-426614174002',
+          tenantId: '123e4567-e89b-12d3-a456-426614174000',
+          classSessionId: '123e4567-e89b-12d3-a456-426614174001',
+          studentId: '123e4567-e89b-12d3-a456-426614174002',
           status: 'present',
-          recorded_by: '123e4567-e89b-12d3-a456-426614174003',
-          recorded_at: recordedAt,
+          recordedBy: '123e4567-e89b-12d3-a456-426614174003',
+          recordedAt: recordedAt,
           hash: 'hash1_0000000000000000000000000000000000000000000000000000000',
-          previous_hash: null,
+          previousHash: null,
         },
         {
           id: '123e4567-e89b-12d3-a456-426614174101',
-          tenant_id: '123e4567-e89b-12d3-a456-426614174000',
-          class_session_id: '123e4567-e89b-12d3-a456-426614174001',
-          student_id: '123e4567-e89b-12d3-a456-426614174004',
+          tenantId: '123e4567-e89b-12d3-a456-426614174000',
+          classSessionId: '123e4567-e89b-12d3-a456-426614174001',
+          studentId: '123e4567-e89b-12d3-a456-426614174004',
           status: 'present',
-          recorded_by: '123e4567-e89b-12d3-a456-426614174003',
-          recorded_at: recordedAt,
+          recordedBy: '123e4567-e89b-12d3-a456-426614174003',
+          recordedAt: recordedAt,
           hash: 'hash2_0000000000000000000000000000000000000000000000000000000',
-          previous_hash: 'wrong_previous_hash_00000000000000000000000000000000000', // Wrong!
+          previousHash: 'wrong_previous_hash_00000000000000000000000000000000000', // Wrong!
         },
       ];
 
@@ -225,9 +225,9 @@ describe('Hash-Chain', () => {
 
     it('should return last hash in chain', () => {
       const records = [
-        { hash: 'hash1', created_at: new Date('2025-01-01T10:00:00Z') },
-        { hash: 'hash2', created_at: new Date('2025-01-01T10:01:00Z') },
-        { hash: 'hash3', created_at: new Date('2025-01-01T10:02:00Z') },
+        { hash: 'hash1', createdAt: new Date('2025-01-01T10:00:00Z') },
+        { hash: 'hash2', createdAt: new Date('2025-01-01T10:01:00Z') },
+        { hash: 'hash3', createdAt: new Date('2025-01-01T10:02:00Z') },
       ];
 
       const lastHash = getLastHash(records);

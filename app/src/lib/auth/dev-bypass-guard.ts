@@ -107,4 +107,7 @@ export function getDevUserIdentity() {
 }
 
 // Run validation on module load to fail fast
-validateDevBypassConfig();
+// Skip during build phase (Next.js sets NEXT_PHASE during build)
+if (process.env.NEXT_PHASE !== 'phase-production-build') {
+  validateDevBypassConfig();
+}
