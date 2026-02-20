@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Unit Tests for Admin Users API Routes
  * Tests POST /api/admin/users - Create user

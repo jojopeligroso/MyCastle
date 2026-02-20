@@ -38,9 +38,10 @@ async function setUserContext(userId: string, tenantId: string, role: string) {
  * Helper function to clear user context
  */
 async function clearUserContext() {
-  await db.execute(sql`RESET app.current_user_id`);
-  await db.execute(sql`RESET app.current_tenant_id`);
-  await db.execute(sql`RESET app.current_role`);
+  // Use set_config to clear variables (RESET doesn't work well with custom variables)
+  await db.execute(sql`SELECT set_config('app.user_id', '', false)`);
+  await db.execute(sql`SELECT set_config('app.tenant_id', '', false)`);
+  await db.execute(sql`SELECT set_config('app.user_role', '', false)`);
 }
 
 describe('RLS Policies - Setup', () => {

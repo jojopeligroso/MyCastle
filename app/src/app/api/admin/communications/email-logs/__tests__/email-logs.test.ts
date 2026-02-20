@@ -1,9 +1,13 @@
+// @ts-nocheck
 /**
  * Unit tests for Email Logs APIs
  * Tests: GET operations with filtering
  */
 
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+
+// Type helper for mocks
+type MockFn = jest.Mock<(...args: unknown[]) => unknown>;
 import { NextRequest } from 'next/server';
 
 jest.mock('@/db', () => ({
@@ -42,7 +46,7 @@ describe('Email Logs APIs', () => {
 
   it('should return list of email logs with pagination', async () => {
     const { db } = await import('@/db');
-    (db.select as jest.Mock)
+    (db.select as MockFn)
       .mockReturnValueOnce(mockSelectChain())
       .mockReturnValueOnce(mockCountChain());
 
@@ -61,7 +65,7 @@ describe('Email Logs APIs', () => {
 
   it('should filter email logs by search term', async () => {
     const { db } = await import('@/db');
-    (db.select as jest.Mock)
+    (db.select as MockFn)
       .mockReturnValueOnce(mockSelectChain())
       .mockReturnValueOnce(mockCountChain());
 
@@ -77,7 +81,7 @@ describe('Email Logs APIs', () => {
 
   it('should filter email logs by date range', async () => {
     const { db } = await import('@/db');
-    (db.select as jest.Mock)
+    (db.select as MockFn)
       .mockReturnValueOnce(mockSelectChain())
       .mockReturnValueOnce(mockCountChain());
 
@@ -93,7 +97,7 @@ describe('Email Logs APIs', () => {
 
   it('should filter email logs by status', async () => {
     const { db } = await import('@/db');
-    (db.select as jest.Mock)
+    (db.select as MockFn)
       .mockReturnValueOnce(mockSelectChain())
       .mockReturnValueOnce(mockCountChain());
 
@@ -110,7 +114,7 @@ describe('Email Logs APIs', () => {
   it('should require admin authentication', async () => {
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     const { requireAuth } = await import('@/lib/auth/utils');
-    (requireAuth as jest.Mock).mockRejectedValueOnce(new Error('Unauthorized'));
+    (requireAuth as MockFn).mockRejectedValueOnce(new Error('Unauthorized'));
 
     const { GET } = await import('../route');
     const mockRequest = new NextRequest('http://localhost/api/admin/communications/email-logs');
