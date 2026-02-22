@@ -24,3 +24,6 @@ export * from './facilities';
 
 // Old schemas - commenting out until updated to match new database
 export * from './curriculum';
+
+// Imports schema (ETL workflow for enrollment data)
+export * from './imports';
