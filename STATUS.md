@@ -1,14 +1,14 @@
 ---
 status: STABILIZATION
-last_updated: 2026-02-11
-next_review: 2026-02-12
+last_updated: 2026-02-23
+next_review: 2026-02-24
 owner: Eoin Malone
 phase: Phase 1 - Admin UI/UX (Stabilization In Progress)
 ---
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-02-11 (Stabilization Phase - Schema Fixes Applied)
+**Last Updated:** 2026-02-23 (Dashboard UX - Import Data card for admins)
 **Current Phase:** Phase 1 (Admin UI/UX) - Stabilization In Progress
 **Current Sprint:** Week 7 of Phase 1
 **Next Milestone:** Complete Stabilization → Production Testing
@@ -141,6 +141,15 @@ All core admin features implemented and ready for production testing:
 **Context:** All Phase 1 tasks complete. System ready for production MVP deployment.
 
 ---
+
+### Recent Wins (Feb 23 - Dashboard UX Improvement)
+
+- ✅ **Dashboard Import Data card for admins**:
+  - Replaced "AI Lesson Planner" with "Import Data" card for admin users
+  - AI Lesson Planner now shows for teachers only (appropriate per role)
+  - Import Data card links to `/admin/imports/enrolment-uploads`
+  - Follows spec from `spec/IMPORTS_UI_SPEC.md`
+  - Better admin workflow: quick access to import enrolment data from Excel
 
 ### Recent Wins (Feb 5 - Stabilization 89% Complete)
 
