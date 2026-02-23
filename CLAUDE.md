@@ -554,4 +554,24 @@ Before marking any task complete:
 
 ---
 
+## 🔮 Future Enhancements (Backlog)
+
+### CEFR Level Column for Classes
+**Status:** Backlog | **Added:** 2026-02-23
+
+**Problem:** Different schools use different class naming conventions (e.g., "Aft Elm", "Pre Int 3" vs "General English A1 - Morning"). This makes data imports fail when class names don't match exactly.
+
+**Proposed Solution:** Add a `cefr_level` column to the `classes` table (A1, A2, B1, B2, C1, C2) to enable:
+- Standardized level matching across different naming systems
+- Import flexibility: match by CEFR level when class name doesn't exist
+- Cross-school analytics and student progression tracking
+- Automated class suggestions based on student level assessments
+
+**Implementation Notes:**
+- Add `cefr_level VARCHAR(2)` to classes table (nullable for backwards compatibility)
+- Update import parser to use CEFR level as fallback matching
+- Consider adding CEFR level to students table for placement tracking
+
+---
+
 **Remember:** STATUS.md is the heartbeat of this project. Keep it alive! 💓
