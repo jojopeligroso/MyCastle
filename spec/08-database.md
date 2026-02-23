@@ -183,6 +183,11 @@ CREATE POLICY users_student_own_data ON users
 
 Course/class definitions.
 
+> **Future Enhancement (2026-02-23):** Add `cefr_level VARCHAR(2)` column to standardize language levels across different school naming systems. This would enable:
+> - Import flexibility (match by CEFR when class name doesn't exist)
+> - Cross-school analytics and student progression tracking
+> - Values: A1, A2, B1, B2, C1, C2 (nullable for backwards compatibility)
+
 ```typescript
 export const classes = pgTable('classes', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -193,6 +198,7 @@ export const classes = pgTable('classes', {
   code: varchar('code', { length: 50 }), // e.g., "MATH-101"
   description: text('description'),
   level: varchar('level', { length: 50 }), // Beginner, Intermediate, Advanced
+  // cefr_level: varchar('cefr_level', { length: 2 }), // A1, A2, B1, B2, C1, C2 - FUTURE
   subject: varchar('subject', { length: 100 }),
 
   // Capacity

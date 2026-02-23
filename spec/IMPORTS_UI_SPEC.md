@@ -102,7 +102,12 @@ Only a fixed set of columns is relevant for MVP processing. All other columns mu
 | `Start Date` | Yes | Enrolment start date |
 | `Class Name` | Yes | Target class |
 | `End Date` | Yes | Enrolment end date |
-| `XXX Register Flag` | Yes | Registration flag |
+| `Course` | No | Programme/course name |
+| `Weeks` | No | Booked weeks duration |
+| `Visa` | No | Visa student flag (Y/N) |
+| `Include On Register` | No | Include on attendance register (Y/N) |
+
+> **Future Enhancement (2026-02-23):** Add CEFR level matching capability. When `Class Name` doesn't match any existing class exactly, fall back to matching by CEFR level (A1-C2). This requires adding a `cefr_level` column to the classes table. See `spec/08-database.md` §8.3.3 for details.
 
 #### UI Requirement
 

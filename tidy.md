@@ -1,8 +1,9 @@
 # Code Cleanup Tasks
 
-**Last Updated:** 2026-02-12
+**Last Updated:** 2026-02-23
 
 **Notes:**
+- 2026-02-23 - **CEFR Level Column for Classes (Future Enhancement):** Import data failing because class names in import files (e.g., "Aft Elm", "Pre Int 3") don't match database class names (e.g., "General English A1 - Morning"). **Proposed solution:** Add `cefr_level` column to classes table to enable standardized matching across different school naming systems. See CLAUDE.md "Future Enhancements" section for details.
 - 2026-02-12 - Ran `FRESH_0015_email_logs.sql` migration to add email logs table; no regressions observed.
 - 2026-02-12 - **Payments table consolidation question:** Two payments tables exist (`payments` for bookings in business.ts, `invoicePayments` for invoices in system.ts). Question: should all payments go through invoices? If so, the booking payments table is redundant. **Action:** Consult business owner to determine if payments should always be invoice-linked. Migration `FRESH_0019` renames the DB table to `invoice_payments` to fix namespace collision in the meantime.
 
