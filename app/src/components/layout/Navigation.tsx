@@ -22,9 +22,10 @@ interface NavigationProps {
 
 const navItems: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard' },
-  { label: 'Lesson Planner', href: '/teacher/lesson-planner', roles: ['teacher', 'admin'] },
+  { label: 'Lesson Planner', href: '/teacher/lesson-planner', roles: ['teacher'] },
   { label: 'My Timetable', href: '/teacher/timetable', roles: ['teacher'] },
   { label: 'Attendance', href: '/teacher/attendance', roles: ['teacher', 'admin'] },
+  { label: 'Import Data', href: '/admin/imports/enrolment-uploads', roles: ['admin'] },
 ];
 
 export function Navigation({ userEmail, userRole, currentPath }: NavigationProps) {

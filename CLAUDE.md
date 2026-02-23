@@ -431,6 +431,10 @@ npm run mcp:teacher     # Teacher MCP
 8. **❌ Writing >10 tools per MCP** → Breaks domain isolation principle
 9. **❌ Importing from wrong db path** → Use `@/db` not relative paths
 10. **❌ Pushing to wrong branch** → CI runs on `main`, `develop`, `claude/**` only
+11. **❌ Updating only dashboard cards** → MUST also update Navigation.tsx and Sidebar.tsx
+    - Dashboard cards: `app/src/app/dashboard/page.tsx`
+    - Top navigation (hamburger menu): `app/src/components/layout/Navigation.tsx`
+    - Admin sidebar: `app/src/components/admin/Sidebar.tsx`
 
 ---
 
