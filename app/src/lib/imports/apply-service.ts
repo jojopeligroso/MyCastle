@@ -69,13 +69,22 @@ export async function getBatchSummary(
 type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 /**
+ * Options for creating a provisional student
+ */
+interface CreateStudentOptions {
+  isVisaStudent?: boolean | null;
+  includeOnRegister?: boolean | null;
+}
+
+/**
  * Create provisional student for INSERT actions
  * Generates email: firstName.lastName.timestamp@provisional.import
  */
 async function createProvisionalStudent(
   tenantId: string,
   studentName: string,
-  tx: Transaction
+  tx: Transaction,
+  options: CreateStudentOptions = {}
 ): Promise<string> {
   // Generate provisional email
   const nameParts = studentName.trim().toLowerCase().split(/\s+/);
@@ -92,16 +101,21 @@ async function createProvisionalStudent(
       email: provisionalEmail,
       name: studentName,
       primaryRole: 'student',
-      status: 'provisional', // Special status for provisional students
-      metadata: { provisionalImport: true, importedAt: new Date().toISOString() },
+      status: 'active', // Active status so they appear in registry
+      metadata: {
+        provisionalImport: true,
+        importedAt: new Date().toISOString(),
+        includeOnRegister: options.includeOnRegister ?? true,
+      },
     })
     .returning({ id: users.id });
 
-  // Create student record
+  // Create student record with visa info
   await tx.insert(students).values({
     tenantId,
     userId: newUser.id,
-    status: 'provisional',
+    status: 'active', // Active status so they appear in registry
+    isVisaStudent: options.isVisaStudent ?? false,
   });
 
   return newUser.id;
@@ -209,6 +223,10 @@ export async function applyBatchChanges(
               className: string;
               startDate: string;
               endDate?: string;
+              course?: string;
+              weeks?: number;
+              isVisaStudent?: boolean;
+              includeOnRegister?: boolean;
             };
 
             // Check if resolved to existing enrollment (linked)
@@ -237,10 +255,13 @@ export async function applyBatchChanges(
               continue;
             }
 
-            // Create provisional student
-            const studentId = await createProvisionalStudent(tenantId, parsed.studentName, tx);
+            // Create student with visa and register info
+            const studentId = await createProvisionalStudent(tenantId, parsed.studentName, tx, {
+              isVisaStudent: parsed.isVisaStudent,
+              includeOnRegister: parsed.includeOnRegister,
+            });
 
-            // Create enrollment
+            // Create enrollment with weeks info
             const [newEnrollment] = await tx
               .insert(enrollments)
               .values({
@@ -249,6 +270,7 @@ export async function applyBatchChanges(
                 classId: classRecord.id,
                 enrollmentDate: parsed.startDate,
                 expectedEndDate: parsed.endDate || null,
+                bookedWeeks: parsed.weeks || null,
                 status: 'active',
               })
               .returning({ id: enrollments.id });

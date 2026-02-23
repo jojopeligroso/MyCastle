@@ -107,7 +107,7 @@ describe('Parser', () => {
             'Start Date': '2026-02-01',
             'Class Name': 'Business English',
             'End Date': '2026-06-01',
-            'XXX Register Flag': 'Y',
+            'Include On Register': 'Y',
           },
         ];
         const buffer = createMockXLSX(data);
@@ -116,7 +116,7 @@ describe('Parser', () => {
         expect(result.success).toBe(true);
         expect(result.rows[0].parsedData.studentName).toBe('Jane Doe');
         expect(result.rows[0].parsedData.className).toBe('Business English');
-        expect(result.rows[0].parsedData.registerFlag).toBe('Y');
+        expect(result.rows[0].parsedData.includeOnRegister).toBe(true);
       });
 
       it('should ignore non-whitelisted columns', async () => {
