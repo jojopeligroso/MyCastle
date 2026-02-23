@@ -158,7 +158,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         startDate: Date | null;
         className: string | null;
         endDate: Date | null;
-        registerFlag: string | null;
+        course: string | null;
+        weeks: number | null;
+        isVisaStudent: boolean | null;
+        includeOnRegister: boolean | null;
       };
 
       const diff = await calculateDiff(tenantId, parsedData, enrollmentId);

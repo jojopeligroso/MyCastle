@@ -55,7 +55,8 @@ const navigation: (NavItem | NavGroup)[] = [
       { name: 'Notifications', href: '/admin/communications/notifications' },
       { name: 'Email Logs', href: '/admin/communications/email-logs' },
       { name: 'Import Data', href: '/admin/imports/enrolment-uploads' },
-      { name: 'Bulk Uploads', href: '/admin/data/bulk-upload' },
+      // Bulk Uploads hidden for now - will return to this later
+      // { name: 'Bulk Uploads', href: '/admin/data/bulk-upload' },
       { name: 'Exports', href: '/admin/data/exports' },
       { name: 'Settings', href: '/admin/settings' },
     ],

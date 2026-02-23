@@ -156,7 +156,7 @@ export default async function DataManagementPage() {
 
       {/* Main Action Cards */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        {/* Bulk Upload Card */}
+        {/* Bulk Upload Card - Hidden for now, will return to this later
         <Link
           href="/admin/data/bulk-upload"
           className="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm hover:border-indigo-400 hover:shadow-md transition-all group"
@@ -183,6 +183,7 @@ export default async function DataManagementPage() {
             </div>
           </div>
         </Link>
+        */}
 
         {/* Data Exports Card */}
         <Link

@@ -8,20 +8,24 @@ import * as XLSX from 'xlsx';
 
 /**
  * Whitelisted columns from classes.xlsx
- * Per IMPORTS_UI_SPEC.md - only these columns are processed
+ * Per IMPORTS_UI_SPEC.md - these columns are processed
+ * Additional columns: Course/Programme, Weeks, Visa, Include on Register
  */
 export const WHITELISTED_COLUMNS = [
   'Student Name',
   'Start Date',
   'Class Name',
   'End Date',
-  'XXX Register Flag',
+  'Course',
+  'Weeks',
+  'Visa',
+  'Include On Register',
 ] as const;
 
 export type WhitelistedColumn = (typeof WHITELISTED_COLUMNS)[number];
 
 /**
- * Required columns that must be present
+ * Required columns that must be present (key columns for matching)
  */
 export const REQUIRED_COLUMNS: WhitelistedColumn[] = ['Student Name', 'Start Date', 'Class Name'];
 
@@ -36,7 +40,10 @@ export interface ParsedRow {
     startDate: Date | null;
     className: string | null;
     endDate: Date | null;
-    registerFlag: string | null;
+    course: string | null;
+    weeks: number | null;
+    isVisaStudent: boolean | null;
+    includeOnRegister: boolean | null;
   };
   validationErrors: Array<{ field: string; message: string }>;
   isValid: boolean;
@@ -75,22 +82,53 @@ function mapHeader(header: string): WhitelistedColumn | null {
   const normalized = normalizeHeader(header);
 
   const mappings: Record<string, WhitelistedColumn> = {
+    // Student Name variations
     'student name': 'Student Name',
     studentname: 'Student Name',
     name: 'Student Name',
+    student: 'Student Name',
+    // Start Date variations
     'start date': 'Start Date',
     startdate: 'Start Date',
     start: 'Start Date',
+    // Class Name variations
     'class name': 'Class Name',
     classname: 'Class Name',
     class: 'Class Name',
+    // End Date variations
     'end date': 'End Date',
     enddate: 'End Date',
     end: 'End Date',
-    'xxx register flag': 'XXX Register Flag',
-    'register flag': 'XXX Register Flag',
-    registerflag: 'XXX Register Flag',
-    flag: 'XXX Register Flag',
+    // Course/Programme variations
+    course: 'Course',
+    programme: 'Course',
+    program: 'Course',
+    'course name': 'Course',
+    coursename: 'Course',
+    // Weeks variations
+    weeks: 'Weeks',
+    week: 'Weeks',
+    'booked weeks': 'Weeks',
+    bookedweeks: 'Weeks',
+    duration: 'Weeks',
+    // Visa variations
+    visa: 'Visa',
+    'visa student': 'Visa',
+    visastudent: 'Visa',
+    'is visa': 'Visa',
+    isvisa: 'Visa',
+    // Include on Register variations (was XXX counter)
+    'include on register': 'Include On Register',
+    includeonregister: 'Include On Register',
+    'on register': 'Include On Register',
+    onregister: 'Include On Register',
+    register: 'Include On Register',
+    'xxx register flag': 'Include On Register',
+    'register flag': 'Include On Register',
+    registerflag: 'Include On Register',
+    xxx: 'Include On Register',
+    'xxx counter': 'Include On Register',
+    xxxcounter: 'Include On Register',
   };
 
   return mappings[normalized] ?? null;
@@ -157,6 +195,50 @@ function parseString(value: unknown): string | null {
   }
   const str = String(value).trim();
   return str === '' ? null : str;
+}
+
+/**
+ * Parse number value (for weeks)
+ */
+function parseNumber(value: unknown): number | null {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+  const num = Number(value);
+  return isNaN(num) ? null : Math.round(num);
+}
+
+/**
+ * Parse boolean value (for visa, include on register)
+ * Accepts: true/false, yes/no, 1/0, y/n, x (for checkbox marked)
+ */
+function parseBoolean(value: unknown): boolean | null {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+
+  // If it's already a boolean
+  if (typeof value === 'boolean') {
+    return value;
+  }
+
+  // If it's a number
+  if (typeof value === 'number') {
+    return value !== 0;
+  }
+
+  // If it's a string
+  if (typeof value === 'string') {
+    const str = value.toLowerCase().trim();
+    if (['true', 'yes', 'y', '1', 'x', 'on'].includes(str)) {
+      return true;
+    }
+    if (['false', 'no', 'n', '0', 'off', ''].includes(str)) {
+      return false;
+    }
+  }
+
+  return null;
 }
 
 /**
@@ -293,7 +375,10 @@ export async function parseClassesFile(fileBuffer: ArrayBuffer): Promise<ParseRe
         startDate: parseExcelDate(extractValue('Start Date')),
         className: parseString(extractValue('Class Name')),
         endDate: parseExcelDate(extractValue('End Date')),
-        registerFlag: parseString(extractValue('XXX Register Flag')),
+        course: parseString(extractValue('Course')),
+        weeks: parseNumber(extractValue('Weeks')),
+        isVisaStudent: parseBoolean(extractValue('Visa')),
+        includeOnRegister: parseBoolean(extractValue('Include On Register')),
       };
 
       // Validate
