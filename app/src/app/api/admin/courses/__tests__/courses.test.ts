@@ -44,13 +44,17 @@ describe('Courses Management APIs', () => {
   });
 
   // Helper to create mock insert chain
-  const mockInsertChain = (resolvedValue: any = { id: 'new-course-id', name: 'Test Course', code: 'B1-TES' }) => ({
+  const mockInsertChain = (
+    resolvedValue: any = { id: 'new-course-id', name: 'Test Course', code: 'B1-TES' }
+  ) => ({
     values: jest.fn().mockReturnThis(),
     returning: jest.fn().mockResolvedValue([resolvedValue]),
   });
 
   // Helper to create mock update chain
-  const mockUpdateChain = (resolvedValue: any = { id: 'course-id', updated_at: new Date().toISOString() }) => ({
+  const mockUpdateChain = (
+    resolvedValue: any = { id: 'course-id', updated_at: new Date().toISOString() }
+  ) => ({
     set: jest.fn().mockReturnThis(),
     where: jest.fn().mockReturnThis(),
     returning: jest.fn().mockResolvedValue([resolvedValue]),

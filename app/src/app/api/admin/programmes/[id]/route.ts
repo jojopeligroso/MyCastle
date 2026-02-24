@@ -34,9 +34,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const courses = await db
       .select()
       .from(programmeCourses)
-      .where(
-        and(eq(programmeCourses.programmeId, programmeId), isNull(programmeCourses.deletedAt))
-      )
+      .where(and(eq(programmeCourses.programmeId, programmeId), isNull(programmeCourses.deletedAt)))
       .orderBy(programmeCourses.cefrLevel, programmeCourses.name);
 
     return NextResponse.json({ ...programme, courses });
