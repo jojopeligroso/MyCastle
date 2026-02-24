@@ -103,7 +103,10 @@ export async function POST(request: NextRequest) {
 
     if (error instanceof Error && error.name === 'ZodError') {
       return NextResponse.json(
-        { error: 'Invalid request data', details: (error as unknown as { issues: unknown[] }).issues },
+        {
+          error: 'Invalid request data',
+          details: (error as unknown as { issues: unknown[] }).issues,
+        },
         { status: 400 }
       );
     }

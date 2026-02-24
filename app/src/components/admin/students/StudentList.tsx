@@ -237,8 +237,12 @@ export function StudentList({ students, onStudentClick }: StudentListProps) {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="flex-shrink-0 h-10 w-10">
-                      {(student.avatarUrl || student.avatar_url) ? (
-                        <img className="h-10 w-10 rounded-full" src={student.avatarUrl || student.avatar_url || ''} alt="" />
+                      {student.avatarUrl || student.avatar_url ? (
+                        <img
+                          className="h-10 w-10 rounded-full"
+                          src={student.avatarUrl || student.avatar_url || ''}
+                          alt=""
+                        />
                       ) : (
                         <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
                           <span className="text-sm font-medium text-purple-600">
@@ -288,8 +292,12 @@ export function StudentList({ students, onStudentClick }: StudentListProps) {
             className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-purple-300 cursor-pointer transition-colors"
           >
             <div className="flex items-center gap-3 mb-3">
-              {(student.avatarUrl || student.avatar_url) ? (
-                <img className="h-12 w-12 rounded-full" src={student.avatarUrl || student.avatar_url || ''} alt="" />
+              {student.avatarUrl || student.avatar_url ? (
+                <img
+                  className="h-12 w-12 rounded-full"
+                  src={student.avatarUrl || student.avatar_url || ''}
+                  alt=""
+                />
               ) : (
                 <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
                   <span className="text-base font-medium text-purple-600">

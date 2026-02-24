@@ -68,7 +68,9 @@ export function StudentRegistry({ students, currentUserRole = 'admin' }: Student
 
     // Apply level filter
     if (currentLevel) {
-      filtered = filtered.filter(s => s.currentLevel === currentLevel || s.current_level === currentLevel);
+      filtered = filtered.filter(
+        s => s.currentLevel === currentLevel || s.current_level === currentLevel
+      );
     }
 
     // Apply search query

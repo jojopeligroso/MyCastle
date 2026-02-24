@@ -13,7 +13,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const [teacher] = await db
       .select()
       .from(users)
-      .where(and(eq(users.id, teacherId), eq(users.primaryRole, 'teacher'), isNull(users.deletedAt)))
+      .where(
+        and(eq(users.id, teacherId), eq(users.primaryRole, 'teacher'), isNull(users.deletedAt))
+      )
       .limit(1);
 
     if (!teacher) {

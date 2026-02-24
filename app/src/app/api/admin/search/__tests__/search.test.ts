@@ -19,7 +19,9 @@ jest.mock('@/db', () => ({
 }));
 
 jest.mock('@/lib/auth/utils', () => ({
-  requireAuth: jest.fn<() => Promise<{ id: string; role: string }>>().mockResolvedValue({ id: 'admin-user-id', role: 'admin' }),
+  requireAuth: jest
+    .fn<() => Promise<{ id: string; role: string }>>()
+    .mockResolvedValue({ id: 'admin-user-id', role: 'admin' }),
 }));
 
 describe('Global Search API', () => {
