@@ -46,7 +46,7 @@ export default function ClassAttendanceCard({
   students: initialStudents,
   onSave,
 }: ClassAttendanceCardProps) {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [students, setStudents] = useState(initialStudents);
   const [dirtyState, setDirtyState] = useState<Record<string, Record<string, boolean>>>({});
   const [isSaving, setIsSaving] = useState(false);
