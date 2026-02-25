@@ -1,14 +1,14 @@
 ---
 status: STABILIZATION
-last_updated: 2026-02-23
-next_review: 2026-02-24
+last_updated: 2026-02-25
+next_review: 2026-02-26
 owner: Eoin Malone
 phase: Phase 1 - Admin UI/UX (Stabilization In Progress)
 ---
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-02-23 (Dashboard UX - Import Data card for admins)
+**Last Updated:** 2026-02-25 (Weekly Attendance Grid - class-centric attendance view)
 **Current Phase:** Phase 1 (Admin UI/UX) - Stabilization In Progress
 **Current Sprint:** Week 7 of Phase 1
 **Next Milestone:** Complete Stabilization → Production Testing
@@ -141,6 +141,22 @@ All core admin features implemented and ready for production testing:
 **Context:** All Phase 1 tasks complete. System ready for production MVP deployment.
 
 ---
+
+### Recent Wins (Feb 25 - Weekly Attendance Grid)
+
+- ✅ **Weekly Attendance Grid implemented**:
+  - Replaced session-list view with class-centric weekly grid
+  - New sidebar navigation: Attendance promoted to standalone item (moved from Academic group)
+  - Week navigation with Prev/Today/Next controls
+  - M-F grid per class showing all enrolled students
+  - Click cells to cycle attendance: P (Present) → A (Absent) → L (Late) → E (Excused)
+  - Keyboard navigation: Arrow keys + P/A/L/E shortcuts
+  - Gray cells for non-class days (based on class daysOfWeek)
+  - Visa student highlighting with badge
+  - Save button per class with unsaved changes indicator
+  - Auto-creates sessions when marking attendance for dates without sessions
+  - GET/POST `/api/admin/attendance/weekly` endpoint
+  - Components: WeekNavigation, WeeklyAttendanceGrid, ClassAttendanceCard
 
 ### Recent Wins (Feb 23 - Dashboard UX Improvement)
 
