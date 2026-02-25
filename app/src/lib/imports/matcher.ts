@@ -13,7 +13,7 @@ import type { ParsedRow } from './parser';
 
 export interface MatchCandidate {
   enrollmentId: string;
-  studentName: string;
+  studentName: string | null;
   className: string;
   score: number;
 }
@@ -64,7 +64,7 @@ function calculateDateSimilarity(a: Date | null, b: Date | null): number {
 
 function calculateMatchScore(
   parsed: ParsedRow['parsedData'],
-  candidate: { studentName: string; className: string; startDate: Date | string | null }
+  candidate: { studentName: string | null; className: string; startDate: Date | string | null }
 ): number {
   const nameScore = calculateStringSimilarity(parsed.studentName, candidate.studentName);
   const classScore = calculateStringSimilarity(parsed.className, candidate.className);
@@ -84,7 +84,7 @@ const AMBIGUITY_RANGE = 15;
 // Type for cached enrollment data
 interface CachedEnrollment {
   enrollmentId: string;
-  studentName: string;
+  studentName: string | null;
   className: string;
   startDate: Date | string | null;
   studentNameLower: string; // Pre-computed for faster matching
@@ -114,7 +114,7 @@ async function prefetchAllEnrollments(tenantId: string): Promise<CachedEnrollmen
   // Pre-compute lowercase names for faster matching
   return results.map(r => ({
     ...r,
-    studentNameLower: r.studentName.toLowerCase(),
+    studentNameLower: (r.studentName || '').toLowerCase(),
   }));
 }
 

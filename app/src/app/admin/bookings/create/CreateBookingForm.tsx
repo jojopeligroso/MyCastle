@@ -6,7 +6,7 @@ import { createBooking } from './actions';
 
 interface Student {
   id: string;
-  name: string;
+  name: string | null;
   studentNumber: string | null;
 }
 

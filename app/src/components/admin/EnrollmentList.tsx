@@ -21,7 +21,7 @@ interface EnrollmentData {
   };
   student: {
     id: string;
-    name: string;
+    name: string | null;
     email: string;
   } | null;
   class: {
@@ -34,7 +34,7 @@ interface EnrollmentData {
 
 interface Student {
   id: string;
-  name: string;
+  name: string | null;
 }
 
 interface Class {

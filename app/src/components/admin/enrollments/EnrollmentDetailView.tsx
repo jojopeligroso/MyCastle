@@ -10,7 +10,7 @@ import { useState } from 'react';
 
 interface Student {
   id: string;
-  name: string;
+  name: string | null;
   email: string;
   studentNumber?: string;
 }

@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     let query = db
       .select()
       .from(users)
-      .where(and(eq(users.primaryRole, 'student'), isNull(users.deletedAt)))
+      .where(eq(users.role, 'student'))
       .$dynamic();
 
     // Apply search filter
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
 
     // Apply status filter
     if (status) {
-      query = query.where(eq(users.status, status));
+      query = query.where(eq(users.isActive, status === 'active'));
     }
 
     // Apply level filter - check metadata for current_level since it's not on users table
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
     const [{ count }] = await db
       .select({ count: sql<number>`count(*)::int` })
       .from(users)
-      .where(and(eq(users.primaryRole, 'student'), isNull(users.deletedAt)));
+      .where(eq(users.role, 'student'));
 
     return NextResponse.json({
       students,
@@ -132,11 +132,9 @@ export async function POST(request: NextRequest) {
         tenantId: '00000000-0000-0000-0000-000000000001', // Default tenant - should come from auth context
         name: data.name,
         email: data.email,
-        primaryRole: 'student',
-        phone: data.phone || null,
-        dateOfBirth: data.date_of_birth ? data.date_of_birth : null,
+        role: 'student',
         metadata,
-        status: 'active',
+        isActive: true,
         createdAt: new Date(),
         updatedAt: new Date(),
       })

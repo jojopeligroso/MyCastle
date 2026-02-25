@@ -58,8 +58,8 @@ export default async function UserDetailPage({ params }: { params: { id: string 
   }
 
   // Fetch role-specific data
-  const enrollments = user.primaryRole === 'student' ? await getUserEnrollments(params.id) : [];
-  const teacherClasses = user.primaryRole === 'teacher' ? await getUserClasses(params.id) : [];
+  const enrollments = user.role === 'student' ? await getUserEnrollments(params.id) : [];
+  const teacherClasses = user.role === 'teacher' ? await getUserClasses(params.id) : [];
 
   const getStatusBadge = (status: string) => {
     const styles = {
@@ -118,9 +118,9 @@ export default async function UserDetailPage({ params }: { params: { id: string 
                 <dt className="text-sm font-medium text-gray-500">Role</dt>
                 <dd className="mt-1">
                   <span
-                    className={`px-2 py-1 text-xs font-semibold rounded-full ${getRoleBadge(user.primaryRole)}`}
+                    className={`px-2 py-1 text-xs font-semibold rounded-full ${getRoleBadge(user.role)}`}
                   >
-                    {user.primaryRole?.replace('_', ' ')}
+                    {user.role?.replace('_', ' ')}
                   </span>
                 </dd>
               </div>
@@ -128,9 +128,9 @@ export default async function UserDetailPage({ params }: { params: { id: string 
                 <dt className="text-sm font-medium text-gray-500">Status</dt>
                 <dd className="mt-1">
                   <span
-                    className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadge(user.status)}`}
+                    className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadge(user.isActive ? 'active' : 'inactive')}`}
                   >
-                    {user.status}
+                    {user.isActive ? 'active' : 'inactive'}
                   </span>
                 </dd>
               </div>
@@ -150,7 +150,7 @@ export default async function UserDetailPage({ params }: { params: { id: string 
           </div>
 
           {/* Role-specific sections */}
-          {user.primaryRole === 'student' && (
+          {user.role === 'student' && (
             <div className="bg-white shadow rounded-lg p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">
                 Enrolled Classes ({enrollments.length})
@@ -199,7 +199,7 @@ export default async function UserDetailPage({ params }: { params: { id: string 
             </div>
           )}
 
-          {user.primaryRole === 'teacher' && (
+          {user.role === 'teacher' && (
             <div className="bg-white shadow rounded-lg p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">
                 Assigned Classes ({teacherClasses.length})
@@ -262,12 +262,12 @@ export default async function UserDetailPage({ params }: { params: { id: string 
               >
                 Edit Details
               </Link>
-              {user.primaryRole === 'student' && (
+              {user.role === 'student' && (
                 <button className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md">
                   Enroll in Class
                 </button>
               )}
-              {user.primaryRole === 'teacher' && (
+              {user.role === 'teacher' && (
                 <button className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md">
                   Assign to Class
                 </button>
@@ -275,7 +275,7 @@ export default async function UserDetailPage({ params }: { params: { id: string 
               <button className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md">
                 Reset Password
               </button>
-              {user.status === 'active' && (
+              {user.isActive && (
                 <button className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md">
                   Suspend User
                 </button>

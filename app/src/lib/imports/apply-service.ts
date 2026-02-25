@@ -166,7 +166,7 @@ export async function applyBatchChanges(
         tenantId: string;
         email: string;
         name: string;
-        primaryRole: string;
+        role: string;
         status: string;
         metadata: Record<string, unknown>;
       }> = [];
@@ -221,7 +221,7 @@ export async function applyBatchChanges(
           tenantId,
           email: provisionalEmail,
           name: parsed.studentName,
-          primaryRole: 'student',
+          role: 'student',
           status: 'active',
           metadata: {
             provisionalImport: true,

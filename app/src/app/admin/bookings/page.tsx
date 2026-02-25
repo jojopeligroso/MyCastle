@@ -30,7 +30,7 @@ interface BookingWithDetails {
   totalPaidEur: string;
   depositPaidEur: string;
   // Student details
-  studentName: string;
+  studentName: string | null;
   studentEmail: string;
   studentNumber: string | null;
   // Course details

@@ -41,6 +41,7 @@ export const tenants = pgTable(
 /**
  * Users Table
  * Base table for all people (students, teachers, admins)
+ * UPDATED 2026-02-25: Aligned with actual database schema from drizzle introspection
  */
 export const users = pgTable(
   'users',
@@ -49,30 +50,29 @@ export const users = pgTable(
     tenantId: uuid('tenant_id')
       .notNull()
       .references(() => tenants.id, { onDelete: 'cascade' }),
-    authId: uuid('auth_id').unique(),
     email: varchar('email', { length: 255 }).notNull(),
-    emailVerified: boolean('email_verified').default(false),
-    name: varchar('name', { length: 255 }).notNull(),
-    phone: varchar('phone', { length: 50 }),
-    dateOfBirth: date('date_of_birth'),
-    nationality: varchar('nationality', { length: 100 }),
+    name: varchar('name', { length: 255 }),
     avatarUrl: varchar('avatar_url', { length: 500 }),
-    primaryRole: varchar('primary_role', { length: 50 }).notNull().default('student'),
-    status: varchar('status', { length: 50 }).notNull().default('active'),
-    isSuperAdmin: boolean('is_super_admin').default(false).notNull(),
+    // Role field - maps to 'role' column in database (not 'primary_role')
+    role: varchar('role', { length: 50 }).notNull().default('student'),
+    // Active status - boolean field (not varchar 'status')
+    isActive: boolean('is_active').default(true).notNull(),
     lastLogin: timestamp('last_login'),
     metadata: jsonb('metadata').default({}),
-    preferences: jsonb('preferences').default({}),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
-    deletedAt: timestamp('deleted_at'),
+    // Student-specific fields stored on users table
+    currentLevel: varchar('current_level', { length: 2 }),
+    initialLevel: varchar('initial_level', { length: 2 }),
+    levelStatus: varchar('level_status', { length: 20 }),
+    visaType: varchar('visa_type', { length: 50 }),
+    visaExpiry: date('visa_expiry'),
   },
   table => [
     uniqueIndex('idx_users_tenant_email').on(table.tenantId, table.email),
     index('idx_users_tenant_id').on(table.tenantId),
-    index('idx_users_auth_id').on(table.authId),
-    index('idx_users_primary_role').on(table.primaryRole),
-    index('idx_users_status').on(table.status),
+    index('idx_users_role').on(table.role),
+    index('idx_users_is_active').on(table.isActive),
   ]
 );
 

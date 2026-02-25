@@ -103,10 +103,8 @@ export async function createStudent(data: CreateStudentData) {
         tenantId: tenantId,
         email: data.email,
         name: data.name,
-        phone: data.phone || null,
-        primaryRole: 'student',
-        status: 'active',
-        emailVerified: false,
+        role: 'student',
+        isActive: true,
         metadata: data.diagnostic_test
           ? {
               enrollment_date: new Date().toISOString().split('T')[0],
@@ -218,7 +216,7 @@ export async function updateStudent(studentId: string, data: UpdateStudentData) 
       .select()
       .from(users)
       .where(
-        and(eq(users.id, studentId), eq(users.tenantId, tenantId), eq(users.primaryRole, 'student'))
+        and(eq(users.id, studentId), eq(users.tenantId, tenantId), eq(users.role, 'student'))
       )
       .limit(1);
 
@@ -247,8 +245,8 @@ export async function updateStudent(studentId: string, data: UpdateStudentData) 
 
     if (data.name !== undefined) updateData.name = data.name;
     if (data.email !== undefined) updateData.email = data.email;
-    if (data.phone !== undefined) updateData.phone = data.phone;
-    if (data.status !== undefined) updateData.status = data.status;
+    // Note: phone is stored in metadata or students table, not users table
+    if (data.status !== undefined) updateData.isActive = data.status === 'active';
 
     // Store student-specific fields in metadata temporarily until proper refactoring
     const metadataUpdates: Record<string, unknown> = {};
@@ -310,7 +308,7 @@ export async function archiveStudent(studentId: string, reason: string) {
       .select()
       .from(users)
       .where(
-        and(eq(users.id, studentId), eq(users.tenantId, tenantId), eq(users.primaryRole, 'student'))
+        and(eq(users.id, studentId), eq(users.tenantId, tenantId), eq(users.role, 'student'))
       )
       .limit(1);
 
@@ -322,8 +320,7 @@ export async function archiveStudent(studentId: string, reason: string) {
     await db
       .update(users)
       .set({
-        status: 'archived',
-        deletedAt: new Date(),
+        isActive: false,
         updatedAt: new Date(),
       })
       .where(and(eq(users.id, studentId), eq(users.tenantId, tenantId)));
@@ -369,7 +366,7 @@ export async function approveLevelStatus(studentId: string) {
       .select()
       .from(users)
       .where(
-        and(eq(users.id, studentId), eq(users.tenantId, tenantId), eq(users.primaryRole, 'student'))
+        and(eq(users.id, studentId), eq(users.tenantId, tenantId), eq(users.role, 'student'))
       )
       .limit(1);
 

@@ -14,7 +14,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       .select()
       .from(users)
       .where(
-        and(eq(users.id, teacherId), eq(users.primaryRole, 'teacher'), isNull(users.deletedAt))
+        and(eq(users.id, teacherId), eq(users.role, 'teacher'))
       )
       .limit(1);
 

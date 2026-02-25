@@ -77,7 +77,7 @@ export function StudentRegistry({ students, currentUserRole = 'admin' }: Student
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
-        s => s.name.toLowerCase().includes(query) || s.email.toLowerCase().includes(query)
+        s => (s.name || '').toLowerCase().includes(query) || s.email.toLowerCase().includes(query)
       );
     }
 

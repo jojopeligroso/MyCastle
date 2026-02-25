@@ -14,9 +14,9 @@ import {
 export interface StudentData {
   id: string;
   email: string;
-  name: string;
+  name: string | null;
   phone?: string | null;
-  status: string;
+  status?: string;
   avatarUrl?: string | null;
   avatar_url?: string | null;
   createdAt?: Date;
@@ -135,16 +135,16 @@ export function StudentDetailDrawer({
               {student.avatarUrl ? (
                 <img
                   src={student.avatarUrl}
-                  alt={student.name}
+                  alt={student.name || 'Student'}
                   className="h-16 w-16 rounded-full border-2 border-white"
                 />
               ) : (
                 <div className="h-16 w-16 rounded-full bg-white/20 flex items-center justify-center border-2 border-white">
-                  <span className="text-2xl font-bold">{student.name.charAt(0).toUpperCase()}</span>
+                  <span className="text-2xl font-bold">{(student.name || 'U').charAt(0).toUpperCase()}</span>
                 </div>
               )}
               <div>
-                <h2 className="text-xl font-bold">{student.name}</h2>
+                <h2 className="text-xl font-bold">{student.name || 'Unknown Student'}</h2>
                 <p className="text-purple-100 text-sm">{student.email}</p>
                 {student.currentLevel && (
                   <div className="mt-1">

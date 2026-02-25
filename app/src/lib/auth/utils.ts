@@ -123,8 +123,7 @@ export const setRLSContext = async (db: any): Promise<void> => {
   await db.execute(sql.raw(`SET app.user_email = '${escapedEmail}'`));
   console.log('[RLS] Set app.user_email:', user.email);
 
-  // Check if user is super admin
-  // DEFENSIVE: If is_super_admin column doesn't exist, default to regular user
+  // Check if user is super admin by checking role
   let isSuperAdmin = false;
   try {
     console.log('[RLS] Checking super admin status for:', user.email);
@@ -132,7 +131,7 @@ export const setRLSContext = async (db: any): Promise<void> => {
     const [userRecord] = await db
       .select({
         email: users.email,
-        isSuperAdmin: users.isSuperAdmin,
+        role: users.role,
         tenantId: users.tenantId,
       })
       .from(users)
@@ -145,20 +144,19 @@ export const setRLSContext = async (db: any): Promise<void> => {
       console.warn('[RLS] No user found in database for email:', user.email);
       isSuperAdmin = false;
     } else {
-      isSuperAdmin = userRecord.isSuperAdmin || false;
+      isSuperAdmin = userRecord.role === 'super_admin';
       console.log(
-        '[RLS] User found - is_super_admin:',
+        '[RLS] User found - role:',
+        userRecord.role,
+        'is_super_admin:',
         isSuperAdmin,
         'tenant_id:',
         userRecord.tenantId
       );
     }
   } catch (error) {
-    // Column doesn't exist or query failed
+    // Query failed
     console.error('[RLS] Super admin check failed:', error);
-    console.warn(
-      '[RLS] Defaulting to regular user. Check if migration was run: app/migrations/add_is_super_admin.sql'
-    );
     isSuperAdmin = false;
   }
 

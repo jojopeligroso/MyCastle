@@ -23,7 +23,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       .select()
       .from(users)
       .where(
-        and(eq(users.id, studentId), eq(users.primaryRole, 'student'), isNull(users.deletedAt))
+        and(eq(users.id, studentId), eq(users.role, 'student'))
       )
       .limit(1);
 
@@ -152,7 +152,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       .select()
       .from(users)
       .where(
-        and(eq(users.id, studentId), eq(users.primaryRole, 'student'), isNull(users.deletedAt))
+        and(eq(users.id, studentId), eq(users.role, 'student'))
       )
       .limit(1);
 
@@ -230,14 +230,14 @@ export async function DELETE(
     await requireAuth(['admin']);
     const { id: studentId } = await params;
 
-    // Soft delete the student
+    // Deactivate the student (soft delete via isActive flag)
     const [deletedStudent] = await db
       .update(users)
       .set({
-        deletedAt: new Date(),
+        isActive: false,
         updatedAt: new Date(),
       })
-      .where(and(eq(users.id, studentId), eq(users.primaryRole, 'student')))
+      .where(and(eq(users.id, studentId), eq(users.role, 'student')))
       .returning();
 
     if (!deletedStudent) {

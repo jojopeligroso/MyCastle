@@ -88,8 +88,8 @@ export async function POST(request: NextRequest) {
         tenantId: tenantId,
         email: validatedData.email,
         name: validatedData.name,
-        primaryRole: validatedData.role,
-        status: validatedData.status,
+        role: validatedData.role,
+        isActive: validatedData.status === 'active',
       })
       .returning();
 

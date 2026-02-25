@@ -11,7 +11,7 @@ import { CreateBookingForm } from './CreateBookingForm';
 
 interface Student {
   id: string;
-  name: string;
+  name: string | null;
   email: string;
   studentNumber: string | null;
 }
@@ -56,7 +56,7 @@ async function getFormData() {
     .from(students)
     .innerJoin(users, eq(students.userId, users.id))
     .where(
-      and(eq(students.tenantId, tenantId), eq(students.status, 'active'), isNull(users.deletedAt))
+      and(eq(students.tenantId, tenantId), eq(students.status, 'active'), eq(users.isActive, true))
     )
     .orderBy(users.name);
 

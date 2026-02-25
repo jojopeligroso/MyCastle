@@ -28,7 +28,7 @@ interface Row {
   validationErrors: Array<{ field: string; message: string }> | null;
   matchCandidates: Array<{
     enrollmentId: string;
-    studentName: string;
+    studentName: string | null;
     className: string;
     score: number;
   }> | null;

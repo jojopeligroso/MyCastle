@@ -16,8 +16,8 @@ async function getUsers(tenantId: string) {
       id: users.id,
       name: users.name,
       email: users.email,
-      role: users.primaryRole,
-      status: users.status,
+      role: users.role,
+      isActive: users.isActive,
       createdAt: users.createdAt,
       lastLogin: users.lastLogin,
     })
@@ -31,14 +31,14 @@ async function getUsers(tenantId: string) {
 async function getUserStats(tenantId: string) {
   const allUsers = await db
     .select({
-      role: users.primaryRole,
-      status: users.status,
+      role: users.role,
+      isActive: users.isActive,
     })
     .from(users)
     .where(eq(users.tenantId, tenantId));
 
   const totalUsers = allUsers.length;
-  const activeUsers = allUsers.filter(u => u.status === 'active').length;
+  const activeUsers = allUsers.filter(u => u.isActive).length;
   const studentCount = allUsers.filter(u => u.role === 'student').length;
   const teacherCount = allUsers.filter(u => u.role === 'teacher').length;
   const adminCount = allUsers.filter(u => u.role?.includes('admin')).length;
@@ -110,7 +110,7 @@ export default async function UsersPage() {
           name: u.name,
           email: u.email,
           role: u.role,
-          status: u.status,
+          status: u.isActive ? 'active' : 'inactive',
           created_at: u.createdAt?.toISOString() || '',
           last_login: u.lastLogin?.toISOString() || null,
         }))}

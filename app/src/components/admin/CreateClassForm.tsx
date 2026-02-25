@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 
 interface Teacher {
   id: string;
-  name: string;
+  name: string | null;
   email: string;
 }
 
