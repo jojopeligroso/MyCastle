@@ -53,11 +53,13 @@ export default async function EditUserPage({ params }: { params: { id: string } 
         <p className="mt-2 text-gray-600">Update user details and permissions</p>
       </div>
 
-      <EditUserForm userData={{
-        ...userData,
-        name: userData.name || '',
-        status: userData.isActive ? 'active' : 'inactive',
-      }} />
+      <EditUserForm
+        userData={{
+          ...userData,
+          name: userData.name || '',
+          status: userData.isActive ? 'active' : 'inactive',
+        }}
+      />
     </div>
   );
 }

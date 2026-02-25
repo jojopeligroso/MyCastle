@@ -17,13 +17,7 @@ async function getTeachers(tenantId: string) {
     })
     .from(users)
     .leftJoin(classes, and(eq(classes.teacherId, users.id), eq(classes.status, 'active')))
-    .where(
-      and(
-        eq(users.tenantId, tenantId),
-        eq(users.role, 'teacher'),
-        eq(users.isActive, true)
-      )
-    )
+    .where(and(eq(users.tenantId, tenantId), eq(users.role, 'teacher'), eq(users.isActive, true)))
     .groupBy(users.id)
     .orderBy(desc(users.name));
 
@@ -186,7 +180,9 @@ export default async function TeachersPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${teacher.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${teacher.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}
+                        >
                           {teacher.isActive ? 'active' : 'inactive'}
                         </span>
                       </td>

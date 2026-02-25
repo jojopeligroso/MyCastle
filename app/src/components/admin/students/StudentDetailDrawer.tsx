@@ -140,7 +140,9 @@ export function StudentDetailDrawer({
                 />
               ) : (
                 <div className="h-16 w-16 rounded-full bg-white/20 flex items-center justify-center border-2 border-white">
-                  <span className="text-2xl font-bold">{(student.name || 'U').charAt(0).toUpperCase()}</span>
+                  <span className="text-2xl font-bold">
+                    {(student.name || 'U').charAt(0).toUpperCase()}
+                  </span>
                 </div>
               )}
               <div>

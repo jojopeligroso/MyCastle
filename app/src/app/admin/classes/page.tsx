@@ -86,13 +86,7 @@ async function getTeachers(tenantId: string) {
   const teachers = await db
     .select()
     .from(users)
-    .where(
-      and(
-        eq(users.tenantId, tenantId),
-        eq(users.role, 'teacher'),
-        eq(users.isActive, true)
-      )
-    )
+    .where(and(eq(users.tenantId, tenantId), eq(users.role, 'teacher'), eq(users.isActive, true)))
     .orderBy(users.name);
 
   return teachers;

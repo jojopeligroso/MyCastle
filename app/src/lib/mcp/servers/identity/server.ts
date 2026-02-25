@@ -307,8 +307,7 @@ async function main() {
           name: u.name,
           role: u.role,
           scopes:
-            (u.metadata as Record<string, unknown>)?.scopes ||
-            getDefaultScopesForRole(u.role),
+            (u.metadata as Record<string, unknown>)?.scopes || getDefaultScopesForRole(u.role),
           isActive: u.isActive,
           mfa_enabled: (u.metadata as Record<string, unknown>)?.require_mfa || false,
           created_at: u.createdAt,

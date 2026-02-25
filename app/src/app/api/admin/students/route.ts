@@ -36,11 +36,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '100');
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    let query = db
-      .select()
-      .from(users)
-      .where(eq(users.role, 'student'))
-      .$dynamic();
+    let query = db.select().from(users).where(eq(users.role, 'student')).$dynamic();
 
     // Apply search filter
     if (search) {

@@ -252,7 +252,9 @@ export function StudentList({ students, onStudentClick }: StudentListProps) {
                       )}
                     </div>
                     <div className="ml-4">
-                      <div className="text-sm font-medium text-gray-900">{student.name || 'Unknown'}</div>
+                      <div className="text-sm font-medium text-gray-900">
+                        {student.name || 'Unknown'}
+                      </div>
                       <div className="text-sm text-gray-500">{student.email}</div>
                     </div>
                   </div>
@@ -267,7 +269,9 @@ export function StudentList({ students, onStudentClick }: StudentListProps) {
                   {getAttendanceDisplay(student.attendance_rate)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">{getVisaStatusBadge(student)}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(student.status || 'unknown')}</td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {getStatusBadge(student.status || 'unknown')}
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                   <Link
                     href={`/admin/students/${student.id}`}
@@ -306,7 +310,9 @@ export function StudentList({ students, onStudentClick }: StudentListProps) {
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-gray-900 truncate">{student.name || 'Unknown'}</div>
+                <div className="text-sm font-medium text-gray-900 truncate">
+                  {student.name || 'Unknown'}
+                </div>
                 <div className="text-xs text-gray-500 truncate">{student.email}</div>
               </div>
               {getStatusBadge(student.status || 'unknown')}
