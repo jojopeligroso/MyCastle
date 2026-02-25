@@ -1,88 +1,60 @@
 /**
- * Import Row Matcher
- * Matches parsed rows to existing enrollments
- * Ref: spec/IMPORTS_UI_SPEC.md
+ * Import Row Matcher - OPTIMIZED VERSION
+ * Key changes:
+ * 1. Pre-fetch all enrollments in single query
+ * 2. Process matching in parallel batches with Promise.all()
+ * 3. In-memory matching instead of N+1 queries
  */
 
 import { db } from '@/db';
 import { enrollments, classes, users } from '@/db/schema';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import type { ParsedRow } from './parser';
 
-/**
- * Match candidate representing a potential enrollment match
- */
 export interface MatchCandidate {
   enrollmentId: string;
   studentName: string;
   className: string;
-  score: number; // 0-100 matching score
+  score: number;
 }
 
-/**
- * Match result for a parsed row
- */
 export interface MatchResult {
   type: 'no_match' | 'single_match' | 'ambiguous';
   candidates: MatchCandidate[];
   bestMatch: MatchCandidate | null;
 }
 
-/**
- * Calculate similarity score between two strings (0-100)
- * Uses Levenshtein-like approach with normalization
- */
+// Keep existing similarity functions unchanged
 function calculateStringSimilarity(a: string | null, b: string | null): number {
   if (!a || !b) return 0;
-
   const s1 = a.toLowerCase().trim();
   const s2 = b.toLowerCase().trim();
-
   if (s1 === s2) return 100;
+  if (s1.includes(s2) || s2.includes(s1)) return 80;
 
-  // Check if one contains the other
-  if (s1.includes(s2) || s2.includes(s1)) {
-    return 80;
-  }
-
-  // Calculate Levenshtein distance
+  // Levenshtein distance
   const matrix: number[][] = [];
-
-  for (let i = 0; i <= s1.length; i++) {
-    matrix[i] = [i];
-  }
-  for (let j = 0; j <= s2.length; j++) {
-    matrix[0][j] = j;
-  }
-
+  for (let i = 0; i <= s1.length; i++) matrix[i] = [i];
+  for (let j = 0; j <= s2.length; j++) matrix[0][j] = j;
   for (let i = 1; i <= s1.length; i++) {
     for (let j = 1; j <= s2.length; j++) {
       const cost = s1[i - 1] === s2[j - 1] ? 0 : 1;
       matrix[i][j] = Math.min(
-        matrix[i - 1][j] + 1, // deletion
-        matrix[i][j - 1] + 1, // insertion
-        matrix[i - 1][j - 1] + cost // substitution
+        matrix[i - 1][j] + 1,
+        matrix[i][j - 1] + 1,
+        matrix[i - 1][j - 1] + cost
       );
     }
   }
-
   const distance = matrix[s1.length][s2.length];
   const maxLen = Math.max(s1.length, s2.length);
-
-  // Convert distance to similarity score (0-100)
   return Math.round((1 - distance / maxLen) * 100);
 }
 
-/**
- * Calculate date similarity (0-100)
- * Exact match = 100, within 7 days = 80, within 30 days = 50
- */
 function calculateDateSimilarity(a: Date | null, b: Date | null): number {
   if (!a || !b) return 0;
-
   const diffMs = Math.abs(a.getTime() - b.getTime());
   const diffDays = diffMs / (1000 * 60 * 60 * 24);
-
   if (diffDays === 0) return 100;
   if (diffDays <= 7) return 80;
   if (diffDays <= 30) return 50;
@@ -90,59 +62,40 @@ function calculateDateSimilarity(a: Date | null, b: Date | null): number {
   return 0;
 }
 
-/**
- * Calculate overall match score for an enrollment candidate
- * Weights:
- * - Student name: 40%
- * - Class name: 40%
- * - Start date: 20%
- */
 function calculateMatchScore(
   parsed: ParsedRow['parsedData'],
-  candidate: {
-    studentName: string;
-    className: string;
-    startDate: Date | string | null;
-  }
+  candidate: { studentName: string; className: string; startDate: Date | string | null }
 ): number {
   const nameScore = calculateStringSimilarity(parsed.studentName, candidate.studentName);
   const classScore = calculateStringSimilarity(parsed.className, candidate.className);
-
   let dateScore = 0;
   if (parsed.startDate && candidate.startDate) {
     const candidateDate =
       candidate.startDate instanceof Date ? candidate.startDate : new Date(candidate.startDate);
     dateScore = calculateDateSimilarity(parsed.startDate, candidateDate);
   }
-
-  // Weighted average
   return Math.round(nameScore * 0.4 + classScore * 0.4 + dateScore * 0.2);
 }
 
-/**
- * Thresholds for matching
- */
-const MATCH_THRESHOLD = 70; // Minimum score to consider a match
-const EXACT_MATCH_THRESHOLD = 95; // Score for a definitive single match
-const AMBIGUITY_RANGE = 15; // If multiple matches within this range, consider ambiguous
+const MATCH_THRESHOLD = 70;
+const EXACT_MATCH_THRESHOLD = 95;
+const AMBIGUITY_RANGE = 15;
+
+// Type for cached enrollment data
+interface CachedEnrollment {
+  enrollmentId: string;
+  studentName: string;
+  className: string;
+  startDate: Date | string | null;
+  studentNameLower: string; // Pre-computed for faster matching
+}
 
 /**
- * Find candidate enrollments for a parsed row
- * @param tenantId - Tenant ID for RLS
- * @param parsed - Parsed row data
- * @returns Match result with candidates
+ * OPTIMIZED: Pre-fetch ALL active enrollments for tenant in single query
  */
-export async function findCandidateEnrollments(
-  tenantId: string,
-  parsed: ParsedRow['parsedData']
-): Promise<MatchResult> {
-  // Skip if required fields are missing
-  if (!parsed.studentName || !parsed.className) {
-    return { type: 'no_match', candidates: [], bestMatch: null };
-  }
+async function prefetchAllEnrollments(tenantId: string): Promise<CachedEnrollment[]> {
+  console.time('prefetchAllEnrollments');
 
-  // Query enrollments with student and class info
-  // Using fuzzy matching on student name and class name
   const results = await db
     .select({
       enrollmentId: enrollments.id,
@@ -153,22 +106,42 @@ export async function findCandidateEnrollments(
     .from(enrollments)
     .innerJoin(users, eq(enrollments.studentId, users.id))
     .innerJoin(classes, eq(enrollments.classId, classes.id))
-    .where(
-      and(
-        eq(enrollments.tenantId, tenantId),
-        eq(enrollments.status, 'active'),
-        // Use ILIKE for case-insensitive partial matching on student name
-        sql`${users.name} ILIKE ${'%' + parsed.studentName.split(' ')[0] + '%'}`
-      )
-    )
-    .limit(50); // Limit candidates for performance
+    .where(and(eq(enrollments.tenantId, tenantId), eq(enrollments.status, 'active')));
 
-  if (results.length === 0) {
+  console.timeEnd('prefetchAllEnrollments');
+  console.log(`Prefetched ${results.length} enrollments`);
+
+  // Pre-compute lowercase names for faster matching
+  return results.map(r => ({
+    ...r,
+    studentNameLower: r.studentName.toLowerCase(),
+  }));
+}
+
+/**
+ * OPTIMIZED: Match against cached enrollments (in-memory, no DB query)
+ */
+function findCandidatesInMemory(
+  parsed: ParsedRow['parsedData'],
+  cachedEnrollments: CachedEnrollment[]
+): MatchResult {
+  if (!parsed.studentName || !parsed.className) {
     return { type: 'no_match', candidates: [], bestMatch: null };
   }
 
-  // Calculate match scores
-  const scoredCandidates: MatchCandidate[] = results
+  const searchFirstName = parsed.studentName.split(' ')[0].toLowerCase();
+
+  // Filter candidates by first name match (fast in-memory filter)
+  const potentialMatches = cachedEnrollments.filter(e =>
+    e.studentNameLower.includes(searchFirstName)
+  );
+
+  if (potentialMatches.length === 0) {
+    return { type: 'no_match', candidates: [], bestMatch: null };
+  }
+
+  // Score candidates
+  const scoredCandidates: MatchCandidate[] = potentialMatches
     .map(r => ({
       enrollmentId: r.enrollmentId,
       studentName: r.studentName,
@@ -188,39 +161,23 @@ export async function findCandidateEnrollments(
 
   const bestCandidate = scoredCandidates[0];
 
-  // Single exact match
   if (scoredCandidates.length === 1 || bestCandidate.score >= EXACT_MATCH_THRESHOLD) {
-    return {
-      type: 'single_match',
-      candidates: scoredCandidates,
-      bestMatch: bestCandidate,
-    };
+    return { type: 'single_match', candidates: scoredCandidates, bestMatch: bestCandidate };
   }
 
-  // Check for ambiguity - multiple candidates with similar scores
   const closeMatches = scoredCandidates.filter(
     c => bestCandidate.score - c.score <= AMBIGUITY_RANGE
   );
 
   if (closeMatches.length > 1) {
-    return {
-      type: 'ambiguous',
-      candidates: scoredCandidates,
-      bestMatch: bestCandidate,
-    };
+    return { type: 'ambiguous', candidates: scoredCandidates, bestMatch: bestCandidate };
   }
 
-  // Best match is clearly better
-  return {
-    type: 'single_match',
-    candidates: scoredCandidates,
-    bestMatch: bestCandidate,
-  };
+  return { type: 'single_match', candidates: scoredCandidates, bestMatch: bestCandidate };
 }
 
 /**
- * Calculate diff between parsed data and existing enrollment
- * Returns changed fields only
+ * OPTIMIZED: Calculate diff (still needs DB query, but batched)
  */
 export async function calculateDiff(
   tenantId: string,
@@ -229,7 +186,6 @@ export async function calculateDiff(
 ): Promise<Record<string, { old: unknown; new: unknown }>> {
   const diff: Record<string, { old: unknown; new: unknown }> = {};
 
-  // Fetch existing enrollment with related data
   const [existing] = await db
     .select({
       studentName: users.name,
@@ -243,11 +199,8 @@ export async function calculateDiff(
     .where(and(eq(enrollments.id, enrollmentId), eq(enrollments.tenantId, tenantId)))
     .limit(1);
 
-  if (!existing) {
-    return diff;
-  }
+  if (!existing) return diff;
 
-  // Compare fields
   if (
     parsed.studentName &&
     existing.studentName !== parsed.studentName &&
@@ -264,7 +217,6 @@ export async function calculateDiff(
     diff.className = { old: existing.className, new: parsed.className };
   }
 
-  // Compare dates
   if (parsed.startDate && existing.enrollmentDate) {
     const existingDate = new Date(existing.enrollmentDate);
     if (parsed.startDate.toDateString() !== existingDate.toDateString()) {
@@ -289,8 +241,7 @@ export async function calculateDiff(
 }
 
 /**
- * Batch process all rows for matching
- * Returns row statuses and proposed changes
+ * OPTIMIZED: Batch process with pre-fetched data and parallel diff calculations
  */
 export async function processRowsForMatching(
   tenantId: string,
@@ -312,6 +263,11 @@ export async function processRowsForMatching(
     noops: number;
   };
 }> {
+  console.time('processRowsForMatching');
+
+  // OPTIMIZATION 1: Pre-fetch all enrollments in single query
+  const cachedEnrollments = await prefetchAllEnrollments(tenantId);
+
   const results: Array<{
     rowNumber: number;
     rowStatus: 'VALID' | 'INVALID' | 'AMBIGUOUS';
@@ -329,8 +285,41 @@ export async function processRowsForMatching(
     noops: 0,
   };
 
-  for (const row of rows) {
-    // Invalid rows skip matching
+  // OPTIMIZATION 2: Process matching in-memory (no DB queries in loop)
+  console.time('inMemoryMatching');
+  const matchResults = rows.map(row => ({
+    row,
+    matchResult: row.isValid
+      ? findCandidatesInMemory(row.parsedData, cachedEnrollments)
+      : { type: 'no_match' as const, candidates: [], bestMatch: null },
+  }));
+  console.timeEnd('inMemoryMatching');
+
+  // OPTIMIZATION 3: Batch diff calculations with Promise.all (parallel)
+  console.time('diffCalculations');
+  const diffPromises: Promise<{
+    index: number;
+    diff: Record<string, { old: unknown; new: unknown }>;
+  }>[] = [];
+
+  matchResults.forEach((mr, index) => {
+    if (mr.row.isValid && mr.matchResult.type === 'single_match' && mr.matchResult.bestMatch) {
+      diffPromises.push(
+        calculateDiff(tenantId, mr.row.parsedData, mr.matchResult.bestMatch.enrollmentId).then(
+          diff => ({ index, diff })
+        )
+      );
+    }
+  });
+
+  const diffResults = await Promise.all(diffPromises);
+  const diffMap = new Map(diffResults.map(d => [d.index, d.diff]));
+  console.timeEnd('diffCalculations');
+
+  // Build final results
+  matchResults.forEach((mr, index) => {
+    const { row, matchResult } = mr;
+
     if (!row.isValid) {
       counts.invalid++;
       results.push({
@@ -339,11 +328,8 @@ export async function processRowsForMatching(
         matchResult: { type: 'no_match', candidates: [], bestMatch: null },
         action: 'NEEDS_RESOLUTION',
       });
-      continue;
+      return;
     }
-
-    // Find matches
-    const matchResult = await findCandidateEnrollments(tenantId, row.parsedData);
 
     if (matchResult.type === 'no_match') {
       counts.valid++;
@@ -356,15 +342,8 @@ export async function processRowsForMatching(
       });
     } else if (matchResult.type === 'single_match') {
       counts.valid++;
-
-      // Calculate diff to determine UPDATE vs NOOP
-      const diff = await calculateDiff(
-        tenantId,
-        row.parsedData,
-        matchResult.bestMatch!.enrollmentId
-      );
-
-      if (Object.keys(diff).length > 0) {
+      const diff = diffMap.get(index);
+      if (diff && Object.keys(diff).length > 0) {
         counts.updates++;
         results.push({
           rowNumber: row.rowNumber,
@@ -392,7 +371,22 @@ export async function processRowsForMatching(
         action: 'NEEDS_RESOLUTION',
       });
     }
-  }
+  });
 
+  console.timeEnd('processRowsForMatching');
   return { rowResults: results, counts };
+}
+
+/**
+ * Find candidate enrollments for a parsed row
+ * DEPRECATED: Use processRowsForMatching for batch operations
+ * Kept for backwards compatibility with single-row operations
+ */
+export async function findCandidateEnrollments(
+  tenantId: string,
+  parsed: ParsedRow['parsedData']
+): Promise<MatchResult> {
+  // For single-row lookups, fetch and match immediately
+  const cachedEnrollments = await prefetchAllEnrollments(tenantId);
+  return findCandidatesInMemory(parsed, cachedEnrollments);
 }
