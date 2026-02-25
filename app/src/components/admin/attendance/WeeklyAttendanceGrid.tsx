@@ -109,9 +109,12 @@ export default function WeeklyAttendanceGrid({
 
   const handleCellClick = useCallback(
     (studentId: string, date: string, currentStatus: string) => {
+      console.log('[AttendanceGrid] Cell clicked:', { studentId, date, currentStatus });
       const currentIndex = STATUS_CYCLE.indexOf(currentStatus as AttendanceStatus);
       const nextIndex = (currentIndex + 1) % STATUS_CYCLE.length;
-      onChange(studentId, date, STATUS_CYCLE[nextIndex]);
+      const newStatus = STATUS_CYCLE[nextIndex];
+      console.log('[AttendanceGrid] Cycling status:', { from: currentStatus, to: newStatus });
+      onChange(studentId, date, newStatus);
     },
     [onChange]
   );

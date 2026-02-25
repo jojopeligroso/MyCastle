@@ -63,6 +63,8 @@ export default function ClassAttendanceCard({
   })();
 
   const handleChange = (studentId: string, date: string, status: AttendanceStatus) => {
+    console.log('[Attendance] Change:', { studentId, date, status });
+
     setStudents(prev =>
       prev.map(s => {
         if (s.id !== studentId) return s;
@@ -105,15 +107,22 @@ export default function ClassAttendanceCard({
       });
     });
 
-    if (changes.length === 0) return;
+    console.log('[Attendance] Saving changes:', { classId, changes });
+
+    if (changes.length === 0) {
+      console.log('[Attendance] No changes to save');
+      return;
+    }
 
     setIsSaving(true);
     setSaveError(null);
 
     try {
       await onSave(classId, changes);
+      console.log('[Attendance] Save successful');
       setDirtyState({});
     } catch (error) {
+      console.error('[Attendance] Save failed:', error);
       setSaveError(error instanceof Error ? error.message : 'Failed to save');
     } finally {
       setIsSaving(false);
