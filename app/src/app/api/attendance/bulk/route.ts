@@ -116,9 +116,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // Check authorization (teacher or admin)
+    const userRole = user.user_metadata?.role || user.app_metadata?.role || 'student';
     const isAuthorized =
-      user.role === 'admin' ||
-      (user.role === 'teacher' && classSession.class.teacherId === user.id);
+      userRole === 'admin' ||
+      (userRole === 'teacher' && classSession.class.teacherId === user.id);
 
     if (!isAuthorized) {
       return NextResponse.json(
