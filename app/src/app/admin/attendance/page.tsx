@@ -1,213 +1,166 @@
-/**
- * Attendance Dashboard
- * List of class sessions to manage attendance
- */
+'use client';
 
-import { db } from '@/db';
-import { attendance, classSessions, classes, enrollments, students, users } from '@/db/schema';
-import { and, desc, eq, gte, lte, sql } from 'drizzle-orm';
-import { requireAuth, getTenantId } from '@/lib/auth/utils';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-// TODO: Fix Turbopack dynamic import issue with PendingCorrections
-// import dynamic from 'next/dynamic';
-// const PendingCorrections = dynamic(
-//   () => import('@/components/admin/attendance/PendingCorrections'),
-//   { ssr: false }
-// );
+import WeekNavigation from '@/components/admin/attendance/WeekNavigation';
+import ClassAttendanceCard from '@/components/admin/attendance/ClassAttendanceCard';
 
-type SearchParams = {
-  classId?: string;
-  studentId?: string;
-  startDate?: string;
-  endDate?: string;
-};
+type AttendanceStatus = 'present' | 'absent' | 'late' | 'excused' | '';
 
-interface PageProps {
-  searchParams?: SearchParams;
+interface WeekDate {
+  date: string;
+  dayName: string;
 }
 
-const VISA_ATTENDANCE_THRESHOLD = 80;
-
-function toDate(value?: string) {
-  if (!value) return null;
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
+interface StudentAttendance {
+  id: string;
+  name: string;
+  isVisaStudent: boolean;
+  attendance: Record<string, { status: string; sessionId: string | null } | null>;
 }
 
-export default async function AttendanceDashboard({ searchParams }: PageProps) {
-  await requireAuth();
-  const tenantId = await getTenantId();
+interface ClassData {
+  id: string;
+  name: string;
+  code: string | null;
+  teacherId: string | null;
+  teacherName: string | null;
+  startTime: string | null;
+  endTime: string | null;
+  daysOfWeek: string[];
+  students: StudentAttendance[];
+  sessions: Record<string, string>;
+}
 
-  if (!tenantId) return <div>Error: No tenant found</div>;
+interface WeeklyData {
+  weekStart: string;
+  weekEnd: string;
+  weekDates: WeekDate[];
+  classes: ClassData[];
+}
 
-  const selectedClassId = searchParams?.classId || '';
-  const selectedStudentId = searchParams?.studentId || '';
-  const startDate = toDate(searchParams?.startDate);
-  const endDate = toDate(searchParams?.endDate);
+function getCurrentWeekStart(): string {
+  const today = new Date();
+  const day = today.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() + diff);
+  return weekStart.toISOString().split('T')[0];
+}
 
-  const sessionConditions = [eq(classSessions.tenantId, tenantId)];
-  if (selectedClassId) {
-    sessionConditions.push(eq(classSessions.classId, selectedClassId));
-  }
-  if (startDate) {
-    sessionConditions.push(gte(classSessions.sessionDate, startDate.toISOString().split('T')[0]));
-  }
-  if (endDate) {
-    sessionConditions.push(lte(classSessions.sessionDate, endDate.toISOString().split('T')[0]));
-  }
+function addWeeks(dateStr: string, weeks: number): string {
+  const date = new Date(dateStr + 'T00:00:00');
+  date.setDate(date.getDate() + weeks * 7);
+  return date.toISOString().split('T')[0];
+}
 
-  const classesList = await db
-    .select({
-      id: classes.id,
-      name: classes.name,
-      code: classes.code,
-    })
-    .from(classes)
-    .where(eq(classes.tenantId, tenantId))
-    .orderBy(classes.name);
+export default function AttendanceDashboard() {
+  const [weekStart, setWeekStart] = useState(getCurrentWeekStart);
+  const [data, setData] = useState<WeeklyData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const studentsList = await db
-    .select({
-      id: users.id,
-      name: users.name,
-    })
-    .from(students)
-    .innerJoin(users, eq(students.userId, users.id))
-    .where(eq(students.tenantId, tenantId))
-    .orderBy(users.name);
+  const fetchData = useCallback(async (weekStartDate: string) => {
+    setIsLoading(true);
+    setError(null);
 
-  let sessionsQuery = db
-    .select({
-      id: classSessions.id,
-      date: classSessions.sessionDate,
-      startTime: classSessions.startTime,
-      endTime: classSessions.endTime,
-      topic: classSessions.topic,
-      className: classes.name,
-      classCode: classes.code,
-      attendanceCount: sql<number>`coalesce(count(${attendance.id}), 0)`,
-      presentCount: sql<number>`coalesce(sum(case when ${attendance.status} = 'present' then 1 else 0 end), 0)`,
-      lateCount: sql<number>`coalesce(sum(case when ${attendance.status} = 'late' then 1 else 0 end), 0)`,
-      absentCount: sql<number>`coalesce(sum(case when ${attendance.status} = 'absent' then 1 else 0 end), 0)`,
-      excusedCount: sql<number>`coalesce(sum(case when ${attendance.status} = 'excused' then 1 else 0 end), 0)`,
-    })
-    .from(classSessions)
-    .innerJoin(classes, eq(classSessions.classId, classes.id))
-    .leftJoin(
-      attendance,
-      selectedStudentId
-        ? and(
-            eq(attendance.classSessionId, classSessions.id),
-            eq(attendance.studentId, selectedStudentId)
-          )
-        : eq(attendance.classSessionId, classSessions.id)
+    try {
+      const response = await fetch(`/api/admin/attendance/weekly?weekStart=${weekStartDate}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch attendance data');
+      }
+      const result = await response.json();
+      setData(result);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData(weekStart);
+  }, [weekStart, fetchData]);
+
+  const handlePrevWeek = useCallback(() => {
+    setWeekStart(prev => addWeeks(prev, -1));
+  }, []);
+
+  const handleNextWeek = useCallback(() => {
+    setWeekStart(prev => addWeeks(prev, 1));
+  }, []);
+
+  const handleToday = useCallback(() => {
+    setWeekStart(getCurrentWeekStart());
+  }, []);
+
+  const handleSave = useCallback(
+    async (
+      classId: string,
+      changes: { studentId: string; date: string; status: AttendanceStatus }[]
+    ) => {
+      const response = await fetch('/api/admin/attendance/weekly', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          classId,
+          attendance: changes,
+        }),
+      });
+
+      if (!response.ok) {
+        const result = await response.json();
+        throw new Error(result.error || 'Failed to save');
+      }
+
+      // Refresh data after save
+      await fetchData(weekStart);
+    },
+    [fetchData, weekStart]
+  );
+
+  // Filter classes by search term
+  const filteredClasses = data?.classes.filter(cls => {
+    if (!searchTerm) return true;
+    const term = searchTerm.toLowerCase();
+    return (
+      cls.name.toLowerCase().includes(term) ||
+      cls.code?.toLowerCase().includes(term) ||
+      cls.teacherName?.toLowerCase().includes(term)
     );
+  });
 
-  if (selectedStudentId) {
-    sessionsQuery = sessionsQuery.innerJoin(
-      enrollments,
-      and(
-        eq(enrollments.classId, classSessions.classId),
-        eq(enrollments.studentId, selectedStudentId),
-        eq(enrollments.status, 'active')
-      )
-    );
-  }
+  // Compute summary stats
+  const summaryStats = (() => {
+    if (!data?.classes) return { totalClasses: 0, totalStudents: 0, visaStudents: 0 };
 
-  const sessions = await sessionsQuery
-    .where(and(...sessionConditions))
-    .groupBy(classSessions.id, classes.name, classes.code)
-    .orderBy(desc(classSessions.sessionDate))
-    .limit(50); // Show last 50 sessions
+    const totalClasses = data.classes.length;
+    const studentSet = new Set<string>();
+    const visaStudentSet = new Set<string>();
 
-  let summaryQuery = db
-    .select({
-      totalSessions: sql<number>`count(distinct ${classSessions.id})`,
-      attendanceRecords: sql<number>`coalesce(count(${attendance.id}), 0)`,
-      presentCount: sql<number>`coalesce(sum(case when ${attendance.status} in ('present', 'late') then 1 else 0 end), 0)`,
-    })
-    .from(classSessions)
-    .innerJoin(classes, eq(classSessions.classId, classes.id))
-    .leftJoin(
-      attendance,
-      selectedStudentId
-        ? and(
-            eq(attendance.classSessionId, classSessions.id),
-            eq(attendance.studentId, selectedStudentId)
-          )
-        : eq(attendance.classSessionId, classSessions.id)
-    );
+    data.classes.forEach(cls => {
+      cls.students.forEach(s => {
+        studentSet.add(s.id);
+        if (s.isVisaStudent) {
+          visaStudentSet.add(s.id);
+        }
+      });
+    });
 
-  if (selectedStudentId) {
-    summaryQuery = summaryQuery.innerJoin(
-      enrollments,
-      and(
-        eq(enrollments.classId, classSessions.classId),
-        eq(enrollments.studentId, selectedStudentId),
-        eq(enrollments.status, 'active')
-      )
-    );
-  }
-
-  const [summary] = await summaryQuery.where(and(...sessionConditions));
-  const totalSessions = summary?.totalSessions || 0;
-  const attendanceRecords = summary?.attendanceRecords || 0;
-  const presentCount = summary?.presentCount || 0;
-  const avgAttendanceRate =
-    attendanceRecords > 0 ? Math.round((presentCount / attendanceRecords) * 100) : null;
-
-  const visaConditions = [
-    eq(students.tenantId, tenantId),
-    eq(students.isVisaStudent, true),
-    eq(enrollments.status, 'active'),
-    sql`coalesce(${enrollments.attendanceRate}, 0) < ${VISA_ATTENDANCE_THRESHOLD}`,
-  ];
-  if (selectedClassId) {
-    visaConditions.push(eq(classes.id, selectedClassId));
-  }
-  if (selectedStudentId) {
-    visaConditions.push(eq(users.id, selectedStudentId));
-  }
-
-  const [visaSummary] = await db
-    .select({
-      atRiskCount: sql<number>`count(distinct ${users.id})`,
-    })
-    .from(students)
-    .innerJoin(users, eq(students.userId, users.id))
-    .innerJoin(enrollments, eq(enrollments.studentId, users.id))
-    .innerJoin(classes, eq(enrollments.classId, classes.id))
-    .where(and(...visaConditions));
-
-  const visaAlerts = await db
-    .select({
-      studentId: users.id,
-      studentName: users.name,
-      className: classes.name,
-      classCode: classes.code,
-      attendanceRate: enrollments.attendanceRate,
-    })
-    .from(students)
-    .innerJoin(users, eq(students.userId, users.id))
-    .innerJoin(enrollments, eq(enrollments.studentId, users.id))
-    .innerJoin(classes, eq(enrollments.classId, classes.id))
-    .where(and(...visaConditions))
-    .orderBy(sql`coalesce(${enrollments.attendanceRate}, 0) asc`)
-    .limit(5);
-
-  const filterParams = new URLSearchParams();
-  if (selectedClassId) filterParams.set('classId', selectedClassId);
-  if (selectedStudentId) filterParams.set('studentId', selectedStudentId);
-  if (searchParams?.startDate) filterParams.set('startDate', searchParams.startDate);
-  if (searchParams?.endDate) filterParams.set('endDate', searchParams.endDate);
-  const filterQuery = filterParams.toString();
+    return {
+      totalClasses,
+      totalStudents: studentSet.size,
+      visaStudents: visaStudentSet.size,
+    };
+  })();
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Attendance</h1>
-          <p className="text-gray-600">Manage student attendance for recent sessions</p>
+          <p className="text-gray-600">Weekly attendance grid for all active classes</p>
         </div>
         <Link
           href="/admin/classes?action=create"
@@ -217,209 +170,103 @@ export default async function AttendanceDashboard({ searchParams }: PageProps) {
         </Link>
       </div>
 
-      <form
-        method="get"
-        className="bg-white shadow sm:rounded-lg p-4 grid grid-cols-1 gap-4 md:grid-cols-5"
-      >
-        <div className="space-y-1">
-          <label htmlFor="startDate" className="text-sm font-medium text-gray-700">
-            Start date
-          </label>
-          <input
-            id="startDate"
-            name="startDate"
-            type="date"
-            defaultValue={searchParams?.startDate || ''}
-            className="block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-purple-500 focus:ring-purple-500"
-          />
-        </div>
-        <div className="space-y-1">
-          <label htmlFor="endDate" className="text-sm font-medium text-gray-700">
-            End date
-          </label>
-          <input
-            id="endDate"
-            name="endDate"
-            type="date"
-            defaultValue={searchParams?.endDate || ''}
-            className="block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-purple-500 focus:ring-purple-500"
-          />
-        </div>
-        <div className="space-y-1">
-          <label htmlFor="classId" className="text-sm font-medium text-gray-700">
-            Class
-          </label>
-          <select
-            id="classId"
-            name="classId"
-            defaultValue={selectedClassId}
-            className="block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-purple-500 focus:ring-purple-500"
-          >
-            <option value="">All classes</option>
-            {classesList.map(item => (
-              <option key={item.id} value={item.id}>
-                {item.name} {item.code ? `(${item.code})` : ''}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-1">
-          <label htmlFor="studentId" className="text-sm font-medium text-gray-700">
-            Student
-          </label>
-          <select
-            id="studentId"
-            name="studentId"
-            defaultValue={selectedStudentId}
-            className="block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-purple-500 focus:ring-purple-500"
-          >
-            <option value="">All students</option>
-            {studentsList.map(item => (
-              <option key={item.id} value={item.id}>
-                {item.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="flex items-end gap-2">
-          <button
-            type="submit"
-            className="inline-flex flex-1 items-center justify-center rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-purple-700"
-          >
-            Apply filters
-          </button>
-          <Link
-            href="/admin/attendance"
-            className="inline-flex flex-1 items-center justify-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
-          >
-            Clear
-          </Link>
-        </div>
-      </form>
+      {data && (
+        <WeekNavigation
+          weekStart={data.weekStart}
+          weekEnd={data.weekEnd}
+          onPrevWeek={handlePrevWeek}
+          onNextWeek={handleNextWeek}
+          onToday={handleToday}
+        />
+      )}
 
       <div className="grid gap-4 md:grid-cols-3">
         <div className="rounded-lg border border-gray-200 bg-white p-4 shadow">
-          <p className="text-sm text-gray-500">Total sessions</p>
-          <p className="mt-2 text-2xl font-semibold text-gray-900">{totalSessions}</p>
-          <p className="mt-1 text-xs text-gray-500">Filters applied to session count</p>
+          <p className="text-sm text-gray-500">Active classes</p>
+          <p className="mt-2 text-2xl font-semibold text-gray-900">{summaryStats.totalClasses}</p>
+          <p className="mt-1 text-xs text-gray-500">Classes running this week</p>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white p-4 shadow">
-          <p className="text-sm text-gray-500">Average attendance</p>
-          <p className="mt-2 text-2xl font-semibold text-gray-900">
-            {avgAttendanceRate === null ? 'N/A' : `${avgAttendanceRate}%`}
-          </p>
-          <p className="mt-1 text-xs text-gray-500">Based on present + late records in scope</p>
+          <p className="text-sm text-gray-500">Total students</p>
+          <p className="mt-2 text-2xl font-semibold text-gray-900">{summaryStats.totalStudents}</p>
+          <p className="mt-1 text-xs text-gray-500">Enrolled across all classes</p>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white p-4 shadow">
-          <p className="text-sm text-gray-500">Visa compliance alerts</p>
-          <p className="mt-2 text-2xl font-semibold text-gray-900">
-            {visaSummary?.atRiskCount || 0}
-          </p>
-          <p className="mt-1 text-xs text-gray-500">
-            Attendance below {VISA_ATTENDANCE_THRESHOLD}%
-          </p>
+          <p className="text-sm text-gray-500">Visa students</p>
+          <p className="mt-2 text-2xl font-semibold text-gray-900">{summaryStats.visaStudents}</p>
+          <p className="mt-1 text-xs text-gray-500">Require attendance monitoring</p>
         </div>
       </div>
 
-      {/* Pending Corrections - TODO: Fix Turbopack dynamic import issue */}
-      {/* <PendingCorrections /> */}
+      <div className="bg-white shadow sm:rounded-lg p-4">
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex-1 min-w-[200px]">
+            <label htmlFor="search" className="sr-only">
+              Search classes
+            </label>
+            <input
+              id="search"
+              type="text"
+              placeholder="Search classes, teachers..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-purple-500 focus:ring-purple-500"
+            />
+          </div>
+          <div className="text-sm text-gray-500">
+            <span className="font-medium">Keyboard:</span> P = Present, A = Absent, L = Late, E =
+            Excused, Arrow keys to navigate
+          </div>
+        </div>
+      </div>
 
-      <div className="grid gap-4 lg:grid-cols-[2fr,1fr]">
-        <div className="bg-white shadow sm:rounded-md">
-          <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">Recent sessions</h2>
-              <p className="text-sm text-gray-500">Latest 50 sessions matching current filters</p>
+      {isLoading && (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+          <span className="ml-3 text-gray-500">Loading attendance data...</span>
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+          <p className="font-medium">Error loading attendance data</p>
+          <p className="text-sm mt-1">{error}</p>
+          <button
+            onClick={() => fetchData(weekStart)}
+            className="mt-2 text-sm underline hover:no-underline"
+          >
+            Try again
+          </button>
+        </div>
+      )}
+
+      {!isLoading && !error && data && (
+        <div className="space-y-4">
+          {filteredClasses?.length === 0 && (
+            <div className="bg-white shadow sm:rounded-lg p-8 text-center text-gray-500">
+              {searchTerm
+                ? 'No classes match your search.'
+                : 'No active classes found for this week.'}
             </div>
-            {filterQuery ? <span className="text-xs text-gray-500">Filters applied</span> : null}
-          </div>
-          <ul className="divide-y divide-gray-200">
-            {sessions.map(session => {
-              const attendanceCount = Number(session.attendanceCount) || 0;
-              const presentCountValue = Number(session.presentCount) + Number(session.lateCount);
-              const attendanceRate =
-                attendanceCount > 0 ? Math.round((presentCountValue / attendanceCount) * 100) : 0;
-              const isReported = attendanceCount > 0;
-              const statusColor = isReported
-                ? 'bg-green-100 text-green-800'
-                : 'bg-yellow-100 text-yellow-800';
-              const statusText = isReported ? 'Reported' : 'Pending';
-              const detailLink = filterQuery
-                ? `/admin/attendance/${session.id}?${filterQuery}`
-                : `/admin/attendance/${session.id}`;
+          )}
 
-              return (
-                <li key={session.id}>
-                  <Link href={detailLink} className="block hover:bg-gray-50">
-                    <div className="px-4 py-4 sm:px-6">
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="text-sm font-medium text-purple-600 truncate">
-                          {session.className}{' '}
-                          <span className="text-gray-500">({session.classCode})</span>
-                        </div>
-                        <div className="ml-2 flex-shrink-0 flex items-center gap-3">
-                          <span className="text-xs text-gray-500">{attendanceRate}%</span>
-                          <span
-                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColor}`}
-                          >
-                            {statusText}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="mt-2 flex flex-wrap justify-between gap-3 text-sm text-gray-500">
-                        <div className="flex flex-wrap gap-4">
-                          <span>
-                            {new Date(session.date).toLocaleDateString()} ·{' '}
-                            {session.startTime.toString().slice(0, 5)} -{' '}
-                            {session.endTime.toString().slice(0, 5)}
-                          </span>
-                          <span>
-                            Present {session.presentCount} · Late {session.lateCount} · Absent{' '}
-                            {session.absentCount} · Excused {session.excusedCount}
-                          </span>
-                        </div>
-                        <span>{session.topic ? `Topic: ${session.topic}` : 'No topic set'}</span>
-                      </div>
-                    </div>
-                  </Link>
-                </li>
-              );
-            })}
-            {sessions.length === 0 && (
-              <li className="px-4 py-12 text-center text-gray-500">
-                No class sessions found for the selected filters.
-              </li>
-            )}
-          </ul>
+          {filteredClasses?.map(cls => (
+            <ClassAttendanceCard
+              key={cls.id}
+              classId={cls.id}
+              className={cls.name}
+              classCode={cls.code}
+              teacherName={cls.teacherName}
+              startTime={cls.startTime}
+              endTime={cls.endTime}
+              daysOfWeek={cls.daysOfWeek}
+              weekDates={data.weekDates}
+              students={cls.students}
+              onSave={handleSave}
+            />
+          ))}
         </div>
-
-        <div className="bg-white shadow sm:rounded-md">
-          <div className="border-b border-gray-200 px-4 py-3">
-            <h2 className="text-lg font-semibold text-gray-900">Compliance alerts</h2>
-            <p className="text-sm text-gray-500">Visa students below attendance threshold</p>
-          </div>
-          <ul className="divide-y divide-gray-200">
-            {visaAlerts.map(alert => (
-              <li key={`${alert.studentId}-${alert.className}`} className="px-4 py-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{alert.studentName}</p>
-                    <p className="text-xs text-gray-500">
-                      {alert.className} {alert.classCode ? `(${alert.classCode})` : ''}
-                    </p>
-                  </div>
-                  <span className="text-sm font-semibold text-red-600">
-                    {alert.attendanceRate ? `${alert.attendanceRate}%` : 'N/A'}
-                  </span>
-                </div>
-              </li>
-            ))}
-            {visaAlerts.length === 0 && (
-              <li className="px-4 py-8 text-center text-gray-500">No visa alerts in scope.</li>
-            )}
-          </ul>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
