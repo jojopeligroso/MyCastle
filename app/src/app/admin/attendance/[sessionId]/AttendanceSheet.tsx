@@ -110,7 +110,9 @@ export default function AttendanceSheet({
                     {(student.name || 'U').charAt(0)}
                   </div>
                   <div className="ml-4">
-                    <div className="text-sm font-medium text-gray-900">{student.name || 'Unknown'}</div>
+                    <div className="text-sm font-medium text-gray-900">
+                      {student.name || 'Unknown'}
+                    </div>
                     <div className="text-xs text-gray-500">ID: {student.id.slice(0, 8)}</div>
                   </div>
                 </div>

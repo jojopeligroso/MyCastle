@@ -133,13 +133,7 @@ async function getStudentsForFilter(tenantId: string) {
         name: users.name,
       })
       .from(users)
-      .where(
-        and(
-          eq(users.tenantId, tenantId),
-          eq(users.role, 'student'),
-          eq(users.isActive, true)
-        )
-      )
+      .where(and(eq(users.tenantId, tenantId), eq(users.role, 'student'), eq(users.isActive, true)))
       .orderBy(users.name);
 
     return students;

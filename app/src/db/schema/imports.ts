@@ -127,7 +127,12 @@ export const stgRows = pgTable(
     // Match candidates (for AMBIGUOUS rows)
     matchCandidates: jsonb('match_candidates')
       .$type<
-        Array<{ enrollmentId: string; studentName: string | null; className: string; score: number }>
+        Array<{
+          enrollmentId: string;
+          studentName: string | null;
+          className: string;
+          score: number;
+        }>
       >()
       .default([]),
 

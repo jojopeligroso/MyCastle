@@ -22,9 +22,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const [student] = await db
       .select()
       .from(users)
-      .where(
-        and(eq(users.id, studentId), eq(users.role, 'student'))
-      )
+      .where(and(eq(users.id, studentId), eq(users.role, 'student')))
       .limit(1);
 
     if (!student) {
@@ -151,9 +149,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const [existingStudent] = await db
       .select()
       .from(users)
-      .where(
-        and(eq(users.id, studentId), eq(users.role, 'student'))
-      )
+      .where(and(eq(users.id, studentId), eq(users.role, 'student')))
       .limit(1);
 
     if (!existingStudent) {

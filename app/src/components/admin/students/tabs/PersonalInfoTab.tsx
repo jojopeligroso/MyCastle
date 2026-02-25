@@ -234,7 +234,8 @@ export function PersonalInfoTab({
                       : 'bg-gray-100 text-gray-800'
                 }`}
               >
-                {(student.status || 'unknown').charAt(0).toUpperCase() + (student.status || 'unknown').slice(1)}
+                {(student.status || 'unknown').charAt(0).toUpperCase() +
+                  (student.status || 'unknown').slice(1)}
               </span>
             </dd>
           </div>
