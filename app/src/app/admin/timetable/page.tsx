@@ -225,9 +225,7 @@ export default function AdminTimetable() {
                       className="p-2 border-r border-gray-200 last:border-r-0 space-y-2"
                     >
                       {dayClasses.length === 0 ? (
-                        <div className="text-center text-gray-400 text-sm py-8">
-                          No classes
-                        </div>
+                        <div className="text-center text-gray-400 text-sm py-8">No classes</div>
                       ) : (
                         dayClasses.map(cls => (
                           <div
@@ -239,9 +237,7 @@ export default function AdminTimetable() {
                                 <h4 className="font-medium text-purple-900 text-sm truncate">
                                   {cls.name}
                                 </h4>
-                                {cls.code && (
-                                  <p className="text-xs text-purple-700">{cls.code}</p>
-                                )}
+                                {cls.code && <p className="text-xs text-purple-700">{cls.code}</p>}
                               </div>
                               <Link
                                 href={`/admin/classes/${cls.id}`}

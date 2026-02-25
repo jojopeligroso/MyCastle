@@ -12,7 +12,7 @@ interface AmendEnrollmentFormProps {
   enrollmentId: string;
   currentEndDate?: string;
   currentLevel?: string;
-  studentName: string;
+  studentName: string | null;
   className: string;
   startDate?: string;
 }

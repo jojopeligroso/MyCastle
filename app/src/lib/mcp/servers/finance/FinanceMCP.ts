@@ -144,7 +144,7 @@ const createBookingTool: MCPTool = {
       .where(and(eq(users.id, student_id), eq(users.tenantId, session.tenantId)))
       .limit(1);
 
-    if (!student || student.primaryRole !== 'student') {
+    if (!student || student.role !== 'student') {
       throw new Error('Student not found or invalid user type');
     }
 
@@ -409,7 +409,7 @@ const issueInvoiceTool: MCPTool = {
       .where(and(eq(users.id, student_id), eq(users.tenantId, session.tenantId)))
       .limit(1);
 
-    if (!student || student.primaryRole !== 'student') {
+    if (!student || student.role !== 'student') {
       throw new Error('Student not found');
     }
 

@@ -235,9 +235,6 @@ async function validateStudents(rows: Record<string, unknown>[]): Promise<Previe
       ? {
           name: existingUser.name,
           email: existingUser.email,
-          dateOfBirth: existingUser.dateOfBirth,
-          nationality: existingUser.nationality,
-          phone: existingUser.phone,
         }
       : undefined;
 
@@ -748,12 +745,14 @@ async function insertStudent(data: Record<string, unknown>, tenantId: string) {
       tenantId,
       email: String(data.email),
       name: String(data.name),
-      dateOfBirth: data.dateOfBirth ? String(data.dateOfBirth) : null,
-      nationality: data.nationality ? String(data.nationality) : null,
-      phone: data.phone ? String(data.phone) : null,
-      primaryRole: 'student',
-      status: 'active',
-      emailVerified: false,
+      role: 'student',
+      isActive: true,
+      // Store additional fields in metadata
+      metadata: {
+        dateOfBirth: data.dateOfBirth || null,
+        nationality: data.nationality || null,
+        phone: data.phone || null,
+      },
     })
     .returning();
 
@@ -783,9 +782,12 @@ async function updateStudent(data: Record<string, unknown>) {
     .update(users)
     .set({
       name: String(data.name),
-      dateOfBirth: data.dateOfBirth ? String(data.dateOfBirth) : null,
-      nationality: data.nationality ? String(data.nationality) : null,
-      phone: data.phone ? String(data.phone) : null,
+      // Store additional fields in metadata
+      metadata: {
+        dateOfBirth: data.dateOfBirth || null,
+        nationality: data.nationality || null,
+        phone: data.phone || null,
+      },
       updatedAt: new Date(),
     })
     .where(and(eq(users.tenantId, tenantId), eq(users.email, String(data.email))))
@@ -897,8 +899,11 @@ async function insertBooking(data: Record<string, unknown>, tenantId: string) {
       .update(users)
       .set({
         name: String(data.name),
-        nationality: data.nationality ? String(data.nationality) : null,
-        dateOfBirth: data.dob ? String(data.dob) : null,
+        // Store additional fields in metadata
+        metadata: {
+          nationality: data.nationality || null,
+          dateOfBirth: data.dob || null,
+        },
         updatedAt: new Date(),
       })
       .where(eq(users.id, existingUser.id));
@@ -930,11 +935,13 @@ async function insertBooking(data: Record<string, unknown>, tenantId: string) {
         tenantId,
         email,
         name: String(data.name),
-        nationality: data.nationality ? String(data.nationality) : null,
-        dateOfBirth: data.dob ? String(data.dob) : null,
-        primaryRole: 'student',
-        status: 'active',
-        emailVerified: false,
+        role: 'student',
+        isActive: true,
+        // Store additional fields in metadata
+        metadata: {
+          nationality: data.nationality || null,
+          dateOfBirth: data.dob || null,
+        },
       })
       .returning();
 

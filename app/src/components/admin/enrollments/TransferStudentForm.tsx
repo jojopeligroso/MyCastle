@@ -20,7 +20,7 @@ interface Class {
 interface TransferStudentFormProps {
   enrollmentId: string;
   studentId: string;
-  studentName: string;
+  studentName: string | null;
   currentClassId: string;
   currentClassName: string;
   currentClassCode?: string;

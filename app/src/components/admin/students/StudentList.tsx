@@ -7,9 +7,9 @@ import Link from 'next/link';
 export interface StudentWithMetadata {
   id: string;
   email: string;
-  name: string;
+  name: string | null;
   phone?: string | null;
-  status: string;
+  status?: string;
   // Both naming conventions supported
   avatarUrl?: string | null;
   avatar_url?: string | null;
@@ -246,13 +246,13 @@ export function StudentList({ students, onStudentClick }: StudentListProps) {
                       ) : (
                         <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
                           <span className="text-sm font-medium text-purple-600">
-                            {student.name.charAt(0).toUpperCase()}
+                            {(student.name || 'U').charAt(0).toUpperCase()}
                           </span>
                         </div>
                       )}
                     </div>
                     <div className="ml-4">
-                      <div className="text-sm font-medium text-gray-900">{student.name}</div>
+                      <div className="text-sm font-medium text-gray-900">{student.name || 'Unknown'}</div>
                       <div className="text-sm text-gray-500">{student.email}</div>
                     </div>
                   </div>
@@ -267,7 +267,7 @@ export function StudentList({ students, onStudentClick }: StudentListProps) {
                   {getAttendanceDisplay(student.attendance_rate)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">{getVisaStatusBadge(student)}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(student.status)}</td>
+                <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(student.status || 'unknown')}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                   <Link
                     href={`/admin/students/${student.id}`}
@@ -301,15 +301,15 @@ export function StudentList({ students, onStudentClick }: StudentListProps) {
               ) : (
                 <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
                   <span className="text-base font-medium text-purple-600">
-                    {student.name.charAt(0).toUpperCase()}
+                    {(student.name || 'U').charAt(0).toUpperCase()}
                   </span>
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-gray-900 truncate">{student.name}</div>
+                <div className="text-sm font-medium text-gray-900 truncate">{student.name || 'Unknown'}</div>
                 <div className="text-xs text-gray-500 truncate">{student.email}</div>
               </div>
-              {getStatusBadge(student.status)}
+              {getStatusBadge(student.status || 'unknown')}
             </div>
 
             <div className="grid grid-cols-2 gap-3 text-xs">

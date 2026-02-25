@@ -12,7 +12,7 @@ const AttendanceCorrectionForm = dynamic(
 
 type Student = {
   id: string;
-  name: string;
+  name: string | null;
   avatarUrl: string | null;
 };
 
@@ -107,10 +107,10 @@ export default function AttendanceSheet({
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <div className="flex items-center min-w-[200px]">
                   <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold text-lg">
-                    {student.name.charAt(0)}
+                    {(student.name || 'U').charAt(0)}
                   </div>
                   <div className="ml-4">
-                    <div className="text-sm font-medium text-gray-900">{student.name}</div>
+                    <div className="text-sm font-medium text-gray-900">{student.name || 'Unknown'}</div>
                     <div className="text-xs text-gray-500">ID: {student.id.slice(0, 8)}</div>
                   </div>
                 </div>

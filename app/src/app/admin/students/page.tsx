@@ -15,14 +15,10 @@ interface StudentStats {
 interface StudentWithDetails {
   id: string;
   email: string;
-  name: string;
-  phone: string | null;
-  date_of_birth: string | null;
-  nationality: string | null;
+  name: string | null;
   avatar_url: string | null;
-  status: string;
+  is_active: boolean;
   created_at: Date;
-  deleted_at: Date | null;
   student_id: string;
   student_number: string | null;
   is_visa_student: boolean | null;
@@ -38,6 +34,8 @@ interface StudentWithDetails {
   current_level?: string | null;
   attendance_rate?: number | null;
   active_enrollments?: number;
+  // Keep status for component compatibility
+  status?: string;
 }
 
 async function getStudents(): Promise<StudentWithDetails[]> {
@@ -55,13 +53,9 @@ async function getStudents(): Promise<StudentWithDetails[]> {
         id: users.id,
         email: users.email,
         name: users.name,
-        phone: users.phone,
-        date_of_birth: users.dateOfBirth,
-        nationality: users.nationality,
         avatar_url: users.avatarUrl,
-        status: users.status,
+        is_active: users.isActive,
         created_at: users.createdAt,
-        deleted_at: users.deletedAt,
         // Student fields
         student_id: students.id,
         student_number: students.studentNumber,
@@ -81,7 +75,7 @@ async function getStudents(): Promise<StudentWithDetails[]> {
           // Super admins see all tenants, regular users see their tenant only
           tenantId ? eq(students.tenantId, tenantId) : sql`true`,
           eq(students.status, 'active'),
-          isNull(users.deletedAt)
+          eq(users.isActive, true)
         )
       )
       .orderBy(users.name);
@@ -94,6 +88,7 @@ async function getStudents(): Promise<StudentWithDetails[]> {
       current_level: null, // TODO: Fetch from latest booking/enrollment
       attendance_rate: null, // TODO: Calculate from attendance data
       active_enrollments: 0, // TODO: Count from bookings
+      status: row.is_active ? 'active' : 'inactive', // Map boolean to string for compatibility
     }));
   } catch (error) {
     console.error('Failed to fetch students:', error);

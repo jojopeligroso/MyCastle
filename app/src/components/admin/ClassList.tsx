@@ -30,7 +30,7 @@ interface ClassData {
   };
   teacher: {
     id: string;
-    name: string;
+    name: string | null;
     email: string;
   } | null;
   enrollmentCount: number;
@@ -38,7 +38,7 @@ interface ClassData {
 
 interface Teacher {
   id: string;
-  name: string;
+  name: string | null;
   email: string;
 }
 

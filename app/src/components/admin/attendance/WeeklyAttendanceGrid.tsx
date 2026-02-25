@@ -223,9 +223,7 @@ export default function WeeklyAttendanceGrid({
       <div className="px-4 py-8 text-center text-amber-600">
         No class days configured for this week. Check class schedule settings.
         <br />
-        <span className="text-sm text-gray-500">
-          (daysOfWeek: {JSON.stringify(daysOfWeek)})
-        </span>
+        <span className="text-sm text-gray-500">(daysOfWeek: {JSON.stringify(daysOfWeek)})</span>
       </div>
     );
   }

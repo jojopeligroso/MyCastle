@@ -20,8 +20,8 @@ async function getTeachers(tenantId: string) {
     .where(
       and(
         eq(users.tenantId, tenantId),
-        eq(users.primaryRole, 'teacher'),
-        eq(users.status, 'active')
+        eq(users.role, 'teacher'),
+        eq(users.isActive, true)
       )
     )
     .orderBy(users.name);

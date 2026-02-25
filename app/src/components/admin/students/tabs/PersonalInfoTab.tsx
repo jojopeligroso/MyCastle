@@ -6,9 +6,9 @@ import type { ReactNode } from 'react';
 interface StudentData {
   id: string;
   email: string;
-  name: string;
+  name: string | null;
   phone?: string | null;
-  status: string;
+  status?: string;
   avatarUrl?: string | null;
   avatar_url?: string | null;
   createdAt?: Date;
@@ -234,7 +234,7 @@ export function PersonalInfoTab({
                       : 'bg-gray-100 text-gray-800'
                 }`}
               >
-                {student.status?.charAt(0).toUpperCase() + student.status?.slice(1)}
+                {(student.status || 'unknown').charAt(0).toUpperCase() + (student.status || 'unknown').slice(1)}
               </span>
             </dd>
           </div>

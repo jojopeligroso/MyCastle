@@ -19,9 +19,8 @@ interface VisaStudent {
   id: string;
   studentId: string;
   studentNumber: string | null;
-  name: string;
+  name: string | null;
   email: string;
-  nationality: string | null;
   visaType: string | null;
   visaExpiryDate: string | null;
   status: string;
@@ -100,7 +99,6 @@ async function getVisaStudents(): Promise<VisaStudent[]> {
         studentNumber: students.studentNumber,
         name: users.name,
         email: users.email,
-        nationality: users.nationality,
         visaType: students.visaType,
         visaExpiryDate: students.visaExpiryDate,
         status: students.status,
@@ -215,7 +213,6 @@ function VisaStudentsTable({ students }: { students: VisaStudent[] }) {
             <TableRow>
               <TableHead>Student</TableHead>
               <TableHead>Student Number</TableHead>
-              <TableHead>Nationality</TableHead>
               <TableHead>Visa Type</TableHead>
               <TableHead>Expiry Date</TableHead>
               <TableHead>Days Remaining</TableHead>
@@ -225,7 +222,7 @@ function VisaStudentsTable({ students }: { students: VisaStudent[] }) {
           <TableBody>
             {students.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground">
+                <TableCell colSpan={6} className="text-center text-muted-foreground">
                   No visa students found
                 </TableCell>
               </TableRow>
@@ -241,11 +238,10 @@ function VisaStudentsTable({ students }: { students: VisaStudent[] }) {
                         href={`/admin/students/${student.id}`}
                         className="font-medium text-blue-600 hover:underline"
                       >
-                        {student.name}
+                        {student.name || 'Unknown'}
                       </Link>
                     </TableCell>
                     <TableCell>{student.studentNumber || '-'}</TableCell>
-                    <TableCell>{student.nationality || '-'}</TableCell>
                     <TableCell>{student.visaType || '-'}</TableCell>
                     <TableCell>
                       {student.visaExpiryDate

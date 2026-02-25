@@ -10,7 +10,7 @@ import { UserActions } from './UserActions';
 
 interface User {
   id: string;
-  name: string;
+  name: string | null;
   email: string;
   role: string;
   status: string;
@@ -31,7 +31,7 @@ export function UserList({ users }: Props) {
     const matchesFilter =
       filter === 'all' || (filter === 'admin' && u.role?.includes('admin')) || u.role === filter;
     const matchesSearch =
-      u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (u.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       u.email.toLowerCase().includes(searchTerm.toLowerCase());
 
     return matchesFilter && matchesSearch;

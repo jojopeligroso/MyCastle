@@ -16,8 +16,8 @@ async function getUser(userId: string, tenantId: string) {
       id: users.id,
       name: users.name,
       email: users.email,
-      role: users.primaryRole,
-      status: users.status,
+      role: users.role,
+      isActive: users.isActive,
     })
     .from(users)
     .where(and(eq(users.id, userId), eq(users.tenantId, tenantId)))
@@ -53,7 +53,11 @@ export default async function EditUserPage({ params }: { params: { id: string } 
         <p className="mt-2 text-gray-600">Update user details and permissions</p>
       </div>
 
-      <EditUserForm userData={userData} />
+      <EditUserForm userData={{
+        ...userData,
+        name: userData.name || '',
+        status: userData.isActive ? 'active' : 'inactive',
+      }} />
     </div>
   );
 }

@@ -28,7 +28,7 @@ interface BookingDetails {
   courseStartDate: string;
   courseEndDate: string;
   // Student
-  studentName: string;
+  studentName: string | null;
   studentEmail: string;
   studentNumber: string | null;
   // Course

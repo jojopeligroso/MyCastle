@@ -237,8 +237,8 @@ async function main() {
           tenantId: session.tenantId,
           email,
           name,
-          primaryRole: role,
-          status: 'active',
+          role: role,
+          isActive: true,
           metadata: {
             scopes: finalScopes,
             require_mfa: finalRequireMfa,
@@ -297,7 +297,7 @@ async function main() {
       const allUsers = await db
         .select()
         .from(users)
-        .where(and(eq(users.tenantId, session.tenantId), eq(users.status, 'active')))
+        .where(and(eq(users.tenantId, session.tenantId), eq(users.isActive, true)))
         .orderBy(users.createdAt);
 
       const userData = {
@@ -305,11 +305,11 @@ async function main() {
           id: u.id,
           email: u.email,
           name: u.name,
-          role: u.primaryRole,
+          role: u.role,
           scopes:
             (u.metadata as Record<string, unknown>)?.scopes ||
-            getDefaultScopesForRole(u.primaryRole),
-          status: u.status,
+            getDefaultScopesForRole(u.role),
+          isActive: u.isActive,
           mfa_enabled: (u.metadata as Record<string, unknown>)?.require_mfa || false,
           created_at: u.createdAt,
           last_login: u.lastLogin,

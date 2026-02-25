@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 
 type Student = {
   id: string;
-  name: string;
+  name: string | null;
 };
 
 type AttendanceRecord = {

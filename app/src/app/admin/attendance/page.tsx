@@ -189,9 +189,7 @@ export default function AttendanceDashboard() {
             <button
               onClick={() => setViewMode('week')}
               className={`inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                viewMode === 'week'
-                  ? 'bg-purple-600 text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
+                viewMode === 'week' ? 'bg-purple-600 text-white' : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
               <Calendar className="h-4 w-4" />
@@ -220,10 +218,7 @@ export default function AttendanceDashboard() {
 
       {/* Session View */}
       {viewMode === 'session' && (
-        <AttendanceRegister
-          teacherId="admin"
-          classes={classesForSessionView}
-        />
+        <AttendanceRegister teacherId="admin" classes={classesForSessionView} />
       )}
 
       {/* Week View */}
@@ -242,17 +237,23 @@ export default function AttendanceDashboard() {
           <div className="grid gap-4 md:grid-cols-3">
             <div className="rounded-lg border border-gray-200 bg-white p-4 shadow">
               <p className="text-sm text-gray-500">Active classes</p>
-              <p className="mt-2 text-2xl font-semibold text-gray-900">{summaryStats.totalClasses}</p>
+              <p className="mt-2 text-2xl font-semibold text-gray-900">
+                {summaryStats.totalClasses}
+              </p>
               <p className="mt-1 text-xs text-gray-500">Classes running this week</p>
             </div>
             <div className="rounded-lg border border-gray-200 bg-white p-4 shadow">
               <p className="text-sm text-gray-500">Total students</p>
-              <p className="mt-2 text-2xl font-semibold text-gray-900">{summaryStats.totalStudents}</p>
+              <p className="mt-2 text-2xl font-semibold text-gray-900">
+                {summaryStats.totalStudents}
+              </p>
               <p className="mt-1 text-xs text-gray-500">Enrolled across all classes</p>
             </div>
             <div className="rounded-lg border border-gray-200 bg-white p-4 shadow">
               <p className="text-sm text-gray-500">Visa students</p>
-              <p className="mt-2 text-2xl font-semibold text-gray-900">{summaryStats.visaStudents}</p>
+              <p className="mt-2 text-2xl font-semibold text-gray-900">
+                {summaryStats.visaStudents}
+              </p>
               <p className="mt-1 text-xs text-gray-500">Require attendance monitoring</p>
             </div>
           </div>
@@ -273,8 +274,8 @@ export default function AttendanceDashboard() {
                 />
               </div>
               <div className="text-sm text-gray-500">
-                <span className="font-medium">Keyboard:</span> P = Present, A = Absent, L = Late, E =
-                Excused, Arrow keys to navigate
+                <span className="font-medium">Keyboard:</span> P = Present, A = Absent, L = Late, E
+                = Excused, Arrow keys to navigate
               </div>
             </div>
           </div>

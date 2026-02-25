@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
     const [student] = await db
       .select()
       .from(users)
-      .where(and(eq(users.id, data.student_id), eq(users.primaryRole, 'student')))
+      .where(and(eq(users.id, data.student_id), eq(users.role, 'student')))
       .limit(1);
 
     if (!student) {

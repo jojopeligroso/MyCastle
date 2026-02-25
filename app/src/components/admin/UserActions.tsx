@@ -13,7 +13,7 @@ interface UserActionsProps {
   userId: string;
   currentRole: string;
   currentStatus: string;
-  userName: string;
+  userName: string | null;
 }
 
 export function UserActions({ userId, currentRole, currentStatus, userName }: UserActionsProps) {

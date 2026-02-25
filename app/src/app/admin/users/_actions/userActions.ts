@@ -70,7 +70,7 @@ export async function changeUserRole(userId: string, newRole: string, reason: st
       return { success: false, error: 'User not found' };
     }
 
-    const oldRole = targetUser.primaryRole;
+    const oldRole = targetUser.role;
 
     // Validate role change
     if (newRole === 'super_admin') {
@@ -82,7 +82,7 @@ export async function changeUserRole(userId: string, newRole: string, reason: st
     // Update user role
     await db
       .update(users)
-      .set({ primaryRole: newRole, updatedAt: new Date() })
+      .set({ role: newRole, updatedAt: new Date() })
       .where(and(eq(users.id, userId), eq(users.tenantId, tenantId)));
 
     // Create audit record
@@ -130,7 +130,7 @@ export async function deactivateUser(userId: string, reason: string) {
   try {
     await db
       .update(users)
-      .set({ status: 'inactive', updatedAt: new Date() })
+      .set({ isActive: false, updatedAt: new Date() })
       .where(and(eq(users.id, userId), eq(users.tenantId, tenantId)));
 
     // Create audit log
@@ -142,7 +142,7 @@ export async function deactivateUser(userId: string, reason: string) {
         'user.deactivate',
         'user',
         ${userId},
-        ${JSON.stringify({ status: 'inactive' })},
+        ${JSON.stringify({ isActive: false })},
         ${JSON.stringify({ reason })}
       )
     `);
@@ -165,7 +165,7 @@ export async function reactivateUser(userId: string) {
   try {
     await db
       .update(users)
-      .set({ status: 'active', updatedAt: new Date() })
+      .set({ isActive: true, updatedAt: new Date() })
       .where(and(eq(users.id, userId), eq(users.tenantId, tenantId)));
 
     // Create audit log
@@ -177,7 +177,7 @@ export async function reactivateUser(userId: string) {
         'user.reactivate',
         'user',
         ${userId},
-        ${JSON.stringify({ status: 'active' })}
+        ${JSON.stringify({ isActive: true })}
       )
     `);
 
@@ -202,14 +202,14 @@ export async function revokeUserSessions(userId: string) {
   }
 
   try {
-    // Get user's auth_id
+    // Get user's email to find auth user
     const [user] = await db
-      .select({ authId: users.authId })
+      .select({ id: users.id, email: users.email })
       .from(users)
       .where(and(eq(users.id, userId), eq(users.tenantId, tenantId)));
 
-    if (!user?.authId) {
-      return { success: false, error: 'User auth ID not found' };
+    if (!user) {
+      return { success: false, error: 'User not found' };
     }
 
     // Use Supabase Admin API to revoke sessions
@@ -224,8 +224,8 @@ export async function revokeUserSessions(userId: string) {
       }
     );
 
-    // Sign out the user (revokes all sessions)
-    const { error } = await supabase.auth.admin.signOut(user.authId);
+    // Sign out the user by ID (user ID is the same as auth ID in Supabase)
+    const { error } = await supabase.auth.admin.signOut(user.id);
 
     if (error) {
       console.error('Supabase session revocation error:', error);
@@ -265,14 +265,14 @@ export async function resetUserMFA(userId: string) {
   }
 
   try {
-    // Get user's auth_id
+    // Get user to verify they exist
     const [user] = await db
-      .select({ authId: users.authId })
+      .select({ id: users.id, email: users.email })
       .from(users)
       .where(and(eq(users.id, userId), eq(users.tenantId, tenantId)));
 
-    if (!user?.authId) {
-      return { success: false, error: 'User auth ID not found' };
+    if (!user) {
+      return { success: false, error: 'User not found' };
     }
 
     // Use Supabase Admin API to remove MFA factors
@@ -367,14 +367,14 @@ export async function repairOrphanedUser(authId: string, name: string, role: str
       return { success: false, error: 'Auth user not found' };
     }
 
-    // Create user profile
+    // Create user profile (use authId as the user id since Supabase auth id = user id)
     await db.insert(users).values({
+      id: authId,
       tenantId: tenantId,
-      authId: authId,
       email: authUser.user.email!,
       name,
-      primaryRole: role,
-      status: 'active',
+      role: role,
+      isActive: true,
     });
 
     revalidatePath('/admin/users');

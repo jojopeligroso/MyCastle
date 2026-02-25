@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
       })
       .from(users)
       .leftJoin(classes, eq(users.id, classes.teacherId))
-      .where(and(eq(users.primaryRole, 'teacher'), isNull(users.deletedAt)))
+      .where(eq(users.role, 'teacher'))
       .groupBy(users.id)
       .$dynamic();
 
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (status) {
-      query = query.where(eq(users.status, status));
+      query = query.where(eq(users.isActive, status === 'active'));
     }
 
     const results = await query.orderBy(users.name);

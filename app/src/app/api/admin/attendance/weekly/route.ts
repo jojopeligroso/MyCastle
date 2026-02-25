@@ -17,7 +17,7 @@ const WEEKDAYS: WeekDay[] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Frid
 
 interface StudentAttendance {
   id: string;
-  name: string;
+  name: string | null;
   isVisaStudent: boolean;
   attendance: Record<string, { status: string; sessionId: string | null } | null>;
 }
@@ -132,7 +132,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         .select({ id: users.id, name: users.name })
         .from(users)
         .where(inArray(users.id, teacherIds));
-      teachers.forEach(t => teachersMap.set(t.id, t.name));
+      teachers.forEach(t => teachersMap.set(t.id, t.name ?? 'Unknown'));
     }
 
     // Fetch enrollments for all classes
@@ -210,7 +210,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     // Build enrollment lookup: classId -> students[]
     const enrollmentLookup = new Map<
       string,
-      { studentId: string; studentName: string; isVisaStudent: boolean }[]
+      { studentId: string; studentName: string | null; isVisaStudent: boolean }[]
     >();
     classEnrollments.forEach(e => {
       if (!enrollmentLookup.has(e.classId)) {

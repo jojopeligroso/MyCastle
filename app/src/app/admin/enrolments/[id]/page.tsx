@@ -57,7 +57,7 @@ async function getEnrollmentData(enrollmentId: string) {
       .from(users)
       .where(eq(users.id, data.teacherId))
       .limit(1);
-    teacherName = teacher[0]?.name;
+    teacherName = teacher[0]?.name ?? undefined;
   }
 
   // Fetch amendments

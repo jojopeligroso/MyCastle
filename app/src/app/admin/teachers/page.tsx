@@ -20,8 +20,8 @@ async function getTeachers(tenantId: string) {
     .where(
       and(
         eq(users.tenantId, tenantId),
-        eq(users.primaryRole, 'teacher'),
-        eq(users.status, 'active')
+        eq(users.role, 'teacher'),
+        eq(users.isActive, true)
       )
     )
     .groupBy(users.id)
@@ -91,7 +91,7 @@ export default async function TeachersPage() {
   // Calculate stats
   const stats = {
     total: teachers.length,
-    active: teachers.filter(t => t.teacher.status === 'active').length,
+    active: teachers.filter(t => t.teacher.isActive).length,
     assigned: teachers.filter(t => t.assignedClassesCount > 0).length,
     unassigned: teachers.filter(t => t.assignedClassesCount === 0).length,
   };
@@ -172,7 +172,7 @@ export default async function TeachersPage() {
                         <div className="text-sm text-gray-500">{teacher.email}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">{teacher.phone || '-'}</div>
+                        <div className="text-sm text-gray-500">-</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
@@ -186,8 +186,8 @@ export default async function TeachersPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          {teacher.status}
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${teacher.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                          {teacher.isActive ? 'active' : 'inactive'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">

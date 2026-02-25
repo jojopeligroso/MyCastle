@@ -13,10 +13,7 @@ interface StudentDetails {
   // User fields
   id: string;
   email: string;
-  name: string;
-  phone: string | null;
-  dateOfBirth: string | null;
-  nationality: string | null;
+  name: string | null;
   avatarUrl: string | null;
   // Student fields
   studentId: string;
@@ -66,9 +63,6 @@ async function getStudentDetails(studentId: string): Promise<StudentDetails | nu
       id: users.id,
       email: users.email,
       name: users.name,
-      phone: users.phone,
-      dateOfBirth: users.dateOfBirth,
-      nationality: users.nationality,
       avatarUrl: users.avatarUrl,
       // Student fields
       studentId: students.id,
@@ -92,7 +86,6 @@ async function getStudentDetails(studentId: string): Promise<StudentDetails | nu
 
   return {
     ...result[0],
-    dateOfBirth: result[0].dateOfBirth?.toString() || null,
     visaExpiryDate: result[0].visaExpiryDate?.toString() || null,
   };
 }
@@ -216,16 +209,8 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
             <p className="text-sm font-medium text-gray-900">{student.email}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Phone</p>
-            <p className="text-sm font-medium text-gray-900">{student.phone || 'N/A'}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500">Date of Birth</p>
-            <p className="text-sm font-medium text-gray-900">{student.dateOfBirth || 'N/A'}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500">Nationality</p>
-            <p className="text-sm font-medium text-gray-900">{student.nationality || 'N/A'}</p>
+            <p className="text-sm text-gray-500">Status</p>
+            <p className="text-sm font-medium text-gray-900">{student.status}</p>
           </div>
         </div>
       </div>

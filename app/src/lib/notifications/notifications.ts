@@ -118,7 +118,7 @@ export async function createNotificationWithRecipients({
       if (!payload.recipientRole) {
         throw new Error('Role is required when targeting a role.');
       }
-      conditions.push(eq(users.primaryRole, payload.recipientRole));
+      conditions.push(eq(users.role, payload.recipientRole));
     }
 
     const usersList = await db

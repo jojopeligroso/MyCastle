@@ -29,13 +29,13 @@ export async function GET(request: NextRequest) {
         id: users.id,
         name: users.name,
         email: users.email,
-        status: users.status,
+        isActive: users.isActive,
       })
       .from(users)
       .where(
         and(
-          eq(users.primaryRole, 'student'),
-          isNull(users.deletedAt),
+          eq(users.role, 'student'),
+          eq(users.isActive, true),
           or(ilike(users.name, searchPattern), ilike(users.email, searchPattern))
         )
       )
@@ -47,13 +47,13 @@ export async function GET(request: NextRequest) {
         id: users.id,
         name: users.name,
         email: users.email,
-        status: users.status,
+        isActive: users.isActive,
       })
       .from(users)
       .where(
         and(
-          eq(users.primaryRole, 'teacher'),
-          isNull(users.deletedAt),
+          eq(users.role, 'teacher'),
+          eq(users.isActive, true),
           or(ilike(users.name, searchPattern), ilike(users.email, searchPattern))
         )
       )
