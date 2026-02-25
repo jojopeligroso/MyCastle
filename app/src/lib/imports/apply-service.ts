@@ -1,7 +1,9 @@
 /**
- * Import Apply Service
- * Applies proposed changes transactionally
- * Ref: spec/IMPORTS_UI_SPEC.md
+ * Import Apply Service - OPTIMIZED VERSION
+ * Key changes:
+ * 1. Pre-fetch all classes in single query
+ * 2. Batch insert users, students, enrollments
+ * 3. Reduce transaction round-trips from ~1000 to ~10
  */
 
 import { db } from '@/db';
@@ -16,9 +18,6 @@ import { enrollments, users, classes, students } from '@/db/schema';
 import { eq, and, inArray, sql } from 'drizzle-orm';
 import { canApply, type BatchSummary } from './state-machine';
 
-/**
- * Apply result
- */
 export interface ApplyResult {
   success: boolean;
   appliedCount: number;
@@ -29,9 +28,6 @@ export interface ApplyResult {
   enrollmentIds: string[];
 }
 
-/**
- * Get batch summary for gating checks
- */
 export async function getBatchSummary(
   batchId: string,
   tenantId: string
@@ -51,7 +47,6 @@ export async function getBatchSummary(
     .limit(1);
 
   if (!batch) return null;
-
   return {
     status: batch.status as BatchSummary['status'],
     invalidRows: batch.invalidRows,
@@ -63,74 +58,18 @@ export async function getBatchSummary(
   };
 }
 
-/**
- * Transaction type for Drizzle
- */
 type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 /**
- * Options for creating a provisional student
- */
-interface CreateStudentOptions {
-  isVisaStudent?: boolean | null;
-  includeOnRegister?: boolean | null;
-}
-
-/**
- * Create provisional student for INSERT actions
- * Generates email: firstName.lastName.timestamp@provisional.import
- */
-async function createProvisionalStudent(
-  tenantId: string,
-  studentName: string,
-  tx: Transaction,
-  options: CreateStudentOptions = {}
-): Promise<string> {
-  // Generate provisional email
-  const nameParts = studentName.trim().toLowerCase().split(/\s+/);
-  const firstName = nameParts[0] || 'unknown';
-  const lastName = nameParts[nameParts.length - 1] || 'student';
-  const timestamp = Date.now();
-  const provisionalEmail = `${firstName}.${lastName}.${timestamp}@provisional.import`;
-
-  // Create user record
-  const [newUser] = await tx
-    .insert(users)
-    .values({
-      tenantId,
-      email: provisionalEmail,
-      name: studentName,
-      primaryRole: 'student',
-      status: 'active', // Active status so they appear in registry
-      metadata: {
-        provisionalImport: true,
-        importedAt: new Date().toISOString(),
-        includeOnRegister: options.includeOnRegister ?? true,
-      },
-    })
-    .returning({ id: users.id });
-
-  // Create student record with visa info
-  await tx.insert(students).values({
-    tenantId,
-    userId: newUser.id,
-    status: 'active', // Active status so they appear in registry
-    isVisaStudent: options.isVisaStudent ?? false,
-  });
-
-  return newUser.id;
-}
-
-/**
- * Apply batch changes transactionally
- * All-or-nothing: rolls back on any error
+ * OPTIMIZED: Apply batch changes with batch DB operations
  */
 export async function applyBatchChanges(
   batchId: string,
   tenantId: string,
   appliedBy: string
 ): Promise<ApplyResult> {
-  // First, check gating rules
+  console.time('applyBatchChanges');
+
   const batchSummary = await getBatchSummary(batchId, tenantId);
   if (!batchSummary) {
     return {
@@ -157,15 +96,13 @@ export async function applyBatchChanges(
     };
   }
 
-  // Set status to APPLYING
   await db
     .update(uploadBatches)
     .set({ status: BATCH_STATUS.APPLYING })
     .where(and(eq(uploadBatches.id, batchId), eq(uploadBatches.tenantId, tenantId)));
 
   try {
-    // Execute in transaction
-    const result = await db.transaction(async tx => {
+    const result = await db.transaction(async (tx: Transaction) => {
       const enrollmentIds: string[] = [];
       let insertedCount = 0;
       let updatedCount = 0;
@@ -173,6 +110,7 @@ export async function applyBatchChanges(
       const errors: string[] = [];
 
       // Get all non-excluded proposed changes
+      console.time('fetchChanges');
       const changes = await tx
         .select({
           id: proposedChanges.id,
@@ -189,10 +127,15 @@ export async function applyBatchChanges(
             eq(proposedChanges.isExcluded, false)
           )
         );
+      console.timeEnd('fetchChanges');
 
-      // Get staging rows for INSERT actions (need parsed data)
-      const stgRowIds = changes.filter(c => c.action === CHANGE_ACTION.INSERT).map(c => c.stgRowId);
+      const insertChanges = changes.filter(c => c.action === CHANGE_ACTION.INSERT);
+      const updateChanges = changes.filter(c => c.action === CHANGE_ACTION.UPDATE);
+      const noopChanges = changes.filter(c => c.action === CHANGE_ACTION.NOOP);
 
+      // Get staging rows for INSERTs
+      console.time('fetchStagingRows');
+      const stgRowIds = insertChanges.map(c => c.stgRowId);
       const stagingRows =
         stgRowIds.length > 0
           ? await tx
@@ -204,132 +147,196 @@ export async function applyBatchChanges(
               .from(stgRows)
               .where(inArray(stgRows.id, stgRowIds))
           : [];
-
       const stagingRowMap = new Map(stagingRows.map(r => [r.id, r]));
+      console.timeEnd('fetchStagingRows');
 
-      for (const change of changes) {
-        try {
-          if (change.action === CHANGE_ACTION.INSERT) {
-            // Get parsed data from staging row
-            const stgRow = stagingRowMap.get(change.stgRowId);
-            if (!stgRow?.parsedData) {
-              errors.push(`Missing parsed data for row ${change.stgRowId}`);
-              skippedCount++;
-              continue;
-            }
+      // OPTIMIZATION 1: Pre-fetch ALL classes for tenant in single query
+      console.time('prefetchClasses');
+      const allClasses = await tx
+        .select({ id: classes.id, name: classes.name })
+        .from(classes)
+        .where(eq(classes.tenantId, tenantId));
+      const classMap = new Map(allClasses.map(c => [c.name.toLowerCase(), c.id]));
+      console.timeEnd('prefetchClasses');
+      console.log(`Prefetched ${allClasses.length} classes`);
 
-            const parsed = stgRow.parsedData as {
-              studentName: string;
-              className: string;
-              startDate: string;
-              endDate?: string;
-              course?: string;
-              weeks?: number;
-              isVisaStudent?: boolean;
-              includeOnRegister?: boolean;
-            };
+      // Prepare batch data for inserts
+      console.time('prepareInsertData');
+      const usersToInsert: Array<{
+        tenantId: string;
+        email: string;
+        name: string;
+        primaryRole: string;
+        status: string;
+        metadata: Record<string, unknown>;
+      }> = [];
 
-            // Check if resolved to existing enrollment (linked)
-            if (stgRow.linkedEnrollmentId) {
-              // This was resolved by linking to existing - skip insert
-              enrollmentIds.push(stgRow.linkedEnrollmentId);
-              skippedCount++;
-              continue;
-            }
+      const insertMetadata: Array<{
+        changeId: string;
+        classId: string;
+        parsedData: Record<string, unknown>;
+        userIndex: number;
+      }> = [];
 
-            // Find or create class
-            const [classRecord] = await tx
-              .select({ id: classes.id })
-              .from(classes)
-              .where(
-                and(
-                  eq(classes.tenantId, tenantId),
-                  sql`LOWER(${classes.name}) = LOWER(${parsed.className})`
-                )
-              )
-              .limit(1);
-
-            if (!classRecord) {
-              errors.push(`Class not found: ${parsed.className}`);
-              skippedCount++;
-              continue;
-            }
-
-            // Create student with visa and register info
-            const studentId = await createProvisionalStudent(tenantId, parsed.studentName, tx, {
-              isVisaStudent: parsed.isVisaStudent,
-              includeOnRegister: parsed.includeOnRegister,
-            });
-
-            // Create enrollment with weeks info
-            const [newEnrollment] = await tx
-              .insert(enrollments)
-              .values({
-                tenantId,
-                studentId,
-                classId: classRecord.id,
-                enrollmentDate: parsed.startDate,
-                expectedEndDate: parsed.endDate || null,
-                bookedWeeks: parsed.weeks || null,
-                status: 'active',
-              })
-              .returning({ id: enrollments.id });
-
-            enrollmentIds.push(newEnrollment.id);
-            insertedCount++;
-          } else if (change.action === CHANGE_ACTION.UPDATE) {
-            if (!change.targetEnrollmentId) {
-              errors.push(`Missing target enrollment for UPDATE`);
-              skippedCount++;
-              continue;
-            }
-
-            const diff = change.diff as Record<string, { old: unknown; new: unknown }> | null;
-            if (!diff || Object.keys(diff).length === 0) {
-              // No changes to apply
-              skippedCount++;
-              continue;
-            }
-
-            // Build update object
-            const updateValues: Record<string, unknown> = {};
-
-            if (diff.startDate) {
-              updateValues.enrollmentDate = diff.startDate.new;
-            }
-            if (diff.endDate) {
-              updateValues.expectedEndDate = diff.endDate.new;
-            }
-
-            // Note: Student name and class changes would require more complex logic
-            // For MVP, we only update enrollment date fields
-            if (Object.keys(updateValues).length > 0) {
-              await tx
-                .update(enrollments)
-                .set(updateValues)
-                .where(
-                  and(
-                    eq(enrollments.id, change.targetEnrollmentId),
-                    eq(enrollments.tenantId, tenantId)
-                  )
-                );
-            }
-
-            enrollmentIds.push(change.targetEnrollmentId);
-            updatedCount++;
-          } else if (change.action === CHANGE_ACTION.NOOP) {
-            // No operation needed
-            if (change.targetEnrollmentId) {
-              enrollmentIds.push(change.targetEnrollmentId);
-            }
-            skippedCount++;
-          }
-          // NEEDS_RESOLUTION should not reach here (would fail gate check)
-        } catch (changeError) {
-          const errorMsg = changeError instanceof Error ? changeError.message : 'Unknown error';
-          errors.push(`Error processing change ${change.id}: ${errorMsg}`);
-          throw changeError; // Re-throw to trigger rollback
+      for (const change of insertChanges) {
+        const stgRow = stagingRowMap.get(change.stgRowId);
+        if (!stgRow?.parsedData) {
+          errors.push(`Missing parsed data for row ${change.stgRowId}`);
+          skippedCount++;
+          continue;
         }
+
+        if (stgRow.linkedEnrollmentId) {
+          enrollmentIds.push(stgRow.linkedEnrollmentId);
+          skippedCount++;
+          continue;
+        }
+
+        const parsed = stgRow.parsedData as {
+          studentName: string;
+          className: string;
+          startDate: string;
+          endDate?: string;
+          course?: string;
+          weeks?: number;
+          isVisaStudent?: boolean;
+          includeOnRegister?: boolean;
+        };
+
+        const classId = classMap.get(parsed.className.toLowerCase());
+        if (!classId) {
+          errors.push(`Class not found: ${parsed.className}`);
+          skippedCount++;
+          continue;
+        }
+
+        // Generate provisional email with unique offset
+        const nameParts = parsed.studentName.trim().toLowerCase().split(/\s+/);
+        const firstName = nameParts[0] || 'unknown';
+        const lastName = nameParts[nameParts.length - 1] || 'student';
+        const timestamp = Date.now() + usersToInsert.length; // Ensure unique
+        const provisionalEmail = `${firstName}.${lastName}.${timestamp}@provisional.import`;
+
+        usersToInsert.push({
+          tenantId,
+          email: provisionalEmail,
+          name: parsed.studentName,
+          primaryRole: 'student',
+          status: 'active',
+          metadata: {
+            provisionalImport: true,
+            importedAt: new Date().toISOString(),
+            includeOnRegister: parsed.includeOnRegister ?? true,
+          },
+        });
+
+        insertMetadata.push({
+          changeId: change.id,
+          classId,
+          parsedData: stgRow.parsedData as Record<string, unknown>,
+          userIndex: usersToInsert.length - 1,
+        });
+      }
+      console.timeEnd('prepareInsertData');
+      console.log(`Prepared ${usersToInsert.length} users for batch insert`);
+
+      // OPTIMIZATION 2: Batch insert users
+      let insertedUsers: { id: string }[] = [];
+      if (usersToInsert.length > 0) {
+        console.time('batchInsertUsers');
+        insertedUsers = await tx.insert(users).values(usersToInsert).returning({ id: users.id });
+        console.timeEnd('batchInsertUsers');
+        console.log(`Batch inserted ${insertedUsers.length} users`);
+      }
+
+      // OPTIMIZATION 3: Batch insert students
+      if (insertedUsers.length > 0) {
+        console.time('batchInsertStudents');
+        const studentsToInsert = insertedUsers.map((u, i) => {
+          const meta = insertMetadata[i];
+          const parsed = meta.parsedData as { isVisaStudent?: boolean };
+          return {
+            tenantId,
+            userId: u.id,
+            status: 'active' as const,
+            isVisaStudent: parsed.isVisaStudent ?? false,
+          };
+        });
+        await tx.insert(students).values(studentsToInsert);
+        console.timeEnd('batchInsertStudents');
+        console.log(`Batch inserted ${studentsToInsert.length} students`);
+      }
+
+      // OPTIMIZATION 4: Batch insert enrollments
+      if (insertedUsers.length > 0) {
+        console.time('batchInsertEnrollments');
+        const enrollmentsToInsert = insertedUsers.map((u, i) => {
+          const meta = insertMetadata[i];
+          const parsed = meta.parsedData as {
+            startDate: string;
+            endDate?: string;
+            weeks?: number;
+          };
+          return {
+            tenantId,
+            studentId: u.id,
+            classId: meta.classId,
+            enrollmentDate: parsed.startDate,
+            expectedEndDate: parsed.endDate || null,
+            bookedWeeks: parsed.weeks || null,
+            status: 'active' as const,
+          };
+        });
+        const insertedEnrollments = await tx
+          .insert(enrollments)
+          .values(enrollmentsToInsert)
+          .returning({ id: enrollments.id });
+        enrollmentIds.push(...insertedEnrollments.map(e => e.id));
+        insertedCount = insertedEnrollments.length;
+        console.timeEnd('batchInsertEnrollments');
+        console.log(`Batch inserted ${insertedEnrollments.length} enrollments`);
+      }
+
+      // Process UPDATEs (still sequential for diff application)
+      console.time('processUpdates');
+      for (const change of updateChanges) {
+        if (!change.targetEnrollmentId) {
+          errors.push(`Missing target enrollment for UPDATE`);
+          skippedCount++;
+          continue;
+        }
+
+        const diff = change.diff as Record<string, { old: unknown; new: unknown }> | null;
+        if (!diff || Object.keys(diff).length === 0) {
+          skippedCount++;
+          continue;
+        }
+
+        const updateValues: Record<string, unknown> = {};
+        if (diff.startDate) updateValues.enrollmentDate = diff.startDate.new;
+        if (diff.endDate) updateValues.expectedEndDate = diff.endDate.new;
+
+        if (Object.keys(updateValues).length > 0) {
+          await tx
+            .update(enrollments)
+            .set(updateValues)
+            .where(
+              and(eq(enrollments.id, change.targetEnrollmentId), eq(enrollments.tenantId, tenantId))
+            );
+        }
+
+        enrollmentIds.push(change.targetEnrollmentId);
+        updatedCount++;
+      }
+      console.timeEnd('processUpdates');
+      console.log(`Processed ${updatedCount} updates`);
+
+      // Process NOOPs
+      for (const change of noopChanges) {
+        if (change.targetEnrollmentId) {
+          enrollmentIds.push(change.targetEnrollmentId);
+        }
+        skippedCount++;
       }
 
       return {
@@ -343,29 +350,20 @@ export async function applyBatchChanges(
       };
     });
 
-    // Transaction succeeded - update batch status to APPLIED
     await db
       .update(uploadBatches)
-      .set({
-        status: BATCH_STATUS.APPLIED,
-        appliedBy,
-        appliedAt: new Date(),
-      })
+      .set({ status: BATCH_STATUS.APPLIED, appliedBy, appliedAt: new Date() })
       .where(and(eq(uploadBatches.id, batchId), eq(uploadBatches.tenantId, tenantId)));
 
+    console.timeEnd('applyBatchChanges');
     return result;
   } catch (error) {
-    // Transaction failed - update batch status to FAILED_SYSTEM
     const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-
     await db
       .update(uploadBatches)
-      .set({
-        status: BATCH_STATUS.FAILED_SYSTEM,
-        parseError: `Apply failed: ${errorMsg}`,
-      })
+      .set({ status: BATCH_STATUS.FAILED_SYSTEM, parseError: `Apply failed: ${errorMsg}` })
       .where(and(eq(uploadBatches.id, batchId), eq(uploadBatches.tenantId, tenantId)));
-
+    console.timeEnd('applyBatchChanges');
     return {
       success: false,
       appliedCount: 0,
@@ -378,32 +376,19 @@ export async function applyBatchChanges(
   }
 }
 
-/**
- * Update batch counts after row changes
- * Called after excluding/resolving rows
- */
+// Keep updateBatchCounts unchanged
 export async function updateBatchCounts(batchId: string, tenantId: string): Promise<void> {
-  // Count rows by status
   const counts = await db
-    .select({
-      rowStatus: stgRows.rowStatus,
-      count: sql<number>`COUNT(*)::int`,
-    })
+    .select({ rowStatus: stgRows.rowStatus, count: sql<number>`COUNT(*)::int` })
     .from(stgRows)
     .where(and(eq(stgRows.batchId, batchId), eq(stgRows.tenantId, tenantId)))
     .groupBy(stgRows.rowStatus);
 
   const countMap: Record<string, number> = {};
-  for (const c of counts) {
-    countMap[c.rowStatus] = c.count;
-  }
+  for (const c of counts) countMap[c.rowStatus] = c.count;
 
-  // Count actions from proposed changes (excluding excluded)
   const actionCounts = await db
-    .select({
-      action: proposedChanges.action,
-      count: sql<number>`COUNT(*)::int`,
-    })
+    .select({ action: proposedChanges.action, count: sql<number>`COUNT(*)::int` })
     .from(proposedChanges)
     .where(
       and(
@@ -415,11 +400,8 @@ export async function updateBatchCounts(batchId: string, tenantId: string): Prom
     .groupBy(proposedChanges.action);
 
   const actionMap: Record<string, number> = {};
-  for (const c of actionCounts) {
-    actionMap[c.action] = c.count;
-  }
+  for (const c of actionCounts) actionMap[c.action] = c.count;
 
-  // Update batch
   await db
     .update(uploadBatches)
     .set({
