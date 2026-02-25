@@ -11,13 +11,13 @@ import { sql } from 'drizzle-orm';
 interface SampleStudent {
   email: string;
   name: string;
-  phone: string;
+  phone: string; // Stored in metadata
   current_level: string;
   initial_level: string;
   level_status: 'confirmed' | 'provisional' | 'pending_approval';
   visa_type?: string;
   visa_expiry?: string; // YYYY-MM-DD
-  status: 'active' | 'inactive' | 'suspended';
+  isActive: boolean;
   metadata: Record<string, unknown>;
 }
 
@@ -32,7 +32,7 @@ const sampleStudents: SampleStudent[] = [
     level_status: 'confirmed',
     visa_type: 'Student Visa',
     visa_expiry: '2025-08-15',
-    status: 'active',
+    isActive: true,
     metadata: {
       nationality: 'Spanish',
       date_of_birth: '1998-05-12',
@@ -53,7 +53,7 @@ const sampleStudents: SampleStudent[] = [
     level_status: 'confirmed',
     visa_type: 'Tier 4 Student Visa',
     visa_expiry: '2025-12-31',
-    status: 'active',
+    isActive: true,
     metadata: {
       nationality: 'Japanese',
       date_of_birth: '2000-03-22',
@@ -72,7 +72,7 @@ const sampleStudents: SampleStudent[] = [
     current_level: 'C1',
     initial_level: 'B2',
     level_status: 'confirmed',
-    status: 'active',
+    isActive: true,
     metadata: {
       nationality: 'Egyptian',
       date_of_birth: '1995-11-08',
@@ -95,7 +95,7 @@ const sampleStudents: SampleStudent[] = [
     level_status: 'provisional', // Needs approval
     visa_type: 'Student Visa',
     visa_expiry: '2025-06-30',
-    status: 'active',
+    isActive: true,
     metadata: {
       nationality: 'French',
       date_of_birth: '1999-07-14',
@@ -122,7 +122,7 @@ const sampleStudents: SampleStudent[] = [
     current_level: 'A1',
     initial_level: 'A1',
     level_status: 'provisional',
-    status: 'active',
+    isActive: true,
     metadata: {
       nationality: 'Mexican',
       date_of_birth: '2001-09-03',
@@ -153,7 +153,7 @@ const sampleStudents: SampleStudent[] = [
     level_status: 'confirmed',
     visa_type: 'Tier 4 Student Visa',
     visa_expiry: '2025-02-10', // Expires soon!
-    status: 'active',
+    isActive: true,
     metadata: {
       nationality: 'Chinese',
       date_of_birth: '1997-12-25',
@@ -176,7 +176,7 @@ const sampleStudents: SampleStudent[] = [
     level_status: 'confirmed',
     visa_type: 'Student Visa',
     visa_expiry: '2024-12-15', // Already expired
-    status: 'suspended', // Suspended due to visa expiry
+    isActive: false, // Suspended due to visa expiry
     metadata: {
       nationality: 'Brazilian',
       date_of_birth: '2000-04-18',
@@ -205,7 +205,7 @@ const sampleStudents: SampleStudent[] = [
     current_level: 'B2',
     initial_level: 'B1',
     level_status: 'confirmed',
-    status: 'active',
+    isActive: true,
     metadata: {
       nationality: 'British',
       date_of_birth: '1992-01-30',
@@ -224,7 +224,7 @@ const sampleStudents: SampleStudent[] = [
     current_level: 'C2',
     initial_level: 'C1',
     level_status: 'confirmed',
-    status: 'active',
+    isActive: true,
     metadata: {
       nationality: 'American',
       date_of_birth: '1990-08-15',
@@ -247,7 +247,7 @@ const sampleStudents: SampleStudent[] = [
     level_status: 'provisional',
     visa_type: 'Student Visa',
     visa_expiry: '2026-01-31',
-    status: 'active',
+    isActive: true,
     metadata: {
       nationality: 'Emirati',
       date_of_birth: '2002-02-20',
@@ -294,18 +294,17 @@ async function seedStudents() {
         tenantId: tenantId,
         email: student.email,
         name: student.name,
-        phone: student.phone,
-        primaryRole: 'student',
-        status: student.status,
+        role: 'student',
+        isActive: student.isActive,
+        currentLevel: student.current_level,
+        initialLevel: student.initial_level,
+        levelStatus: student.level_status,
+        visaType: student.visa_type || null,
+        visaExpiry: student.visa_expiry || null,
         metadata: {
           ...student.metadata,
-          currentLevel: student.current_level,
-          initialLevel: student.initial_level,
-          levelStatus: student.level_status,
-          visaType: student.visa_type || null,
-          visaExpiry: student.visa_expiry || null,
+          phone: student.phone,
         },
-        emailVerified: true,
       });
 
       createdCount++;
@@ -318,8 +317,8 @@ async function seedStudents() {
     console.log(`   Total: ${sampleStudents.length} students in seed data\n`);
 
     console.log('📊 Sample Data Summary:');
-    console.log(`   - Active: ${sampleStudents.filter(s => s.status === 'active').length}`);
-    console.log(`   - Suspended: ${sampleStudents.filter(s => s.status === 'suspended').length}`);
+    console.log(`   - Active: ${sampleStudents.filter(s => s.isActive).length}`);
+    console.log(`   - Inactive: ${sampleStudents.filter(s => !s.isActive).length}`);
     console.log(
       `   - Provisional levels: ${sampleStudents.filter(s => s.level_status === 'provisional').length}`
     );

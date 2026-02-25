@@ -21,7 +21,7 @@ async function testAuthFlow() {
     // Step 1: Simulate setRLSContext() query
     console.log('1️⃣ Testing super admin check (setRLSContext)...');
     const [userRecord] = await db
-      .select({ isSuperAdmin: users.isSuperAdmin })
+      .select({ role: users.role })
       .from(users)
       .where(eq(users.email, userEmail))
       .limit(1);
@@ -31,8 +31,10 @@ async function testAuthFlow() {
       return;
     }
 
+    const isSuperAdmin = userRecord.role === 'super_admin';
     console.log('   ✅ Query succeeded');
-    console.log('   Super Admin:', userRecord.isSuperAdmin);
+    console.log('   Role:', userRecord.role);
+    console.log('   Super Admin:', isSuperAdmin);
 
     // Step 2: Simulate getTenantId() query
     console.log('\n2️⃣ Testing tenant ID retrieval...');
@@ -40,24 +42,26 @@ async function testAuthFlow() {
       .select({
         id: users.id,
         tenantId: users.tenantId,
-        isSuperAdmin: users.isSuperAdmin,
+        role: users.role,
       })
       .from(users)
       .where(eq(users.email, userEmail))
       .limit(1);
 
+    const fullUserIsSuperAdmin = fullUser?.role === 'super_admin';
     if (fullUser) {
       console.log('   ✅ Query succeeded');
       console.log('   User ID:', fullUser.id);
       console.log('   Tenant ID:', fullUser.tenantId);
-      console.log('   Super Admin:', fullUser.isSuperAdmin);
+      console.log('   Role:', fullUser.role);
+      console.log('   Super Admin:', fullUserIsSuperAdmin);
     }
 
     // Step 3: Test audit events query (the one that was failing)
     console.log('\n3️⃣ Testing audit events query...');
-    if (!fullUser.tenantId && !fullUser.isSuperAdmin) {
+    if (!fullUser.tenantId && !fullUserIsSuperAdmin) {
       console.log('   ⚠️  Would throw "Tenant not found" error');
-    } else if (fullUser.isSuperAdmin) {
+    } else if (fullUserIsSuperAdmin) {
       console.log('   ✅ Super admin: Can access all tenants');
     } else {
       console.log('   ✅ Regular user: Tenant ID available:', fullUser.tenantId);

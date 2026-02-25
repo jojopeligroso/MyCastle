@@ -23,7 +23,7 @@ async function diagnose() {
       const [userRecord] = await db
         .select({
           email: users.email,
-          isSuperAdmin: users.isSuperAdmin,
+          role: users.role,
           tenantId: users.tenantId,
         })
         .from(users)
@@ -32,7 +32,8 @@ async function diagnose() {
 
       if (userRecord) {
         console.log('   ✅ User found:', userRecord.email);
-        console.log('   - is_super_admin:', userRecord.isSuperAdmin);
+        console.log('   - role:', userRecord.role);
+        console.log('   - is_super_admin:', userRecord.role === 'super_admin');
         console.log('   - tenant_id:', userRecord.tenantId);
       } else {
         console.log('   ❌ No user found (RLS might be blocking)');

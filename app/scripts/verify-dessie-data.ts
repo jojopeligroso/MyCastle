@@ -19,7 +19,6 @@ async function verifyDessieData() {
       .select({
         name: users.name,
         email: users.email,
-        phone: users.phone,
         studentNumber: students.studentNumber,
         isVisaStudent: students.isVisaStudent,
         visaType: students.visaType,

@@ -33,22 +33,22 @@ async function testAuthFlow() {
       const [userRecord] = await db
         .select({
           email: users.email,
-          isSuperAdmin: users.isSuperAdmin,
+          role: users.role,
           tenantId: users.tenantId,
-          primaryRole: users.primaryRole,
         })
         .from(users)
         .where(eq(users.email, testEmail))
         .limit(1);
 
       if (userRecord) {
+        const isSuperAdmin = userRecord.role === 'super_admin';
         console.log('   ✅ Query succeeded!');
         console.log('   User found:', userRecord.email);
-        console.log('   is_super_admin:', userRecord.isSuperAdmin);
+        console.log('   role:', userRecord.role);
+        console.log('   is_super_admin:', isSuperAdmin);
         console.log('   tenant_id:', userRecord.tenantId);
-        console.log('   primary_role:', userRecord.primaryRole);
 
-        if (userRecord.isSuperAdmin) {
+        if (isSuperAdmin) {
           console.log('\n4️⃣ Setting RLS context for super admin:');
           await db.execute(drizzleSql.raw(`SET app.is_super_admin = 'true'`));
           console.log('   ✅ Super admin context set');
