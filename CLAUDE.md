@@ -33,6 +33,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
+## 🔴 KNOWN CRITICAL ISSUES
+
+**Active Issues Requiring Attention:**
+
+| Route/Feature | Issue | Priority |
+|---------------|-------|----------|
+| `/admin/attendance` | Major DB integration issues - UI not properly syncing with database | **HIGH** |
+| DB Schema | Missing fields required by application - document as discovered | **HIGH** |
+| App-DB Integration | Core functionality (display/update DB info) not fully verified | **HIGH** |
+
+**Root Cause:** The application's core purpose is to display and update database information. Current implementation has gaps where UI operations don't persist to DB correctly.
+
+**Action Required:** Before implementing new features, verify existing DB integration works. Use "Dessie Garcia" as test subject (see Testing section).
+
+---
+
 ## 🚨 CRITICAL: Repository Structure
 
 **⚠️ IMPORTANT - READ THIS FIRST:**
@@ -260,6 +276,39 @@ npm run check           # Format, lint, test, type-check, build
 ```
 
 **Guide:** `/app/PLAYWRIGHT-GUIDE.md` (when created)
+
+### 7. DB Integration Testing (CRITICAL!)
+
+**⚠️ CORE PRINCIPLE: The ENTIRE purpose of this application is to display and update database information.**
+
+**Every test MUST verify:**
+1. Any field that can be edited/created in the web UI actually persists to the database
+2. Data displayed in the UI accurately reflects database state
+3. Changes made through the app are retrievable via direct DB query
+
+**Standard DB Integration Test Subject: Dessie Garcia**
+
+Use student "Dessie Garcia" as the canonical test subject for all DB integration verification:
+```bash
+# After any edit/create operation in the UI, verify in Supabase:
+SELECT * FROM students WHERE first_name = 'Dessie' AND last_name = 'Garcia';
+SELECT * FROM users WHERE name ILIKE '%Dessie Garcia%';
+```
+
+**Test Workflow for ANY Editable Feature:**
+1. Find/create Dessie Garcia in the UI
+2. Make a change (edit a field, create a record, update status)
+3. Save the change in the UI
+4. Query the database directly to confirm the change persisted
+5. Refresh the UI page to confirm the change displays correctly
+
+**Known Issues:**
+- `/admin/attendance` - Major issues with DB integration (needs investigation)
+- Schema gaps exist - some fields needed by UI may not exist in DB yet
+
+**When discovering missing DB fields:**
+- If MVP-critical: Create migration immediately
+- If post-MVP: Document in "Future Enhancements" section below with field name, table, and purpose
 
 ---
 
