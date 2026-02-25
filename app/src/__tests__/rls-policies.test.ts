@@ -106,7 +106,7 @@ describe('RLS Policies - Setup', () => {
         tenantId: tenant1Id,
         email: 'admin1@test1.com',
         name: 'Admin One',
-        primaryRole: 'admin',
+        role: 'admin',
       })
       .returning();
     admin1Id = admin1.id;
@@ -117,7 +117,7 @@ describe('RLS Policies - Setup', () => {
         tenantId: tenant1Id,
         email: 'teacher1@test1.com',
         name: 'Teacher One',
-        primaryRole: 'teacher',
+        role: 'teacher',
       })
       .returning();
     teacher1Id = teacher1.id;
@@ -128,7 +128,7 @@ describe('RLS Policies - Setup', () => {
         tenantId: tenant2Id,
         email: 'teacher2@test2.com',
         name: 'Teacher Two',
-        primaryRole: 'teacher',
+        role: 'teacher',
       })
       .returning();
     teacher2Id = teacher2.id;
@@ -139,7 +139,7 @@ describe('RLS Policies - Setup', () => {
         tenantId: tenant1Id,
         email: 'student1@test1.com',
         name: 'Student One',
-        primaryRole: 'student',
+        role: 'student',
       })
       .returning();
     student1Id = student1.id;
@@ -150,7 +150,7 @@ describe('RLS Policies - Setup', () => {
         tenantId: tenant1Id,
         email: 'student2@test1.com',
         name: 'Student Two',
-        primaryRole: 'student',
+        role: 'student',
       })
       .returning();
     student2Id = student2.id;
@@ -435,7 +435,7 @@ describe('RLS Policies - Admin Privileges', () => {
         tenantId: tenant1Id,
         email: 'newuser@test1.com',
         name: 'New User',
-        primaryRole: 'student',
+        role: 'student',
       })
       .returning();
 
