@@ -204,9 +204,29 @@ export default function WeeklyAttendanceGrid({
     }
   }, [focusedCell]);
 
+  // Debug: Log class days info
+  console.log('[AttendanceGrid] Rendering:', {
+    weekDates: weekDates.map(d => d.dayName),
+    daysOfWeek,
+    classDayIndices,
+    studentCount: students.length,
+  });
+
   if (students.length === 0) {
     return (
       <div className="px-4 py-8 text-center text-gray-500">No students enrolled in this class.</div>
+    );
+  }
+
+  if (classDayIndices.length === 0) {
+    return (
+      <div className="px-4 py-8 text-center text-amber-600">
+        No class days configured for this week. Check class schedule settings.
+        <br />
+        <span className="text-sm text-gray-500">
+          (daysOfWeek: {JSON.stringify(daysOfWeek)})
+        </span>
+      </div>
     );
   }
 
