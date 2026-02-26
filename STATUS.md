@@ -1,14 +1,14 @@
 ---
 status: STABILIZATION
-last_updated: 2026-02-25
-next_review: 2026-02-26
+last_updated: 2026-02-26
+next_review: 2026-02-27
 owner: Eoin Malone
 phase: Phase 1 - Admin UI/UX (Stabilization In Progress)
 ---
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-02-25 (Weekly Attendance Grid - class-centric attendance view)
+**Last Updated:** 2026-02-26 (Fix: Teacher attendance register - students now displayed)
 **Current Phase:** Phase 1 (Admin UI/UX) - Stabilization In Progress
 **Current Sprint:** Week 7 of Phase 1
 **Next Milestone:** Complete Stabilization → Production Testing
@@ -141,6 +141,17 @@ All core admin features implemented and ready for production testing:
 **Context:** All Phase 1 tasks complete. System ready for production MVP deployment.
 
 ---
+
+### Recent Wins (Feb 26 - Teacher Attendance Register Fix)
+
+- ✅ **Fixed teacher attendance register - students now displayed**:
+  - Root cause: `/api/attendance/session` route was using raw SQL strings instead of proper Drizzle table references
+  - Added missing `users` and `students` imports to schema
+  - Replaced `sql\`users.id\`` with proper `users.id` Drizzle references
+  - Added left join to `students` table to properly get `isVisaStudent` field
+  - Fixed `visaStudent` mapping from hardcoded `false` to `r.studentRecord?.isVisaStudent ?? false`
+  - Tested: API now returns 18 students for "Adv" class (matching `enrolledCount`)
+  - Classes dropdown and student roster now work correctly in `/teacher/attendance`
 
 ### Recent Wins (Feb 25 - Weekly Attendance Grid)
 

@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { attendance, classSessions, classes, enrollments } from '@/db/schema';
+import { attendance, classSessions, classes, enrollments, users, students } from '@/db/schema';
 import { eq, and, sql } from 'drizzle-orm';
 import { getCurrentUser, getTenantId } from '@/lib/auth/utils';
 import { z } from 'zod';
@@ -122,9 +122,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const roster = await db
       .select({
         student: {
-          id: sql`users.id`,
-          name: sql`users.name`,
-          email: sql`users.email`,
+          id: users.id,
+          name: users.name,
+          email: users.email,
+        },
+        studentRecord: {
+          isVisaStudent: students.isVisaStudent,
         },
         enrollment: {
           enrollmentDate: enrollments.enrollmentDate,
@@ -140,11 +143,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         },
       })
       .from(enrollments)
-      .innerJoin(sql`users`, eq(enrollments.studentId, sql`users.id`))
+      .innerJoin(users, eq(enrollments.studentId, users.id))
+      .leftJoin(students, eq(students.userId, users.id))
       .leftJoin(
         attendance,
         and(
-          eq(attendance.studentId, sql`users.id`),
+          eq(attendance.studentId, users.id),
           eq(attendance.classSessionId, session.id),
           eq(attendance.tenantId, tenantId)
         )
@@ -156,7 +160,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           eq(enrollments.tenantId, tenantId)
         )
       )
-      .orderBy(sql`users.name`);
+      .orderBy(users.name);
 
     return NextResponse.json(
       {
@@ -182,7 +186,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             id: r.student.id,
             name: r.student.name,
             email: r.student.email,
-            visaStudent: false, // TODO: Add this field to users table
+            visaStudent: r.studentRecord?.isVisaStudent ?? false,
             attendanceRate: r.enrollment.attendanceRate
               ? parseFloat(String(r.enrollment.attendanceRate))
               : undefined,
