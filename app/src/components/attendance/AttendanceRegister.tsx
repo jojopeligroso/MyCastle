@@ -56,28 +56,6 @@ interface AttendanceRegisterProps {
   classes?: { id: string; name: string; enrolledCount: number }[];
 }
 
-interface MCPClassResource {
-  id: string;
-  name: string;
-  enrolledCount?: number | null;
-}
-
-interface MCPClassResponse {
-  success: boolean;
-  data?: {
-    classes?: unknown;
-  };
-}
-
-function isValidMCPClass(value: unknown): value is MCPClassResource {
-  if (!value || typeof value !== 'object') {
-    return false;
-  }
-
-  const candidate = value as Record<string, unknown>;
-  return typeof candidate.id === 'string' && typeof candidate.name === 'string';
-}
-
 const STATUS_COLORS = {
   present: 'bg-green-100 border-green-500 text-green-900',
   absent: 'bg-red-100 border-red-500 text-red-900',
@@ -120,22 +98,23 @@ export function AttendanceRegister({ teacherId, classes: classesProp }: Attendan
       if (classesProp) return; // Already have classes as prop
 
       try {
-        const response = await fetch('/api/mcp/resources?uri=mycastle://teacher/classes');
+        const response = await fetch('/api/attendance/classes');
 
         if (!response.ok) {
           console.error('[AttendanceRegister] Failed to fetch classes');
           return;
         }
 
-        const data = (await response.json()) as MCPClassResponse;
-        const rawClasses = data.data?.classes;
+        const data = await response.json();
 
-        if (data.success && Array.isArray(rawClasses)) {
-          const mappedClasses = rawClasses.filter(isValidMCPClass).map(resource => ({
-            id: resource.id,
-            name: resource.name,
-            enrolledCount: resource.enrolledCount ?? 0,
-          }));
+        if (data.success && Array.isArray(data.data?.classes)) {
+          const mappedClasses = data.data.classes.map(
+            (c: { id: string; name: string; enrolledCount?: number }) => ({
+              id: c.id,
+              name: c.name,
+              enrolledCount: c.enrolledCount ?? 0,
+            })
+          );
 
           setClasses(mappedClasses);
         }
