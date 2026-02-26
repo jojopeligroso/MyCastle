@@ -17,7 +17,12 @@ import {
 } from '@/db/schema/imports';
 import { requireAuth, getTenantId, setRLSContext } from '@/lib/auth/utils';
 import { desc, eq, and } from 'drizzle-orm';
-import { parseClassesFile, validateFileType, type ParsedRow } from '@/lib/imports/parser';
+import {
+  parseClassesFile,
+  validateFileType,
+  isMultiSheetResult,
+  type ParsedRow,
+} from '@/lib/imports/parser';
 import { processRowsForMatching } from '@/lib/imports/matcher';
 
 /**
@@ -85,6 +90,7 @@ export async function POST(request: NextRequest) {
     // Parse multipart form data
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
+    const sheetName = formData.get('sheetName') as string | null;
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
@@ -94,6 +100,19 @@ export async function POST(request: NextRequest) {
     const validation = validateFileType(file.name, file.size);
     if (!validation.valid) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
+    }
+
+    // Check for multi-sheet file before creating batch
+    const fileBuffer = await file.arrayBuffer();
+    const preParseResult = await parseClassesFile(fileBuffer, sheetName || undefined);
+
+    // If multi-sheet and no sheet selected, return sheets for selection
+    if (isMultiSheetResult(preParseResult)) {
+      return NextResponse.json({
+        multiSheet: true,
+        sheets: preParseResult.sheets,
+        fileName: file.name,
+      });
     }
 
     // Create batch record in RECEIVED status
@@ -115,9 +134,8 @@ export async function POST(request: NextRequest) {
       .where(eq(uploadBatches.id, batch.id));
 
     try {
-      // Parse the file
-      const fileBuffer = await file.arrayBuffer();
-      const parseResult = await parseClassesFile(fileBuffer);
+      // Use the already-parsed result (we parsed above to check for multi-sheet)
+      const parseResult = preParseResult;
 
       if (!parseResult.success) {
         // Failed validation - update batch and return

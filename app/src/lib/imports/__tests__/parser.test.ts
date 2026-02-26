@@ -9,8 +9,18 @@ import {
   validateFileType,
   WHITELISTED_COLUMNS,
   REQUIRED_COLUMNS,
+  isMultiSheetResult,
+  type ParseResult,
+  type ParseFileResult,
 } from '../parser';
 import * as XLSX from 'xlsx';
+
+// Helper to assert ParseResult type
+function assertParseResult(result: ParseFileResult): asserts result is ParseResult {
+  if (isMultiSheetResult(result)) {
+    throw new Error('Expected ParseResult but got MultiSheetResult');
+  }
+}
 
 // Helper to create a mock XLSX file buffer
 function createMockXLSX(data: Record<string, unknown>[], sheetCount: number = 1): ArrayBuffer {
@@ -76,6 +86,7 @@ describe('Parser', () => {
         const buffer = createMockXLSX(data, 1);
 
         const result = await parseClassesFile(buffer);
+        assertParseResult(result);
         expect(result.success).toBe(true);
         expect(result.totalRows).toBe(1);
       });
@@ -84,18 +95,44 @@ describe('Parser', () => {
         // XLSX library throws on empty workbook, so we test with invalid buffer
         const invalidBuffer = new ArrayBuffer(100);
         const result = await parseClassesFile(invalidBuffer);
+        assertParseResult(result);
         expect(result.success).toBe(false);
         expect(result.error).toBeDefined();
       });
 
-      it('should reject workbook with multiple worksheets', async () => {
+      it('should return multi-sheet result for workbooks with multiple worksheets', async () => {
         const data = [{ 'Student Name': 'John', 'Start Date': '2026-01-01', 'Class Name': 'A1' }];
         const buffer = createMockXLSX(data, 3);
 
         const result = await parseClassesFile(buffer);
+        expect(isMultiSheetResult(result)).toBe(true);
+        if (isMultiSheetResult(result)) {
+          expect(result.sheets).toHaveLength(3);
+          expect(result.sheets[0].name).toBe('Sheet1');
+          expect(result.sheets[1].name).toBe('Sheet2');
+          expect(result.sheets[2].name).toBe('Sheet3');
+        }
+      });
+
+      it('should parse specified sheet from multi-sheet workbook', async () => {
+        const data = [{ 'Student Name': 'John', 'Start Date': '2026-01-01', 'Class Name': 'A1' }];
+        const buffer = createMockXLSX(data, 3);
+
+        const result = await parseClassesFile(buffer, 'Sheet2');
+        assertParseResult(result);
+        expect(result.success).toBe(true);
+        expect(result.totalRows).toBe(1);
+      });
+
+      it('should error when specified sheet does not exist', async () => {
+        const data = [{ 'Student Name': 'John', 'Start Date': '2026-01-01', 'Class Name': 'A1' }];
+        const buffer = createMockXLSX(data, 2);
+
+        const result = await parseClassesFile(buffer, 'NonExistentSheet');
+        assertParseResult(result);
         expect(result.success).toBe(false);
-        expect(result.error).toContain('exactly 1 worksheet');
-        expect(result.error).toContain('found 3');
+        expect(result.error).toContain('NonExistentSheet');
+        expect(result.error).toContain('not found');
       });
     });
 
@@ -113,6 +150,7 @@ describe('Parser', () => {
         const buffer = createMockXLSX(data);
 
         const result = await parseClassesFile(buffer);
+        assertParseResult(result);
         expect(result.success).toBe(true);
         expect(result.rows[0].parsedData.studentName).toBe('Jane Doe');
         expect(result.rows[0].parsedData.className).toBe('Business English');
@@ -132,6 +170,7 @@ describe('Parser', () => {
         const buffer = createMockXLSX(data);
 
         const result = await parseClassesFile(buffer);
+        assertParseResult(result);
         expect(result.success).toBe(true);
         expect(result.ignoredColumns).toContain('Random Column');
         expect(result.ignoredColumns).toContain('Another One');
@@ -148,6 +187,7 @@ describe('Parser', () => {
         const buffer = createMockXLSX(data);
 
         const result = await parseClassesFile(buffer);
+        assertParseResult(result);
         expect(result.success).toBe(true);
         expect(result.rows[0].parsedData.studentName).toBe('Lower Case');
         expect(result.rows[0].parsedData.className).toBe('Mixed Case');
@@ -165,6 +205,7 @@ describe('Parser', () => {
         const buffer = createMockXLSX(data);
 
         const result = await parseClassesFile(buffer);
+        assertParseResult(result);
         expect(result.success).toBe(false);
         expect(result.error).toContain('Student Name');
       });
@@ -179,6 +220,7 @@ describe('Parser', () => {
         const buffer = createMockXLSX(data);
 
         const result = await parseClassesFile(buffer);
+        assertParseResult(result);
         expect(result.success).toBe(false);
         expect(result.error).toContain('Start Date');
       });
@@ -193,6 +235,7 @@ describe('Parser', () => {
         const buffer = createMockXLSX(data);
 
         const result = await parseClassesFile(buffer);
+        assertParseResult(result);
         expect(result.success).toBe(false);
         expect(result.error).toContain('Class Name');
       });
@@ -204,6 +247,7 @@ describe('Parser', () => {
         const buffer = createMockXLSX(data);
 
         const result = await parseClassesFile(buffer);
+        assertParseResult(result);
         expect(result.success).toBe(true);
         expect(result.rows[0].isValid).toBe(false);
         expect(result.rows[0].validationErrors).toContainEqual(
@@ -216,6 +260,7 @@ describe('Parser', () => {
         const buffer = createMockXLSX(data);
 
         const result = await parseClassesFile(buffer);
+        assertParseResult(result);
         expect(result.success).toBe(true);
         expect(result.rows[0].isValid).toBe(false);
         expect(result.rows[0].validationErrors).toContainEqual(
@@ -235,6 +280,7 @@ describe('Parser', () => {
         const buffer = createMockXLSX(data);
 
         const result = await parseClassesFile(buffer);
+        assertParseResult(result);
         expect(result.success).toBe(true);
         expect(result.rows[0].isValid).toBe(false);
         expect(result.rows[0].validationErrors).toContainEqual(
@@ -253,6 +299,7 @@ describe('Parser', () => {
         const buffer = createMockXLSX(data);
 
         const result = await parseClassesFile(buffer);
+        assertParseResult(result);
         expect(result.success).toBe(true);
         expect(result.rows[0].isValid).toBe(true);
         expect(result.rows[0].validationErrors).toHaveLength(0);
@@ -265,6 +312,7 @@ describe('Parser', () => {
         const buffer = createMockXLSX(data);
 
         const result = await parseClassesFile(buffer);
+        assertParseResult(result);
         expect(result.success).toBe(true);
         expect(result.rows[0].parsedData.startDate).toBeInstanceOf(Date);
         expect(result.rows[0].parsedData.startDate?.getFullYear()).toBe(2026);
@@ -277,6 +325,7 @@ describe('Parser', () => {
         const buffer = createMockXLSX(data);
 
         const result = await parseClassesFile(buffer);
+        assertParseResult(result);
         expect(result.success).toBe(true);
         expect(result.rows[0].parsedData.startDate).toBeInstanceOf(Date);
         expect(result.rows[0].parsedData.startDate?.getDate()).toBe(15);
@@ -295,6 +344,7 @@ describe('Parser', () => {
         const buffer = createMockXLSX(data);
 
         const result = await parseClassesFile(buffer);
+        assertParseResult(result);
         expect(result.success).toBe(true);
         expect(result.rows[0].isValid).toBe(true);
         expect(result.rows[0].parsedData.endDate).toBeNull();
@@ -313,6 +363,7 @@ describe('Parser', () => {
         const buffer = createMockXLSX(data);
 
         const result = await parseClassesFile(buffer);
+        assertParseResult(result);
         expect(result.success).toBe(true);
         expect(result.totalRows).toBe(5);
         expect(result.validRows).toBe(3);
@@ -328,6 +379,7 @@ describe('Parser', () => {
         const buffer = createMockXLSX(data);
 
         const result = await parseClassesFile(buffer);
+        assertParseResult(result);
         expect(result.rows[0].rowNumber).toBe(2); // Row 2 in Excel (header is row 1)
         expect(result.rows[1].rowNumber).toBe(3);
         expect(result.rows[2].rowNumber).toBe(4);
@@ -344,6 +396,7 @@ describe('Parser', () => {
         const buffer = XLSX.write(workbook, { type: 'array', bookType: 'xlsx' });
 
         const result = await parseClassesFile(buffer);
+        assertParseResult(result);
         expect(result.success).toBe(false);
         expect(result.error).toContain('empty');
       });
@@ -356,8 +409,11 @@ describe('Parser', () => {
       expect(WHITELISTED_COLUMNS).toContain('Start Date');
       expect(WHITELISTED_COLUMNS).toContain('Class Name');
       expect(WHITELISTED_COLUMNS).toContain('End Date');
-      expect(WHITELISTED_COLUMNS).toContain('XXX Register Flag');
-      expect(WHITELISTED_COLUMNS).toHaveLength(5);
+      expect(WHITELISTED_COLUMNS).toContain('Course');
+      expect(WHITELISTED_COLUMNS).toContain('Weeks');
+      expect(WHITELISTED_COLUMNS).toContain('Visa');
+      expect(WHITELISTED_COLUMNS).toContain('Include On Register');
+      expect(WHITELISTED_COLUMNS).toHaveLength(8);
     });
 
     it('should have correct required columns', () => {

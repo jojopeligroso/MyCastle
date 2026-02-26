@@ -19,6 +19,7 @@ interface RouteParams {
  * List all staged rows for a batch
  * Query params:
  * - status: VALID | INVALID | AMBIGUOUS | EXCLUDED (optional filter)
+ * - action: INSERT | UPDATE | NOOP (optional filter for proposed change action)
  * - limit: number (default 100)
  * - offset: number (default 0)
  */
@@ -48,6 +49,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     // Parse query params
     const { searchParams } = new URL(request.url);
     const statusFilter = searchParams.get('status');
+    const actionFilter = searchParams.get('action');
     const limit = Math.min(parseInt(searchParams.get('limit') || '100'), 500);
     const offset = parseInt(searchParams.get('offset') || '0');
 
@@ -83,6 +85,17 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           eq(stgRows.batchId, batchId),
           eq(stgRows.tenantId, tenantId),
           eq(stgRows.rowStatus, statusFilter)
+        )
+      );
+    }
+
+    // Apply action filter if provided
+    if (actionFilter && ['INSERT', 'UPDATE', 'NOOP'].includes(actionFilter)) {
+      query = query.where(
+        and(
+          eq(stgRows.batchId, batchId),
+          eq(stgRows.tenantId, tenantId),
+          eq(proposedChanges.action, actionFilter)
         )
       );
     }

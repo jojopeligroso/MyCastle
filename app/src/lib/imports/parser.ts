@@ -63,6 +63,34 @@ export interface ParseResult {
 }
 
 /**
+ * Sheet metadata for multi-sheet files
+ */
+export interface SheetInfo {
+  name: string;
+  rowCount: number;
+}
+
+/**
+ * Result when file has multiple sheets and needs selection
+ */
+export interface MultiSheetResult {
+  multiSheet: true;
+  sheets: SheetInfo[];
+}
+
+/**
+ * Combined result type for parseClassesFile
+ */
+export type ParseFileResult = ParseResult | MultiSheetResult;
+
+/**
+ * Type guard to check if result is multi-sheet
+ */
+export function isMultiSheetResult(result: ParseFileResult): result is MultiSheetResult {
+  return 'multiSheet' in result && result.multiSheet === true;
+}
+
+/**
  * Normalize column header for matching
  * - Lowercase
  * - Trim whitespace
@@ -277,28 +305,47 @@ function validateRow(
 /**
  * Parse classes.xlsx file
  * @param fileBuffer - ArrayBuffer of the uploaded file
- * @returns ParseResult with rows and metadata
+ * @param sheetName - Optional sheet name to parse (required for multi-sheet files)
+ * @returns ParseResult with rows and metadata, or MultiSheetResult if selection needed
  */
-export async function parseClassesFile(fileBuffer: ArrayBuffer): Promise<ParseResult> {
+export async function parseClassesFile(
+  fileBuffer: ArrayBuffer,
+  sheetName?: string
+): Promise<ParseFileResult> {
   try {
     // Read workbook
     const workbook = XLSX.read(fileBuffer, { type: 'array', cellDates: true });
 
-    // Validate single worksheet
-    if (workbook.SheetNames.length !== 1) {
-      return {
-        success: false,
-        rows: [],
-        totalRows: 0,
-        validRows: 0,
-        invalidRows: 0,
-        ignoredColumns: [],
-        error: `File must contain exactly 1 worksheet, found ${workbook.SheetNames.length}`,
-      };
+    // Handle multi-sheet files
+    if (workbook.SheetNames.length > 1) {
+      // If no sheet specified, return sheet list for selection
+      if (!sheetName) {
+        const sheets: SheetInfo[] = workbook.SheetNames.map(name => {
+          const sheet = workbook.Sheets[name];
+          const range = XLSX.utils.decode_range(sheet['!ref'] || 'A1');
+          const rowCount = range.e.r; // Number of data rows (excluding header)
+          return { name, rowCount };
+        });
+        return { multiSheet: true, sheets };
+      }
+
+      // Validate specified sheet exists
+      if (!workbook.SheetNames.includes(sheetName)) {
+        return {
+          success: false,
+          rows: [],
+          totalRows: 0,
+          validRows: 0,
+          invalidRows: 0,
+          ignoredColumns: [],
+          error: `Sheet "${sheetName}" not found in file`,
+        };
+      }
     }
 
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
+    // Use specified sheet or first sheet for single-sheet files
+    const targetSheetName = sheetName || workbook.SheetNames[0];
+    const sheet = workbook.Sheets[targetSheetName];
 
     // Convert to JSON with headers
     const rawRows: Record<string, unknown>[] = XLSX.utils.sheet_to_json(sheet, {
