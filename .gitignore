@@ -42,3 +42,7 @@ test-db-connection.js
 
 # Git submodules
 esl-mcp-spec/
+# Local config files
+.mcp.json
+supabase/
+app/supabase/
