@@ -9,6 +9,12 @@
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Upload, X, AlertTriangle, FileSpreadsheet, Loader2 } from 'lucide-react';
+import SheetSelectorDialog from './SheetSelectorDialog';
+
+interface SheetInfo {
+  name: string;
+  rowCount: number;
+}
 
 export default function UploadBatchDialog() {
   const [isOpen, setIsOpen] = useState(false);
@@ -17,6 +23,11 @@ export default function UploadBatchDialog() {
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+
+  // Multi-sheet state
+  const [showSheetSelector, setShowSheetSelector] = useState(false);
+  const [sheets, setSheets] = useState<SheetInfo[]>([]);
+  const [multiSheetFileName, setMultiSheetFileName] = useState<string>('');
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -45,7 +56,7 @@ export default function UploadBatchDialog() {
     setFile(selectedFile);
   };
 
-  const handleUpload = async () => {
+  const handleUpload = async (sheetName?: string) => {
     if (!file) return;
 
     setIsUploading(true);
@@ -54,6 +65,9 @@ export default function UploadBatchDialog() {
     try {
       const formData = new FormData();
       formData.append('file', file);
+      if (sheetName) {
+        formData.append('sheetName', sheetName);
+      }
 
       const response = await fetch('/api/imports/batches', {
         method: 'POST',
@@ -66,9 +80,20 @@ export default function UploadBatchDialog() {
         throw new Error(result.error || 'Upload failed');
       }
 
+      // Check if this is a multi-sheet response
+      if (result.multiSheet) {
+        setSheets(result.sheets);
+        setMultiSheetFileName(result.fileName);
+        setShowSheetSelector(true);
+        setIsUploading(false);
+        return;
+      }
+
       // Success - navigate to batch detail
       setIsOpen(false);
       setFile(null);
+      setShowSheetSelector(false);
+      setSheets([]);
       router.push(`/admin/imports/enrolment-uploads/${result.batchId}`);
       router.refresh();
     } catch (err) {
@@ -78,11 +103,26 @@ export default function UploadBatchDialog() {
     }
   };
 
+  const handleSheetSelect = (sheetName: string) => {
+    // Re-upload with selected sheet
+    handleUpload(sheetName);
+  };
+
+  const handleSheetSelectorCancel = () => {
+    setShowSheetSelector(false);
+    setSheets([]);
+    setMultiSheetFileName('');
+    setIsUploading(false);
+  };
+
   const handleClose = () => {
     if (isUploading) return;
     setIsOpen(false);
     setFile(null);
     setError(null);
+    setShowSheetSelector(false);
+    setSheets([]);
+    setMultiSheetFileName('');
   };
 
   return (
@@ -120,14 +160,15 @@ export default function UploadBatchDialog() {
                 </button>
               </div>
 
-              {/* Warning Banner */}
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+              {/* Info Banner */}
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
                 <div className="flex items-start">
-                  <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 mr-2 flex-shrink-0" />
-                  <div className="text-sm text-red-700">
-                    <p className="font-medium">WARNING: Upload ONE worksheet only</p>
+                  <FileSpreadsheet className="h-5 w-5 text-blue-600 mt-0.5 mr-2 flex-shrink-0" />
+                  <div className="text-sm text-blue-700">
+                    <p className="font-medium">Multi-sheet files supported</p>
                     <p className="mt-1">
-                      Upload only the week you want to assess. Do not upload a multi-sheet workbook.
+                      If your file has multiple worksheets, you'll be able to select which one to
+                      import.
                     </p>
                   </div>
                 </div>
@@ -205,7 +246,7 @@ export default function UploadBatchDialog() {
                   Cancel
                 </button>
                 <button
-                  onClick={handleUpload}
+                  onClick={() => handleUpload()}
                   disabled={!file || isUploading}
                   className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -226,6 +267,16 @@ export default function UploadBatchDialog() {
           </div>
         </div>
       )}
+
+      {/* Sheet Selector Dialog */}
+      <SheetSelectorDialog
+        isOpen={showSheetSelector}
+        fileName={multiSheetFileName}
+        sheets={sheets}
+        onSelect={handleSheetSelect}
+        onCancel={handleSheetSelectorCancel}
+        isLoading={isUploading}
+      />
     </>
   );
 }

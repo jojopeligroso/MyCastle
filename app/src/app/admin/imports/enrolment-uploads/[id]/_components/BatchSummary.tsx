@@ -20,7 +20,9 @@ import {
   RefreshCw,
   Ban,
   Info,
+  Eye,
 } from 'lucide-react';
+import ConfirmChangesModal from './ConfirmChangesModal';
 
 interface Batch {
   id: string;
@@ -160,6 +162,7 @@ export default function BatchSummary({ batch }: BatchSummaryProps) {
   const [isApplying, setIsApplying] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const isTerminal = ['APPLIED', 'REJECTED', 'FAILED_VALIDATION', 'FAILED_SYSTEM'].includes(
     batch.status
@@ -199,11 +202,15 @@ export default function BatchSummary({ batch }: BatchSummaryProps) {
     }
   };
 
-  const handleApply = async () => {
-    if (!confirm('Are you sure you want to apply these changes? This action cannot be undone.')) {
-      return;
-    }
+  const handleOpenConfirmModal = () => {
+    setShowConfirmModal(true);
+  };
 
+  const handleCloseConfirmModal = () => {
+    setShowConfirmModal(false);
+  };
+
+  const handleApply = async () => {
     setIsApplying(true);
     setError(null);
 
@@ -218,6 +225,7 @@ export default function BatchSummary({ batch }: BatchSummaryProps) {
         throw new Error(result.errors?.join(', ') || result.error || 'Apply failed');
       }
 
+      setShowConfirmModal(false);
       setSuccessMessage(
         `Changes applied successfully. ${result.insertedCount} created, ${result.updatedCount} updated.`
       );
@@ -414,21 +422,12 @@ export default function BatchSummary({ batch }: BatchSummaryProps) {
 
         {batch.status === 'READY_TO_APPLY' && (
           <button
-            onClick={handleApply}
-            disabled={!canApply || isApplying}
+            onClick={handleOpenConfirmModal}
+            disabled={!canApply}
             className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isApplying ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Applying...
-              </>
-            ) : (
-              <>
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Apply Changes
-              </>
-            )}
+            <Eye className="h-4 w-4 mr-2" />
+            Review & Apply Changes
           </button>
         )}
 
@@ -446,6 +445,18 @@ export default function BatchSummary({ batch }: BatchSummaryProps) {
           </div>
         )}
       </div>
+
+      {/* Confirm Changes Modal */}
+      <ConfirmChangesModal
+        isOpen={showConfirmModal}
+        batchId={batch.id}
+        newCount={batch.newRows}
+        updateCount={batch.updateRows}
+        noopCount={batch.validRows - batch.newRows - batch.updateRows}
+        onConfirm={handleApply}
+        onCancel={handleCloseConfirmModal}
+        isApplying={isApplying}
+      />
     </div>
   );
 }
