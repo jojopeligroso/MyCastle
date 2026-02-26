@@ -13,8 +13,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { attendance, classSessions, classes } from '@/db/schema';
-import { eq, and, gte, lte, sql, inArray, or } from 'drizzle-orm';
+import { attendance, classSessions, classes, users } from '@/db/schema';
+import { eq, and, gte, lte, sql, inArray } from 'drizzle-orm';
 import { getCurrentUser, getTenantId } from '@/lib/auth/utils';
 import ExcelJS from 'exceljs';
 import { createClient } from '@supabase/supabase-js';
@@ -275,21 +275,28 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     // Fetch attendance records for the date range and classes
     const records = await db
       .select({
-        attendance: attendance,
-        session: classSessions,
-        student: {
-          id: sql`users.id`,
-          name: sql`users.name`,
-          email: sql`users.email`,
-        },
-        recordedBy: {
-          name: sql`recorded_by_user.name`,
-        },
+        // Attendance fields
+        attendanceId: attendance.id,
+        attendanceStatus: attendance.status,
+        attendanceNotes: attendance.notes,
+        attendanceRecordedAt: attendance.recordedAt,
+        attendanceRecordedBy: attendance.recordedBy,
+        attendanceHash: attendance.hash,
+        attendancePreviousHash: attendance.previousHash,
+        attendanceEditCount: attendance.editCount,
+        attendanceEditedAt: attendance.editedAt,
+        // Session fields
+        sessionDate: classSessions.sessionDate,
+        sessionStartTime: classSessions.startTime,
+        sessionEndTime: classSessions.endTime,
+        // Student fields
+        studentId: users.id,
+        studentName: users.name,
+        studentEmail: users.email,
       })
       .from(attendance)
       .innerJoin(classSessions, eq(attendance.classSessionId, classSessions.id))
-      .innerJoin(sql`users`, eq(attendance.studentId, sql`users.id`))
-      .leftJoin(sql`users AS recorded_by_user`, eq(attendance.recordedBy, sql`recorded_by_user.id`))
+      .innerJoin(users, eq(attendance.studentId, users.id))
       .where(
         and(
           inArray(classSessions.classId, classIds),
@@ -299,22 +306,36 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           lte(classSessions.sessionDate, finalEndDate)
         )
       )
-      .orderBy(classSessions.sessionDate, classSessions.startTime, sql`users.name`);
+      .orderBy(classSessions.sessionDate, classSessions.startTime, users.name);
+
+    // Get unique recordedBy IDs and fetch their names
+    const recordedByIds = [
+      ...new Set(records.map(r => r.attendanceRecordedBy).filter(Boolean)),
+    ] as string[];
+    const recordedByUsers =
+      recordedByIds.length > 0
+        ? await db
+            .select({ id: users.id, name: users.name })
+            .from(users)
+            .where(inArray(users.id, recordedByIds))
+        : [];
+    const recordedByMap = new Map(recordedByUsers.map(u => [u.id, u.name]));
 
     // Transform records for export
     const exportRecords = records.map(r => ({
-      studentName: r.student.name as string,
-      studentEmail: r.student.email as string,
-      sessionDate: r.session.sessionDate,
-      sessionTime: `${r.session.startTime}-${r.session.endTime}`,
-      status: r.attendance.status,
-      notes: r.attendance.notes,
-      recordedBy: r.recordedBy.name as string,
-      recordedAt: r.attendance.recordedAt,
-      hash: r.attendance.hash,
-      previousHash: r.attendance.previousHash,
-      editCount: r.attendance.editCount || 0,
-      editedAt: r.attendance.editedAt,
+      studentName: r.studentName as string,
+      studentEmail: r.studentEmail as string,
+      sessionDate: r.sessionDate,
+      sessionTime: `${r.sessionStartTime}-${r.sessionEndTime}`,
+      status: r.attendanceStatus,
+      notes: r.attendanceNotes,
+      recordedBy:
+        (r.attendanceRecordedBy ? recordedByMap.get(r.attendanceRecordedBy) : null) || 'Unknown',
+      recordedAt: r.attendanceRecordedAt,
+      hash: r.attendanceHash,
+      previousHash: r.attendancePreviousHash,
+      editCount: r.attendanceEditCount || 0,
+      editedAt: r.attendanceEditedAt,
     }));
 
     const metadata = {
