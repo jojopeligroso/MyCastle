@@ -23,6 +23,7 @@
     "seed:cefr": "tsx scripts/seed-cefr-descriptors.ts",
     "seed:students": "tsx scripts/seed-students.ts",
     "seed:academic": "tsx scripts/seed-academic.ts",
+    "seed:esl-classes": "tsx scripts/seed-esl-classes.ts",
     "check": "npm run format && npm run lint && npm test && tsc --noEmit && npm run build",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
