@@ -6,34 +6,8 @@
 import { requireAuth, getTenantId } from '@/lib/auth/utils';
 import { db } from '@/db';
 import { students, users, courses, accommodationTypes, agencies } from '@/db/schema';
-import { eq, and, isNull, sql } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import { CreateBookingForm } from './CreateBookingForm';
-
-interface Student {
-  id: string;
-  name: string | null;
-  email: string;
-  studentNumber: string | null;
-}
-
-interface Course {
-  id: string;
-  name: string;
-  code: string | null;
-  level: string | null;
-  pricePerWeekEur: string | null;
-}
-
-interface AccommodationType {
-  id: string;
-  name: string;
-  pricePerWeekEur: string | null;
-}
-
-interface Agency {
-  id: string;
-  name: string;
-}
 
 async function getFormData() {
   const tenantId = await getTenantId();
@@ -45,7 +19,7 @@ async function getFormData() {
   await db.execute(sql.raw(`SET app.user_email = 'eoinmaleoin@gmail.com'`));
   await db.execute(sql.raw(`SET app.tenant_id = '${tenantId}'`));
 
-  // Fetch students
+  // Fetch students with email
   const studentsData = await db
     .select({
       id: students.id,
@@ -84,11 +58,14 @@ async function getFormData() {
     .where(and(eq(accommodationTypes.tenantId, tenantId), eq(accommodationTypes.status, 'active')))
     .orderBy(accommodationTypes.name);
 
-  // Fetch agencies
+  // Fetch agencies with contact info for auto-populating booked-by fields
   const agenciesData = await db
     .select({
       id: agencies.id,
       name: agencies.name,
+      contactPerson: agencies.contactPerson,
+      contactEmail: agencies.contactEmail,
+      contactPhone: agencies.contactPhone,
     })
     .from(agencies)
     .where(and(eq(agencies.tenantId, tenantId), eq(agencies.status, 'active')))

@@ -8,7 +8,7 @@ phase: Phase 1 - Admin UI/UX (Stabilization In Progress)
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-02-27 (Tech debt: Test infrastructure fixes - 44 fewer failing tests)
+**Last Updated:** 2026-02-27 (Feature: Enhanced booking creation with inline student creation & booked-by capture)
 **Current Phase:** Phase 1 (Admin UI/UX) - Stabilization In Progress
 **Current Sprint:** Week 7 of Phase 1
 **Next Milestone:** Complete Stabilization → Production Testing
@@ -141,6 +141,20 @@ All core admin features implemented and ready for production testing:
 **Context:** All Phase 1 tasks complete. System ready for production MVP deployment.
 
 ---
+
+### Recent Wins (Feb 27 - Enhanced Booking Creation Workflow)
+
+- ✅ **Booking form now supports inline student creation & proxy booking capture**:
+  - New `StudentSelector.tsx` component: Toggle between existing student (searchable dropdown) or create new student inline
+  - New `BookedBySection.tsx` component: Capture who is making the booking (self/parent/guardian/other)
+  - Auto-calculate minor status from date of birth (under 18)
+  - Manual minor override checkbox for edge cases
+  - Parent/guardian contact required for minors (enforced validation)
+  - Agency contact auto-population when "Other" selected
+  - Duplicate email detection with "use existing student" error message
+  - Server action creates student + booking in single flow
+  - Uses existing `booked_by_*` database fields (bookedByName, bookedByEmail, bookedByPhone)
+  - All TypeScript/ESLint checks pass, production build successful
 
 ### Recent Wins (Feb 27 - Test Infrastructure Tech Debt)
 
