@@ -1,9 +1,11 @@
 /**
  * Import Apply Service - OPTIMIZED VERSION
  * Key changes:
- * 1. Pre-fetch all classes in single query
- * 2. Batch insert users, students, enrollments
+ * 1. Pre-fetch all classes, courses, agencies, accommodation_types in single queries
+ * 2. Batch insert users, students, bookings, enrollments
  * 3. Reduce transaction round-trips from ~1000 to ~10
+ * 4. Multi-table operations per comprehensive import plan
+ * 5. Only update explicit fields (preserve existing data)
  */
 
 import { db } from '@/db';
@@ -14,7 +16,9 @@ import {
   BATCH_STATUS,
   CHANGE_ACTION,
 } from '@/db/schema/imports';
-import { enrollments, users, classes, students } from '@/db/schema';
+import { enrollments, classes } from '@/db/schema';
+import { users, students } from '@/db/schema/core';
+import { bookings, courses, agencies, accommodationTypes } from '@/db/schema/business';
 import { eq, and, inArray, sql } from 'drizzle-orm';
 import { canApply, type BatchSummary } from './state-machine';
 
@@ -150,30 +154,68 @@ export async function applyBatchChanges(
       const stagingRowMap = new Map(stagingRows.map(r => [r.id, r]));
       console.timeEnd('fetchStagingRows');
 
-      // OPTIMIZATION 1: Pre-fetch ALL classes for tenant in single query
-      console.time('prefetchClasses');
+      // OPTIMIZATION 1: Pre-fetch ALL lookup tables for tenant in single queries
+      console.time('prefetchLookups');
+
+      // Classes
       const allClasses = await tx
         .select({ id: classes.id, name: classes.name })
         .from(classes)
         .where(eq(classes.tenantId, tenantId));
       const classMap = new Map(allClasses.map(c => [c.name.toLowerCase(), c.id]));
-      console.timeEnd('prefetchClasses');
-      console.log(`Prefetched ${allClasses.length} classes`);
 
-      // Prepare batch data for inserts
+      // Courses
+      const allCourses = await tx
+        .select({ id: courses.id, name: courses.name })
+        .from(courses)
+        .where(eq(courses.tenantId, tenantId));
+      const courseMap = new Map(allCourses.map(c => [c.name.toLowerCase(), c.id]));
+
+      // Agencies
+      const allAgencies = await tx
+        .select({ id: agencies.id, name: agencies.name })
+        .from(agencies)
+        .where(eq(agencies.tenantId, tenantId));
+      const agencyMap = new Map(allAgencies.map(a => [a.name.toLowerCase(), a.id]));
+
+      // Accommodation Types
+      const allAccommodationTypes = await tx
+        .select({ id: accommodationTypes.id, name: accommodationTypes.name })
+        .from(accommodationTypes)
+        .where(eq(accommodationTypes.tenantId, tenantId));
+      const accommodationTypeMap = new Map(
+        allAccommodationTypes.map(a => [a.name.toLowerCase(), a.id])
+      );
+
+      console.timeEnd('prefetchLookups');
+      console.log(
+        `Prefetched: ${allClasses.length} classes, ${allCourses.length} courses, ` +
+          `${allAgencies.length} agencies, ${allAccommodationTypes.length} accommodation types`
+      );
+
+      // Prepare batch data for inserts - handle all 27 columns
       console.time('prepareInsertData');
+
+      // Extended user insert type with new fields
       const usersToInsert: Array<{
         tenantId: string;
         email: string;
-        name: string;
+        name: string | null;
         role: string;
-        status: string;
+        isActive: boolean;
         metadata: Record<string, unknown>;
+        // New fields per plan
+        nationality?: string | null;
+        visaType?: string | null;
       }> = [];
 
+      // Extended metadata for linking inserts across tables
       const insertMetadata: Array<{
         changeId: string;
-        classId: string;
+        classId: string | undefined;
+        courseId: string | undefined;
+        agencyId: string | undefined;
+        accommodationTypeId: string | undefined;
         parsedData: Record<string, unknown>;
         userIndex: number;
       }> = [];
@@ -192,26 +234,80 @@ export async function applyBatchChanges(
           continue;
         }
 
+        // Parse all fields from the comprehensive schema
         const parsed = stgRow.parsedData as {
-          studentName: string;
-          className: string;
-          startDate: string;
-          endDate?: string;
-          course?: string;
-          weeks?: number;
-          isVisaStudent?: boolean;
-          includeOnRegister?: boolean;
+          // Student identity (users table)
+          name: string | null;
+          studentName?: string | null; // legacy alias
+          dateOfBirth?: string | null;
+          nationality?: string | null;
+          // Visa (students table)
+          isVisaStudent?: boolean | null;
+          visaType?: string | null;
+          // Course/Class
+          courseName?: string | null;
+          course?: string | null; // legacy alias
+          className?: string | null;
+          weeks?: number | null;
+          courseStartDate?: string | null;
+          startDate?: string | null; // legacy alias
+          courseEndDate?: string | null;
+          endDate?: string | null; // legacy alias
+          placementTestScore?: string | null;
+          // Accommodation
+          accommodationType?: string | null;
+          accommodationStartDate?: string | null;
+          accommodationEndDate?: string | null;
+          // Financial
+          saleDate?: string | null;
+          agencyName?: string | null;
+          depositPaidEur?: number | null;
+          totalPaidEur?: number | null;
+          courseFeeEur?: number | null;
+          accommodationFeeEur?: number | null;
+          transferFeeEur?: number | null;
+          examFeeEur?: number | null;
+          registrationFeeEur?: number | null;
+          learnerProtectionFeeEur?: number | null;
+          medicalInsuranceFeeEur?: number | null;
+          totalBookingEur?: number | null;
+          // Legacy
+          includeOnRegister?: boolean | null;
         };
 
-        const classId = classMap.get(parsed.className.toLowerCase());
-        if (!classId) {
-          errors.push(`Class not found: ${parsed.className}`);
+        // Get name from new or legacy field
+        const studentName = parsed.name || parsed.studentName;
+        if (!studentName) {
+          errors.push(`Missing student name for row`);
           skippedCount++;
           continue;
         }
 
+        // Lookup class (optional - class may be assigned later)
+        const className = parsed.className;
+        const classId = className ? classMap.get(className.toLowerCase()) : null;
+
+        // Lookup course
+        const courseName = parsed.courseName || parsed.course;
+        const courseId = courseName ? courseMap.get(courseName.toLowerCase()) : null;
+
+        // Lookup agency (handle "Direct" as null)
+        const agencyName = parsed.agencyName;
+        const isDirectSale =
+          !agencyName ||
+          agencyName.toLowerCase() === 'direct' ||
+          agencyName.toLowerCase() === 'direct sale';
+        const agencyId =
+          !isDirectSale && agencyName ? agencyMap.get(agencyName.toLowerCase()) : null;
+
+        // Lookup accommodation type
+        const accomTypeName = parsed.accommodationType;
+        const accommodationTypeId = accomTypeName
+          ? accommodationTypeMap.get(accomTypeName.toLowerCase())
+          : null;
+
         // Generate provisional email with unique offset
-        const nameParts = parsed.studentName.trim().toLowerCase().split(/\s+/);
+        const nameParts = studentName.trim().toLowerCase().split(/\s+/);
         const firstName = nameParts[0] || 'unknown';
         const lastName = nameParts[nameParts.length - 1] || 'student';
         const timestamp = Date.now() + usersToInsert.length; // Ensure unique
@@ -220,19 +316,25 @@ export async function applyBatchChanges(
         usersToInsert.push({
           tenantId,
           email: provisionalEmail,
-          name: parsed.studentName,
+          name: studentName,
           role: 'student',
-          status: 'active',
+          isActive: true,
+          nationality: parsed.nationality || null,
+          visaType: parsed.visaType || null,
           metadata: {
             provisionalImport: true,
             importedAt: new Date().toISOString(),
             includeOnRegister: parsed.includeOnRegister ?? true,
+            dateOfBirth: parsed.dateOfBirth || null,
           },
         });
 
         insertMetadata.push({
           changeId: change.id,
-          classId,
+          classId: classId || undefined,
+          courseId: courseId || undefined,
+          agencyId: agencyId || undefined,
+          accommodationTypeId: accommodationTypeId || undefined,
           parsedData: stgRow.parsedData as Record<string, unknown>,
           userIndex: usersToInsert.length - 1,
         });
@@ -249,55 +351,178 @@ export async function applyBatchChanges(
         console.log(`Batch inserted ${insertedUsers.length} users`);
       }
 
-      // OPTIMIZATION 3: Batch insert students
+      // OPTIMIZATION 3: Batch insert students with visa info
+      let insertedStudents: { id: string }[] = [];
       if (insertedUsers.length > 0) {
         console.time('batchInsertStudents');
         const studentsToInsert = insertedUsers.map((u, i) => {
           const meta = insertMetadata[i];
-          const parsed = meta.parsedData as { isVisaStudent?: boolean };
+          const parsed = meta.parsedData as {
+            isVisaStudent?: boolean | null;
+            visaType?: string | null;
+          };
           return {
             tenantId,
             userId: u.id,
             status: 'active' as const,
             isVisaStudent: parsed.isVisaStudent ?? false,
+            visaType: parsed.visaType || null,
           };
         });
-        await tx.insert(students).values(studentsToInsert);
+        insertedStudents = await tx
+          .insert(students)
+          .values(studentsToInsert)
+          .returning({ id: students.id });
         console.timeEnd('batchInsertStudents');
-        console.log(`Batch inserted ${studentsToInsert.length} students`);
+        console.log(`Batch inserted ${insertedStudents.length} students`);
       }
 
-      // OPTIMIZATION 4: Batch insert enrollments
-      if (insertedUsers.length > 0) {
-        console.time('batchInsertEnrollments');
-        const enrollmentsToInsert = insertedUsers.map((u, i) => {
+      // OPTIMIZATION 4: Batch insert bookings (financial records)
+      // Note: Only create bookings when course is assigned (bookings require courseId)
+      if (insertedStudents.length > 0) {
+        console.time('batchInsertBookings');
+        const bookingsToInsert: Array<Record<string, unknown>> = [];
+
+        for (let i = 0; i < insertedStudents.length; i++) {
+          const studentRecord = insertedStudents[i];
           const meta = insertMetadata[i];
           const parsed = meta.parsedData as {
-            startDate: string;
-            endDate?: string;
-            weeks?: number;
+            courseStartDate?: string | null;
+            startDate?: string | null;
+            courseEndDate?: string | null;
+            endDate?: string | null;
+            weeks?: number | null;
+            saleDate?: string | null;
+            placementTestScore?: string | null;
+            accommodationStartDate?: string | null;
+            accommodationEndDate?: string | null;
+            depositPaidEur?: number | null;
+            totalPaidEur?: number | null;
+            courseFeeEur?: number | null;
+            accommodationFeeEur?: number | null;
+            transferFeeEur?: number | null;
+            examFeeEur?: number | null;
+            registrationFeeEur?: number | null;
+            learnerProtectionFeeEur?: number | null;
+            medicalInsuranceFeeEur?: number | null;
+            totalBookingEur?: number | null;
           };
-          return {
+
+          // Skip booking if no course is assigned (required field)
+          if (!meta.courseId) {
+            console.log(`Skipping booking for student ${i} - no course assigned`);
+            continue;
+          }
+
+          const startDate = parsed.courseStartDate || parsed.startDate;
+          if (!startDate) {
+            console.log(`Skipping booking for student ${i} - no start date`);
+            continue;
+          }
+
+          // Calculate end date - required field for bookings
+          const endDate = parsed.courseEndDate || parsed.endDate;
+          const weeks = parsed.weeks || 1;
+          // If no end date provided, calculate from start date + weeks
+          let courseEndDate = endDate;
+          if (!courseEndDate) {
+            const startDateObj = new Date(startDate);
+            startDateObj.setDate(startDateObj.getDate() + weeks * 7);
+            courseEndDate = startDateObj.toISOString().split('T')[0];
+          }
+
+          // Generate unique booking number
+          const bookingNumber = `IMP-${Date.now()}-${i}`;
+
+          bookingsToInsert.push({
             tenantId,
-            studentId: u.id,
-            classId: meta.classId,
-            enrollmentDate: parsed.startDate,
-            expectedEndDate: parsed.endDate || null,
-            bookedWeeks: parsed.weeks || null,
-            status: 'active' as const,
+            bookingNumber,
+            saleDate: parsed.saleDate || startDate, // Default to start date if no sale date
+            studentId: studentRecord.id,
+            agencyId: meta.agencyId || undefined,
+            courseId: meta.courseId,
+            weeks,
+            courseStartDate: startDate,
+            courseEndDate,
+            placementTestScore: parsed.placementTestScore || undefined,
+            accommodationTypeId: meta.accommodationTypeId || undefined,
+            accommodationStartDate: parsed.accommodationStartDate || undefined,
+            accommodationEndDate: parsed.accommodationEndDate || undefined,
+            // Financial fields - convert to string for decimal
+            depositPaidEur: String(parsed.depositPaidEur ?? 0),
+            totalPaidEur: String(parsed.totalPaidEur ?? 0),
+            courseFeeEur: String(parsed.courseFeeEur ?? 0),
+            accommodationFeeEur: String(parsed.accommodationFeeEur ?? 0),
+            transferFeeEur: String(parsed.transferFeeEur ?? 0),
+            examFeeEur: String(parsed.examFeeEur ?? 0),
+            registrationFeeEur: String(parsed.registrationFeeEur ?? 0),
+            learnerProtectionFeeEur: String(parsed.learnerProtectionFeeEur ?? 0),
+            medicalInsuranceFeeEur: String(parsed.medicalInsuranceFeeEur ?? 0),
+            totalBookingEur: String(parsed.totalBookingEur ?? 0),
+            status: 'confirmed',
+          });
+        }
+
+        if (bookingsToInsert.length > 0) {
+          await tx.insert(bookings).values(bookingsToInsert as any);
+          console.log(`Batch inserted ${bookingsToInsert.length} bookings`);
+        }
+        console.timeEnd('batchInsertBookings');
+      }
+
+      // OPTIMIZATION 5: Batch insert enrollments (class assignments)
+      if (insertedUsers.length > 0) {
+        console.time('batchInsertEnrollments');
+        const enrollmentsToInsert: Array<Record<string, unknown>> = [];
+
+        for (let i = 0; i < insertedUsers.length; i++) {
+          const user = insertedUsers[i];
+          const meta = insertMetadata[i];
+          const parsed = meta.parsedData as {
+            courseStartDate?: string | null;
+            startDate?: string | null;
+            courseEndDate?: string | null;
+            endDate?: string | null;
+            weeks?: number | null;
           };
-        });
-        const insertedEnrollments = await tx
-          .insert(enrollments)
-          .values(enrollmentsToInsert)
-          .returning({ id: enrollments.id });
-        enrollmentIds.push(...insertedEnrollments.map(e => e.id));
-        insertedCount = insertedEnrollments.length;
+
+          // Skip enrollment if no class is assigned
+          if (!meta.classId) {
+            console.log(`Skipping enrollment for user ${i} - no class assigned`);
+            continue;
+          }
+
+          const startDate = parsed.courseStartDate || parsed.startDate;
+          if (!startDate) {
+            console.log(`Skipping enrollment for user ${i} - no start date`);
+            continue;
+          }
+
+          enrollmentsToInsert.push({
+            tenantId,
+            studentId: user.id,
+            classId: meta.classId,
+            enrollmentDate: startDate,
+            expectedEndDate: parsed.courseEndDate || parsed.endDate || undefined,
+            bookedWeeks: parsed.weeks || undefined,
+            status: 'active',
+          });
+        }
+
+        if (enrollmentsToInsert.length > 0) {
+          const insertedEnrollments = await tx
+            .insert(enrollments)
+            .values(enrollmentsToInsert as any)
+            .returning({ id: enrollments.id });
+          enrollmentIds.push(...insertedEnrollments.map(e => e.id));
+          insertedCount = insertedEnrollments.length;
+          console.log(`Batch inserted ${insertedEnrollments.length} enrollments`);
+        }
         console.timeEnd('batchInsertEnrollments');
-        console.log(`Batch inserted ${insertedEnrollments.length} enrollments`);
       }
 
       // Process UPDATEs (still sequential for diff application)
+      // Only updates explicit fields - empty fields preserve existing data
       console.time('processUpdates');
       for (const change of updateChanges) {
         if (!change.targetEnrollmentId) {
@@ -312,9 +537,29 @@ export async function applyBatchChanges(
           continue;
         }
 
+        // Build update values from diff - use new field names with fallback to legacy
         const updateValues: Record<string, unknown> = {};
-        if (diff.startDate) updateValues.enrollmentDate = diff.startDate.new;
-        if (diff.endDate) updateValues.expectedEndDate = diff.endDate.new;
+
+        // Course start date
+        if (diff.courseStartDate) {
+          updateValues.enrollmentDate = diff.courseStartDate.new;
+        } else if (diff.startDate) {
+          // Legacy field name
+          updateValues.enrollmentDate = diff.startDate.new;
+        }
+
+        // Course end date
+        if (diff.courseEndDate) {
+          updateValues.expectedEndDate = diff.courseEndDate.new;
+        } else if (diff.endDate) {
+          // Legacy field name
+          updateValues.expectedEndDate = diff.endDate.new;
+        }
+
+        // Weeks
+        if (diff.weeks) {
+          updateValues.bookedWeeks = diff.weeks.new;
+        }
 
         if (Object.keys(updateValues).length > 0) {
           await tx

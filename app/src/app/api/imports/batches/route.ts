@@ -158,13 +158,30 @@ export async function POST(request: NextRequest) {
       }
 
       // Store staged rows
+      // Convert explicitFields Set to array for JSON serialization
       const stgRowValues = parseResult.rows.map((row: ParsedRow) => ({
         tenantId,
         batchId: batch.id,
         rowNumber: row.rowNumber,
         rowStatus: row.isValid ? ROW_STATUS.VALID : ROW_STATUS.INVALID,
         rawData: row.rawData,
-        parsedData: row.parsedData,
+        parsedData: {
+          ...row.parsedData,
+          // Serialize dates to ISO strings for JSON storage
+          dateOfBirth: row.parsedData.dateOfBirth?.toISOString().split('T')[0] || null,
+          courseStartDate: row.parsedData.courseStartDate?.toISOString().split('T')[0] || null,
+          courseEndDate: row.parsedData.courseEndDate?.toISOString().split('T')[0] || null,
+          saleDate: row.parsedData.saleDate?.toISOString().split('T')[0] || null,
+          accommodationStartDate:
+            row.parsedData.accommodationStartDate?.toISOString().split('T')[0] || null,
+          accommodationEndDate:
+            row.parsedData.accommodationEndDate?.toISOString().split('T')[0] || null,
+          // Legacy date aliases
+          startDate: row.parsedData.startDate?.toISOString().split('T')[0] || null,
+          endDate: row.parsedData.endDate?.toISOString().split('T')[0] || null,
+          // Store explicit fields as array for preservation logic
+          _explicitFields: Array.from(row.explicitFields),
+        },
         validationErrors: row.validationErrors,
       }));
 

@@ -4,10 +4,14 @@
  * 1. Pre-fetch all enrollments in single query
  * 2. Process matching in parallel batches with Promise.all()
  * 3. In-memory matching instead of N+1 queries
+ * 4. Match strategy: Name + Start Date + Course (per plan)
+ * 5. Track explicit fields for preserving existing data
  */
 
 import { db } from '@/db';
 import { enrollments, classes, users } from '@/db/schema';
+import { bookings, courses } from '@/db/schema/business';
+import { students } from '@/db/schema/core';
 import { eq, and } from 'drizzle-orm';
 import type { ParsedRow } from './parser';
 
@@ -15,6 +19,8 @@ export interface MatchCandidate {
   enrollmentId: string;
   studentName: string | null;
   className: string;
+  courseName: string | null;
+  startDate: Date | string | null;
   score: number;
 }
 
@@ -62,19 +68,44 @@ function calculateDateSimilarity(a: Date | null, b: Date | null): number {
   return 0;
 }
 
+/**
+ * Calculate match score using Name + Start Date + Course strategy
+ * Weights: Name 40%, Start Date 30%, Course 30%
+ */
 function calculateMatchScore(
   parsed: ParsedRow['parsedData'],
-  candidate: { studentName: string | null; className: string; startDate: Date | string | null }
+  candidate: {
+    studentName: string | null;
+    className: string;
+    startDate: Date | string | null;
+    courseName?: string | null;
+  }
 ): number {
-  const nameScore = calculateStringSimilarity(parsed.studentName, candidate.studentName);
-  const classScore = calculateStringSimilarity(parsed.className, candidate.className);
+  // Use new field names with fallback to legacy
+  const parsedName = parsed.name || parsed.studentName;
+  const parsedStartDate = parsed.courseStartDate || parsed.startDate;
+  const parsedCourse = parsed.courseName || parsed.course;
+
+  const nameScore = calculateStringSimilarity(parsedName, candidate.studentName);
+
   let dateScore = 0;
-  if (parsed.startDate && candidate.startDate) {
+  if (parsedStartDate && candidate.startDate) {
     const candidateDate =
       candidate.startDate instanceof Date ? candidate.startDate : new Date(candidate.startDate);
-    dateScore = calculateDateSimilarity(parsed.startDate, candidateDate);
+    dateScore = calculateDateSimilarity(parsedStartDate, candidateDate);
   }
-  return Math.round(nameScore * 0.4 + classScore * 0.4 + dateScore * 0.2);
+
+  // Course matching (new per plan)
+  let courseScore = 0;
+  if (parsedCourse && candidate.courseName) {
+    courseScore = calculateStringSimilarity(parsedCourse, candidate.courseName);
+  } else if (!parsedCourse && !candidate.courseName) {
+    // Both empty - neutral score
+    courseScore = 50;
+  }
+
+  // Weighted: Name 40%, Start Date 30%, Course 30%
+  return Math.round(nameScore * 0.4 + dateScore * 0.3 + courseScore * 0.3);
 }
 
 const MATCH_THRESHOLD = 70;
@@ -87,11 +118,23 @@ interface CachedEnrollment {
   studentName: string | null;
   className: string;
   startDate: Date | string | null;
+  courseName: string | null;
   studentNameLower: string; // Pre-computed for faster matching
+}
+
+// Type for cached booking data (for matching with bookings)
+interface CachedBooking {
+  bookingId: string;
+  studentId: string;
+  studentName: string | null;
+  courseName: string | null;
+  courseStartDate: Date | string | null;
+  studentNameLower: string;
 }
 
 /**
  * OPTIMIZED: Pre-fetch ALL active enrollments for tenant in single query
+ * Includes course name for improved matching per plan
  */
 async function prefetchAllEnrollments(tenantId: string): Promise<CachedEnrollment[]> {
   console.time('prefetchAllEnrollments');
@@ -102,6 +145,8 @@ async function prefetchAllEnrollments(tenantId: string): Promise<CachedEnrollmen
       studentName: users.name,
       className: classes.name,
       startDate: enrollments.enrollmentDate,
+      // Try to get course name through class -> originalCourseId relationship
+      originalCourseId: enrollments.originalCourseId,
     })
     .from(enrollments)
     .innerJoin(users, eq(enrollments.studentId, users.id))
@@ -113,6 +158,40 @@ async function prefetchAllEnrollments(tenantId: string): Promise<CachedEnrollmen
 
   // Pre-compute lowercase names for faster matching
   return results.map(r => ({
+    enrollmentId: r.enrollmentId,
+    studentName: r.studentName,
+    className: r.className,
+    startDate: r.startDate,
+    courseName: null, // Will be populated from bookings if available
+    studentNameLower: (r.studentName || '').toLowerCase(),
+  }));
+}
+
+/**
+ * Pre-fetch ALL bookings for tenant with course info
+ * Used for matching against booking records
+ */
+async function prefetchAllBookings(tenantId: string): Promise<CachedBooking[]> {
+  console.time('prefetchAllBookings');
+
+  const results = await db
+    .select({
+      bookingId: bookings.id,
+      studentId: bookings.studentId,
+      studentName: users.name,
+      courseName: courses.name,
+      courseStartDate: bookings.courseStartDate,
+    })
+    .from(bookings)
+    .innerJoin(students, eq(bookings.studentId, students.id))
+    .innerJoin(users, eq(students.userId, users.id))
+    .innerJoin(courses, eq(bookings.courseId, courses.id))
+    .where(eq(bookings.tenantId, tenantId));
+
+  console.timeEnd('prefetchAllBookings');
+  console.log(`Prefetched ${results.length} bookings`);
+
+  return results.map(r => ({
     ...r,
     studentNameLower: (r.studentName || '').toLowerCase(),
   }));
@@ -120,16 +199,20 @@ async function prefetchAllEnrollments(tenantId: string): Promise<CachedEnrollmen
 
 /**
  * OPTIMIZED: Match against cached enrollments (in-memory, no DB query)
+ * Uses Name + Start Date + Course matching strategy
  */
 function findCandidatesInMemory(
   parsed: ParsedRow['parsedData'],
   cachedEnrollments: CachedEnrollment[]
 ): MatchResult {
-  if (!parsed.studentName || !parsed.className) {
+  // Use new field names with fallback to legacy
+  const parsedName = parsed.name || parsed.studentName;
+
+  if (!parsedName) {
     return { type: 'no_match', candidates: [], bestMatch: null };
   }
 
-  const searchFirstName = parsed.studentName.split(' ')[0].toLowerCase();
+  const searchFirstName = parsedName.split(' ')[0].toLowerCase();
 
   // Filter candidates by first name match (fast in-memory filter)
   const potentialMatches = cachedEnrollments.filter(e =>
@@ -140,16 +223,19 @@ function findCandidatesInMemory(
     return { type: 'no_match', candidates: [], bestMatch: null };
   }
 
-  // Score candidates
+  // Score candidates using Name + Start Date + Course
   const scoredCandidates: MatchCandidate[] = potentialMatches
     .map(r => ({
       enrollmentId: r.enrollmentId,
       studentName: r.studentName,
       className: r.className,
+      courseName: r.courseName,
+      startDate: r.startDate,
       score: calculateMatchScore(parsed, {
         studentName: r.studentName,
         className: r.className,
         startDate: r.startDate,
+        courseName: r.courseName,
       }),
     }))
     .filter(c => c.score >= MATCH_THRESHOLD)
@@ -177,14 +263,22 @@ function findCandidatesInMemory(
 }
 
 /**
- * OPTIMIZED: Calculate diff (still needs DB query, but batched)
+ * OPTIMIZED: Calculate diff with explicit fields tracking
+ * Only includes fields that have actual values (empty fields preserve existing data)
  */
 export async function calculateDiff(
   tenantId: string,
   parsed: ParsedRow['parsedData'],
-  enrollmentId: string
+  enrollmentId: string,
+  explicitFields?: Set<string>
 ): Promise<Record<string, { old: unknown; new: unknown }>> {
   const diff: Record<string, { old: unknown; new: unknown }> = {};
+
+  // Helper to check if field should be included in diff
+  const isExplicit = (field: string): boolean => {
+    if (!explicitFields) return true; // Legacy behavior: include all non-null fields
+    return explicitFields.has(field);
+  };
 
   const [existing] = await db
     .select({
@@ -192,6 +286,7 @@ export async function calculateDiff(
       className: classes.name,
       enrollmentDate: enrollments.enrollmentDate,
       expectedEndDate: enrollments.expectedEndDate,
+      bookedWeeks: enrollments.bookedWeeks,
     })
     .from(enrollments)
     .innerJoin(users, eq(enrollments.studentId, users.id))
@@ -201,39 +296,58 @@ export async function calculateDiff(
 
   if (!existing) return diff;
 
+  // Use new field names with fallback to legacy
+  const parsedName = parsed.name || parsed.studentName;
+  const parsedClassName = parsed.className;
+  const parsedStartDate = parsed.courseStartDate || parsed.startDate;
+  const parsedEndDate = parsed.courseEndDate || parsed.endDate;
+
+  // Name diff (only if explicitly provided)
   if (
-    parsed.studentName &&
-    existing.studentName !== parsed.studentName &&
-    calculateStringSimilarity(existing.studentName, parsed.studentName) < 95
+    isExplicit('name') &&
+    parsedName &&
+    existing.studentName !== parsedName &&
+    calculateStringSimilarity(existing.studentName, parsedName) < 95
   ) {
-    diff.studentName = { old: existing.studentName, new: parsed.studentName };
+    diff.name = { old: existing.studentName, new: parsedName };
   }
 
+  // Class name diff
   if (
-    parsed.className &&
-    existing.className !== parsed.className &&
-    calculateStringSimilarity(existing.className, parsed.className) < 95
+    isExplicit('className') &&
+    parsedClassName &&
+    existing.className !== parsedClassName &&
+    calculateStringSimilarity(existing.className, parsedClassName) < 95
   ) {
-    diff.className = { old: existing.className, new: parsed.className };
+    diff.className = { old: existing.className, new: parsedClassName };
   }
 
-  if (parsed.startDate && existing.enrollmentDate) {
+  // Start date diff
+  if (isExplicit('courseStartDate') && parsedStartDate && existing.enrollmentDate) {
     const existingDate = new Date(existing.enrollmentDate);
-    if (parsed.startDate.toDateString() !== existingDate.toDateString()) {
-      diff.startDate = {
+    if (parsedStartDate.toDateString() !== existingDate.toDateString()) {
+      diff.courseStartDate = {
         old: existing.enrollmentDate,
-        new: parsed.startDate.toISOString().split('T')[0],
+        new: parsedStartDate.toISOString().split('T')[0],
       };
     }
   }
 
-  if (parsed.endDate) {
+  // End date diff
+  if (isExplicit('courseEndDate') && parsedEndDate) {
     const existingEndDate = existing.expectedEndDate ? new Date(existing.expectedEndDate) : null;
-    if (!existingEndDate || parsed.endDate.toDateString() !== existingEndDate.toDateString()) {
-      diff.endDate = {
+    if (!existingEndDate || parsedEndDate.toDateString() !== existingEndDate.toDateString()) {
+      diff.courseEndDate = {
         old: existing.expectedEndDate,
-        new: parsed.endDate.toISOString().split('T')[0],
+        new: parsedEndDate.toISOString().split('T')[0],
       };
+    }
+  }
+
+  // Weeks diff
+  if (isExplicit('weeks') && parsed.weeks !== null) {
+    if (existing.bookedWeeks !== parsed.weeks) {
+      diff.weeks = { old: existing.bookedWeeks, new: parsed.weeks };
     }
   }
 
@@ -296,6 +410,7 @@ export async function processRowsForMatching(
   console.timeEnd('inMemoryMatching');
 
   // OPTIMIZATION 3: Batch diff calculations with Promise.all (parallel)
+  // Pass explicitFields to only include fields with actual values
   console.time('diffCalculations');
   const diffPromises: Promise<{
     index: number;
@@ -305,9 +420,12 @@ export async function processRowsForMatching(
   matchResults.forEach((mr, index) => {
     if (mr.row.isValid && mr.matchResult.type === 'single_match' && mr.matchResult.bestMatch) {
       diffPromises.push(
-        calculateDiff(tenantId, mr.row.parsedData, mr.matchResult.bestMatch.enrollmentId).then(
-          diff => ({ index, diff })
-        )
+        calculateDiff(
+          tenantId,
+          mr.row.parsedData,
+          mr.matchResult.bestMatch.enrollmentId,
+          mr.row.explicitFields // Pass explicit fields for preserving existing data
+        ).then(diff => ({ index, diff }))
       );
     }
   });

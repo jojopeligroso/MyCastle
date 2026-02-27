@@ -63,24 +63,33 @@ describe('MCP Types', () => {
     describe('generateScopes', () => {
       it('should generate admin scopes', () => {
         const scopes = ScopeMatcher.generateScopes('admin');
-        expect(scopes).toContain('admin:*');
-        expect(scopes).toContain('teacher:*');
-        expect(scopes).toContain('student:*');
+        // Admin has operational scopes (v3.0 architecture)
+        expect(scopes).toContain('academic:*');
+        expect(scopes).toContain('attendance:*');
+        expect(scopes).toContain('finance:*');
+        expect(scopes).toContain('student_services:*');
+        expect(scopes).toContain('operations:read');
+        expect(scopes).toContain('student:profile:read');
       });
 
       it('should generate teacher scopes', () => {
         const scopes = ScopeMatcher.generateScopes('teacher');
+        // Teacher has teaching-related scopes
         expect(scopes).toContain('teacher:*');
-        expect(scopes).toContain('student:view_grades');
-        expect(scopes).toContain('student:view_attendance');
-        expect(scopes).not.toContain('admin:*');
+        expect(scopes).toContain('academic:read');
+        expect(scopes).toContain('attendance:write');
+        expect(scopes).toContain('student:profile:*');
+        // Teacher should not have admin-level scopes
+        expect(scopes).not.toContain('finance:*');
+        expect(scopes).not.toContain('operations:*');
       });
 
       it('should generate student scopes', () => {
         const scopes = ScopeMatcher.generateScopes('student');
+        // Student has limited self-service scopes
         expect(scopes).toContain('student:*');
         expect(scopes).not.toContain('teacher:*');
-        expect(scopes).not.toContain('admin:*');
+        expect(scopes).not.toContain('academic:*');
       });
     });
   });

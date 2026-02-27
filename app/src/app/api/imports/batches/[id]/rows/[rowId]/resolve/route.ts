@@ -153,18 +153,73 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Update proposed change based on resolution type
     if (resolutionType === 'linked' && enrollmentId) {
       // Calculate diff for UPDATE
-      const parsedData = row.parsedData as {
-        studentName: string | null;
-        startDate: Date | null;
-        className: string | null;
-        endDate: Date | null;
-        course: string | null;
-        weeks: number | null;
-        isVisaStudent: boolean | null;
-        includeOnRegister: boolean | null;
+      // Handle both new and legacy field names
+      const rawParsedData = row.parsedData as Record<string, unknown>;
+      const parsedData = {
+        // New field names
+        name: (rawParsedData.name as string) || (rawParsedData.studentName as string) || null,
+        dateOfBirth: null as Date | null,
+        nationality: (rawParsedData.nationality as string) || null,
+        isVisaStudent: (rawParsedData.isVisaStudent as boolean) ?? null,
+        visaType: (rawParsedData.visaType as string) || null,
+        courseName:
+          (rawParsedData.courseName as string) || (rawParsedData.course as string) || null,
+        className: (rawParsedData.className as string) || null,
+        weeks: (rawParsedData.weeks as number) ?? null,
+        courseStartDate: rawParsedData.courseStartDate
+          ? new Date(rawParsedData.courseStartDate as string)
+          : rawParsedData.startDate
+            ? new Date(rawParsedData.startDate as string)
+            : null,
+        courseEndDate: rawParsedData.courseEndDate
+          ? new Date(rawParsedData.courseEndDate as string)
+          : rawParsedData.endDate
+            ? new Date(rawParsedData.endDate as string)
+            : null,
+        placementTestScore: (rawParsedData.placementTestScore as string) || null,
+        accommodationType: (rawParsedData.accommodationType as string) || null,
+        accommodationStartDate: rawParsedData.accommodationStartDate
+          ? new Date(rawParsedData.accommodationStartDate as string)
+          : null,
+        accommodationEndDate: rawParsedData.accommodationEndDate
+          ? new Date(rawParsedData.accommodationEndDate as string)
+          : null,
+        saleDate: rawParsedData.saleDate ? new Date(rawParsedData.saleDate as string) : null,
+        agencyName: (rawParsedData.agencyName as string) || null,
+        depositPaidEur: (rawParsedData.depositPaidEur as number) ?? null,
+        totalPaidEur: (rawParsedData.totalPaidEur as number) ?? null,
+        courseFeeEur: (rawParsedData.courseFeeEur as number) ?? null,
+        accommodationFeeEur: (rawParsedData.accommodationFeeEur as number) ?? null,
+        transferFeeEur: (rawParsedData.transferFeeEur as number) ?? null,
+        examFeeEur: (rawParsedData.examFeeEur as number) ?? null,
+        registrationFeeEur: (rawParsedData.registrationFeeEur as number) ?? null,
+        learnerProtectionFeeEur: (rawParsedData.learnerProtectionFeeEur as number) ?? null,
+        medicalInsuranceFeeEur: (rawParsedData.medicalInsuranceFeeEur as number) ?? null,
+        totalBookingEur: (rawParsedData.totalBookingEur as number) ?? null,
+        totalDueEur: null as number | null,
+        // Legacy aliases
+        studentName:
+          (rawParsedData.name as string) || (rawParsedData.studentName as string) || null,
+        startDate: rawParsedData.courseStartDate
+          ? new Date(rawParsedData.courseStartDate as string)
+          : rawParsedData.startDate
+            ? new Date(rawParsedData.startDate as string)
+            : null,
+        endDate: rawParsedData.courseEndDate
+          ? new Date(rawParsedData.courseEndDate as string)
+          : rawParsedData.endDate
+            ? new Date(rawParsedData.endDate as string)
+            : null,
+        course: (rawParsedData.courseName as string) || (rawParsedData.course as string) || null,
+        includeOnRegister: (rawParsedData.includeOnRegister as boolean) ?? null,
       };
 
-      const diff = await calculateDiff(tenantId, parsedData, enrollmentId);
+      // Get explicit fields if available
+      const explicitFields = rawParsedData._explicitFields
+        ? new Set(rawParsedData._explicitFields as string[])
+        : undefined;
+
+      const diff = await calculateDiff(tenantId, parsedData, enrollmentId, explicitFields);
       const action = Object.keys(diff).length > 0 ? CHANGE_ACTION.UPDATE : CHANGE_ACTION.NOOP;
 
       await db
