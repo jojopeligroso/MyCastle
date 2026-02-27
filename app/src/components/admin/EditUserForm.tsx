@@ -13,6 +13,9 @@ interface UserData {
   email: string;
   role: string;
   status: string;
+  phone?: string | null;
+  dateOfBirth?: string | null;
+  nationality?: string | null;
 }
 
 interface Props {
@@ -29,6 +32,9 @@ export function EditUserForm({ userData }: Props) {
     email: userData.email,
     role: userData.role,
     status: userData.status,
+    phone: userData.phone || '',
+    dateOfBirth: userData.dateOfBirth ? userData.dateOfBirth.split('T')[0] : '',
+    nationality: userData.nationality || '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -95,21 +101,65 @@ export function EditUserForm({ userData }: Props) {
       {/* Email */}
       <div className="mb-6">
         <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-          Email Address *
+          Email Address
         </label>
         <input
           type="email"
           id="email"
           name="email"
-          required
           value={formData.email}
           onChange={handleChange}
           placeholder="e.g., john.smith@example.com"
           className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
         />
-        <p className="mt-1 text-sm text-gray-500">
-          Changing email will require the user to verify the new address
-        </p>
+        <p className="mt-1 text-sm text-gray-500">Leave empty if user has no email address</p>
+      </div>
+
+      {/* Phone, Date of Birth, Nationality */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div>
+          <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+            Phone
+          </label>
+          <input
+            type="tel"
+            id="phone"
+            name="phone"
+            value={formData.phone}
+            onChange={handleChange}
+            placeholder="e.g., +353 1 234 5678"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700 mb-2">
+            Date of Birth
+          </label>
+          <input
+            type="date"
+            id="dateOfBirth"
+            name="dateOfBirth"
+            value={formData.dateOfBirth}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="nationality" className="block text-sm font-medium text-gray-700 mb-2">
+            Nationality
+          </label>
+          <input
+            type="text"
+            id="nationality"
+            name="nationality"
+            value={formData.nationality}
+            onChange={handleChange}
+            placeholder="e.g., Irish"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+          />
+        </div>
       </div>
 
       {/* Role and Status */}

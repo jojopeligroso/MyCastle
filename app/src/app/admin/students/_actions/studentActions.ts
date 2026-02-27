@@ -37,15 +37,28 @@ export interface CreateStudentData {
  * Student update data interface
  */
 export interface UpdateStudentData {
+  // User table fields
   name?: string;
   email?: string;
   phone?: string;
+  date_of_birth?: string;
+  nationality?: string;
+  // Student table fields
+  student_number?: string;
+  is_visa_student?: boolean;
+  visa_type?: string;
+  visa_expiry_date?: string;
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
+  emergency_contact_relationship?: string;
+  medical_conditions?: string;
+  dietary_requirements?: string;
+  status?: 'active' | 'inactive' | 'suspended' | 'archived' | 'graduated' | 'withdrawn';
+  // Legacy fields (kept for compatibility)
   current_level?: string;
   initial_level?: string;
   level_status?: 'confirmed' | 'provisional' | 'pending_approval';
-  visa_type?: string;
   visa_expiry?: string;
-  status?: 'active' | 'inactive' | 'suspended' | 'archived';
 }
 
 /**
@@ -199,8 +212,9 @@ export async function createStudent(data: CreateStudentData) {
 
 /**
  * Update student information
+ * Updates both users table and students table as appropriate
  *
- * @param studentId - Student user ID
+ * @param studentId - Student ID (from students table) or User ID
  * @param data - Fields to update
  * @returns Success status or error message
  */
@@ -211,71 +225,192 @@ export async function updateStudent(studentId: string, data: UpdateStudentData) 
   }
 
   try {
-    // Get current student data
-    const [currentStudent] = await db
-      .select()
-      .from(users)
-      .where(and(eq(users.id, studentId), eq(users.tenantId, tenantId), eq(users.role, 'student')))
-      .limit(1);
+    // First, try to find by student ID
+    let studentRecord = await db.execute(sql`
+      SELECT s.id as student_id, s.user_id, u.id as user_id_check, u.email as current_email
+      FROM students s
+      JOIN users u ON s.user_id = u.id
+      WHERE s.id = ${studentId} AND s.tenant_id = ${tenantId}
+      LIMIT 1
+    `);
 
-    if (!currentStudent) {
-      return { success: false, error: 'Student not found' };
+    let userId: string;
+    let studentTableId: string;
+    let currentEmail: string;
+
+    if (studentRecord && studentRecord.length > 0) {
+      const record = studentRecord[0] as {
+        student_id: string;
+        user_id: string;
+        current_email: string;
+      };
+      userId = record.user_id;
+      studentTableId = record.student_id;
+      currentEmail = record.current_email;
+    } else {
+      // Try to find by user ID (backwards compatibility)
+      const userRecord = await db.execute(sql`
+        SELECT u.id as user_id, u.email as current_email, s.id as student_id
+        FROM users u
+        LEFT JOIN students s ON s.user_id = u.id AND s.tenant_id = ${tenantId}
+        WHERE u.id = ${studentId} AND u.tenant_id = ${tenantId} AND u.role = 'student'
+        LIMIT 1
+      `);
+
+      if (!userRecord || userRecord.length === 0) {
+        return { success: false, error: 'Student not found' };
+      }
+
+      const record = userRecord[0] as {
+        user_id: string;
+        current_email: string;
+        student_id: string | null;
+      };
+      userId = record.user_id;
+      studentTableId = record.student_id || '';
+      currentEmail = record.current_email;
     }
 
     // Check for email conflicts if email is being changed
-    if (data.email && data.email !== currentStudent.email) {
-      const [emailConflict] = await db
-        .select()
-        .from(users)
-        .where(and(eq(users.email, data.email), eq(users.tenantId, tenantId)))
-        .limit(1);
+    if (data.email && data.email !== currentEmail) {
+      const emailConflict = await db.execute(sql`
+        SELECT id FROM users
+        WHERE email = ${data.email} AND tenant_id = ${tenantId} AND id != ${userId}
+        LIMIT 1
+      `);
 
-      if (emailConflict) {
+      if (emailConflict && emailConflict.length > 0) {
         return { success: false, error: 'Email already in use' };
       }
     }
 
-    // TODO: CRITICAL - Student-specific fields need to be updated in students table
-    // Build update object (only user fields for now)
-    const updateData: Record<string, unknown> = {
-      updatedAt: new Date(),
-    };
+    // Update users table
+    const userUpdates: string[] = [];
+    const userValues: unknown[] = [];
 
-    if (data.name !== undefined) updateData.name = data.name;
-    if (data.email !== undefined) updateData.email = data.email;
-    // Note: phone is stored in metadata or students table, not users table
-    if (data.status !== undefined) updateData.isActive = data.status === 'active';
-
-    // Store student-specific fields in metadata temporarily until proper refactoring
-    const metadataUpdates: Record<string, unknown> = {};
-    if (data.current_level !== undefined) metadataUpdates.current_level = data.current_level;
-    if (data.initial_level !== undefined) metadataUpdates.initial_level = data.initial_level;
-    if (data.level_status !== undefined) metadataUpdates.level_status = data.level_status;
-    if (data.visa_type !== undefined) metadataUpdates.visa_type = data.visa_type;
-    if (data.visa_expiry !== undefined) metadataUpdates.visa_expiry = data.visa_expiry;
-
-    if (Object.keys(metadataUpdates).length > 0) {
-      updateData.metadata = sql`COALESCE(metadata, '{}'::jsonb) || ${JSON.stringify(metadataUpdates)}::jsonb`;
+    if (data.name !== undefined) {
+      userUpdates.push('name = $' + (userValues.length + 1));
+      userValues.push(data.name);
+    }
+    if (data.email !== undefined) {
+      userUpdates.push('email = $' + (userValues.length + 1));
+      userValues.push(data.email);
+    }
+    if (data.phone !== undefined) {
+      userUpdates.push('phone = $' + (userValues.length + 1));
+      userValues.push(data.phone || null);
+    }
+    if (data.date_of_birth !== undefined) {
+      userUpdates.push('date_of_birth = $' + (userValues.length + 1));
+      userValues.push(data.date_of_birth || null);
+    }
+    if (data.nationality !== undefined) {
+      userUpdates.push('nationality = $' + (userValues.length + 1));
+      userValues.push(data.nationality || null);
+    }
+    if (data.status !== undefined) {
+      userUpdates.push('is_active = $' + (userValues.length + 1));
+      userValues.push(data.status === 'active');
     }
 
-    // Update student
-    await db
-      .update(users)
-      .set(updateData)
-      .where(and(eq(users.id, studentId), eq(users.tenantId, tenantId)));
+    if (userUpdates.length > 0) {
+      userUpdates.push('updated_at = NOW()');
+      await db.execute(
+        sql.raw(
+          `
+        UPDATE users SET ${userUpdates.join(', ')}
+        WHERE id = '${userId}' AND tenant_id = '${tenantId}'
+      `.replace(/\$(\d+)/g, (_, n) => {
+            const val = userValues[parseInt(n) - 1];
+            if (val === null) return 'NULL';
+            if (typeof val === 'boolean') return val.toString();
+            return `'${String(val).replace(/'/g, "''")}'`;
+          })
+        )
+      );
+    }
+
+    // Update students table if we have a student record
+    if (studentTableId) {
+      const studentUpdates: string[] = [];
+
+      if (data.student_number !== undefined) {
+        studentUpdates.push(
+          `student_number = ${data.student_number ? `'${data.student_number.replace(/'/g, "''")}'` : 'NULL'}`
+        );
+      }
+      if (data.is_visa_student !== undefined) {
+        studentUpdates.push(`is_visa_student = ${data.is_visa_student}`);
+      }
+      if (data.visa_type !== undefined) {
+        studentUpdates.push(
+          `visa_type = ${data.visa_type ? `'${data.visa_type.replace(/'/g, "''")}'` : 'NULL'}`
+        );
+      }
+      if (data.visa_expiry_date !== undefined || data.visa_expiry !== undefined) {
+        const expiryDate = data.visa_expiry_date || data.visa_expiry;
+        studentUpdates.push(`visa_expiry_date = ${expiryDate ? `'${expiryDate}'` : 'NULL'}`);
+      }
+      if (data.emergency_contact_name !== undefined) {
+        studentUpdates.push(
+          `emergency_contact_name = ${data.emergency_contact_name ? `'${data.emergency_contact_name.replace(/'/g, "''")}'` : 'NULL'}`
+        );
+      }
+      if (data.emergency_contact_phone !== undefined) {
+        studentUpdates.push(
+          `emergency_contact_phone = ${data.emergency_contact_phone ? `'${data.emergency_contact_phone.replace(/'/g, "''")}'` : 'NULL'}`
+        );
+      }
+      if (data.emergency_contact_relationship !== undefined) {
+        studentUpdates.push(
+          `emergency_contact_relationship = ${data.emergency_contact_relationship ? `'${data.emergency_contact_relationship.replace(/'/g, "''")}'` : 'NULL'}`
+        );
+      }
+      if (data.medical_conditions !== undefined) {
+        studentUpdates.push(
+          `medical_conditions = ${data.medical_conditions ? `'${data.medical_conditions.replace(/'/g, "''")}'` : 'NULL'}`
+        );
+      }
+      if (data.dietary_requirements !== undefined) {
+        studentUpdates.push(
+          `dietary_requirements = ${data.dietary_requirements ? `'${data.dietary_requirements.replace(/'/g, "''")}'` : 'NULL'}`
+        );
+      }
+      if (data.status !== undefined) {
+        // Map status values for students table
+        const studentStatus =
+          data.status === 'inactive' || data.status === 'archived' ? 'withdrawn' : data.status;
+        studentUpdates.push(`status = '${studentStatus}'`);
+      }
+
+      if (studentUpdates.length > 0) {
+        studentUpdates.push('updated_at = NOW()');
+        await db.execute(
+          sql.raw(`
+          UPDATE students SET ${studentUpdates.join(', ')}
+          WHERE id = '${studentTableId}' AND tenant_id = '${tenantId}'
+        `)
+        );
+      }
+    }
 
     // Create audit log
-    await db.execute(sql`
-      INSERT INTO audit_logs (tenant_id, user_id, action, resource_type, resource_id, changes)
-      VALUES (
-        ${tenantId},
-        (SELECT id FROM users WHERE auth_id = auth.uid() LIMIT 1),
-        'student.update',
-        'user',
-        ${studentId},
-        ${JSON.stringify({ updated_fields: Object.keys(data) })}
-      )
-    `);
+    try {
+      await db.execute(sql`
+        INSERT INTO audit_logs (tenant_id, user_id, action, resource_type, resource_id, changes)
+        VALUES (
+          ${tenantId},
+          ${userId},
+          'student.update',
+          'student',
+          ${studentTableId || userId},
+          ${JSON.stringify({ updated_fields: Object.keys(data) })}
+        )
+      `);
+    } catch (auditError) {
+      // Don't fail the update if audit log fails
+      console.error('Failed to create audit log:', auditError);
+    }
 
     revalidatePath('/admin/students');
     revalidatePath(`/admin/students/${studentId}`);
