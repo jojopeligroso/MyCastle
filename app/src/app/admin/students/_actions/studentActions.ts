@@ -53,7 +53,7 @@ export interface UpdateStudentData {
   emergency_contact_relationship?: string;
   medical_conditions?: string;
   dietary_requirements?: string;
-  status?: 'active' | 'inactive' | 'suspended' | 'archived' | 'graduated' | 'withdrawn';
+  status?: 'active' | 'inactive' | 'suspended' | 'archived' | 'course_completed' | 'withdrawn';
   // Legacy fields (kept for compatibility)
   current_level?: string;
   initial_level?: string;
@@ -586,6 +586,248 @@ export async function getDuplicateCandidates() {
   } catch (error) {
     console.error('Error fetching duplicate candidates:', error);
     return [];
+  }
+}
+
+/**
+ * Get student's current class enrollments
+ *
+ * @param studentId - Student ID (from students table) or User ID
+ * @returns Array of current enrollments with class details
+ */
+export async function getStudentEnrollments(studentId: string) {
+  const tenantId = await getTenantId();
+  if (!tenantId) {
+    return { success: false, error: 'Tenant not found', enrollments: [] };
+  }
+
+  try {
+    // First find the user ID (studentId might be students.id or users.id)
+    const userResult = await db.execute(sql`
+      SELECT COALESCE(s.user_id, ${studentId}) as user_id
+      FROM students s
+      WHERE (s.id = ${studentId} OR s.user_id = ${studentId}) AND s.tenant_id = ${tenantId}
+      LIMIT 1
+    `);
+
+    const userId =
+      userResult.length > 0 ? (userResult[0] as { user_id: string }).user_id : studentId;
+
+    const result = await db.execute(sql`
+      SELECT
+        e.id as enrollment_id,
+        e.class_id,
+        e.status as enrollment_status,
+        e.enrollment_date,
+        e.expected_end_date,
+        c.name as class_name,
+        c.code as class_code,
+        c.level as class_level,
+        c.schedule_description,
+        c.start_date as class_start_date,
+        c.end_date as class_end_date,
+        t.name as teacher_name
+      FROM enrollments e
+      JOIN classes c ON e.class_id = c.id
+      LEFT JOIN users t ON c.teacher_id = t.id
+      WHERE e.student_id = ${userId} AND e.tenant_id = ${tenantId}
+      ORDER BY e.enrollment_date DESC
+    `);
+
+    return { success: true, enrollments: result as unknown as StudentEnrollment[] };
+  } catch (error) {
+    console.error('Error fetching student enrollments:', error);
+    return { success: false, error: 'Failed to fetch enrollments', enrollments: [] };
+  }
+}
+
+export interface StudentEnrollment {
+  enrollment_id: string;
+  class_id: string;
+  enrollment_status: string;
+  enrollment_date: string;
+  expected_end_date: string | null;
+  class_name: string;
+  class_code: string | null;
+  class_level: string | null;
+  schedule_description: string | null;
+  class_start_date: string;
+  class_end_date: string | null;
+  teacher_name: string | null;
+}
+
+/**
+ * Get available classes for enrollment
+ *
+ * @returns Array of active classes that can be enrolled in
+ */
+export async function getAvailableClasses() {
+  const tenantId = await getTenantId();
+  if (!tenantId) {
+    return { success: false, error: 'Tenant not found', classes: [] };
+  }
+
+  try {
+    const result = await db.execute(sql`
+      SELECT
+        c.id,
+        c.name,
+        c.code,
+        c.level,
+        c.capacity,
+        c.enrolled_count,
+        c.schedule_description,
+        c.start_date,
+        c.end_date,
+        t.name as teacher_name
+      FROM classes c
+      LEFT JOIN users t ON c.teacher_id = t.id
+      WHERE c.tenant_id = ${tenantId}
+        AND c.status = 'active'
+        AND (c.end_date IS NULL OR c.end_date >= CURRENT_DATE)
+      ORDER BY c.name
+    `);
+
+    return { success: true, classes: result as unknown as AvailableClass[] };
+  } catch (error) {
+    console.error('Error fetching available classes:', error);
+    return { success: false, error: 'Failed to fetch classes', classes: [] };
+  }
+}
+
+export interface AvailableClass {
+  id: string;
+  name: string;
+  code: string | null;
+  level: string | null;
+  capacity: number;
+  enrolled_count: number;
+  schedule_description: string | null;
+  start_date: string;
+  end_date: string | null;
+  teacher_name: string | null;
+}
+
+/**
+ * Enroll student in a class
+ *
+ * @param studentId - Student ID (from students table) or User ID
+ * @param classId - Class to enroll in
+ * @returns Success status or error message
+ */
+export async function enrollStudentInClass(studentId: string, classId: string) {
+  const tenantId = await getTenantId();
+  if (!tenantId) {
+    return { success: false, error: 'Tenant not found' };
+  }
+
+  try {
+    // Find user ID
+    const userResult = await db.execute(sql`
+      SELECT COALESCE(s.user_id, ${studentId}) as user_id
+      FROM students s
+      WHERE (s.id = ${studentId} OR s.user_id = ${studentId}) AND s.tenant_id = ${tenantId}
+      LIMIT 1
+    `);
+
+    const userId =
+      userResult.length > 0 ? (userResult[0] as { user_id: string }).user_id : studentId;
+
+    // Check if already enrolled
+    const existing = await db.execute(sql`
+      SELECT id FROM enrollments
+      WHERE student_id = ${userId} AND class_id = ${classId} AND tenant_id = ${tenantId}
+      LIMIT 1
+    `);
+
+    if (existing.length > 0) {
+      return { success: false, error: 'Student is already enrolled in this class' };
+    }
+
+    // Check class capacity
+    const classInfo = await db.execute(sql`
+      SELECT capacity, enrolled_count FROM classes
+      WHERE id = ${classId} AND tenant_id = ${tenantId}
+      LIMIT 1
+    `);
+
+    if (classInfo.length === 0) {
+      return { success: false, error: 'Class not found' };
+    }
+
+    const { capacity, enrolled_count } = classInfo[0] as {
+      capacity: number;
+      enrolled_count: number;
+    };
+    if (enrolled_count >= capacity) {
+      return { success: false, error: 'Class is at full capacity' };
+    }
+
+    // Create enrollment
+    await db.execute(sql`
+      INSERT INTO enrollments (tenant_id, student_id, class_id, enrollment_date, status)
+      VALUES (${tenantId}, ${userId}, ${classId}, CURRENT_DATE, 'active')
+    `);
+
+    // Update class enrolled count
+    await db.execute(sql`
+      UPDATE classes SET enrolled_count = enrolled_count + 1, updated_at = NOW()
+      WHERE id = ${classId} AND tenant_id = ${tenantId}
+    `);
+
+    revalidatePath('/admin/students');
+    revalidatePath(`/admin/students/${studentId}`);
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error enrolling student:', error);
+    return { success: false, error: 'Failed to enroll student' };
+  }
+}
+
+/**
+ * Remove student from a class
+ *
+ * @param enrollmentId - Enrollment ID to remove
+ * @returns Success status or error message
+ */
+export async function removeStudentEnrollment(enrollmentId: string) {
+  const tenantId = await getTenantId();
+  if (!tenantId) {
+    return { success: false, error: 'Tenant not found' };
+  }
+
+  try {
+    // Get enrollment details first
+    const enrollment = await db.execute(sql`
+      SELECT class_id, student_id FROM enrollments
+      WHERE id = ${enrollmentId} AND tenant_id = ${tenantId}
+      LIMIT 1
+    `);
+
+    if (enrollment.length === 0) {
+      return { success: false, error: 'Enrollment not found' };
+    }
+
+    const { class_id } = enrollment[0] as { class_id: string; student_id: string };
+
+    // Remove enrollment
+    await db.execute(sql`
+      DELETE FROM enrollments WHERE id = ${enrollmentId} AND tenant_id = ${tenantId}
+    `);
+
+    // Update class enrolled count
+    await db.execute(sql`
+      UPDATE classes SET enrolled_count = GREATEST(enrolled_count - 1, 0), updated_at = NOW()
+      WHERE id = ${class_id} AND tenant_id = ${tenantId}
+    `);
+
+    revalidatePath('/admin/students');
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error removing enrollment:', error);
+    return { success: false, error: 'Failed to remove enrollment' };
   }
 }
 

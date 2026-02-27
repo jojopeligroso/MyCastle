@@ -221,7 +221,7 @@ export function StudentEditForm({ student, onSave, onCancel }: StudentEditFormPr
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
             >
               <option value="active">Active</option>
-              <option value="graduated">Graduated</option>
+              <option value="course_completed">Course Completed</option>
               <option value="withdrawn">Withdrawn</option>
               <option value="suspended">Suspended</option>
             </select>

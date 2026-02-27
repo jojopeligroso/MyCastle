@@ -1,10 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   updateStudent,
+  getStudentEnrollments,
+  getAvailableClasses,
+  enrollStudentInClass,
+  removeStudentEnrollment,
   type UpdateStudentData,
+  type StudentEnrollment,
+  type AvailableClass,
 } from '@/app/admin/students/_actions/studentActions';
 
 interface StudentEditPageFormProps {
@@ -35,6 +41,80 @@ export function StudentEditPageForm({ student, studentId }: StudentEditPageFormP
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Class enrollment state
+  const [enrollments, setEnrollments] = useState<StudentEnrollment[]>([]);
+  const [availableClasses, setAvailableClasses] = useState<AvailableClass[]>([]);
+  const [selectedClassId, setSelectedClassId] = useState('');
+  const [isLoadingEnrollments, setIsLoadingEnrollments] = useState(true);
+  const [enrollmentError, setEnrollmentError] = useState<string | null>(null);
+  const [isEnrolling, setIsEnrolling] = useState(false);
+
+  // Load enrollments and available classes
+  useEffect(() => {
+    async function loadEnrollmentData() {
+      setIsLoadingEnrollments(true);
+      try {
+        const [enrollmentsResult, classesResult] = await Promise.all([
+          getStudentEnrollments(studentId),
+          getAvailableClasses(),
+        ]);
+
+        if (enrollmentsResult.success) {
+          setEnrollments(enrollmentsResult.enrollments);
+        }
+        if (classesResult.success) {
+          setAvailableClasses(classesResult.classes);
+        }
+      } catch (err) {
+        console.error('Error loading enrollment data:', err);
+      } finally {
+        setIsLoadingEnrollments(false);
+      }
+    }
+
+    loadEnrollmentData();
+  }, [studentId]);
+
+  const handleEnrollInClass = async () => {
+    if (!selectedClassId) return;
+
+    setIsEnrolling(true);
+    setEnrollmentError(null);
+
+    try {
+      const result = await enrollStudentInClass(studentId, selectedClassId);
+      if (result.success) {
+        // Refresh enrollments
+        const enrollmentsResult = await getStudentEnrollments(studentId);
+        if (enrollmentsResult.success) {
+          setEnrollments(enrollmentsResult.enrollments);
+        }
+        setSelectedClassId('');
+      } else {
+        setEnrollmentError(result.error || 'Failed to enroll');
+      }
+    } catch (err) {
+      setEnrollmentError('An error occurred');
+    } finally {
+      setIsEnrolling(false);
+    }
+  };
+
+  const handleRemoveEnrollment = async (enrollmentId: string) => {
+    if (!confirm('Are you sure you want to remove this class enrollment?')) return;
+
+    try {
+      const result = await removeStudentEnrollment(enrollmentId);
+      if (result.success) {
+        setEnrollments(enrollments.filter(e => e.enrollment_id !== enrollmentId));
+      } else {
+        setEnrollmentError(result.error || 'Failed to remove enrollment');
+      }
+    } catch (err) {
+      setEnrollmentError('An error occurred');
+    }
+  };
 
   const [formData, setFormData] = useState({
     name: student.name || '',
@@ -216,7 +296,7 @@ export function StudentEditPageForm({ student, studentId }: StudentEditPageFormP
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
             >
               <option value="active">Active</option>
-              <option value="graduated">Graduated</option>
+              <option value="course_completed">Course Completed</option>
               <option value="withdrawn">Withdrawn</option>
               <option value="suspended">Suspended</option>
             </select>
@@ -382,6 +462,111 @@ export function StudentEditPageForm({ student, studentId }: StudentEditPageFormP
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
               placeholder="e.g., Vegetarian, Vegan, Allergies"
             />
+          </div>
+        </div>
+      </section>
+
+      {/* Class Assignment */}
+      <section>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b">
+          Class Assignment
+        </h3>
+
+        {enrollmentError && (
+          <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+            {enrollmentError}
+          </div>
+        )}
+
+        {/* Current Enrollments */}
+        <div className="mb-6">
+          <h4 className="text-sm font-medium text-gray-700 mb-3">Current Classes</h4>
+          {isLoadingEnrollments ? (
+            <div className="text-sm text-gray-500">Loading enrollments...</div>
+          ) : enrollments.length === 0 ? (
+            <div className="text-sm text-gray-500 bg-gray-50 p-4 rounded-lg">
+              Not enrolled in any classes
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {enrollments.map(enrollment => (
+                <div
+                  key={enrollment.enrollment_id}
+                  className="flex items-center justify-between bg-gray-50 p-3 rounded-lg"
+                >
+                  <div>
+                    <div className="font-medium text-gray-900">
+                      {enrollment.class_name}
+                      {enrollment.class_code && (
+                        <span className="ml-2 text-gray-500 text-sm">
+                          ({enrollment.class_code})
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {enrollment.class_level && <span>{enrollment.class_level} • </span>}
+                      {enrollment.teacher_name && <span>{enrollment.teacher_name} • </span>}
+                      {enrollment.schedule_description && (
+                        <span>{enrollment.schedule_description}</span>
+                      )}
+                    </div>
+                    <div className="text-xs text-gray-400 mt-1">
+                      Enrolled: {enrollment.enrollment_date}
+                      {enrollment.expected_end_date && ` • Ends: ${enrollment.expected_end_date}`}
+                      <span
+                        className={`ml-2 px-1.5 py-0.5 rounded ${
+                          enrollment.enrollment_status === 'active'
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-gray-200 text-gray-600'
+                        }`}
+                      >
+                        {enrollment.enrollment_status}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveEnrollment(enrollment.enrollment_id)}
+                    className="text-red-600 hover:text-red-800 text-sm font-medium"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Add to Class */}
+        <div>
+          <h4 className="text-sm font-medium text-gray-700 mb-3">Add to Class</h4>
+          <div className="flex gap-3">
+            <select
+              value={selectedClassId}
+              onChange={e => setSelectedClassId(e.target.value)}
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              disabled={isLoadingEnrollments}
+            >
+              <option value="">Select a class...</option>
+              {availableClasses
+                .filter(c => !enrollments.some(e => e.class_id === c.id))
+                .map(classItem => (
+                  <option key={classItem.id} value={classItem.id}>
+                    {classItem.name}
+                    {classItem.level && ` (${classItem.level})`}
+                    {classItem.teacher_name && ` - ${classItem.teacher_name}`}
+                    {` [${classItem.enrolled_count}/${classItem.capacity}]`}
+                  </option>
+                ))}
+            </select>
+            <button
+              type="button"
+              onClick={handleEnrollInClass}
+              disabled={!selectedClassId || isEnrolling}
+              className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isEnrolling ? 'Adding...' : 'Add'}
+            </button>
           </div>
         </div>
       </section>
