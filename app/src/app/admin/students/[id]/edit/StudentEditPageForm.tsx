@@ -468,9 +468,7 @@ export function StudentEditPageForm({ student, studentId }: StudentEditPageFormP
 
       {/* Class Assignment */}
       <section>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b">
-          Class Assignment
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b">Class Assignment</h3>
 
         {enrollmentError && (
           <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
