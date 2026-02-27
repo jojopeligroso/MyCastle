@@ -1,13 +1,14 @@
 /**
- * Attendance Register Page
- * Mark attendance for class sessions
- * Ref: spec/02-teacher-mcp.md §2.2.7, §2.3.3
+ * Attendance Page
+ * Role-based attendance views for teachers and admins
+ * - Teacher View: Current date, teacher's sessions only
+ * - Admin View: Date range, student or school-wide view
  */
 
 import { requireRole, requireAuth } from '@/lib/auth/utils';
 import { redirect } from 'next/navigation';
 import { Navigation } from '@/components/layout/Navigation';
-import { AttendanceRegister } from '@/components/attendance/AttendanceRegister';
+import { AttendanceViewSelector } from '@/components/attendance/AttendanceViewSelector';
 
 export default async function AttendancePage() {
   await requireRole(['teacher', 'admin']).catch(() => {
@@ -16,9 +17,8 @@ export default async function AttendancePage() {
 
   const user = await requireAuth();
   const userRole = user.user_metadata?.role || 'teacher';
-
-  // TODO: Fetch teacher's classes from database
-  // const classes = await getTeacherClasses(user.id);
+  const isAdmin =
+    userRole === 'admin' || userRole === 'super_admin' || userRole.startsWith('admin_');
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -26,14 +26,7 @@ export default async function AttendancePage() {
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          {/* Header */}
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">Attendance Register</h1>
-            <p className="mt-2 text-sm text-gray-600">Mark attendance for your class sessions</p>
-          </div>
-
-          {/* Attendance Register */}
-          <AttendanceRegister teacherId={user.id} />
+          <AttendanceViewSelector userId={user.id} userRole={userRole} isAdmin={isAdmin} />
         </div>
       </main>
     </div>
