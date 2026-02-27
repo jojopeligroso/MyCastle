@@ -37,3 +37,10 @@ body {
   font-family: var(--font-sans);
   min-height: 100vh;
 }
+
+/* Fix dropdown text visibility - native selects use OS dropdown with light background */
+select,
+select option {
+  color: #171717;
+  background-color: #ffffff;
+}
