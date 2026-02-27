@@ -38,9 +38,11 @@ body {
   min-height: 100vh;
 }
 
-/* Fix dropdown text visibility - native selects use OS dropdown with light background */
+/* Fix text visibility in form elements - native inputs use light background but inherit dark mode foreground */
 select,
-select option {
+select option,
+input,
+textarea {
   color: #171717;
   background-color: #ffffff;
 }
