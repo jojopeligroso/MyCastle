@@ -5,6 +5,10 @@
  * This test validates the fix for the critical bug where Transaction Mode Pooler
  * (port 6543) was incompatible with session-based RLS context.
  *
+ * NOTE: These are INTEGRATION tests that require a real database connection.
+ * They are skipped by default in the unit test suite.
+ * Run with: npm run test:integration (when configured)
+ *
  * Ref: app/src/lib/auth/utils.ts setRLSContext()
  */
 
@@ -12,7 +16,10 @@ import { describe, it, expect, beforeAll } from '@jest/globals';
 import { db, validateRLSSupport } from '../db';
 import { sql } from 'drizzle-orm';
 
-describe('RLS Session Variables Support', () => {
+// Skip these tests as they require a real database connection
+const describeIntegration = process.env.RUN_INTEGRATION_TESTS ? describe : describe.skip;
+
+describeIntegration('RLS Session Variables Support', () => {
   describe('Basic Session Variable Support', () => {
     it('should support setting and reading session variables', async () => {
       // This is what setRLSContext does - set a session variable

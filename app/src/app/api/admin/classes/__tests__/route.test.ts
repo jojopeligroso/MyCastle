@@ -4,18 +4,22 @@
  * Tests POST /api/admin/classes - Create class
  */
 
-import { describe, it, expect, jest, beforeEach } from '@jest/globals';
+import { describe, it, expect, beforeEach } from '@jest/globals';
 import { NextRequest } from 'next/server';
+
+// Mock auth utilities BEFORE importing the route
+// This ensures the mock is in place when the route module loads
+jest.mock('@/lib/auth/utils');
+jest.mock('@/db');
+
+// Now import the route and get references to mocked modules
 import { POST } from '../route';
 import { db } from '@/db';
 import { requireAuth, getTenantId } from '@/lib/auth/utils';
 
-// Mock dependencies
-jest.mock('@/db');
-jest.mock('@/lib/auth/utils', () => ({
-  requireAuth: jest.fn(),
-  getTenantId: jest.fn(),
-}));
+// Get typed mock references
+const mockRequireAuth = requireAuth as jest.MockedFunction<typeof requireAuth>;
+const mockGetTenantId = getTenantId as jest.MockedFunction<typeof getTenantId>;
 
 describe('POST /api/admin/classes', () => {
   let mockRequest: Partial<NextRequest>;
@@ -28,12 +32,12 @@ describe('POST /api/admin/classes', () => {
     };
 
     // Mock auth functions
-    (requireAuth as any).mockResolvedValue({
+    mockRequireAuth.mockResolvedValue({
       id: 'user-123',
       user_metadata: { role: 'admin' },
     });
 
-    (getTenantId as any).mockResolvedValue('tenant-123');
+    mockGetTenantId.mockResolvedValue('tenant-123');
   });
 
   it('should create a class with valid data', async () => {
@@ -111,7 +115,7 @@ describe('POST /api/admin/classes', () => {
   });
 
   it('should reject request without authentication', async () => {
-    (requireAuth as any).mockRejectedValue(new Error('Unauthorized'));
+    mockRequireAuth.mockRejectedValue(new Error('Unauthorized'));
 
     const response = await POST(mockRequest as NextRequest);
 
@@ -119,7 +123,7 @@ describe('POST /api/admin/classes', () => {
   });
 
   it('should reject request from non-admin user', async () => {
-    (requireAuth as any).mockResolvedValue({
+    mockRequireAuth.mockResolvedValue({
       id: 'user-123',
       user_metadata: { role: 'student' },
     });
@@ -132,7 +136,7 @@ describe('POST /api/admin/classes', () => {
   });
 
   it('should reject request without tenant', async () => {
-    (getTenantId as any).mockResolvedValue(null);
+    mockGetTenantId.mockResolvedValue(null);
 
     const response = await POST(mockRequest as NextRequest);
     const data = await response.json();
@@ -218,7 +222,7 @@ describe('POST /api/admin/classes', () => {
   });
 
   it('should allow admin_* roles', async () => {
-    (requireAuth as any).mockResolvedValue({
+    mockRequireAuth.mockResolvedValue({
       id: 'user-123',
       user_metadata: { role: 'admin_academic' },
     });
@@ -245,7 +249,7 @@ describe('POST /api/admin/classes', () => {
   });
 
   it('should allow super_admin role', async () => {
-    (requireAuth as any).mockResolvedValue({
+    mockRequireAuth.mockResolvedValue({
       id: 'user-123',
       user_metadata: { role: 'super_admin' },
     });

@@ -3,21 +3,49 @@
 /**
  * ChangesPreviewTable Component
  * Reusable paginated table for displaying import inserts/updates with actual data
+ * Enhanced with preserved field indicators per comprehensive import plan
  */
 
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { ChevronLeft, ChevronRight, Loader2, ArrowRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, ArrowRight, Info } from 'lucide-react';
 
 interface ParsedData {
-  studentName: string | null;
-  className: string | null;
-  startDate: string | null;
-  endDate: string | null;
-  course?: string | null;
-  weeks?: number | null;
+  // New field names
+  name: string | null;
+  dateOfBirth?: string | null;
+  nationality?: string | null;
   isVisaStudent?: boolean | null;
+  visaType?: string | null;
+  courseName?: string | null;
+  className?: string | null;
+  weeks?: number | null;
+  courseStartDate?: string | null;
+  courseEndDate?: string | null;
+  placementTestScore?: string | null;
+  accommodationType?: string | null;
+  accommodationStartDate?: string | null;
+  accommodationEndDate?: string | null;
+  saleDate?: string | null;
+  agencyName?: string | null;
+  depositPaidEur?: number | null;
+  totalPaidEur?: number | null;
+  courseFeeEur?: number | null;
+  accommodationFeeEur?: number | null;
+  transferFeeEur?: number | null;
+  examFeeEur?: number | null;
+  registrationFeeEur?: number | null;
+  learnerProtectionFeeEur?: number | null;
+  medicalInsuranceFeeEur?: number | null;
+  totalBookingEur?: number | null;
+  // Legacy field aliases
+  studentName?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  course?: string | null;
   includeOnRegister?: boolean | null;
+  // Explicit fields tracking
+  _explicitFields?: string[];
 }
 
 interface DiffField {
@@ -95,6 +123,37 @@ export default function ChangesPreviewTable({
     return String(value);
   };
 
+  const formatCurrency = (value: number | null): string => {
+    if (value === null || value === undefined) return '-';
+    return `€${value.toFixed(2)}`;
+  };
+
+  // Check if a field is explicitly provided (not empty in import)
+  const isExplicitField = (row: RowData, field: string): boolean => {
+    const explicitFields = row.parsedData._explicitFields || [];
+    return explicitFields.includes(field);
+  };
+
+  // Get display name using new or legacy field
+  const getDisplayName = (data: ParsedData): string => {
+    return data.name || data.studentName || '-';
+  };
+
+  // Get display start date using new or legacy field
+  const getDisplayStartDate = (data: ParsedData): string => {
+    return formatDate(data.courseStartDate ?? data.startDate ?? null);
+  };
+
+  // Get display end date using new or legacy field
+  const getDisplayEndDate = (data: ParsedData): string => {
+    return formatDate(data.courseEndDate ?? data.endDate ?? null);
+  };
+
+  // Get display course name using new or legacy field
+  const getDisplayCourseName = (data: ParsedData): string => {
+    return data.courseName || data.course || '-';
+  };
+
   const totalPages = Math.ceil(total / pageSize);
   const startItem = page * pageSize + 1;
   const endItem = Math.min((page + 1) * pageSize, total);
@@ -125,6 +184,24 @@ export default function ChangesPreviewTable({
 
   return (
     <div className="space-y-4">
+      {/* Legend for preserved fields */}
+      {action === 'UPDATE' && (
+        <div className="flex items-center gap-4 text-xs text-gray-500 bg-gray-50 p-2 rounded">
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 bg-green-100 border border-green-300 rounded"></div>
+            <span>New/Changed values</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 bg-gray-100 border border-gray-300 rounded"></div>
+            <span>Keeping existing value (empty in import)</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Info className="h-3 w-3 text-gray-400" />
+            <span>Empty fields preserve existing data</span>
+          </div>
+        </div>
+      )}
+
       {/* Table */}
       <div className="overflow-x-auto border border-gray-200 rounded-lg">
         <table className="min-w-full divide-y divide-gray-200">
@@ -134,17 +211,30 @@ export default function ChangesPreviewTable({
                 Row
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Student Name
+                Name
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Class Name
+                Course
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Class
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Start Date
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                End Date
+                Weeks
               </th>
+              {action === 'INSERT' && (
+                <>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Visa
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Total Fee
+                  </th>
+                </>
+              )}
               {action === 'UPDATE' && (
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Changes
@@ -159,34 +249,55 @@ export default function ChangesPreviewTable({
                   {row.rowNumber}
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {row.parsedData.studentName || '-'}
+                  {getDisplayName(row.parsedData)}
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                  {getDisplayCourseName(row.parsedData)}
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                   {row.parsedData.className || '-'}
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                  {formatDate(row.parsedData.startDate)}
+                  {getDisplayStartDate(row.parsedData)}
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                  {formatDate(row.parsedData.endDate)}
+                  {row.parsedData.weeks ?? '-'}
                 </td>
+                {action === 'INSERT' && (
+                  <>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                      {row.parsedData.isVisaStudent ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                          {row.parsedData.visaType || 'Yes'}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">No</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                      {formatCurrency(row.parsedData.totalBookingEur ?? null)}
+                    </td>
+                  </>
+                )}
                 {action === 'UPDATE' && (
                   <td className="px-4 py-3 text-sm text-gray-900">
                     {row.diff && Object.keys(row.diff).length > 0 ? (
                       <div className="space-y-1">
                         {Object.entries(row.diff).map(([field, change]) => (
                           <div key={field} className="flex items-center gap-2 text-xs">
-                            <span className="font-medium text-gray-600">{field}:</span>
-                            <span className="text-red-600 line-through">
+                            <span className="font-medium text-gray-600 min-w-[80px]">{field}:</span>
+                            <span className="text-red-600 line-through bg-red-50 px-1 rounded">
                               {formatDiffValue(change.old)}
                             </span>
-                            <ArrowRight className="h-3 w-3 text-gray-400" />
-                            <span className="text-green-600">{formatDiffValue(change.new)}</span>
+                            <ArrowRight className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                            <span className="text-green-600 bg-green-50 px-1 rounded">
+                              {formatDiffValue(change.new)}
+                            </span>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <span className="text-gray-400">-</span>
+                      <span className="text-gray-400 italic">No changes (data matches)</span>
                     )}
                   </td>
                 )}

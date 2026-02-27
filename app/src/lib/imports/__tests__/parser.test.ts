@@ -80,9 +80,7 @@ describe('Parser', () => {
   describe('parseClassesFile', () => {
     describe('worksheet validation', () => {
       it('should accept workbook with exactly 1 worksheet', async () => {
-        const data = [
-          { 'Student Name': 'John Doe', 'Start Date': '2026-01-01', 'Class Name': 'English A1' },
-        ];
+        const data = [{ Name: 'John Doe', 'Start Date': '2026-01-01', 'Class Name': 'English A1' }];
         const buffer = createMockXLSX(data, 1);
 
         const result = await parseClassesFile(buffer);
@@ -101,7 +99,7 @@ describe('Parser', () => {
       });
 
       it('should return multi-sheet result for workbooks with multiple worksheets', async () => {
-        const data = [{ 'Student Name': 'John', 'Start Date': '2026-01-01', 'Class Name': 'A1' }];
+        const data = [{ Name: 'John', 'Start Date': '2026-01-01', 'Class Name': 'A1' }];
         const buffer = createMockXLSX(data, 3);
 
         const result = await parseClassesFile(buffer);
@@ -115,7 +113,7 @@ describe('Parser', () => {
       });
 
       it('should parse specified sheet from multi-sheet workbook', async () => {
-        const data = [{ 'Student Name': 'John', 'Start Date': '2026-01-01', 'Class Name': 'A1' }];
+        const data = [{ Name: 'John', 'Start Date': '2026-01-01', 'Class Name': 'A1' }];
         const buffer = createMockXLSX(data, 3);
 
         const result = await parseClassesFile(buffer, 'Sheet2');
@@ -125,7 +123,7 @@ describe('Parser', () => {
       });
 
       it('should error when specified sheet does not exist', async () => {
-        const data = [{ 'Student Name': 'John', 'Start Date': '2026-01-01', 'Class Name': 'A1' }];
+        const data = [{ Name: 'John', 'Start Date': '2026-01-01', 'Class Name': 'A1' }];
         const buffer = createMockXLSX(data, 2);
 
         const result = await parseClassesFile(buffer, 'NonExistentSheet');
@@ -140,7 +138,7 @@ describe('Parser', () => {
       it('should parse whitelisted columns', async () => {
         const data = [
           {
-            'Student Name': 'Jane Doe',
+            Name: 'Jane Doe',
             'Start Date': '2026-02-01',
             'Class Name': 'Business English',
             'End Date': '2026-06-01',
@@ -160,7 +158,7 @@ describe('Parser', () => {
       it('should ignore non-whitelisted columns', async () => {
         const data = [
           {
-            'Student Name': 'Test',
+            Name: 'Test',
             'Start Date': '2026-01-01',
             'Class Name': 'Test Class',
             'Random Column': 'ignored',
@@ -195,7 +193,7 @@ describe('Parser', () => {
     });
 
     describe('required columns validation', () => {
-      it('should fail when Student Name is missing', async () => {
+      it('should fail when Name is missing', async () => {
         const data = [
           {
             'Start Date': '2026-01-01',
@@ -207,13 +205,13 @@ describe('Parser', () => {
         const result = await parseClassesFile(buffer);
         assertParseResult(result);
         expect(result.success).toBe(false);
-        expect(result.error).toContain('Student Name');
+        expect(result.error).toContain('Name');
       });
 
       it('should fail when Start Date is missing', async () => {
         const data = [
           {
-            'Student Name': 'Test Student',
+            Name: 'Test Student',
             'Class Name': 'Test Class',
           },
         ];
@@ -225,10 +223,10 @@ describe('Parser', () => {
         expect(result.error).toContain('Start Date');
       });
 
-      it('should fail when Class Name is missing', async () => {
+      it('should succeed when only Name and Start Date are present (Class Name is now optional)', async () => {
         const data = [
           {
-            'Student Name': 'Test Student',
+            Name: 'Test Student',
             'Start Date': '2026-01-01',
           },
         ];
@@ -236,14 +234,14 @@ describe('Parser', () => {
 
         const result = await parseClassesFile(buffer);
         assertParseResult(result);
-        expect(result.success).toBe(false);
-        expect(result.error).toContain('Class Name');
+        // Per the plan, only Name and Start Date are required
+        expect(result.success).toBe(true);
       });
     });
 
     describe('row validation', () => {
-      it('should mark row as invalid when Student Name is empty', async () => {
-        const data = [{ 'Student Name': '', 'Start Date': '2026-01-01', 'Class Name': 'Test' }];
+      it('should mark row as invalid when Name is empty', async () => {
+        const data = [{ Name: '', 'Start Date': '2026-01-01', 'Class Name': 'Test' }];
         const buffer = createMockXLSX(data);
 
         const result = await parseClassesFile(buffer);
@@ -251,12 +249,12 @@ describe('Parser', () => {
         expect(result.success).toBe(true);
         expect(result.rows[0].isValid).toBe(false);
         expect(result.rows[0].validationErrors).toContainEqual(
-          expect.objectContaining({ field: 'Student Name' })
+          expect.objectContaining({ field: 'Name' })
         );
       });
 
       it('should mark row as invalid when Start Date is empty', async () => {
-        const data = [{ 'Student Name': 'Test', 'Start Date': '', 'Class Name': 'Test Class' }];
+        const data = [{ Name: 'Test', 'Start Date': '', 'Class Name': 'Test Class' }];
         const buffer = createMockXLSX(data);
 
         const result = await parseClassesFile(buffer);
@@ -271,7 +269,7 @@ describe('Parser', () => {
       it('should mark row as invalid when End Date is before Start Date', async () => {
         const data = [
           {
-            'Student Name': 'Test',
+            Name: 'Test',
             'Start Date': '2026-06-01',
             'Class Name': 'Test',
             'End Date': '2026-01-01',
@@ -288,12 +286,11 @@ describe('Parser', () => {
         );
       });
 
-      it('should accept valid row with all required fields', async () => {
+      it('should accept valid row with Name and Start Date (minimum required fields)', async () => {
         const data = [
           {
-            'Student Name': 'Valid Student',
+            Name: 'Valid Student',
             'Start Date': '2026-01-01',
-            'Class Name': 'Valid Class',
           },
         ];
         const buffer = createMockXLSX(data);
@@ -308,7 +305,7 @@ describe('Parser', () => {
 
     describe('date parsing', () => {
       it('should parse ISO date format (YYYY-MM-DD)', async () => {
-        const data = [{ 'Student Name': 'Test', 'Start Date': '2026-03-15', 'Class Name': 'Test' }];
+        const data = [{ Name: 'Test', 'Start Date': '2026-03-15', 'Class Name': 'Test' }];
         const buffer = createMockXLSX(data);
 
         const result = await parseClassesFile(buffer);
@@ -321,7 +318,7 @@ describe('Parser', () => {
       });
 
       it('should parse European date format (DD/MM/YYYY)', async () => {
-        const data = [{ 'Student Name': 'Test', 'Start Date': '15/03/2026', 'Class Name': 'Test' }];
+        const data = [{ Name: 'Test', 'Start Date': '15/03/2026', 'Class Name': 'Test' }];
         const buffer = createMockXLSX(data);
 
         const result = await parseClassesFile(buffer);
@@ -335,7 +332,7 @@ describe('Parser', () => {
       it('should handle null/empty dates for optional End Date', async () => {
         const data = [
           {
-            'Student Name': 'Test',
+            Name: 'Test',
             'Start Date': '2026-01-01',
             'Class Name': 'Test',
             'End Date': '',
@@ -354,11 +351,11 @@ describe('Parser', () => {
     describe('row counting', () => {
       it('should count total, valid, and invalid rows correctly', async () => {
         const data = [
-          { 'Student Name': 'Valid 1', 'Start Date': '2026-01-01', 'Class Name': 'Class 1' },
-          { 'Student Name': '', 'Start Date': '2026-01-01', 'Class Name': 'Class 2' }, // Invalid
-          { 'Student Name': 'Valid 2', 'Start Date': '2026-02-01', 'Class Name': 'Class 3' },
-          { 'Student Name': 'Invalid Date', 'Start Date': '', 'Class Name': 'Class 4' }, // Invalid
-          { 'Student Name': 'Valid 3', 'Start Date': '2026-03-01', 'Class Name': 'Class 5' },
+          { Name: 'Valid 1', 'Start Date': '2026-01-01', 'Class Name': 'Class 1' },
+          { Name: '', 'Start Date': '2026-01-01', 'Class Name': 'Class 2' }, // Invalid
+          { Name: 'Valid 2', 'Start Date': '2026-02-01', 'Class Name': 'Class 3' },
+          { Name: 'Invalid Date', 'Start Date': '', 'Class Name': 'Class 4' }, // Invalid
+          { Name: 'Valid 3', 'Start Date': '2026-03-01', 'Class Name': 'Class 5' },
         ];
         const buffer = createMockXLSX(data);
 
@@ -372,9 +369,9 @@ describe('Parser', () => {
 
       it('should assign correct row numbers (1-indexed, excluding header)', async () => {
         const data = [
-          { 'Student Name': 'Row 1', 'Start Date': '2026-01-01', 'Class Name': 'Class' },
-          { 'Student Name': 'Row 2', 'Start Date': '2026-01-01', 'Class Name': 'Class' },
-          { 'Student Name': 'Row 3', 'Start Date': '2026-01-01', 'Class Name': 'Class' },
+          { Name: 'Row 1', 'Start Date': '2026-01-01', 'Class Name': 'Class' },
+          { Name: 'Row 2', 'Start Date': '2026-01-01', 'Class Name': 'Class' },
+          { Name: 'Row 3', 'Start Date': '2026-01-01', 'Class Name': 'Class' },
         ];
         const buffer = createMockXLSX(data);
 
@@ -404,23 +401,34 @@ describe('Parser', () => {
   });
 
   describe('constants', () => {
-    it('should have correct whitelisted columns', () => {
-      expect(WHITELISTED_COLUMNS).toContain('Student Name');
+    it('should have correct whitelisted columns (expanded for comprehensive import)', () => {
+      // Core fields
+      expect(WHITELISTED_COLUMNS).toContain('Name');
       expect(WHITELISTED_COLUMNS).toContain('Start Date');
-      expect(WHITELISTED_COLUMNS).toContain('Class Name');
+      expect(WHITELISTED_COLUMNS).toContain('Level/Class');
       expect(WHITELISTED_COLUMNS).toContain('End Date');
       expect(WHITELISTED_COLUMNS).toContain('Course');
       expect(WHITELISTED_COLUMNS).toContain('Weeks');
       expect(WHITELISTED_COLUMNS).toContain('Visa');
-      expect(WHITELISTED_COLUMNS).toContain('Include On Register');
-      expect(WHITELISTED_COLUMNS).toHaveLength(8);
+      // New fields per plan
+      expect(WHITELISTED_COLUMNS).toContain('DOB');
+      expect(WHITELISTED_COLUMNS).toContain('Nationality');
+      expect(WHITELISTED_COLUMNS).toContain('Visa Type');
+      expect(WHITELISTED_COLUMNS).toContain('Sale Date');
+      expect(WHITELISTED_COLUMNS).toContain('Source');
+      expect(WHITELISTED_COLUMNS).toContain('Deposit Paid');
+      expect(WHITELISTED_COLUMNS).toContain('Course Fee Due');
+      expect(WHITELISTED_COLUMNS).toContain('Total Booking');
+      expect(WHITELISTED_COLUMNS).toContain('Accom Type');
+      // Should have 30 columns total
+      expect(WHITELISTED_COLUMNS).toHaveLength(30);
     });
 
-    it('should have correct required columns', () => {
-      expect(REQUIRED_COLUMNS).toContain('Student Name');
+    it('should have correct required columns (Name and Start Date only)', () => {
+      expect(REQUIRED_COLUMNS).toContain('Name');
       expect(REQUIRED_COLUMNS).toContain('Start Date');
-      expect(REQUIRED_COLUMNS).toContain('Class Name');
-      expect(REQUIRED_COLUMNS).toHaveLength(3);
+      // Class Name is no longer required per the plan
+      expect(REQUIRED_COLUMNS).toHaveLength(2);
     });
   });
 });

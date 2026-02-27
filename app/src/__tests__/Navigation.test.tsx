@@ -51,8 +51,10 @@ describe('Navigation Component', () => {
         <Navigation userEmail="admin@example.com" userRole="admin" currentPath="/dashboard" />
       );
 
-      expect(screen.getByText('Lesson Planner')).toBeInTheDocument();
+      // Admin gets Attendance and Import Data (not Lesson Planner which is teacher-only)
       expect(screen.getByText('Attendance')).toBeInTheDocument();
+      expect(screen.getByText('Import Data')).toBeInTheDocument();
+      expect(screen.queryByText('Lesson Planner')).not.toBeInTheDocument();
     });
 
     it('should not show teacher links for student role', () => {
@@ -116,6 +118,18 @@ describe('Navigation Component', () => {
 
       const lessonPlannerLink = screen.getByRole('link', { name: /lesson planner/i });
       expect(lessonPlannerLink).toHaveAttribute('href', '/teacher/lesson-planner');
+
+      const attendanceLink = screen.getByRole('link', { name: /attendance/i });
+      expect(attendanceLink).toHaveAttribute('href', '/teacher/attendance');
+    });
+
+    it('should render correct href for admin navigation items', () => {
+      render(
+        <Navigation userEmail="admin@example.com" userRole="admin" currentPath="/dashboard" />
+      );
+
+      const importDataLink = screen.getByRole('link', { name: /import data/i });
+      expect(importDataLink).toHaveAttribute('href', '/admin/imports/enrolment-uploads');
     });
   });
 

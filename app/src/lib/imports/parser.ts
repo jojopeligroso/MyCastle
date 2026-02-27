@@ -1,24 +1,52 @@
 /**
  * Import File Parser
- * Handles XLSX parsing with validation
+ * Handles XLSX parsing with validation for comprehensive Excel imports
+ * Supports all 27 columns from enrollment Excel files
  * Ref: spec/IMPORTS_UI_SPEC.md
  */
 
 import * as XLSX from 'xlsx';
 
 /**
- * Whitelisted columns from classes.xlsx
- * Per IMPORTS_UI_SPEC.md - these columns are processed
- * Additional columns: Course/Programme, Weeks, Visa, Include on Register
+ * All supported columns from Excel enrollment files
+ * Maps to users, students, bookings, courses, classes, agencies, accommodation_types
  */
 export const WHITELISTED_COLUMNS = [
-  'Student Name',
-  'Start Date',
-  'Class Name',
-  'End Date',
-  'Course',
-  'Weeks',
+  // Student identity (users table)
+  'Name',
+  'DOB',
+  'Nationality',
+  // Visa (students table)
   'Visa',
+  'Visa Type',
+  // Course/Class
+  'Course',
+  'Level/Class',
+  'Weeks',
+  'Start Date',
+  'End Date',
+  'Placement Test Score',
+  // Accommodation
+  'Accom Type',
+  'Accommodation Start Date',
+  'Accommodation End Date',
+  // Financial (bookings table)
+  'Sale Date',
+  'Source',
+  'Deposit Paid',
+  'Paid',
+  'Course Fee Due',
+  'Accomodation', // Note: typo preserved from Excel
+  'Transfer',
+  'Exam Fee',
+  'Registration Fee',
+  'Learner Protection',
+  'Medical Insurance',
+  'Total Booking',
+  'Total Booking Due',
+  // Legacy columns for backwards compatibility
+  'Student Name',
+  'Class Name',
   'Include On Register',
 ] as const;
 
@@ -26,25 +54,58 @@ export type WhitelistedColumn = (typeof WHITELISTED_COLUMNS)[number];
 
 /**
  * Required columns that must be present (key columns for matching)
+ * Only 'Name' and 'Start Date' are required per the plan
  */
-export const REQUIRED_COLUMNS: WhitelistedColumn[] = ['Student Name', 'Start Date', 'Class Name'];
+export const REQUIRED_COLUMNS: WhitelistedColumn[] = ['Name', 'Start Date'];
 
 /**
- * Parsed row from the file
+ * Parsed row from the file with explicit fields tracking
  */
 export interface ParsedRow {
   rowNumber: number;
   rawData: Record<string, unknown>;
   parsedData: {
-    studentName: string | null;
-    startDate: Date | null;
-    className: string | null;
-    endDate: Date | null;
-    course: string | null;
-    weeks: number | null;
+    // Student identity (users table)
+    name: string | null;
+    dateOfBirth: Date | null;
+    nationality: string | null;
+    // Visa (students table)
     isVisaStudent: boolean | null;
+    visaType: string | null;
+    // Course/Class
+    courseName: string | null;
+    className: string | null;
+    weeks: number | null;
+    courseStartDate: Date | null;
+    courseEndDate: Date | null;
+    placementTestScore: string | null;
+    // Accommodation
+    accommodationType: string | null;
+    accommodationStartDate: Date | null;
+    accommodationEndDate: Date | null;
+    // Financial (bookings table)
+    saleDate: Date | null;
+    agencyName: string | null;
+    depositPaidEur: number | null;
+    totalPaidEur: number | null;
+    courseFeeEur: number | null;
+    accommodationFeeEur: number | null;
+    transferFeeEur: number | null;
+    examFeeEur: number | null;
+    registrationFeeEur: number | null;
+    learnerProtectionFeeEur: number | null;
+    medicalInsuranceFeeEur: number | null;
+    totalBookingEur: number | null;
+    totalDueEur: number | null;
+    // Legacy fields for backwards compatibility
+    studentName: string | null; // alias for name
+    startDate: Date | null; // alias for courseStartDate
+    endDate: Date | null; // alias for courseEndDate
+    course: string | null; // alias for courseName
     includeOnRegister: boolean | null;
   };
+  /** Fields that have actual values (not empty) - used to preserve existing data on update */
+  explicitFields: Set<string>;
   validationErrors: Array<{ field: string; message: string }>;
   isValid: boolean;
 }
@@ -104,48 +165,132 @@ function normalizeHeader(header: string): string {
 }
 
 /**
+ * Column mapping configuration
+ * Maps normalized header names to internal field names and target tables
+ */
+export interface ColumnMapping {
+  index: number;
+  field: string;
+  table: string;
+}
+
+/**
  * Map normalized headers to whitelisted columns
+ * Returns the internal field name for storage
  */
 function mapHeader(header: string): WhitelistedColumn | null {
   const normalized = normalizeHeader(header);
 
   const mappings: Record<string, WhitelistedColumn> = {
-    // Student Name variations
-    'student name': 'Student Name',
-    studentname: 'Student Name',
-    name: 'Student Name',
-    student: 'Student Name',
-    // Start Date variations
-    'start date': 'Start Date',
-    startdate: 'Start Date',
-    start: 'Start Date',
-    // Class Name variations
-    'class name': 'Class Name',
-    classname: 'Class Name',
-    class: 'Class Name',
-    // End Date variations
-    'end date': 'End Date',
-    enddate: 'End Date',
-    end: 'End Date',
-    // Course/Programme variations
-    course: 'Course',
-    programme: 'Course',
-    program: 'Course',
-    'course name': 'Course',
-    coursename: 'Course',
-    // Weeks variations
-    weeks: 'Weeks',
-    week: 'Weeks',
-    'booked weeks': 'Weeks',
-    bookedweeks: 'Weeks',
-    duration: 'Weeks',
+    // Student Name/Identity variations
+    name: 'Name',
+    'student name': 'Name',
+    studentname: 'Name',
+    student: 'Name',
+    // DOB variations
+    dob: 'DOB',
+    'date of birth': 'DOB',
+    dateofbirth: 'DOB',
+    birthday: 'DOB',
+    birthdate: 'DOB',
+    // Nationality
+    nationality: 'Nationality',
+    country: 'Nationality',
     // Visa variations
     visa: 'Visa',
     'visa student': 'Visa',
     visastudent: 'Visa',
     'is visa': 'Visa',
     isvisa: 'Visa',
-    // Include on Register variations (was XXX counter)
+    // Visa Type
+    'visa type': 'Visa Type',
+    visatype: 'Visa Type',
+    // Course variations
+    course: 'Course',
+    programme: 'Course',
+    program: 'Course',
+    'course name': 'Course',
+    coursename: 'Course',
+    // Level/Class variations
+    levelclass: 'Level/Class',
+    'level class': 'Level/Class',
+    'class name': 'Level/Class',
+    classname: 'Level/Class',
+    class: 'Level/Class',
+    level: 'Level/Class',
+    // Weeks variations
+    weeks: 'Weeks',
+    week: 'Weeks',
+    'booked weeks': 'Weeks',
+    bookedweeks: 'Weeks',
+    duration: 'Weeks',
+    // Start Date variations (course start)
+    'start date': 'Start Date',
+    startdate: 'Start Date',
+    start: 'Start Date',
+    'course start': 'Start Date',
+    'course start date': 'Start Date',
+    // End Date variations (course end)
+    'end date': 'End Date',
+    enddate: 'End Date',
+    end: 'End Date',
+    'course end': 'End Date',
+    'course end date': 'End Date',
+    // Placement test
+    'placement test score': 'Placement Test Score',
+    'placement test': 'Placement Test Score',
+    placementtest: 'Placement Test Score',
+    'placement score': 'Placement Test Score',
+    // Accommodation Type
+    'accom type': 'Accom Type',
+    'accommodation type': 'Accom Type',
+    accomtype: 'Accom Type',
+    accommodationtype: 'Accom Type',
+    accommodation: 'Accom Type',
+    // Sale Date
+    'sale date': 'Sale Date',
+    saledate: 'Sale Date',
+    'booking date': 'Sale Date',
+    // Source/Agency
+    source: 'Source',
+    agency: 'Source',
+    'sales source': 'Source',
+    // Financial fields
+    'deposit paid': 'Deposit Paid',
+    depositpaid: 'Deposit Paid',
+    deposit: 'Deposit Paid',
+    paid: 'Paid',
+    'total paid': 'Paid',
+    totalpaid: 'Paid',
+    'course fee due': 'Course Fee Due',
+    coursefeedue: 'Course Fee Due',
+    'course fee': 'Course Fee Due',
+    accomodation: 'Accomodation', // typo preserved from Excel
+    'accommodation fee': 'Accomodation',
+    'accom fee': 'Accomodation',
+    transfer: 'Transfer',
+    'transfer fee': 'Transfer',
+    'exam fee': 'Exam Fee',
+    examfee: 'Exam Fee',
+    exam: 'Exam Fee',
+    'registration fee': 'Registration Fee',
+    registrationfee: 'Registration Fee',
+    registration: 'Registration Fee',
+    'learner protection': 'Learner Protection',
+    learnerprotection: 'Learner Protection',
+    'learner protection fee': 'Learner Protection',
+    'medical insurance': 'Medical Insurance',
+    medicalinsurance: 'Medical Insurance',
+    insurance: 'Medical Insurance',
+    'total booking': 'Total Booking',
+    totalbooking: 'Total Booking',
+    total: 'Total Booking',
+    'total booking due': 'Total Booking Due',
+    totalbookingdue: 'Total Booking Due',
+    'amount due': 'Total Booking Due',
+    // Legacy mappings for backwards compatibility
+    // Note: 'student name' and 'studentname' already map to 'Name' above
+    // 'class name' already maps to 'Level/Class' above
     'include on register': 'Include On Register',
     includeonregister: 'Include On Register',
     'on register': 'Include On Register',
@@ -160,6 +305,100 @@ function mapHeader(header: string): WhitelistedColumn | null {
   };
 
   return mappings[normalized] ?? null;
+}
+
+/**
+ * Map headers with position-based detection for duplicate column names
+ * Handles "Start date"/"End date" appearing twice (course + accommodation)
+ */
+function mapHeadersWithPosition(
+  headers: string[]
+): Map<number, { column: WhitelistedColumn; field: string }> {
+  const mappings = new Map<number, { column: WhitelistedColumn; field: string }>();
+  let afterAccomType = false;
+
+  for (let i = 0; i < headers.length; i++) {
+    const header = headers[i];
+    const normalized = normalizeHeader(header);
+
+    // Check for Accom Type - marks the start of accommodation date columns
+    if (
+      normalized === 'accom type' ||
+      normalized === 'accommodation type' ||
+      normalized === 'accomtype'
+    ) {
+      afterAccomType = true;
+      mappings.set(i, { column: 'Accom Type', field: 'accommodationType' });
+      continue;
+    }
+
+    // Handle duplicate date columns based on position
+    if (
+      afterAccomType &&
+      (normalized === 'start date' || normalized === 'startdate' || normalized === 'start')
+    ) {
+      mappings.set(i, { column: 'Accommodation Start Date', field: 'accommodationStartDate' });
+      continue;
+    }
+
+    if (
+      afterAccomType &&
+      (normalized === 'end date' || normalized === 'enddate' || normalized === 'end')
+    ) {
+      mappings.set(i, { column: 'Accommodation End Date', field: 'accommodationEndDate' });
+      afterAccomType = false; // Reset after second date column
+      continue;
+    }
+
+    // Standard mapping
+    const mapped = mapHeader(header);
+    if (mapped) {
+      const field = getFieldName(mapped);
+      mappings.set(i, { column: mapped, field });
+    }
+  }
+
+  return mappings;
+}
+
+/**
+ * Get the internal field name for a whitelisted column
+ */
+function getFieldName(column: WhitelistedColumn): string {
+  const fieldMap: Record<WhitelistedColumn, string> = {
+    Name: 'name',
+    DOB: 'dateOfBirth',
+    Nationality: 'nationality',
+    Visa: 'isVisaStudent',
+    'Visa Type': 'visaType',
+    Course: 'courseName',
+    'Level/Class': 'className',
+    Weeks: 'weeks',
+    'Start Date': 'courseStartDate',
+    'End Date': 'courseEndDate',
+    'Placement Test Score': 'placementTestScore',
+    'Accom Type': 'accommodationType',
+    'Accommodation Start Date': 'accommodationStartDate',
+    'Accommodation End Date': 'accommodationEndDate',
+    'Sale Date': 'saleDate',
+    Source: 'agencyName',
+    'Deposit Paid': 'depositPaidEur',
+    Paid: 'totalPaidEur',
+    'Course Fee Due': 'courseFeeEur',
+    Accomodation: 'accommodationFeeEur',
+    Transfer: 'transferFeeEur',
+    'Exam Fee': 'examFeeEur',
+    'Registration Fee': 'registrationFeeEur',
+    'Learner Protection': 'learnerProtectionFeeEur',
+    'Medical Insurance': 'medicalInsuranceFeeEur',
+    'Total Booking': 'totalBookingEur',
+    'Total Booking Due': 'totalDueEur',
+    // Legacy fields
+    'Student Name': 'studentName',
+    'Class Name': 'className',
+    'Include On Register': 'includeOnRegister',
+  };
+  return fieldMap[column] || column.toLowerCase().replace(/\s+/g, '');
 }
 
 /**
@@ -270,32 +509,90 @@ function parseBoolean(value: unknown): boolean | null {
 }
 
 /**
+ * Parse decimal/currency value (for fees)
+ * Handles €, EUR prefix/suffix, comma as thousands separator
+ */
+function parseDecimal(value: unknown): number | null {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+
+  // If it's already a number
+  if (typeof value === 'number') {
+    return isNaN(value) ? null : Math.round(value * 100) / 100;
+  }
+
+  // If it's a string, clean it
+  if (typeof value === 'string') {
+    // Remove currency symbols, EUR, spaces
+    let cleaned = value.replace(/[€£$]/g, '').replace(/EUR/gi, '').replace(/\s/g, '').trim();
+
+    // Handle European format (comma as decimal, period as thousands)
+    // If we see both comma and period, determine which is the decimal
+    if (cleaned.includes(',') && cleaned.includes('.')) {
+      // Period comes before comma = European format (1.234,56)
+      if (cleaned.lastIndexOf('.') < cleaned.lastIndexOf(',')) {
+        cleaned = cleaned.replace(/\./g, '').replace(',', '.');
+      } else {
+        // Comma comes before period = US format (1,234.56)
+        cleaned = cleaned.replace(/,/g, '');
+      }
+    } else if (cleaned.includes(',')) {
+      // Only comma - could be decimal or thousands
+      // If 3 digits after comma, it's thousands separator
+      const parts = cleaned.split(',');
+      if (parts.length === 2 && parts[1].length === 3) {
+        cleaned = cleaned.replace(',', '');
+      } else {
+        // Treat as decimal
+        cleaned = cleaned.replace(',', '.');
+      }
+    }
+
+    const num = parseFloat(cleaned);
+    return isNaN(num) ? null : Math.round(num * 100) / 100;
+  }
+
+  return null;
+}
+
+/**
  * Validate a parsed row
+ * Only Name and Start Date are required per the plan
  */
 function validateRow(
   parsedData: ParsedRow['parsedData']
 ): Array<{ field: string; message: string }> {
   const errors: Array<{ field: string; message: string }> = [];
 
-  // Required field: Student Name
-  if (!parsedData.studentName) {
-    errors.push({ field: 'Student Name', message: 'Student Name is required' });
+  // Required field: Name (check both new and legacy fields)
+  const hasName = parsedData.name || parsedData.studentName;
+  if (!hasName) {
+    errors.push({ field: 'Name', message: 'Name is required' });
   }
 
-  // Required field: Start Date
-  if (!parsedData.startDate) {
+  // Required field: Start Date (check both new and legacy fields)
+  const hasStartDate = parsedData.courseStartDate || parsedData.startDate;
+  if (!hasStartDate) {
     errors.push({ field: 'Start Date', message: 'Start Date is required' });
   }
 
-  // Required field: Class Name
-  if (!parsedData.className) {
-    errors.push({ field: 'Class Name', message: 'Class Name is required' });
+  // Validate course dates if both provided
+  const startDate = parsedData.courseStartDate || parsedData.startDate;
+  const endDate = parsedData.courseEndDate || parsedData.endDate;
+  if (startDate && endDate) {
+    if (endDate < startDate) {
+      errors.push({ field: 'End Date', message: 'End Date must be after Start Date' });
+    }
   }
 
-  // If End Date is provided, it must be after Start Date
-  if (parsedData.startDate && parsedData.endDate) {
-    if (parsedData.endDate < parsedData.startDate) {
-      errors.push({ field: 'End Date', message: 'End Date must be after Start Date' });
+  // Validate accommodation dates if both provided
+  if (parsedData.accommodationStartDate && parsedData.accommodationEndDate) {
+    if (parsedData.accommodationEndDate < parsedData.accommodationStartDate) {
+      errors.push({
+        field: 'Accommodation End Date',
+        message: 'Accommodation End Date must be after Start Date',
+      });
     }
   }
 
@@ -368,24 +665,31 @@ export async function parseClassesFile(
     // Extract headers from first row
     const fileHeaders = Object.keys(rawRows[0]);
 
-    // Map headers to whitelisted columns
-    const headerMapping: Record<string, WhitelistedColumn | null> = {};
+    // Map headers with position-based detection for duplicate columns
+    const positionMapping = mapHeadersWithPosition(fileHeaders);
     const ignoredColumns: string[] = [];
     const mappedColumns = new Set<WhitelistedColumn>();
 
-    for (const header of fileHeaders) {
-      const mapped = mapHeader(header);
-      headerMapping[header] = mapped;
-      if (mapped) {
-        mappedColumns.add(mapped);
+    // Build header mapping and track ignored columns
+    const headerMapping: Record<string, { column: WhitelistedColumn; field: string } | null> = {};
+    fileHeaders.forEach((header, index) => {
+      const mapping = positionMapping.get(index);
+      headerMapping[header] = mapping || null;
+      if (mapping) {
+        mappedColumns.add(mapping.column);
       } else {
         ignoredColumns.push(header);
       }
-    }
+    });
 
-    // Check required columns are present
-    const missingRequired = REQUIRED_COLUMNS.filter(col => !mappedColumns.has(col));
-    if (missingRequired.length > 0) {
+    // Check required columns are present (with fallbacks for legacy column names)
+    const hasName = mappedColumns.has('Name') || mappedColumns.has('Student Name');
+    const hasStartDate = mappedColumns.has('Start Date');
+
+    if (!hasName || !hasStartDate) {
+      const missing: string[] = [];
+      if (!hasName) missing.push('Name');
+      if (!hasStartDate) missing.push('Start Date');
       return {
         success: false,
         rows: [],
@@ -393,7 +697,7 @@ export async function parseClassesFile(
         validRows: 0,
         invalidRows: 0,
         ignoredColumns,
-        error: `Missing required column(s): ${missingRequired.join(', ')}`,
+        error: `Missing required column(s): ${missing.join(', ')}`,
       };
     }
 
@@ -405,28 +709,134 @@ export async function parseClassesFile(
     for (let i = 0; i < rawRows.length; i++) {
       const rawRow = rawRows[i];
       const rowNumber = i + 2; // +2 because: 0-indexed + header row
+      const explicitFields = new Set<string>();
 
-      // Extract values using header mapping
+      // Helper to extract and track explicit values
       const extractValue = (targetColumn: WhitelistedColumn): unknown => {
-        for (const [header, mapped] of Object.entries(headerMapping)) {
-          if (mapped === targetColumn) {
+        for (const [header, mapping] of Object.entries(headerMapping)) {
+          if (mapping?.column === targetColumn) {
             return rawRow[header];
           }
         }
         return null;
       };
 
-      // Parse values
-      const parsedData: ParsedRow['parsedData'] = {
-        studentName: parseString(extractValue('Student Name')),
-        startDate: parseExcelDate(extractValue('Start Date')),
-        className: parseString(extractValue('Class Name')),
-        endDate: parseExcelDate(extractValue('End Date')),
-        course: parseString(extractValue('Course')),
-        weeks: parseNumber(extractValue('Weeks')),
-        isVisaStudent: parseBoolean(extractValue('Visa')),
-        includeOnRegister: parseBoolean(extractValue('Include On Register')),
+      // Helper to parse and track explicit fields
+      const parseAndTrack = <T>(
+        field: string,
+        value: unknown,
+        parser: (v: unknown) => T | null
+      ): T | null => {
+        const parsed = parser(value);
+        if (
+          parsed !== null &&
+          parsed !== undefined &&
+          (typeof parsed !== 'string' || parsed !== '')
+        ) {
+          explicitFields.add(field);
+        }
+        return parsed;
       };
+
+      // Parse all values
+      const parsedData: ParsedRow['parsedData'] = {
+        // Student identity
+        name: parseAndTrack(
+          'name',
+          extractValue('Name') || extractValue('Student Name'),
+          parseString
+        ),
+        dateOfBirth: parseAndTrack('dateOfBirth', extractValue('DOB'), parseExcelDate),
+        nationality: parseAndTrack('nationality', extractValue('Nationality'), parseString),
+        // Visa
+        isVisaStudent: parseAndTrack('isVisaStudent', extractValue('Visa'), parseBoolean),
+        visaType: parseAndTrack('visaType', extractValue('Visa Type'), parseString),
+        // Course/Class
+        courseName: parseAndTrack('courseName', extractValue('Course'), parseString),
+        className: parseAndTrack(
+          'className',
+          extractValue('Level/Class') || extractValue('Class Name'),
+          parseString
+        ),
+        weeks: parseAndTrack('weeks', extractValue('Weeks'), parseNumber),
+        courseStartDate: parseAndTrack(
+          'courseStartDate',
+          extractValue('Start Date'),
+          parseExcelDate
+        ),
+        courseEndDate: parseAndTrack('courseEndDate', extractValue('End Date'), parseExcelDate),
+        placementTestScore: parseAndTrack(
+          'placementTestScore',
+          extractValue('Placement Test Score'),
+          parseString
+        ),
+        // Accommodation
+        accommodationType: parseAndTrack(
+          'accommodationType',
+          extractValue('Accom Type'),
+          parseString
+        ),
+        accommodationStartDate: parseAndTrack(
+          'accommodationStartDate',
+          extractValue('Accommodation Start Date'),
+          parseExcelDate
+        ),
+        accommodationEndDate: parseAndTrack(
+          'accommodationEndDate',
+          extractValue('Accommodation End Date'),
+          parseExcelDate
+        ),
+        // Financial
+        saleDate: parseAndTrack('saleDate', extractValue('Sale Date'), parseExcelDate),
+        agencyName: parseAndTrack('agencyName', extractValue('Source'), parseString),
+        depositPaidEur: parseAndTrack('depositPaidEur', extractValue('Deposit Paid'), parseDecimal),
+        totalPaidEur: parseAndTrack('totalPaidEur', extractValue('Paid'), parseDecimal),
+        courseFeeEur: parseAndTrack('courseFeeEur', extractValue('Course Fee Due'), parseDecimal),
+        accommodationFeeEur: parseAndTrack(
+          'accommodationFeeEur',
+          extractValue('Accomodation'),
+          parseDecimal
+        ),
+        transferFeeEur: parseAndTrack('transferFeeEur', extractValue('Transfer'), parseDecimal),
+        examFeeEur: parseAndTrack('examFeeEur', extractValue('Exam Fee'), parseDecimal),
+        registrationFeeEur: parseAndTrack(
+          'registrationFeeEur',
+          extractValue('Registration Fee'),
+          parseDecimal
+        ),
+        learnerProtectionFeeEur: parseAndTrack(
+          'learnerProtectionFeeEur',
+          extractValue('Learner Protection'),
+          parseDecimal
+        ),
+        medicalInsuranceFeeEur: parseAndTrack(
+          'medicalInsuranceFeeEur',
+          extractValue('Medical Insurance'),
+          parseDecimal
+        ),
+        totalBookingEur: parseAndTrack(
+          'totalBookingEur',
+          extractValue('Total Booking'),
+          parseDecimal
+        ),
+        totalDueEur: parseAndTrack('totalDueEur', extractValue('Total Booking Due'), parseDecimal),
+        // Legacy compatibility aliases
+        studentName: null,
+        startDate: null,
+        endDate: null,
+        course: null,
+        includeOnRegister: parseAndTrack(
+          'includeOnRegister',
+          extractValue('Include On Register'),
+          parseBoolean
+        ),
+      };
+
+      // Set legacy aliases
+      parsedData.studentName = parsedData.name;
+      parsedData.startDate = parsedData.courseStartDate;
+      parsedData.endDate = parsedData.courseEndDate;
+      parsedData.course = parsedData.courseName;
 
       // Validate
       const validationErrors = validateRow(parsedData);
@@ -442,6 +852,7 @@ export async function parseClassesFile(
         rowNumber,
         rawData: rawRow,
         parsedData,
+        explicitFields,
         validationErrors,
         isValid,
       });
