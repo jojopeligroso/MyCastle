@@ -3,10 +3,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createBooking } from './actions';
+import { StudentSelector } from './StudentSelector';
+import { BookedBySection, BookedByData } from './BookedBySection';
 
 interface Student {
   id: string;
   name: string | null;
+  email: string;
   studentNumber: string | null;
 }
 
@@ -26,6 +29,18 @@ interface AccommodationType {
 interface Agency {
   id: string;
   name: string;
+  contactPerson: string | null;
+  contactEmail: string | null;
+  contactPhone: string | null;
+}
+
+interface NewStudentData {
+  name: string;
+  email: string;
+  phone: string;
+  dateOfBirth: string;
+  isMinor: boolean;
+  cefrLevel: string;
 }
 
 interface Props {
@@ -47,8 +62,20 @@ export function CreateBookingForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Form state
-  const [studentId, setStudentId] = useState('');
+  // Student state
+  const [studentId, setStudentId] = useState<string | null>(null);
+  const [newStudent, setNewStudent] = useState<NewStudentData | null>(null);
+  const [isMinor, setIsMinor] = useState(false);
+
+  // Booked By state
+  const [bookedBy, setBookedBy] = useState<BookedByData>({
+    type: 'self',
+    name: '',
+    email: '',
+    phone: '',
+  });
+
+  // Course/Booking state
   const [courseId, setCourseId] = useState('');
   const [agencyId, setAgencyId] = useState(agencies[0]?.id || '');
   const [accommodationTypeId, setAccommodationTypeId] = useState('');
@@ -72,6 +99,20 @@ export function CreateBookingForm({
     parseFloat(learnerProtectionFee) +
     parseFloat(medicalInsuranceFee)
   ).toFixed(2);
+
+  // Handle student selection
+  const handleStudentSelect = (id: string | null, student: NewStudentData | null) => {
+    setStudentId(id);
+    setNewStudent(student);
+  };
+
+  const handleMinorStatusChange = (minor: boolean) => {
+    setIsMinor(minor);
+    // Force booked by type to parent/guardian if minor
+    if (minor && bookedBy.type === 'self') {
+      setBookedBy({ ...bookedBy, type: 'parent' });
+    }
+  };
 
   // Auto-calculate course fee when course/weeks change
   const handleCourseChange = (newCourseId: string) => {
@@ -111,10 +152,55 @@ export function CreateBookingForm({
     setIsSubmitting(true);
     setError(null);
 
+    // Validation
+    if (!studentId && !newStudent) {
+      setError('Please select an existing student or create a new one');
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (newStudent && (!newStudent.name || !newStudent.email)) {
+      setError('Please provide name and email for the new student');
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Validate booked by for minors
+    if (isMinor && bookedBy.type === 'self') {
+      setError('Minor students require a parent/guardian or other contact');
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (bookedBy.type !== 'self' && (!bookedBy.name || !bookedBy.email)) {
+      setError('Please provide contact name and email for the booking contact');
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const result = await createBooking({
         tenantId,
-        studentId,
+        studentId: studentId || undefined,
+        newStudent: newStudent
+          ? {
+              name: newStudent.name,
+              email: newStudent.email,
+              phone: newStudent.phone || undefined,
+              dateOfBirth: newStudent.dateOfBirth || undefined,
+              isMinor: newStudent.isMinor,
+              cefrLevel: newStudent.cefrLevel || undefined,
+            }
+          : undefined,
+        bookedBy:
+          bookedBy.type !== 'self'
+            ? {
+                type: bookedBy.type,
+                name: bookedBy.name,
+                email: bookedBy.email,
+                phone: bookedBy.phone || undefined,
+              }
+            : undefined,
         courseId,
         agencyId,
         accommodationTypeId: accommodationTypeId || null,
@@ -150,27 +236,26 @@ export function CreateBookingForm({
         </div>
       )}
 
-      {/* Student & Course Section */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">Student & Course Details</h2>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Student *</label>
-            <select
-              required
-              value={studentId}
-              onChange={e => setStudentId(e.target.value)}
-              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
-            >
-              <option value="">Select a student</option>
-              {students.map(s => (
-                <option key={s.id} value={s.id}>
-                  {s.name} {s.studentNumber && `(${s.studentNumber})`}
-                </option>
-              ))}
-            </select>
-          </div>
+      {/* Student Selection Section */}
+      <StudentSelector
+        students={students}
+        onStudentSelect={handleStudentSelect}
+        onMinorStatusChange={handleMinorStatusChange}
+      />
 
+      {/* Booked By Section - Always show, but behavior changes based on minor status */}
+      <BookedBySection
+        isMinor={isMinor}
+        selectedAgencyId={agencyId}
+        agencies={agencies}
+        bookedBy={bookedBy}
+        onBookedByChange={setBookedBy}
+      />
+
+      {/* Course Section */}
+      <div className="bg-white shadow rounded-lg p-6">
+        <h2 className="text-lg font-medium text-gray-900 mb-4">Course Details</h2>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div>
             <label className="block text-sm font-medium text-gray-700">Course *</label>
             <select
