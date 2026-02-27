@@ -24,8 +24,8 @@ import { eq, and, gte, lt, inArray, sql } from 'drizzle-orm';
  */
 export interface ProgrammeLatenessPolicy {
   cumulativeLatenessEnabled?: boolean; // Default: false
-  latenessThresholdMinutes?: number; // Default: 15 (minutes = 1 absence)
-  lateAbsentThresholdMinutes?: number; // Default: 17 (when to mark late_absent)
+  latenessThresholdMinutes?: number; // Default: 16 (cumulative minutes = 1 absence equivalent)
+  lateAbsentThresholdMinutes?: number; // Default: 15 (when to mark late_absent)
 }
 
 /**
@@ -97,8 +97,8 @@ async function getProgrammeLatenessPolicy(
     // Return defaults if no policy configured
     return {
       cumulativeLatenessEnabled: false,
-      latenessThresholdMinutes: 15,
-      lateAbsentThresholdMinutes: 17,
+      latenessThresholdMinutes: 16,
+      lateAbsentThresholdMinutes: 15,
     };
   }
 
@@ -106,8 +106,8 @@ async function getProgrammeLatenessPolicy(
 
   return {
     cumulativeLatenessEnabled: (metadata.cumulativeLatenessEnabled as boolean) ?? false,
-    latenessThresholdMinutes: (metadata.latenessThresholdMinutes as number) ?? 15,
-    lateAbsentThresholdMinutes: (metadata.lateAbsentThresholdMinutes as number) ?? 17,
+    latenessThresholdMinutes: (metadata.latenessThresholdMinutes as number) ?? 16,
+    lateAbsentThresholdMinutes: (metadata.lateAbsentThresholdMinutes as number) ?? 15,
   };
 }
 
