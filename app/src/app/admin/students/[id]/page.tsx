@@ -187,7 +187,21 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
           <h1 className="text-3xl font-bold text-gray-900">{student.name}</h1>
           <p className="text-sm text-gray-500 mt-1">Student #{student.studentNumber || 'N/A'}</p>
         </div>
-        <div>
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/admin/students/${id}/edit`}
+            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+          >
+            <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+              />
+            </svg>
+            Edit
+          </Link>
           <span
             className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
               student.status === 'active'

@@ -13,9 +13,12 @@ import { createClient } from '@supabase/supabase-js';
 
 const updateUserSchema = z.object({
   name: z.string().min(1).optional(),
-  email: z.string().email().optional(),
+  email: z.string().email().optional().or(z.literal('')),
   role: z.enum(['student', 'teacher', 'admin', 'super_admin']).optional(),
   status: z.enum(['active', 'inactive', 'suspended']).optional(),
+  phone: z.string().optional().nullable(),
+  dateOfBirth: z.string().optional().nullable(),
+  nationality: z.string().optional().nullable(),
 });
 
 // Initialize Supabase Admin client
@@ -95,13 +98,25 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       }
     }
 
+    // Build update object with proper field mapping
+    const updateData: Record<string, unknown> = {
+      updatedAt: new Date(),
+    };
+
+    if (validatedData.name !== undefined) updateData.name = validatedData.name;
+    if (validatedData.email !== undefined) updateData.email = validatedData.email || null;
+    if (validatedData.role !== undefined) updateData.role = validatedData.role;
+    if (validatedData.status !== undefined) updateData.isActive = validatedData.status === 'active';
+    if (validatedData.phone !== undefined) updateData.phone = validatedData.phone || null;
+    if (validatedData.dateOfBirth !== undefined)
+      updateData.dateOfBirth = validatedData.dateOfBirth || null;
+    if (validatedData.nationality !== undefined)
+      updateData.nationality = validatedData.nationality || null;
+
     // Update user in database
     const [updatedUser] = await db
       .update(users)
-      .set({
-        ...validatedData,
-        updatedAt: new Date(),
-      })
+      .set(updateData)
       .where(and(eq(users.id, id), eq(users.tenantId, tenantId)))
       .returning();
 

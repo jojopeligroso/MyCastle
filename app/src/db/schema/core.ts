@@ -52,6 +52,9 @@ export const users = pgTable(
       .references(() => tenants.id, { onDelete: 'cascade' }),
     email: varchar('email', { length: 255 }).notNull(),
     name: varchar('name', { length: 255 }),
+    phone: varchar('phone', { length: 50 }),
+    dateOfBirth: date('date_of_birth'),
+    nationality: varchar('nationality', { length: 100 }),
     avatarUrl: varchar('avatar_url', { length: 500 }),
     // Role field - maps to 'role' column in database (not 'primary_role')
     role: varchar('role', { length: 50 }).notNull().default('student'),

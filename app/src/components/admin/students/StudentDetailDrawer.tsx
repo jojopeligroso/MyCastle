@@ -9,6 +9,7 @@ import {
   NotesTab,
   DocumentsTab,
 } from './tabs';
+import { StudentEditForm } from './StudentEditForm';
 
 // Flexible student data type that accepts both DB snake_case and app camelCase
 export interface StudentData {
@@ -32,6 +33,16 @@ export interface StudentData {
   visa_expiry?: string | null;
   visaType?: string | null;
   visa_type?: string | null;
+  // Student-specific fields
+  studentId?: string;
+  studentNumber?: string | null;
+  isVisaStudent?: boolean | null;
+  visaExpiryDate?: string | null;
+  emergencyContactName?: string | null;
+  emergencyContactPhone?: string | null;
+  emergencyContactRelationship?: string | null;
+  medicalConditions?: string | null;
+  dietaryRequirements?: string | null;
 }
 
 interface StudentDetailDrawerProps {
@@ -41,6 +52,8 @@ interface StudentDetailDrawerProps {
   onApproveLevel?: (studentId: string) => Promise<void>;
   canApproveLevel?: boolean;
   canViewSensitiveNotes?: boolean;
+  canEdit?: boolean;
+  onStudentUpdated?: () => void;
 }
 
 type TabId = 'personal' | 'courses' | 'attendance' | 'assessments' | 'notes' | 'documents';
@@ -61,16 +74,31 @@ export function StudentDetailDrawer({
   onApproveLevel,
   canApproveLevel = false,
   canViewSensitiveNotes = false,
+  canEdit = true,
+  onStudentUpdated,
 }: StudentDetailDrawerProps) {
   const [activeTab, setActiveTab] = useState<TabId>('personal');
   const [isApproving, setIsApproving] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
-  // Reset to personal tab when drawer opens
+  // Reset to personal tab and exit edit mode when drawer opens
   useEffect(() => {
     if (isOpen) {
       setActiveTab('personal');
+      setIsEditing(false);
     }
   }, [isOpen]);
+
+  const handleSave = () => {
+    setIsEditing(false);
+    if (onStudentUpdated) {
+      onStudentUpdated();
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+  };
 
   // Handle ESC key to close drawer
   useEffect(() => {
@@ -158,20 +186,39 @@ export function StudentDetailDrawer({
                 )}
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="text-white hover:text-purple-100 transition-colors"
-              aria-label="Close drawer"
-            >
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
+            <div className="flex items-center gap-2">
+              {canEdit && !isEditing && (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                  aria-label="Edit student"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                  Edit
+                </button>
+              )}
+              <button
+                onClick={onClose}
+                className="text-white hover:text-purple-100 transition-colors"
+                aria-label="Close drawer"
+              >
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -197,21 +244,27 @@ export function StudentDetailDrawer({
 
         {/* Tab Content */}
         <div className="overflow-y-auto h-[calc(100vh-200px)] p-6">
-          {activeTab === 'personal' && (
-            <PersonalInfoTab
-              student={student}
-              onApproveLevel={canApproveLevel ? handleApproveLevel : undefined}
-              isApproving={isApproving}
-              canApproveLevel={canApproveLevel}
-            />
+          {isEditing ? (
+            <StudentEditForm student={student} onSave={handleSave} onCancel={handleCancelEdit} />
+          ) : (
+            <>
+              {activeTab === 'personal' && (
+                <PersonalInfoTab
+                  student={student}
+                  onApproveLevel={canApproveLevel ? handleApproveLevel : undefined}
+                  isApproving={isApproving}
+                  canApproveLevel={canApproveLevel}
+                />
+              )}
+              {activeTab === 'courses' && <CourseHistoryTab studentId={student.id} />}
+              {activeTab === 'attendance' && <AttendanceSummaryTab studentId={student.id} />}
+              {activeTab === 'assessments' && <AssessmentsTab studentId={student.id} />}
+              {activeTab === 'notes' && (
+                <NotesTab studentId={student.id} canViewSensitiveNotes={canViewSensitiveNotes} />
+              )}
+              {activeTab === 'documents' && <DocumentsTab studentId={student.id} />}
+            </>
           )}
-          {activeTab === 'courses' && <CourseHistoryTab studentId={student.id} />}
-          {activeTab === 'attendance' && <AttendanceSummaryTab studentId={student.id} />}
-          {activeTab === 'assessments' && <AssessmentsTab studentId={student.id} />}
-          {activeTab === 'notes' && (
-            <NotesTab studentId={student.id} canViewSensitiveNotes={canViewSensitiveNotes} />
-          )}
-          {activeTab === 'documents' && <DocumentsTab studentId={student.id} />}
         </div>
       </div>
     </>

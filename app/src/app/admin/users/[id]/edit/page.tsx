@@ -10,6 +10,8 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { EditUserForm } from '@/components/admin/EditUserForm';
 
+import { sql } from 'drizzle-orm';
+
 async function getUser(userId: string, tenantId: string) {
   const result = await db
     .select({
@@ -18,6 +20,9 @@ async function getUser(userId: string, tenantId: string) {
       email: users.email,
       role: users.role,
       isActive: users.isActive,
+      phone: sql<string | null>`${users}.phone`,
+      dateOfBirth: sql<string | null>`${users}.date_of_birth::text`,
+      nationality: sql<string | null>`${users}.nationality`,
     })
     .from(users)
     .where(and(eq(users.id, userId), eq(users.tenantId, tenantId)))
@@ -26,15 +31,16 @@ async function getUser(userId: string, tenantId: string) {
   return result[0] || null;
 }
 
-export default async function EditUserPage({ params }: { params: { id: string } }) {
+export default async function EditUserPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAuth();
+  const { id } = await params;
   const tenantId = await getTenantId();
 
   if (!tenantId) {
     notFound();
   }
 
-  const userData = await getUser(params.id, tenantId);
+  const userData = await getUser(id, tenantId);
 
   if (!userData) {
     notFound();
@@ -44,7 +50,7 @@ export default async function EditUserPage({ params }: { params: { id: string } 
     <div className="max-w-3xl">
       <div className="mb-8">
         <Link
-          href={`/admin/users/${params.id}`}
+          href={`/admin/users/${id}`}
           className="text-sm text-gray-600 hover:text-gray-900 mb-2 inline-block"
         >
           ← Back to User Details
@@ -58,6 +64,9 @@ export default async function EditUserPage({ params }: { params: { id: string } 
           ...userData,
           name: userData.name || '',
           status: userData.isActive ? 'active' : 'inactive',
+          phone: userData.phone || null,
+          dateOfBirth: userData.dateOfBirth || null,
+          nationality: userData.nationality || null,
         }}
       />
     </div>

@@ -43,23 +43,24 @@ async function getUserClasses(userId: string) {
   return userClasses;
 }
 
-export default async function UserDetailPage({ params }: { params: { id: string } }) {
+export default async function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAuth();
+  const { id } = await params;
   const tenantId = await getTenantId();
 
   if (!tenantId) {
     notFound();
   }
 
-  const user = await getUser(params.id, tenantId);
+  const user = await getUser(id, tenantId);
 
   if (!user) {
     notFound();
   }
 
   // Fetch role-specific data
-  const enrollments = user.role === 'student' ? await getUserEnrollments(params.id) : [];
-  const teacherClasses = user.role === 'teacher' ? await getUserClasses(params.id) : [];
+  const enrollments = user.role === 'student' ? await getUserEnrollments(id) : [];
+  const teacherClasses = user.role === 'teacher' ? await getUserClasses(id) : [];
 
   const getStatusBadge = (status: string) => {
     const styles = {
