@@ -15,7 +15,17 @@ interface StudentAttendance {
   id: string;
   name: string;
   isVisaStudent: boolean;
-  attendance: Record<string, { status: string; sessionId: string | null } | null>;
+  attendance: Record<
+    string,
+    { status: string; sessionId: string | null; minutesLate: number | null } | null
+  >;
+}
+
+interface AttendanceChange {
+  studentId: string;
+  date: string;
+  status: AttendanceStatus;
+  minutesLate?: number;
 }
 
 interface ClassAttendanceCardProps {
@@ -28,10 +38,8 @@ interface ClassAttendanceCardProps {
   daysOfWeek: string[];
   weekDates: WeekDate[];
   students: StudentAttendance[];
-  onSave: (
-    classId: string,
-    changes: { studentId: string; date: string; status: AttendanceStatus }[]
-  ) => Promise<void>;
+  lateThresholdMinutes: number;
+  onSave: (classId: string, changes: AttendanceChange[]) => Promise<void>;
 }
 
 export default function ClassAttendanceCard({
@@ -44,6 +52,7 @@ export default function ClassAttendanceCard({
   daysOfWeek,
   weekDates,
   students: initialStudents,
+  lateThresholdMinutes,
   onSave,
 }: ClassAttendanceCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -62,8 +71,13 @@ export default function ClassAttendanceCard({
     return [days, time].filter(Boolean).join(' ');
   })();
 
-  const handleChange = (studentId: string, date: string, status: AttendanceStatus) => {
-    console.log('[Attendance] Change:', { studentId, date, status });
+  const handleChange = (
+    studentId: string,
+    date: string,
+    status: AttendanceStatus,
+    minutesLate?: number
+  ) => {
+    console.log('[Attendance] Change:', { studentId, date, status, minutesLate });
 
     setStudents(prev =>
       prev.map(s => {
@@ -75,6 +89,7 @@ export default function ClassAttendanceCard({
             [date]: {
               status,
               sessionId: s.attendance[date]?.sessionId || null,
+              minutesLate: minutesLate ?? null,
             },
           },
         };
@@ -93,15 +108,17 @@ export default function ClassAttendanceCard({
   };
 
   const handleSave = async () => {
-    const changes: { studentId: string; date: string; status: AttendanceStatus }[] = [];
+    const changes: AttendanceChange[] = [];
 
     Object.entries(dirtyState).forEach(([studentId, dates]) => {
       Object.entries(dates).forEach(([date, isDirty]) => {
         if (isDirty) {
           const student = students.find(s => s.id === studentId);
           if (student) {
-            const status = (student.attendance[date]?.status || '') as AttendanceStatus;
-            changes.push({ studentId, date, status });
+            const attendanceData = student.attendance[date];
+            const status = (attendanceData?.status || '') as AttendanceStatus;
+            const minutesLate = attendanceData?.minutesLate ?? undefined;
+            changes.push({ studentId, date, status, minutesLate });
           }
         }
       });
@@ -188,6 +205,7 @@ export default function ClassAttendanceCard({
           students={students}
           onChange={handleChange}
           dirtyState={dirtyState}
+          lateThresholdMinutes={lateThresholdMinutes}
         />
       )}
     </div>

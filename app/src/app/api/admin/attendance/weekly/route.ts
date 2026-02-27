@@ -10,6 +10,10 @@ import { classes, enrollments, classSessions, attendance, users, students } from
 import { and, eq, gte, lte, inArray, sql } from 'drizzle-orm';
 import { requireAuth, getTenantId } from '@/lib/auth/utils';
 import { z } from 'zod';
+import {
+  getTenantAttendanceSettings,
+  getEffectiveAttendanceStatus,
+} from '@/lib/attendance/tenant-settings';
 
 type WeekDay = 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday';
 
@@ -19,7 +23,10 @@ interface StudentAttendance {
   id: string;
   name: string | null;
   isVisaStudent: boolean;
-  attendance: Record<string, { status: string; sessionId: string | null } | null>;
+  attendance: Record<
+    string,
+    { status: string; sessionId: string | null; minutesLate: number | null } | null
+  >;
 }
 
 interface ClassWeekData {
@@ -174,7 +181,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const sessionIds = weekSessions.map(s => s.id);
 
-    // Fetch attendance for all sessions
+    // Fetch attendance for all sessions (including minutesLate)
     const weekAttendance =
       sessionIds.length > 0
         ? await db
@@ -182,12 +189,16 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
               classSessionId: attendance.classSessionId,
               studentId: attendance.studentId,
               status: attendance.status,
+              minutesLate: attendance.minutesLate,
             })
             .from(attendance)
             .where(
               and(eq(attendance.tenantId, tenantId), inArray(attendance.classSessionId, sessionIds))
             )
         : [];
+
+    // Fetch tenant attendance settings
+    const tenantSettings = await getTenantAttendanceSettings(tenantId);
 
     // Build session lookup: classId -> date -> sessionId
     const sessionLookup = new Map<string, Map<string, string>>();
@@ -198,13 +209,19 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       sessionLookup.get(s.classId)!.set(s.sessionDate, s.id);
     });
 
-    // Build attendance lookup: sessionId -> studentId -> status
-    const attendanceLookup = new Map<string, Map<string, string>>();
+    // Build attendance lookup: sessionId -> studentId -> { status, minutesLate }
+    const attendanceLookup = new Map<
+      string,
+      Map<string, { status: string; minutesLate: number | null }>
+    >();
     weekAttendance.forEach(a => {
       if (!attendanceLookup.has(a.classSessionId)) {
         attendanceLookup.set(a.classSessionId, new Map());
       }
-      attendanceLookup.get(a.classSessionId)!.set(a.studentId, a.status);
+      attendanceLookup.get(a.classSessionId)!.set(a.studentId, {
+        status: a.status,
+        minutesLate: a.minutesLate,
+      });
     });
 
     // Build enrollment lookup: classId -> students[]
@@ -232,7 +249,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       const studentsWithAttendance: StudentAttendance[] = classStudents.map(student => {
         const attendanceByDate: Record<
           string,
-          { status: string; sessionId: string | null } | null
+          { status: string; sessionId: string | null; minutesLate: number | null } | null
         > = {};
 
         weekDates.forEach(({ isoDate, dayName }) => {
@@ -241,12 +258,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             attendanceByDate[isoDate] = null; // Non-class day
           } else {
             const sessionId = classSessLookup.get(isoDate) || null;
-            const status = sessionId
+            const attendanceData = sessionId
               ? attendanceLookup.get(sessionId)?.get(student.studentId) || null
               : null;
             attendanceByDate[isoDate] = {
-              status: status || '',
+              status: attendanceData?.status || '',
               sessionId,
+              minutesLate: attendanceData?.minutesLate ?? null,
             };
           }
         });
@@ -283,6 +301,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       weekEnd: weekEnd.toISOString().split('T')[0],
       weekDates: weekDates.map(d => ({ date: d.isoDate, dayName: d.dayName })),
       classes: classesData,
+      settings: {
+        lateThresholdMinutes: tenantSettings.lateAbsentThresholdMinutes,
+      },
     });
   } catch (error) {
     console.error('[Weekly Attendance GET] Error:', error);
@@ -301,6 +322,7 @@ const SaveAttendanceSchema = z.object({
       studentId: z.string().uuid(),
       date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
       status: z.enum(['present', 'absent', 'late', 'excused', '']),
+      minutesLate: z.number().int().min(0).max(89).optional(),
     })
   ),
 });
@@ -337,13 +359,21 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: 'Class not found' }, { status: 404 });
     }
 
+    // Get tenant settings for late threshold
+    const tenantSettings = await getTenantAttendanceSettings(tenantId);
+    const lateThreshold = tenantSettings.lateAbsentThresholdMinutes;
+
     // Group attendance by date to find/create sessions
-    const byDate = new Map<string, { studentId: string; status: string }[]>();
+    const byDate = new Map<string, { studentId: string; status: string; minutesLate?: number }[]>();
     attendanceData.forEach(a => {
       if (!byDate.has(a.date)) {
         byDate.set(a.date, []);
       }
-      byDate.get(a.date)!.push({ studentId: a.studentId, status: a.status });
+      byDate.get(a.date)!.push({
+        studentId: a.studentId,
+        status: a.status,
+        minutesLate: a.minutesLate,
+      });
     });
 
     const results: { date: string; sessionId: string; saved: number; deleted: number }[] = [];
@@ -400,20 +430,30 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             .returning({ id: attendance.id });
           if (deleteResult.length > 0) deleted++;
         } else {
-          // Upsert attendance
+          // Determine effective status based on minutesLate and threshold
+          const minutesLate = record.minutesLate ?? 0;
+          const effectiveStatus = getEffectiveAttendanceStatus(
+            minutesLate,
+            record.status,
+            lateThreshold
+          );
+
+          // Upsert attendance with minutesLate
           await db
             .insert(attendance)
             .values({
               tenantId,
               classSessionId: session.id,
               studentId: record.studentId,
-              status: record.status,
+              status: effectiveStatus,
+              minutesLate: minutesLate,
               recordedAt: new Date(),
             })
             .onConflictDoUpdate({
               target: [attendance.classSessionId, attendance.studentId],
               set: {
-                status: record.status,
+                status: effectiveStatus,
+                minutesLate: minutesLate,
                 updatedAt: new Date(),
               },
             });

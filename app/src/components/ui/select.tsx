@@ -42,7 +42,7 @@ export function SelectTrigger({
   return (
     <button
       type="button"
-      className={`flex h-10 w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${className}`}
+      className={`flex h-10 w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 ${className}`}
       onClick={() => context.setOpen(!context.open)}
     >
       {children}
@@ -65,7 +65,7 @@ export function SelectContent({ children }: { children: React.ReactNode }) {
   if (!context.open) return null;
 
   return (
-    <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-300 bg-white shadow-lg">
+    <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-300 bg-white text-gray-900 shadow-lg">
       {children}
     </div>
   );
@@ -78,7 +78,7 @@ export function SelectItem({ value, children }: { value: string; children: React
   return (
     <button
       type="button"
-      className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100"
+      className="w-full px-3 py-2 text-left text-sm text-gray-900 hover:bg-gray-100"
       onClick={() => {
         context.onValueChange(value);
         context.setOpen(false);

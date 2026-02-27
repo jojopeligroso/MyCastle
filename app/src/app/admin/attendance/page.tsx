@@ -20,7 +20,10 @@ interface StudentAttendance {
   id: string;
   name: string;
   isVisaStudent: boolean;
-  attendance: Record<string, { status: string; sessionId: string | null } | null>;
+  attendance: Record<
+    string,
+    { status: string; sessionId: string | null; minutesLate: number | null } | null
+  >;
 }
 
 interface ClassData {
@@ -41,6 +44,9 @@ interface WeeklyData {
   weekEnd: string;
   weekDates: WeekDate[];
   classes: ClassData[];
+  settings: {
+    lateThresholdMinutes: number;
+  };
 }
 
 function getCurrentWeekStart(): string {
@@ -103,7 +109,7 @@ export default function AttendanceDashboard() {
   const handleSave = useCallback(
     async (
       classId: string,
-      changes: { studentId: string; date: string; status: AttendanceStatus }[]
+      changes: { studentId: string; date: string; status: AttendanceStatus; minutesLate?: number }[]
     ) => {
       const response = await fetch('/api/admin/attendance/weekly', {
         method: 'POST',
@@ -323,6 +329,7 @@ export default function AttendanceDashboard() {
                     daysOfWeek={cls.daysOfWeek}
                     weekDates={data.weekDates}
                     students={cls.students}
+                    lateThresholdMinutes={data.settings?.lateThresholdMinutes ?? 15}
                     onSave={handleSave}
                   />
                 ))}
