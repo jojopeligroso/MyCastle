@@ -27,14 +27,33 @@ export default async function AdminDashboard() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">
-          Welcome back, {user.user_metadata?.name || 'Admin'}!
-        </h1>
-        <p className="mt-2 text-gray-600">
-          Here&apos;s what needs attention today across operations, compliance, and data integrity.
-        </p>
+      {/* Header with Quick Actions */}
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Welcome back, {user.user_metadata?.name || 'Admin'}!
+          </h1>
+          <p className="mt-2 text-gray-600">
+            Here&apos;s what needs attention today across operations, compliance, and data
+            integrity.
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <a
+            href="/admin/bookings/create"
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            New Booking
+          </a>
+        </div>
       </div>
 
       {/* KPI Grid */}
