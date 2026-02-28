@@ -196,11 +196,7 @@ export function AttendanceViewSelector({ userId, userRole, isAdmin }: Attendance
       </div>
 
       {/* Render appropriate view */}
-      {viewMode === 'teacher' ? (
-        <TeacherAttendanceView userId={userId} />
-      ) : (
-        <AdminAttendanceView />
-      )}
+      {viewMode === 'teacher' ? <TeacherAttendanceView userId={userId} /> : <AdminAttendanceView />}
     </div>
   );
 }
