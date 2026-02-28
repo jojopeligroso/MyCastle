@@ -91,7 +91,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             presentCount = stats[0].presentCount || 0;
             absentCount = stats[0].absentCount || 0;
             lateCount = stats[0].lateCount || 0;
-            attendanceRate = totalSessions > 0 ? ((presentCount + lateCount) / totalSessions) * 100 : 0;
+            attendanceRate =
+              totalSessions > 0 ? ((presentCount + lateCount) / totalSessions) * 100 : 0;
           }
         }
 

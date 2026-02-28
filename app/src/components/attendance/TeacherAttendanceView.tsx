@@ -401,7 +401,12 @@ export function TeacherAttendanceView({ userId }: TeacherAttendanceViewProps) {
                 className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
                 </svg>
               </button>
               <input
@@ -419,7 +424,12 @@ export function TeacherAttendanceView({ userId }: TeacherAttendanceViewProps) {
                 className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
                 </svg>
               </button>
               <button
@@ -550,10 +560,16 @@ function DayView({
       {sessions.map(session => {
         const sessionStats = {
           total: session.roster.length,
-          present: session.roster.filter(s => attendances.get(`${session.id}-${s.id}`) === 'present').length,
-          absent: session.roster.filter(s => attendances.get(`${session.id}-${s.id}`) === 'absent').length,
-          late: session.roster.filter(s => attendances.get(`${session.id}-${s.id}`) === 'late').length,
-          excused: session.roster.filter(s => attendances.get(`${session.id}-${s.id}`) === 'excused').length,
+          present: session.roster.filter(
+            s => attendances.get(`${session.id}-${s.id}`) === 'present'
+          ).length,
+          absent: session.roster.filter(s => attendances.get(`${session.id}-${s.id}`) === 'absent')
+            .length,
+          late: session.roster.filter(s => attendances.get(`${session.id}-${s.id}`) === 'late')
+            .length,
+          excused: session.roster.filter(
+            s => attendances.get(`${session.id}-${s.id}`) === 'excused'
+          ).length,
         };
         const unmarked =
           sessionStats.total -
@@ -583,7 +599,9 @@ function DayView({
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="flex gap-3 text-sm">
-                    <span className="text-green-600 font-medium">{sessionStats.present} present</span>
+                    <span className="text-green-600 font-medium">
+                      {sessionStats.present} present
+                    </span>
                     <span className="text-red-600 font-medium">{sessionStats.absent} absent</span>
                     {unmarked > 0 && <span className="text-gray-400">{unmarked} unmarked</span>}
                   </div>
@@ -614,13 +632,16 @@ function DayView({
             {(!compact || isActive) && (
               <>
                 {session.roster.length === 0 ? (
-                  <div className="p-8 text-center text-gray-500">No students enrolled in this class</div>
+                  <div className="p-8 text-center text-gray-500">
+                    No students enrolled in this class
+                  </div>
                 ) : (
                   <div className="divide-y divide-gray-100">
                     {session.roster.map(student => {
                       const key = `${session.id}-${student.id}`;
                       const status = attendances.get(key);
-                      const isFocused = focusedStudent === student.id && activeSession === session.id;
+                      const isFocused =
+                        focusedStudent === student.id && activeSession === session.id;
 
                       return (
                         <div
@@ -631,7 +652,9 @@ function DayView({
                             setActiveSession(session.id);
                           }}
                           className={`px-6 py-3 flex items-center justify-between cursor-pointer transition-colors ${
-                            isFocused ? 'bg-blue-50 ring-2 ring-blue-500 ring-inset' : 'hover:bg-gray-50'
+                            isFocused
+                              ? 'bg-blue-50 ring-2 ring-blue-500 ring-inset'
+                              : 'hover:bg-gray-50'
                           }`}
                         >
                           <div className="flex items-center gap-3">
@@ -663,23 +686,25 @@ function DayView({
                             )}
 
                             <div className="flex gap-1 ml-4">
-                              {(['present', 'absent', 'late', 'excused'] as AttendanceStatus[]).map(s => (
-                                <button
-                                  key={s}
-                                  onClick={e => {
-                                    e.stopPropagation();
-                                    handleStatusChange(session.id, student.id, s);
-                                  }}
-                                  className={`px-3 py-1 text-xs font-medium rounded border-2 transition-colors ${
-                                    status === s
-                                      ? STATUS_COLORS[s]
-                                      : `bg-white border-gray-200 text-gray-600 ${STATUS_BUTTON_COLORS[s]}`
-                                  }`}
-                                  title={`${s.charAt(0).toUpperCase() + s.slice(1)} (${s.charAt(0).toUpperCase()})`}
-                                >
-                                  {s.charAt(0).toUpperCase()}
-                                </button>
-                              ))}
+                              {(['present', 'absent', 'late', 'excused'] as AttendanceStatus[]).map(
+                                s => (
+                                  <button
+                                    key={s}
+                                    onClick={e => {
+                                      e.stopPropagation();
+                                      handleStatusChange(session.id, student.id, s);
+                                    }}
+                                    className={`px-3 py-1 text-xs font-medium rounded border-2 transition-colors ${
+                                      status === s
+                                        ? STATUS_COLORS[s]
+                                        : `bg-white border-gray-200 text-gray-600 ${STATUS_BUTTON_COLORS[s]}`
+                                    }`}
+                                    title={`${s.charAt(0).toUpperCase() + s.slice(1)} (${s.charAt(0).toUpperCase()})`}
+                                  >
+                                    {s.charAt(0).toUpperCase()}
+                                  </button>
+                                )
+                              )}
                             </div>
                           </div>
                         </div>

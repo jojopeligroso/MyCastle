@@ -65,7 +65,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const lateCount = statusMap['late'] || 0;
     const excusedCount = statusMap['excused'] || 0;
     const totalRecords = presentCount + absentCount + lateCount + excusedCount;
-    const overallAttendanceRate = totalRecords > 0 ? ((presentCount + lateCount) / totalRecords) * 100 : 0;
+    const overallAttendanceRate =
+      totalRecords > 0 ? ((presentCount + lateCount) / totalRecords) * 100 : 0;
 
     // Get total students
     const [studentCountResult] = await db

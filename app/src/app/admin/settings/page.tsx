@@ -28,7 +28,7 @@ export default async function Page() {
             href={category.href}
             className="bg-white shadow sm:rounded-lg p-6 hover:shadow-md transition-shadow group"
           >
-            <div className="flex items-start gap-4">
+            <div className="space-y-3">
               <div className="flex-shrink-0">
                 <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center group-hover:bg-purple-200 transition-colors">
                   <category.icon className="h-5 w-5 text-purple-600" />
@@ -46,7 +46,7 @@ export default async function Page() {
 
         {/* Placeholder for future settings */}
         <div className="bg-white shadow sm:rounded-lg p-6 border-2 border-dashed border-gray-200">
-          <div className="flex items-start gap-4">
+          <div className="space-y-3">
             <div className="flex-shrink-0">
               <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
                 <Settings className="h-5 w-5 text-gray-400" />
