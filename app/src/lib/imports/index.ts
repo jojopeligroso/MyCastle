@@ -15,3 +15,9 @@ export * from './matcher';
 
 // Apply service
 export * from './apply-service';
+
+// Schema Registry - defines importable fields
+export * from './schema-registry';
+
+// Column Matcher - fuzzy matching for Excel headers
+export * from './column-matcher';

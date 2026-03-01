@@ -82,6 +82,14 @@ export const getTenantId = async (): Promise<string | null> => {
 };
 
 /**
+ * Get the user ID for the current user
+ */
+export const getUserId = async (): Promise<string | null> => {
+  const user = await getCurrentUser();
+  return user?.id || null;
+};
+
+/**
  * Require tenant context - throws if user doesn't belong to a tenant
  */
 export const requireTenant = async (): Promise<string> => {

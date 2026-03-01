@@ -94,6 +94,11 @@ export const uploadBatches = pgTable(
  * INVALID - Row has validation errors (missing fields, bad format)
  * AMBIGUOUS - Row matched multiple enrollments, needs resolution
  * EXCLUDED - Admin excluded this row from processing
+ *
+ * Row Confirmation (for preview workflow):
+ * pending - Default state, awaiting admin review
+ * confirmed - Admin confirmed for import
+ * quarantined - Admin excluded from import
  */
 export const stgRows = pgTable(
   'stg_rows',
@@ -142,6 +147,15 @@ export const stgRows = pgTable(
     resolutionType: varchar('resolution_type', { length: 50 }), // linked | new | excluded
     linkedEnrollmentId: uuid('linked_enrollment_id').references(() => enrollments.id),
 
+    // Row confirmation for preview workflow
+    confirmation: varchar('confirmation', { length: 20 }).default('pending'),
+    // Valid values: pending, confirmed, quarantined
+
+    // Admin edits (overrides parsedData values)
+    editedData: jsonb('edited_data').$type<Record<string, unknown>>(),
+    editedAt: timestamp('edited_at'),
+    editedBy: uuid('edited_by').references(() => users.id),
+
     // Timestamps
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -151,6 +165,7 @@ export const stgRows = pgTable(
     index('idx_stg_rows_tenant').on(table.tenantId),
     index('idx_stg_rows_status').on(table.rowStatus),
     index('idx_stg_rows_batch_status').on(table.batchId, table.rowStatus),
+    index('idx_stg_rows_confirmation').on(table.confirmation),
   ]
 );
 
@@ -263,3 +278,11 @@ export const RESOLUTION_TYPE = {
 } as const;
 
 export type ResolutionType = (typeof RESOLUTION_TYPE)[keyof typeof RESOLUTION_TYPE];
+
+export const ROW_CONFIRMATION = {
+  PENDING: 'pending',
+  CONFIRMED: 'confirmed',
+  QUARANTINED: 'quarantined',
+} as const;
+
+export type RowConfirmation = (typeof ROW_CONFIRMATION)[keyof typeof ROW_CONFIRMATION];
