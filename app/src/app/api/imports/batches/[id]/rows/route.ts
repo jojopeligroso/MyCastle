@@ -7,8 +7,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { stgRows, proposedChanges, uploadBatches } from '@/db/schema/imports';
+import { enrollments } from '@/db/schema/academic';
+import { users } from '@/db/schema/core';
 import { requireAuth, getTenantId, setRLSContext } from '@/lib/auth/utils';
-import { eq, and, asc } from 'drizzle-orm';
+import { eq, and, asc, sql } from 'drizzle-orm';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -53,7 +55,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const limit = Math.min(parseInt(searchParams.get('limit') || '100'), 500);
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    // Build query
+    // Build query with joins to get matched user email/UUID
     let query = db
       .select({
         id: stgRows.id,
@@ -66,15 +68,25 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         resolvedAt: stgRows.resolvedAt,
         resolutionType: stgRows.resolutionType,
         linkedEnrollmentId: stgRows.linkedEnrollmentId,
+        // NEW: Confirmation status and edits
+        confirmation: stgRows.confirmation,
+        editedData: stgRows.editedData,
+        editedAt: stgRows.editedAt,
         // Proposed change info
         changeId: proposedChanges.id,
         action: proposedChanges.action,
         targetEnrollmentId: proposedChanges.targetEnrollmentId,
         diff: proposedChanges.diff,
         isExcluded: proposedChanges.isExcluded,
+        // NEW: Identity from matched enrollment
+        matchedEmail: users.email,
+        matchedUuid: users.id,
       })
       .from(stgRows)
       .leftJoin(proposedChanges, eq(stgRows.id, proposedChanges.stgRowId))
+      // Join to get user info via enrollment
+      .leftJoin(enrollments, eq(proposedChanges.targetEnrollmentId, enrollments.id))
+      .leftJoin(users, eq(enrollments.studentId, users.id))
       .where(and(eq(stgRows.batchId, batchId), eq(stgRows.tenantId, tenantId)))
       .$dynamic();
 

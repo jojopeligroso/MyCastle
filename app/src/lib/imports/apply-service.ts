@@ -15,6 +15,7 @@ import {
   proposedChanges,
   BATCH_STATUS,
   CHANGE_ACTION,
+  ROW_CONFIRMATION,
 } from '@/db/schema/imports';
 import { enrollments, classes } from '@/db/schema';
 import { users, students } from '@/db/schema/core';
@@ -113,7 +114,8 @@ export async function applyBatchChanges(
       let skippedCount = 0;
       const errors: string[] = [];
 
-      // Get all non-excluded proposed changes
+      // Get all non-excluded, non-quarantined proposed changes
+      // Only process rows that are confirmed (or pending for backwards compatibility)
       console.time('fetchChanges');
       const changes = await tx
         .select({
@@ -122,13 +124,18 @@ export async function applyBatchChanges(
           targetEnrollmentId: proposedChanges.targetEnrollmentId,
           diff: proposedChanges.diff,
           stgRowId: proposedChanges.stgRowId,
+          // Include confirmation status to filter
+          confirmation: stgRows.confirmation,
         })
         .from(proposedChanges)
+        .innerJoin(stgRows, eq(proposedChanges.stgRowId, stgRows.id))
         .where(
           and(
             eq(proposedChanges.batchId, batchId),
             eq(proposedChanges.tenantId, tenantId),
-            eq(proposedChanges.isExcluded, false)
+            eq(proposedChanges.isExcluded, false),
+            // Skip quarantined rows
+            sql`${stgRows.confirmation} != ${ROW_CONFIRMATION.QUARANTINED}`
           )
         );
       console.timeEnd('fetchChanges');
@@ -137,7 +144,7 @@ export async function applyBatchChanges(
       const updateChanges = changes.filter(c => c.action === CHANGE_ACTION.UPDATE);
       const noopChanges = changes.filter(c => c.action === CHANGE_ACTION.NOOP);
 
-      // Get staging rows for INSERTs
+      // Get staging rows for INSERTs (including editedData for admin overrides)
       console.time('fetchStagingRows');
       const stgRowIds = insertChanges.map(c => c.stgRowId);
       const stagingRows =
@@ -146,6 +153,7 @@ export async function applyBatchChanges(
               .select({
                 id: stgRows.id,
                 parsedData: stgRows.parsedData,
+                editedData: stgRows.editedData,
                 linkedEnrollmentId: stgRows.linkedEnrollmentId,
               })
               .from(stgRows)
@@ -193,6 +201,20 @@ export async function applyBatchChanges(
           `${allAgencies.length} agencies, ${allAccommodationTypes.length} accommodation types`
       );
 
+      // Helper: Get effective value (editedData takes precedence over parsedData)
+      const getEffectiveValue = <T>(
+        stgRow: { parsedData: Record<string, unknown> | null; editedData?: Record<string, unknown> | null },
+        fieldName: string
+      ): T | null => {
+        if (stgRow.editedData && stgRow.editedData[fieldName] !== undefined) {
+          return stgRow.editedData[fieldName] as T;
+        }
+        if (stgRow.parsedData && stgRow.parsedData[fieldName] !== undefined) {
+          return stgRow.parsedData[fieldName] as T;
+        }
+        return null;
+      };
+
       // Prepare batch data for inserts - handle all 27 columns
       console.time('prepareInsertData');
 
@@ -234,49 +256,12 @@ export async function applyBatchChanges(
           continue;
         }
 
-        // Parse all fields from the comprehensive schema
-        const parsed = stgRow.parsedData as {
-          // Student identity (users table)
-          name: string | null;
-          studentName?: string | null; // legacy alias
-          dateOfBirth?: string | null;
-          nationality?: string | null;
-          // Visa (students table)
-          isVisaStudent?: boolean | null;
-          visaType?: string | null;
-          // Course/Class
-          courseName?: string | null;
-          course?: string | null; // legacy alias
-          className?: string | null;
-          weeks?: number | null;
-          courseStartDate?: string | null;
-          startDate?: string | null; // legacy alias
-          courseEndDate?: string | null;
-          endDate?: string | null; // legacy alias
-          placementTestScore?: string | null;
-          // Accommodation
-          accommodationType?: string | null;
-          accommodationStartDate?: string | null;
-          accommodationEndDate?: string | null;
-          // Financial
-          saleDate?: string | null;
-          agencyName?: string | null;
-          depositPaidEur?: number | null;
-          totalPaidEur?: number | null;
-          courseFeeEur?: number | null;
-          accommodationFeeEur?: number | null;
-          transferFeeEur?: number | null;
-          examFeeEur?: number | null;
-          registrationFeeEur?: number | null;
-          learnerProtectionFeeEur?: number | null;
-          medicalInsuranceFeeEur?: number | null;
-          totalBookingEur?: number | null;
-          // Legacy
-          includeOnRegister?: boolean | null;
-        };
+        // Build effective data object using editedData overrides
+        // This allows admin edits to take precedence over parsed values
+        const getVal = <T>(field: string): T | null => getEffectiveValue<T>(stgRow, field);
 
-        // Get name from new or legacy field
-        const studentName = parsed.name || parsed.studentName;
+        // Get name from new or legacy field (using effective values)
+        const studentName = getVal<string>('name') || getVal<string>('studentName');
         if (!studentName) {
           errors.push(`Missing student name for row`);
           skippedCount++;
@@ -284,15 +269,16 @@ export async function applyBatchChanges(
         }
 
         // Lookup class (optional - class may be assigned later)
-        const className = parsed.className;
+        // Use effective values (edited overrides parsed)
+        const className = getVal<string>('className');
         const classId = className ? classMap.get(className.toLowerCase()) : null;
 
-        // Lookup course
-        const courseName = parsed.courseName || parsed.course;
+        // Lookup course (using effective values)
+        const courseName = getVal<string>('courseName') || getVal<string>('course');
         const courseId = courseName ? courseMap.get(courseName.toLowerCase()) : null;
 
-        // Lookup agency (handle "Direct" as null)
-        const agencyName = parsed.agencyName;
+        // Lookup agency (handle "Direct" as null, using effective values)
+        const agencyName = getVal<string>('agencyName');
         const isDirectSale =
           !agencyName ||
           agencyName.toLowerCase() === 'direct' ||
@@ -300,8 +286,8 @@ export async function applyBatchChanges(
         const agencyId =
           !isDirectSale && agencyName ? agencyMap.get(agencyName.toLowerCase()) : null;
 
-        // Lookup accommodation type
-        const accomTypeName = parsed.accommodationType;
+        // Lookup accommodation type (using effective values)
+        const accomTypeName = getVal<string>('accommodationType');
         const accommodationTypeId = accomTypeName
           ? accommodationTypeMap.get(accomTypeName.toLowerCase())
           : null;
@@ -319,15 +305,21 @@ export async function applyBatchChanges(
           name: studentName,
           role: 'student',
           isActive: true,
-          nationality: parsed.nationality || null,
-          visaType: parsed.visaType || null,
+          nationality: getVal<string>('nationality') || null,
+          visaType: getVal<string>('visaType') || null,
           metadata: {
             provisionalImport: true,
             importedAt: new Date().toISOString(),
-            includeOnRegister: parsed.includeOnRegister ?? true,
-            dateOfBirth: parsed.dateOfBirth || null,
+            includeOnRegister: getVal<boolean>('includeOnRegister') ?? true,
+            dateOfBirth: getVal<string>('dateOfBirth') || null,
           },
         });
+
+        // Build effective data combining parsed + edited for downstream processing
+        const effectiveData: Record<string, unknown> = {
+          ...(stgRow.parsedData || {}),
+          ...(stgRow.editedData || {}),
+        };
 
         insertMetadata.push({
           changeId: change.id,
@@ -335,7 +327,7 @@ export async function applyBatchChanges(
           courseId: courseId || undefined,
           agencyId: agencyId || undefined,
           accommodationTypeId: accommodationTypeId || undefined,
-          parsedData: stgRow.parsedData as Record<string, unknown>,
+          parsedData: effectiveData,
           userIndex: usersToInsert.length - 1,
         });
       }
@@ -521,8 +513,25 @@ export async function applyBatchChanges(
         console.timeEnd('batchInsertEnrollments');
       }
 
+      // Fetch staging rows with editedData for UPDATEs
+      console.time('fetchUpdateStagingRows');
+      const updateStgRowIds = updateChanges.map(c => c.stgRowId);
+      const updateStagingRows =
+        updateStgRowIds.length > 0
+          ? await tx
+              .select({
+                id: stgRows.id,
+                editedData: stgRows.editedData,
+              })
+              .from(stgRows)
+              .where(inArray(stgRows.id, updateStgRowIds))
+          : [];
+      const updateStagingRowMap = new Map(updateStagingRows.map(r => [r.id, r]));
+      console.timeEnd('fetchUpdateStagingRows');
+
       // Process UPDATEs (still sequential for diff application)
       // Only updates explicit fields - empty fields preserve existing data
+      // Admin edits override diff values
       console.time('processUpdates');
       for (const change of updateChanges) {
         if (!change.targetEnrollmentId) {
@@ -532,33 +541,44 @@ export async function applyBatchChanges(
         }
 
         const diff = change.diff as Record<string, { old: unknown; new: unknown }> | null;
-        if (!diff || Object.keys(diff).length === 0) {
+        const updateStgRow = updateStagingRowMap.get(change.stgRowId);
+        const editedData = (updateStgRow?.editedData as Record<string, unknown>) || {};
+
+        if ((!diff || Object.keys(diff).length === 0) && Object.keys(editedData).length === 0) {
           skippedCount++;
           continue;
         }
 
-        // Build update values from diff - use new field names with fallback to legacy
+        // Helper to get effective value: editedData > diff.new > null
+        const getEffectiveUpdateValue = (fieldName: string): unknown => {
+          if (editedData[fieldName] !== undefined) {
+            return editedData[fieldName];
+          }
+          if (diff && diff[fieldName]) {
+            return diff[fieldName].new;
+          }
+          return null;
+        };
+
+        // Build update values from diff + edits - use new field names with fallback to legacy
         const updateValues: Record<string, unknown> = {};
 
-        // Course start date
-        if (diff.courseStartDate) {
-          updateValues.enrollmentDate = diff.courseStartDate.new;
-        } else if (diff.startDate) {
-          // Legacy field name
-          updateValues.enrollmentDate = diff.startDate.new;
+        // Course start date (check edited first, then diff)
+        const effectiveStartDate = getEffectiveUpdateValue('courseStartDate') || getEffectiveUpdateValue('startDate');
+        if (effectiveStartDate !== null) {
+          updateValues.enrollmentDate = effectiveStartDate;
         }
 
         // Course end date
-        if (diff.courseEndDate) {
-          updateValues.expectedEndDate = diff.courseEndDate.new;
-        } else if (diff.endDate) {
-          // Legacy field name
-          updateValues.expectedEndDate = diff.endDate.new;
+        const effectiveEndDate = getEffectiveUpdateValue('courseEndDate') || getEffectiveUpdateValue('endDate');
+        if (effectiveEndDate !== null) {
+          updateValues.expectedEndDate = effectiveEndDate;
         }
 
         // Weeks
-        if (diff.weeks) {
-          updateValues.bookedWeeks = diff.weeks.new;
+        const effectiveWeeks = getEffectiveUpdateValue('weeks');
+        if (effectiveWeeks !== null) {
+          updateValues.bookedWeeks = effectiveWeeks;
         }
 
         if (Object.keys(updateValues).length > 0) {
