@@ -15,6 +15,7 @@
 CREATE OR REPLACE VIEW v_admin_alerts AS
 SELECT
   gen_random_uuid() as alert_id,
+  NULL::uuid as tenant_id,
   'info' as alert_type,
   1 as priority,
   'system' as entity_type,
@@ -32,13 +33,15 @@ WHERE FALSE;
 -- ============================================================================
 CREATE OR REPLACE VIEW v_admin_kpis_daily AS
 SELECT
-  (SELECT COUNT(*) FROM students WHERE status = 'active')::bigint as active_students,
+  t.id as tenant_id,
+  COALESCE((SELECT COUNT(*) FROM students s WHERE s.status = 'active' AND s.tenant_id = t.id), 0)::bigint as active_students,
   0::numeric as attendance_rate_7d,
   0::numeric as attendance_rate_30d,
   0::bigint as classes_running_today,
   0::numeric as capacity_utilisation,
   0::bigint as new_enrolments_7d,
-  0::bigint as outstanding_compliance_tasks;
+  0::bigint as outstanding_compliance_tasks
+FROM tenants t;
 
 -- TODO: Enhance with real data when attendance/classes tables are migrated:
 -- attendance_rate_7d: AVG from attendance table (last 7 days)
@@ -52,6 +55,7 @@ SELECT
 -- ============================================================================
 CREATE OR REPLACE VIEW v_admin_work_queue AS
 SELECT
+  NULL::uuid as tenant_id,
   'info' as item_type,
   'No pending tasks' as item_label,
   NULL::uuid as entity_id,
@@ -68,6 +72,7 @@ WHERE FALSE;
 CREATE OR REPLACE VIEW v_audit_events_recent AS
 SELECT
   gen_random_uuid() as id,
+  NULL::uuid as tenant_id,
   'info' as action,
   NULL as resource_type,
   NULL as resource_id,
@@ -135,6 +140,7 @@ WHERE FALSE;
 -- ============================================================================
 CREATE OR REPLACE VIEW v_student_duplicate_candidates AS
 SELECT
+  s1.tenant_id,
   s1.id as student1_id,
   u1.name as student1_name,
   u1.email as student1_email,

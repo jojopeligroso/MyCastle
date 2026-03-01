@@ -27,62 +27,75 @@ DROP VIEW IF EXISTS v_outstanding_payments CASCADE;
 -- ============================================================================
 CREATE OR REPLACE VIEW v_admin_kpis_daily AS
 SELECT
-  -- Active students count
-  (SELECT COUNT(*) FROM students WHERE status = 'active')::bigint as active_students,
+  t.id as tenant_id,
 
-  -- Attendance rate last 7 days
+  -- Active students count (per tenant)
+  COALESCE(
+    (SELECT COUNT(*) FROM students s WHERE s.status = 'active' AND s.tenant_id = t.id),
+    0
+  )::bigint as active_students,
+
+  -- Attendance rate last 7 days (per tenant)
   COALESCE(
     (SELECT ROUND(
-      (COUNT(*) FILTER (WHERE status = 'present') * 100.0) / NULLIF(COUNT(*), 0),
+      (COUNT(*) FILTER (WHERE a.status = 'present') * 100.0) / NULLIF(COUNT(*), 0),
       2
     )
-    FROM attendance
-    WHERE recorded_at >= NOW() - INTERVAL '7 days'),
+    FROM attendance a
+    WHERE a.recorded_at >= NOW() - INTERVAL '7 days'
+      AND a.tenant_id = t.id),
     0
   )::numeric as attendance_rate_7d,
 
-  -- Attendance rate last 30 days
+  -- Attendance rate last 30 days (per tenant)
   COALESCE(
     (SELECT ROUND(
-      (COUNT(*) FILTER (WHERE status = 'present') * 100.0) / NULLIF(COUNT(*), 0),
+      (COUNT(*) FILTER (WHERE a.status = 'present') * 100.0) / NULLIF(COUNT(*), 0),
       2
     )
-    FROM attendance
-    WHERE recorded_at >= NOW() - INTERVAL '30 days'),
+    FROM attendance a
+    WHERE a.recorded_at >= NOW() - INTERVAL '30 days'
+      AND a.tenant_id = t.id),
     0
   )::numeric as attendance_rate_30d,
 
-  -- Classes running today
+  -- Classes running today (per tenant)
   COALESCE(
     (SELECT COUNT(DISTINCT cs.class_id)
     FROM class_sessions cs
+    JOIN classes c ON cs.class_id = c.id
     WHERE cs.session_date = CURRENT_DATE
-      AND cs.status IN ('scheduled', 'completed')),
+      AND cs.status IN ('scheduled', 'completed')
+      AND c.tenant_id = t.id),
     0
   )::bigint as classes_running_today,
 
-  -- Capacity utilisation (average across all active classes)
+  -- Capacity utilisation (average across all active classes per tenant)
   COALESCE(
     (SELECT ROUND(
-      AVG(enrolled_count::numeric / NULLIF(capacity, 0) * 100),
+      AVG(c.enrolled_count::numeric / NULLIF(c.capacity, 0) * 100),
       2
     )
-    FROM classes
-    WHERE status = 'active'
-      AND capacity > 0),
+    FROM classes c
+    WHERE c.status = 'active'
+      AND c.capacity > 0
+      AND c.tenant_id = t.id),
     0
   )::numeric as capacity_utilisation,
 
-  -- New enrollments last 7 days
+  -- New enrollments last 7 days (per tenant)
   COALESCE(
     (SELECT COUNT(*)
-    FROM enrollments
-    WHERE enrollment_date >= CURRENT_DATE - INTERVAL '7 days'),
+    FROM enrollments e
+    WHERE e.enrollment_date >= CURRENT_DATE - INTERVAL '7 days'
+      AND e.tenant_id = t.id),
     0
   )::bigint as new_enrolments_7d,
 
   -- Outstanding compliance tasks (placeholder - can be enhanced)
-  0::bigint as outstanding_compliance_tasks;
+  0::bigint as outstanding_compliance_tasks
+
+FROM tenants t;
 
 -- ============================================================================
 -- 4. v_audit_events_recent - Recent audit log entries (ENHANCED)
@@ -90,6 +103,7 @@ SELECT
 CREATE OR REPLACE VIEW v_audit_events_recent AS
 SELECT
   al.id,
+  al.tenant_id,
   al.action,
   al.resource_type,
   al.resource_id,
@@ -99,9 +113,7 @@ SELECT
   u.email as actor_email,
   u.primary_role as actor_role
 FROM audit_logs al
-LEFT JOIN users u ON al.user_id = u.id
-ORDER BY al.timestamp DESC
-LIMIT 100;
+LEFT JOIN users u ON al.user_id = u.id;
 
 -- ============================================================================
 -- 5. v_users_with_metadata - Users with enrollment/class counts (ENHANCED)
