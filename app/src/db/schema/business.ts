@@ -16,6 +16,7 @@ import {
   text,
   index,
   uniqueIndex,
+  boolean,
 } from 'drizzle-orm/pg-core';
 import { tenants } from './core';
 import { students } from './core';
@@ -133,8 +134,8 @@ export const bookings = pgTable(
       .notNull()
       .references(() => courses.id, { onDelete: 'restrict' }),
     weeks: integer('weeks').notNull(),
-    courseStartDate: date('course_start_date').notNull(),
-    courseEndDate: date('course_end_date').notNull(),
+    courseStartDate: date('course_start_date'), // Nullable for TBC
+    courseEndDate: date('course_end_date'), // Nullable for TBC
     placementTestScore: varchar('placement_test_score', { length: 50 }),
     assignedLevel: varchar('assigned_level', { length: 10 }),
 
@@ -287,6 +288,66 @@ export type NewPayment = typeof payments.$inferInsert;
 
 export type Enquiry = typeof enquiries.$inferSelect;
 export type NewEnquiry = typeof enquiries.$inferInsert;
+
+/**
+ * Booking Fee Presets Table
+ * Configurable fee options for bookings (registration, learner protection, transfer, exam)
+ */
+export const bookingFeePresets = pgTable(
+  'booking_fee_presets',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id, { onDelete: 'cascade' }),
+    feeType: varchar('fee_type', { length: 50 }).notNull(), // 'registration', 'learner_protection', 'transfer', 'exam'
+    label: varchar('label', { length: 100 }).notNull(),
+    amountEur: decimal('amount_eur', { precision: 10, scale: 2 }).notNull(),
+    isDefault: boolean('is_default').default(false),
+    sortOrder: integer('sort_order').default(0),
+    isActive: boolean('is_active').default(true),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  table => [
+    index('idx_booking_fee_presets_tenant').on(table.tenantId),
+    index('idx_booking_fee_presets_type').on(table.tenantId, table.feeType),
+    index('idx_booking_fee_presets_active').on(table.tenantId, table.feeType, table.isActive),
+  ]
+);
+
+/**
+ * Accommodation Presets Table
+ * Configurable accommodation options (Host Family, Student House variants, etc.)
+ */
+export const accommodationPresets = pgTable(
+  'accommodation_presets',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id, { onDelete: 'cascade' }),
+    name: varchar('name', { length: 255 }).notNull(),
+    description: varchar('description', { length: 500 }),
+    pricePerWeekEur: decimal('price_per_week_eur', { precision: 10, scale: 2 }).notNull().default('0'),
+    depositEur: decimal('deposit_eur', { precision: 10, scale: 2 }).default('0'),
+    isDefault: boolean('is_default').default(false),
+    sortOrder: integer('sort_order').default(0),
+    isActive: boolean('is_active').default(true),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  table => [
+    index('idx_accommodation_presets_tenant').on(table.tenantId),
+    index('idx_accommodation_presets_active').on(table.tenantId, table.isActive),
+  ]
+);
+
+export type BookingFeePreset = typeof bookingFeePresets.$inferSelect;
+export type NewBookingFeePreset = typeof bookingFeePresets.$inferInsert;
+
+export type AccommodationPreset = typeof accommodationPresets.$inferSelect;
+export type NewAccommodationPreset = typeof accommodationPresets.$inferInsert;
 
 // Combined types
 export type BookingWithDetails = Booking & {

@@ -1,6 +1,6 @@
 import { requireAuth } from '@/lib/auth/utils';
 import Link from 'next/link';
-import { Clock, Settings } from 'lucide-react';
+import { Clock, Settings, CreditCard, Home } from 'lucide-react';
 
 export default async function Page() {
   await requireAuth();
@@ -11,6 +11,18 @@ export default async function Page() {
       description: 'Configure late thresholds and cumulative lateness tracking',
       href: '/admin/settings/attendance',
       icon: Clock,
+    },
+    {
+      title: 'Booking Fee Presets',
+      description: 'Manage registration, learner protection, transfer, and exam fee options',
+      href: '/admin/settings/booking-fees',
+      icon: CreditCard,
+    },
+    {
+      title: 'Accommodation Presets',
+      description: 'Configure accommodation types and pricing',
+      href: '/admin/settings/accommodation-presets',
+      icon: Home,
     },
   ];
 

@@ -16,6 +16,7 @@ interface NewStudentData {
   dateOfBirth: string;
   isMinor: boolean;
   cefrLevel: string;
+  nationality: string;
 }
 
 interface Props {
@@ -40,6 +41,7 @@ export function StudentSelector({ students, onStudentSelect, onMinorStatusChange
     dateOfBirth: '',
     isMinor: false,
     cefrLevel: '',
+    nationality: '',
   });
 
   // Filter students based on search query

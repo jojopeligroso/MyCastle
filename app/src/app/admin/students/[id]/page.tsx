@@ -33,8 +33,8 @@ interface BookingWithCourse {
   id: string;
   bookingNumber: string;
   courseName: string;
-  courseStartDate: string;
-  courseEndDate: string;
+  courseStartDate: string | null;
+  courseEndDate: string | null;
   totalBookingEur: string;
   totalPaidEur: string;
   status: string;
@@ -113,8 +113,8 @@ async function getStudentBookings(studentId: string): Promise<BookingWithCourse[
 
   return result.map(row => ({
     ...row,
-    courseStartDate: row.courseStartDate.toString(),
-    courseEndDate: row.courseEndDate.toString(),
+    courseStartDate: row.courseStartDate?.toString() || null,
+    courseEndDate: row.courseEndDate?.toString() || null,
     totalBookingEur: row.totalBookingEur || '0',
     totalPaidEur: row.totalPaidEur || '0',
   }));
@@ -370,10 +370,10 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
                         {booking.courseName}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {booking.courseStartDate}
+                        {booking.courseStartDate || 'TBC'}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {booking.courseEndDate}
+                        {booking.courseEndDate || 'TBC'}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                         €{parseFloat(booking.totalBookingEur).toFixed(2)}

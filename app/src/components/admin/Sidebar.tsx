@@ -59,6 +59,8 @@ const navigation: (NavItem | NavGroup)[] = [
       // { name: 'Bulk Uploads', href: '/admin/data/bulk-upload' },
       { name: 'Exports', href: '/admin/data/exports' },
       { name: 'Settings', href: '/admin/settings' },
+      { name: 'Booking Fee Presets', href: '/admin/settings/booking-fees' },
+      { name: 'Accommodation Presets', href: '/admin/settings/accommodation-presets' },
     ],
   },
   { name: 'Help', href: '/admin/help', icon: QuestionMarkCircleIcon },
