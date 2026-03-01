@@ -5,14 +5,14 @@
 
 import { requireAuth, getTenantId } from '@/lib/auth/utils';
 import { db } from '@/db';
-import { students, users, courses, accommodationTypes, agencies } from '@/db/schema';
+import { students, users, courses, accommodationTypes, agencies, bookingFeePresets, accommodationPresets } from '@/db/schema';
 import { eq, and, sql } from 'drizzle-orm';
 import { CreateBookingForm } from './CreateBookingForm';
 
 async function getFormData() {
   const tenantId = await getTenantId();
   if (!tenantId) {
-    return { students: [], courses: [], accommodationTypes: [], agencies: [] };
+    return { students: [], courses: [], accommodationTypes: [], agencies: [], feePresets: [], accommodationPresetsList: [] };
   }
 
   // Set RLS context
@@ -71,11 +71,60 @@ async function getFormData() {
     .where(and(eq(agencies.tenantId, tenantId), eq(agencies.status, 'active')))
     .orderBy(agencies.name);
 
+  // Fetch fee presets
+  let feePresetsData: { id: string; feeType: string; label: string; amountEur: string; isDefault: boolean | null }[] = [];
+  try {
+    const rawPresets = await db
+      .select({
+        id: bookingFeePresets.id,
+        feeType: bookingFeePresets.feeType,
+        label: bookingFeePresets.label,
+        amountEur: bookingFeePresets.amountEur,
+        isDefault: bookingFeePresets.isDefault,
+      })
+      .from(bookingFeePresets)
+      .where(and(eq(bookingFeePresets.tenantId, tenantId), eq(bookingFeePresets.isActive, true)))
+      .orderBy(bookingFeePresets.feeType, bookingFeePresets.sortOrder);
+
+    feePresetsData = rawPresets.map(p => ({
+      ...p,
+      amountEur: p.amountEur || '0',
+    }));
+  } catch (_e) {
+    // Table may not exist yet - that's okay
+    console.log('Fee presets table not available yet');
+  }
+
+  // Fetch accommodation presets
+  let accommodationPresetsData: { id: string; name: string; pricePerWeekEur: string; isDefault: boolean | null }[] = [];
+  try {
+    const rawAccomPresets = await db
+      .select({
+        id: accommodationPresets.id,
+        name: accommodationPresets.name,
+        pricePerWeekEur: accommodationPresets.pricePerWeekEur,
+        isDefault: accommodationPresets.isDefault,
+      })
+      .from(accommodationPresets)
+      .where(and(eq(accommodationPresets.tenantId, tenantId), eq(accommodationPresets.isActive, true)))
+      .orderBy(accommodationPresets.sortOrder);
+
+    accommodationPresetsData = rawAccomPresets.map(p => ({
+      ...p,
+      pricePerWeekEur: p.pricePerWeekEur || '0',
+    }));
+  } catch (_e) {
+    // Table may not exist yet - that's okay
+    console.log('Accommodation presets table not available yet');
+  }
+
   return {
     students: studentsData,
     courses: coursesData,
     accommodationTypes: accommodationData,
     agencies: agenciesData,
+    feePresets: feePresetsData,
+    accommodationPresetsList: accommodationPresetsData,
   };
 }
 
@@ -102,6 +151,8 @@ export default async function CreateBookingPage() {
         accommodationTypes={formData.accommodationTypes}
         agencies={formData.agencies}
         tenantId={tenantId}
+        feePresets={formData.feePresets}
+        accommodationPresets={formData.accommodationPresetsList}
       />
     </div>
   );

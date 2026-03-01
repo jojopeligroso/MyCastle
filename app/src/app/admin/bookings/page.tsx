@@ -24,8 +24,8 @@ interface BookingWithDetails {
   saleDate: string;
   status: string;
   weeks: number;
-  courseStartDate: string;
-  courseEndDate: string;
+  courseStartDate: string | null;
+  courseEndDate: string | null;
   totalBookingEur: string;
   totalPaidEur: string;
   depositPaidEur: string;
@@ -94,8 +94,8 @@ async function getBookings(): Promise<BookingWithDetails[]> {
     return result.map(row => ({
       ...row,
       saleDate: row.saleDate.toString(),
-      courseStartDate: row.courseStartDate.toString(),
-      courseEndDate: row.courseEndDate.toString(),
+      courseStartDate: row.courseStartDate?.toString() || null,
+      courseEndDate: row.courseEndDate?.toString() || null,
       totalBookingEur: row.totalBookingEur || '0',
       totalPaidEur: row.totalPaidEur || '0',
       depositPaidEur: row.depositPaidEur || '0',
@@ -223,10 +223,10 @@ function BookingsTable({ bookings }: { bookings: BookingWithDetails[] }) {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-900">
-                    {new Date(booking.courseStartDate).toLocaleDateString()}
+                    {booking.courseStartDate ? new Date(booking.courseStartDate).toLocaleDateString() : 'TBC'}
                   </div>
                   <div className="text-sm text-gray-500">
-                    to {new Date(booking.courseEndDate).toLocaleDateString()}
+                    to {booking.courseEndDate ? new Date(booking.courseEndDate).toLocaleDateString() : 'TBC'}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">

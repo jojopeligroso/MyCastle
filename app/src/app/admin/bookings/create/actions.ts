@@ -12,6 +12,7 @@ interface NewStudentData {
   dateOfBirth?: string;
   isMinor?: boolean;
   cefrLevel?: string;
+  nationality?: string;
 }
 
 interface BookedByData {
@@ -30,15 +31,28 @@ interface CreateBookingData {
   agencyId: string;
   accommodationTypeId: string | null;
   weeks: number;
-  courseStartDate: string;
-  courseEndDate: string;
+  courseStartDate?: string; // Optional - blank = TBC
+  courseEndDate?: string; // Optional - blank = TBC
+  // Academic fields
+  placementTestScore?: string;
+  assignedLevel?: string;
+  // Accommodation dates
+  accommodationStartDate?: string;
+  accommodationEndDate?: string;
+  // Financial
   courseFeeEur: string;
   accommodationFeeEur: string;
+  transferFeeEur?: string;
+  examFeeEur?: string;
   registrationFeeEur: string;
   learnerProtectionFeeEur: string;
   medicalInsuranceFeeEur: string;
   totalBookingEur: string;
   depositPaidEur: string;
+  // Visa/Nationality (for updating student record)
+  nationality?: string;
+  visaType?: string;
+  visaExpiryDate?: string;
 }
 
 export async function createBooking(data: CreateBookingData) {
@@ -66,6 +80,15 @@ export async function createBooking(data: CreateBookingData) {
 
     if (!finalStudentId) {
       return { success: false, error: 'Student ID is required' };
+    }
+
+    // Update student visa/nationality if provided and using existing student
+    if (data.studentId && (data.nationality || data.visaType || data.visaExpiryDate)) {
+      await updateStudentVisaInfo(data.studentId, {
+        nationality: data.nationality,
+        visaType: data.visaType,
+        visaExpiryDate: data.visaExpiryDate,
+      });
     }
 
     // Generate booking number (BK-YYYY-XXX)
@@ -97,13 +120,20 @@ export async function createBooking(data: CreateBookingData) {
         agencyId: data.agencyId,
         accommodationTypeId: data.accommodationTypeId,
         weeks: data.weeks,
-        courseStartDate: data.courseStartDate,
-        courseEndDate: data.courseEndDate,
+        // Dates - null for TBC
+        courseStartDate: data.courseStartDate || null,
+        courseEndDate: data.courseEndDate || null,
+        // Academic fields
+        placementTestScore: data.placementTestScore || null,
+        assignedLevel: data.assignedLevel || null,
+        // Accommodation dates
+        accommodationStartDate: data.accommodationStartDate || null,
+        accommodationEndDate: data.accommodationEndDate || null,
         // Financial
         courseFeeEur: data.courseFeeEur,
         accommodationFeeEur: data.accommodationFeeEur,
-        transferFeeEur: '0',
-        examFeeEur: '0',
+        transferFeeEur: data.transferFeeEur || '0',
+        examFeeEur: data.examFeeEur || '0',
         registrationFeeEur: data.registrationFeeEur,
         learnerProtectionFeeEur: data.learnerProtectionFeeEur,
         medicalInsuranceFeeEur: data.medicalInsuranceFeeEur,
@@ -139,6 +169,48 @@ export async function createBooking(data: CreateBookingData) {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to create booking',
     };
+  }
+}
+
+/**
+ * Update student visa/nationality information
+ */
+async function updateStudentVisaInfo(
+  studentId: string,
+  data: { nationality?: string; visaType?: string; visaExpiryDate?: string }
+) {
+  try {
+    // Get the student's user ID
+    const [student] = await db
+      .select({ userId: students.userId })
+      .from(students)
+      .where(eq(students.id, studentId))
+      .limit(1);
+
+    if (!student) return;
+
+    // Update user nationality if provided
+    if (data.nationality) {
+      await db
+        .update(users)
+        .set({ nationality: data.nationality })
+        .where(eq(users.id, student.userId));
+    }
+
+    // Update student visa info if provided
+    if (data.visaType || data.visaExpiryDate) {
+      await db
+        .update(students)
+        .set({
+          visaType: data.visaType || undefined,
+          visaExpiryDate: data.visaExpiryDate || undefined,
+          isVisaStudent: data.visaType && data.visaType !== 'N/A' ? true : undefined,
+        })
+        .where(eq(students.id, studentId));
+    }
+  } catch (error) {
+    console.error('Failed to update student visa info:', error);
+    // Don't fail the booking creation if visa update fails
   }
 }
 
@@ -189,6 +261,7 @@ async function createNewStudent(
         name: data.name,
         phone: data.phone || null,
         dateOfBirth: data.dateOfBirth || null,
+        nationality: data.nationality || null,
         role: 'student',
         isActive: true,
         currentLevel: data.cefrLevel || null,

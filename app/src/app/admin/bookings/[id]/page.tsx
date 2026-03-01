@@ -25,12 +25,19 @@ interface BookingDetails {
   saleDate: string;
   status: string;
   weeks: number;
-  courseStartDate: string;
-  courseEndDate: string;
+  courseStartDate: string | null;
+  courseEndDate: string | null;
+  // Academic fields
+  placementTestScore: string | null;
+  assignedLevel: string | null;
+  // Accommodation dates
+  accommodationStartDate: string | null;
+  accommodationEndDate: string | null;
   // Student
   studentName: string | null;
   studentEmail: string;
   studentNumber: string | null;
+  studentNationality: string | null;
   // Course
   courseName: string;
   courseCode: string | null;
@@ -42,6 +49,8 @@ interface BookingDetails {
   // Financials
   courseFeeEur: string;
   accommodationFeeEur: string;
+  transferFeeEur: string;
+  examFeeEur: string;
   registrationFeeEur: string;
   learnerProtectionFeeEur: string;
   medicalInsuranceFeeEur: string;
@@ -56,6 +65,16 @@ interface Payment {
   amountEur: string;
   paymentMethod: string;
   referenceNumber: string | null;
+}
+
+// Helper function to format dates with TBC handling
+function formatDate(dateString: string | null): string {
+  if (!dateString) return 'TBC';
+  try {
+    return new Date(dateString).toLocaleDateString();
+  } catch {
+    return 'TBC';
+  }
 }
 
 async function getBookingDetails(bookingId: string): Promise<BookingDetails | null> {
@@ -74,9 +93,14 @@ async function getBookingDetails(bookingId: string): Promise<BookingDetails | nu
       weeks: bookings.weeks,
       courseStartDate: bookings.courseStartDate,
       courseEndDate: bookings.courseEndDate,
+      placementTestScore: bookings.placementTestScore,
+      assignedLevel: bookings.assignedLevel,
+      accommodationStartDate: bookings.accommodationStartDate,
+      accommodationEndDate: bookings.accommodationEndDate,
       studentName: users.name,
       studentEmail: users.email,
       studentNumber: students.studentNumber,
+      studentNationality: users.nationality,
       courseName: courses.name,
       courseCode: courses.code,
       courseLevel: courses.level,
@@ -84,6 +108,8 @@ async function getBookingDetails(bookingId: string): Promise<BookingDetails | nu
       agencyName: agencies.name,
       courseFeeEur: bookings.courseFeeEur,
       accommodationFeeEur: bookings.accommodationFeeEur,
+      transferFeeEur: bookings.transferFeeEur,
+      examFeeEur: bookings.examFeeEur,
       registrationFeeEur: bookings.registrationFeeEur,
       learnerProtectionFeeEur: bookings.learnerProtectionFeeEur,
       medicalInsuranceFeeEur: bookings.medicalInsuranceFeeEur,
@@ -104,11 +130,15 @@ async function getBookingDetails(bookingId: string): Promise<BookingDetails | nu
 
   return {
     ...result[0],
-    saleDate: result[0].saleDate.toString(),
-    courseStartDate: result[0].courseStartDate.toString(),
-    courseEndDate: result[0].courseEndDate.toString(),
+    saleDate: result[0].saleDate?.toString() || '',
+    courseStartDate: result[0].courseStartDate?.toString() || null,
+    courseEndDate: result[0].courseEndDate?.toString() || null,
+    accommodationStartDate: result[0].accommodationStartDate?.toString() || null,
+    accommodationEndDate: result[0].accommodationEndDate?.toString() || null,
     courseFeeEur: result[0].courseFeeEur || '0',
     accommodationFeeEur: result[0].accommodationFeeEur || '0',
+    transferFeeEur: result[0].transferFeeEur || '0',
+    examFeeEur: result[0].examFeeEur || '0',
     registrationFeeEur: result[0].registrationFeeEur || '0',
     learnerProtectionFeeEur: result[0].learnerProtectionFeeEur || '0',
     medicalInsuranceFeeEur: result[0].medicalInsuranceFeeEur || '0',
@@ -167,7 +197,7 @@ export default async function ViewBookingPage({ params }: { params: { id: string
             href="/admin/bookings"
             className="text-sm text-blue-600 hover:text-blue-800 mb-2 inline-block"
           >
-            ← Back to Bookings
+            &larr; Back to Bookings
           </Link>
           <h1 className="text-3xl font-bold text-gray-900">{booking.bookingNumber}</h1>
           <p className="mt-2 text-gray-600">
@@ -207,19 +237,37 @@ export default async function ViewBookingPage({ params }: { params: { id: string
               <div>
                 <dt className="text-sm font-medium text-gray-500">Start Date</dt>
                 <dd className="mt-1 text-sm text-gray-900">
-                  {new Date(booking.courseStartDate).toLocaleDateString()}
+                  {formatDate(booking.courseStartDate)}
                 </dd>
               </div>
               <div>
                 <dt className="text-sm font-medium text-gray-500">End Date</dt>
                 <dd className="mt-1 text-sm text-gray-900">
-                  {new Date(booking.courseEndDate).toLocaleDateString()}
+                  {formatDate(booking.courseEndDate)}
                 </dd>
               </div>
-              {booking.accommodationName && (
-                <div className="sm:col-span-2">
-                  <dt className="text-sm font-medium text-gray-500">Accommodation</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{booking.accommodationName}</dd>
+              {/* Academic Fields */}
+              {booking.placementTestScore && (
+                <div>
+                  <dt className="text-sm font-medium text-gray-500">Placement Test Score</dt>
+                  <dd className="mt-1 text-sm text-gray-900">{booking.placementTestScore}</dd>
+                </div>
+              )}
+              {booking.assignedLevel && (
+                <div>
+                  <dt className="text-sm font-medium text-gray-500">Assigned Level</dt>
+                  <dd className="mt-1 text-sm text-gray-900">
+                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded bg-blue-100 text-blue-800">
+                      {booking.assignedLevel}
+                    </span>
+                  </dd>
+                </div>
+              )}
+              {/* Student Info */}
+              {booking.studentNationality && (
+                <div>
+                  <dt className="text-sm font-medium text-gray-500">Nationality</dt>
+                  <dd className="mt-1 text-sm text-gray-900">{booking.studentNationality}</dd>
                 </div>
               )}
               <div className="sm:col-span-2">
@@ -229,6 +277,33 @@ export default async function ViewBookingPage({ params }: { params: { id: string
             </dl>
           </div>
 
+          {/* Accommodation Info */}
+          {(booking.accommodationName || booking.accommodationStartDate || booking.accommodationEndDate) && (
+            <div className="bg-white shadow rounded-lg p-6">
+              <h2 className="text-lg font-medium text-gray-900 mb-4">Accommodation</h2>
+              <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {booking.accommodationName && (
+                  <div className="sm:col-span-2">
+                    <dt className="text-sm font-medium text-gray-500">Type</dt>
+                    <dd className="mt-1 text-sm text-gray-900">{booking.accommodationName}</dd>
+                  </div>
+                )}
+                <div>
+                  <dt className="text-sm font-medium text-gray-500">Start Date</dt>
+                  <dd className="mt-1 text-sm text-gray-900">
+                    {formatDate(booking.accommodationStartDate)}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-sm font-medium text-gray-500">End Date</dt>
+                  <dd className="mt-1 text-sm text-gray-900">
+                    {formatDate(booking.accommodationEndDate)}
+                  </dd>
+                </div>
+              </dl>
+            </div>
+          )}
+
           {/* Financial Breakdown */}
           <div className="bg-white shadow rounded-lg p-6">
             <h2 className="text-lg font-medium text-gray-900 mb-4">Financial Breakdown</h2>
@@ -236,47 +311,63 @@ export default async function ViewBookingPage({ params }: { params: { id: string
               <div className="flex justify-between text-sm">
                 <dt className="text-gray-500">Course Fee</dt>
                 <dd className="text-gray-900 font-medium">
-                  €{parseFloat(booking.courseFeeEur).toFixed(2)}
+                  &euro;{parseFloat(booking.courseFeeEur).toFixed(2)}
                 </dd>
               </div>
               {parseFloat(booking.accommodationFeeEur) > 0 && (
                 <div className="flex justify-between text-sm">
                   <dt className="text-gray-500">Accommodation Fee</dt>
                   <dd className="text-gray-900 font-medium">
-                    €{parseFloat(booking.accommodationFeeEur).toFixed(2)}
+                    &euro;{parseFloat(booking.accommodationFeeEur).toFixed(2)}
+                  </dd>
+                </div>
+              )}
+              {parseFloat(booking.transferFeeEur) > 0 && (
+                <div className="flex justify-between text-sm">
+                  <dt className="text-gray-500">Transfer Fee</dt>
+                  <dd className="text-gray-900 font-medium">
+                    &euro;{parseFloat(booking.transferFeeEur).toFixed(2)}
+                  </dd>
+                </div>
+              )}
+              {parseFloat(booking.examFeeEur) > 0 && (
+                <div className="flex justify-between text-sm">
+                  <dt className="text-gray-500">Exam Fee</dt>
+                  <dd className="text-gray-900 font-medium">
+                    &euro;{parseFloat(booking.examFeeEur).toFixed(2)}
                   </dd>
                 </div>
               )}
               <div className="flex justify-between text-sm">
                 <dt className="text-gray-500">Registration Fee</dt>
                 <dd className="text-gray-900 font-medium">
-                  €{parseFloat(booking.registrationFeeEur).toFixed(2)}
+                  &euro;{parseFloat(booking.registrationFeeEur).toFixed(2)}
                 </dd>
               </div>
               <div className="flex justify-between text-sm">
                 <dt className="text-gray-500">Learner Protection Fee</dt>
                 <dd className="text-gray-900 font-medium">
-                  €{parseFloat(booking.learnerProtectionFeeEur).toFixed(2)}
+                  &euro;{parseFloat(booking.learnerProtectionFeeEur).toFixed(2)}
                 </dd>
               </div>
               {parseFloat(booking.medicalInsuranceFeeEur) > 0 && (
                 <div className="flex justify-between text-sm">
                   <dt className="text-gray-500">Medical Insurance</dt>
                   <dd className="text-gray-900 font-medium">
-                    €{parseFloat(booking.medicalInsuranceFeeEur).toFixed(2)}
+                    &euro;{parseFloat(booking.medicalInsuranceFeeEur).toFixed(2)}
                   </dd>
                 </div>
               )}
               <div className="border-t pt-3 flex justify-between">
                 <dt className="text-base font-medium text-gray-900">Total Booking</dt>
                 <dd className="text-base font-bold text-gray-900">
-                  €{parseFloat(booking.totalBookingEur).toFixed(2)}
+                  &euro;{parseFloat(booking.totalBookingEur).toFixed(2)}
                 </dd>
               </div>
               <div className="flex justify-between text-sm">
                 <dt className="text-gray-500">Total Paid</dt>
                 <dd className="text-green-600 font-medium">
-                  €{parseFloat(booking.totalPaidEur).toFixed(2)}
+                  &euro;{parseFloat(booking.totalPaidEur).toFixed(2)}
                 </dd>
               </div>
               <div className="border-t pt-3 flex justify-between">
@@ -286,7 +377,7 @@ export default async function ViewBookingPage({ params }: { params: { id: string
                     parseFloat(balance) === 0 ? 'text-green-600' : 'text-amber-600'
                   }`}
                 >
-                  €{balance}
+                  &euro;{balance}
                 </dd>
               </div>
             </dl>
@@ -307,11 +398,11 @@ export default async function ViewBookingPage({ params }: { params: { id: string
                       </p>
                       <p className="text-xs text-gray-500">
                         {payment.paymentMethod}
-                        {payment.referenceNumber && ` • ${payment.referenceNumber}`}
+                        {payment.referenceNumber && ` \u2022 ${payment.referenceNumber}`}
                       </p>
                     </div>
                     <p className="text-sm font-bold text-gray-900">
-                      €{parseFloat(payment.amountEur).toFixed(2)}
+                      &euro;{parseFloat(payment.amountEur).toFixed(2)}
                     </p>
                   </div>
                 ))}
