@@ -259,7 +259,7 @@ export function AuditTrailTab({ studentId, studentUserId: _studentUserId }: Audi
       ) : (
         <div className="flow-root">
           <ul className="-mb-8">
-            {auditEntries.map((entry, idx) => (
+            {auditEntries.map((entry: AuditEntry, idx: number) => (
               <li key={entry.id}>
                 <div className="relative pb-8">
                   {idx !== auditEntries.length - 1 && (

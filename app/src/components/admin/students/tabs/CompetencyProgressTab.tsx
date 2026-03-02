@@ -134,7 +134,7 @@ export function CompetencyProgressTab({
     );
   }
 
-  const hasAnyData = skillGroups.some(g => g.total > 0);
+  const hasAnyData = skillGroups.some((g: SkillGroup) => g.total > 0);
 
   return (
     <div className="space-y-6">
@@ -169,7 +169,7 @@ export function CompetencyProgressTab({
       {/* Skill Category Overview */}
       <section>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {skillGroups.map(group => {
+          {skillGroups.map((group: SkillGroup) => {
             const progress = getProgressPercentage(group.competent, group.total);
             const isSelected = selectedCategory === group.category;
 
@@ -216,7 +216,8 @@ export function CompetencyProgressTab({
           <h4 className="text-sm font-semibold text-gray-900 mb-3">
             {selectedCategory} Skill Gaps
           </h4>
-          {skillGroups.find(g => g.category === selectedCategory)?.gaps.length === 0 ? (
+          {skillGroups.find((g: SkillGroup) => g.category === selectedCategory)?.gaps.length ===
+          0 ? (
             <div className="bg-gray-50 rounded-lg p-6 text-center">
               <p className="text-sm text-gray-600">No skill gaps recorded for {selectedCategory}</p>
               <p className="text-xs text-gray-500 mt-1">
@@ -226,8 +227,8 @@ export function CompetencyProgressTab({
           ) : (
             <div className="space-y-2">
               {skillGroups
-                .find(g => g.category === selectedCategory)
-                ?.gaps.map(gap => (
+                .find((g: SkillGroup) => g.category === selectedCategory)
+                ?.gaps.map((gap: SkillGap) => (
                   <div key={gap.id} className="bg-white border border-gray-200 rounded-lg p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">

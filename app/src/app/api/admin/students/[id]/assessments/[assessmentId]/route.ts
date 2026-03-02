@@ -36,11 +36,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         assessedBy: competencyAssessments.assessedBy,
         createdAt: competencyAssessments.createdAt,
         updatedAt: competencyAssessments.updatedAt,
-        descriptorCode: cefrDescriptors.code,
+        // Descriptor details
+        descriptorLevel: cefrDescriptors.level,
         descriptorText: cefrDescriptors.descriptorText,
         descriptorCategory: cefrDescriptors.category,
         descriptorSubcategory: cefrDescriptors.subcategory,
-        descriptorLevel: cefrDescriptors.level,
         assessorName: users.name,
       })
       .from(competencyAssessments)

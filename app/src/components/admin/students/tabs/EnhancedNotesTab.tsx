@@ -189,7 +189,7 @@ export function EnhancedNotesTab({
     return icons[visibility] || icons.private;
   };
 
-  const filteredNotes = notes.filter(note => {
+  const filteredNotes = notes.filter((note: StudentNote) => {
     // Filter out medical notes if user can't view sensitive
     if (note.noteType === 'medical' && !canViewSensitiveNotes) {
       return false;
@@ -340,7 +340,7 @@ export function EnhancedNotesTab({
         </div>
       ) : (
         <div className="space-y-4">
-          {filteredNotes.map(note => {
+          {filteredNotes.map((note: StudentNote) => {
             const isOwnNote = note.author.id === currentUserId;
             const canEdit = isOwnNote || currentUserRole === 'admin';
             const canShare =
