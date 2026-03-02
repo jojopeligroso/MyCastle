@@ -68,7 +68,8 @@ export default async function BookingFeesSettingsPage() {
         </Link>
         <h1 className="text-3xl font-bold text-gray-900">Booking Fee Presets</h1>
         <p className="mt-2 text-gray-600">
-          Configure preset fee options for bookings. These appear as dropdown options when creating or editing a booking.
+          Configure preset fee options for bookings. These appear as dropdown options when creating
+          or editing a booking.
         </p>
       </div>
 

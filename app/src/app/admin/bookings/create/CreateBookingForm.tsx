@@ -130,8 +130,7 @@ export function CreateBookingForm({
   const [depositPaid, setDepositPaid] = useState('1000');
 
   // Helper to get presets by type
-  const getPresetsByType = (type: string) =>
-    feePresets.filter(p => p.feeType === type);
+  const getPresetsByType = (type: string) => feePresets.filter(p => p.feeType === type);
 
   const registrationPresets = getPresetsByType('registration');
   const learnerProtectionPresets = getPresetsByType('learner_protection');
@@ -218,7 +217,11 @@ export function CreateBookingForm({
   };
 
   // Handle fee preset selection
-  const handleFeePresetChange = (presetId: string, setter: (v: string) => void, presets: FeePreset[]) => {
+  const handleFeePresetChange = (
+    presetId: string,
+    setter: (v: string) => void,
+    presets: FeePreset[]
+  ) => {
     const preset = presets.find(p => p.id === presetId);
     if (preset) {
       setter(preset.amountEur);
@@ -411,7 +414,9 @@ export function CreateBookingForm({
       {/* Dates Section */}
       <div className="bg-white shadow rounded-lg p-6">
         <h2 className="text-lg font-medium text-gray-900 mb-4">Course Dates</h2>
-        <p className="text-sm text-gray-500 mb-4">Leave date fields blank for &quot;TBC&quot; (to be confirmed)</p>
+        <p className="text-sm text-gray-500 mb-4">
+          Leave date fields blank for &quot;TBC&quot; (to be confirmed)
+        </p>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
           <div>
             <label className="block text-sm font-medium text-gray-700">Weeks *</label>
@@ -507,7 +512,9 @@ export function CreateBookingForm({
       {/* Visa & Nationality Section (Optional) */}
       <div className="bg-white shadow rounded-lg p-6">
         <h2 className="text-lg font-medium text-gray-900 mb-2">Visa & Nationality</h2>
-        <p className="text-sm text-gray-500 mb-4">Optional - Can also be edited on student profile</p>
+        <p className="text-sm text-gray-500 mb-4">
+          Optional - Can also be edited on student profile
+        </p>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
           <div>
             <label className="block text-sm font-medium text-gray-700">Nationality</label>
@@ -580,7 +587,9 @@ export function CreateBookingForm({
             {registrationPresets.length > 0 ? (
               <div className="flex gap-2 mt-1">
                 <select
-                  onChange={e => handleFeePresetChange(e.target.value, setRegistrationFee, registrationPresets)}
+                  onChange={e =>
+                    handleFeePresetChange(e.target.value, setRegistrationFee, registrationPresets)
+                  }
                   className="block w-1/2 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
                 >
                   <option value="">Select preset</option>
@@ -615,7 +624,13 @@ export function CreateBookingForm({
             {learnerProtectionPresets.length > 0 ? (
               <div className="flex gap-2 mt-1">
                 <select
-                  onChange={e => handleFeePresetChange(e.target.value, setLearnerProtectionFee, learnerProtectionPresets)}
+                  onChange={e =>
+                    handleFeePresetChange(
+                      e.target.value,
+                      setLearnerProtectionFee,
+                      learnerProtectionPresets
+                    )
+                  }
                   className="block w-1/2 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
                 >
                   <option value="">Select preset</option>
@@ -650,7 +665,9 @@ export function CreateBookingForm({
             {transferPresets.length > 0 ? (
               <div className="flex gap-2 mt-1">
                 <select
-                  onChange={e => handleFeePresetChange(e.target.value, setTransferFee, transferPresets)}
+                  onChange={e =>
+                    handleFeePresetChange(e.target.value, setTransferFee, transferPresets)
+                  }
                   className="block w-1/2 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
                 >
                   <option value="">Select preset</option>

@@ -47,14 +47,19 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     // Don't allow edits on terminal batches
     const terminalStatuses = ['APPLIED', 'REJECTED', 'FAILED_VALIDATION', 'FAILED_SYSTEM'];
     if (terminalStatuses.includes(batch.status)) {
-      return NextResponse.json({ error: 'Cannot modify rows in a terminal batch' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Cannot modify rows in a terminal batch' },
+        { status: 400 }
+      );
     }
 
     // Get current row
     const [row] = await db
       .select({ id: stgRows.id, editedData: stgRows.editedData })
       .from(stgRows)
-      .where(and(eq(stgRows.id, rowId), eq(stgRows.batchId, batchId), eq(stgRows.tenantId, tenantId)))
+      .where(
+        and(eq(stgRows.id, rowId), eq(stgRows.batchId, batchId), eq(stgRows.tenantId, tenantId))
+      )
       .limit(1);
 
     if (!row) {
@@ -69,8 +74,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 
     // Validate that only editable fields are being modified
-    const editableFieldNames = new Set(getEditableFields().map((f) => f.name));
-    const invalidFields = Object.keys(edits).filter((key) => !editableFieldNames.has(key));
+    const editableFieldNames = new Set(getEditableFields().map(f => f.name));
+    const invalidFields = Object.keys(edits).filter(key => !editableFieldNames.has(key));
 
     if (invalidFields.length > 0) {
       return NextResponse.json(

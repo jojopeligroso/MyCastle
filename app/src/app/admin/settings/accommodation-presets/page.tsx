@@ -71,7 +71,8 @@ export default async function AccommodationPresetsSettingsPage() {
         </Link>
         <h1 className="text-3xl font-bold text-gray-900">Accommodation Presets</h1>
         <p className="mt-2 text-gray-600">
-          Configure accommodation type options and pricing. These appear as dropdown options when creating or editing a booking.
+          Configure accommodation type options and pricing. These appear as dropdown options when
+          creating or editing a booking.
         </p>
       </div>
 

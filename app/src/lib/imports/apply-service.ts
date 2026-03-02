@@ -203,7 +203,10 @@ export async function applyBatchChanges(
 
       // Helper: Get effective value (editedData takes precedence over parsedData)
       const getEffectiveValue = <T>(
-        stgRow: { parsedData: Record<string, unknown> | null; editedData?: Record<string, unknown> | null },
+        stgRow: {
+          parsedData: Record<string, unknown> | null;
+          editedData?: Record<string, unknown> | null;
+        },
         fieldName: string
       ): T | null => {
         if (stgRow.editedData && stgRow.editedData[fieldName] !== undefined) {
@@ -564,13 +567,15 @@ export async function applyBatchChanges(
         const updateValues: Record<string, unknown> = {};
 
         // Course start date (check edited first, then diff)
-        const effectiveStartDate = getEffectiveUpdateValue('courseStartDate') || getEffectiveUpdateValue('startDate');
+        const effectiveStartDate =
+          getEffectiveUpdateValue('courseStartDate') || getEffectiveUpdateValue('startDate');
         if (effectiveStartDate !== null) {
           updateValues.enrollmentDate = effectiveStartDate;
         }
 
         // Course end date
-        const effectiveEndDate = getEffectiveUpdateValue('courseEndDate') || getEffectiveUpdateValue('endDate');
+        const effectiveEndDate =
+          getEffectiveUpdateValue('courseEndDate') || getEffectiveUpdateValue('endDate');
         if (effectiveEndDate !== null) {
           updateValues.expectedEndDate = effectiveEndDate;
         }

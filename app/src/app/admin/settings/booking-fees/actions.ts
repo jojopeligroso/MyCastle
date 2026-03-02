@@ -27,7 +27,9 @@ export async function createFeePreset(data: CreatePresetData) {
     const maxSortResult = await db
       .select({ maxSort: sql<number>`COALESCE(MAX(sort_order), 0)` })
       .from(bookingFeePresets)
-      .where(and(eq(bookingFeePresets.tenantId, tenantId), eq(bookingFeePresets.feeType, data.feeType)));
+      .where(
+        and(eq(bookingFeePresets.tenantId, tenantId), eq(bookingFeePresets.feeType, data.feeType))
+      );
 
     const nextSortOrder = (maxSortResult[0]?.maxSort || 0) + 1;
 
@@ -105,7 +107,10 @@ export async function deleteFeePreset(id: string) {
       .limit(1);
 
     if (preset?.isDefault) {
-      return { success: false, error: 'Cannot delete the default preset. Set another as default first.' };
+      return {
+        success: false,
+        error: 'Cannot delete the default preset. Set another as default first.',
+      };
     }
 
     await db

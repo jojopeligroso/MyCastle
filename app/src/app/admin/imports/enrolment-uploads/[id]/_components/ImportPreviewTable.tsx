@@ -216,9 +216,7 @@ function PreviewRow({ row, batchId, isSelected, onToggle, onCellEdit }: PreviewR
       </td>
 
       {/* Row Number */}
-      <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-500">
-        {row.rowNumber}
-      </td>
+      <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-500">{row.rowNumber}</td>
 
       {/* Identity: Name */}
       <td className="px-3 py-2 whitespace-nowrap">
@@ -235,9 +233,7 @@ function PreviewRow({ row, batchId, isSelected, onToggle, onCellEdit }: PreviewR
         {row.matchedEmail ? (
           <div className="flex items-center gap-2">
             <Mail className="w-4 h-4 text-gray-400" />
-            <span className="text-sm text-gray-600 truncate max-w-[150px]">
-              {row.matchedEmail}
-            </span>
+            <span className="text-sm text-gray-600 truncate max-w-[150px]">{row.matchedEmail}</span>
           </div>
         ) : (
           <span className="text-gray-400">-</span>
@@ -259,9 +255,7 @@ function PreviewRow({ row, batchId, isSelected, onToggle, onCellEdit }: PreviewR
       </td>
 
       {/* Action Badge */}
-      <td className="px-3 py-2 whitespace-nowrap">
-        {getActionBadge(row.action, hasErrors)}
-      </td>
+      <td className="px-3 py-2 whitespace-nowrap">{getActionBadge(row.action, hasErrors)}</td>
 
       {/* Changes Column */}
       <td className="px-4 py-2">
@@ -275,7 +269,7 @@ function PreviewRow({ row, batchId, isSelected, onToggle, onCellEdit }: PreviewR
           </div>
         ) : row.action === 'INSERT' ? (
           <div className="space-y-1">
-            {PREVIEW_FIELDS.map((field) => {
+            {PREVIEW_FIELDS.map(field => {
               const value = getValue(field.name);
               if (value === null || value === undefined) return null;
               return (
@@ -304,7 +298,7 @@ function PreviewRow({ row, batchId, isSelected, onToggle, onCellEdit }: PreviewR
         ) : row.action === 'UPDATE' && row.diff ? (
           <div className="space-y-1">
             {Object.entries(row.diff).map(([fieldName, diff]) => {
-              const fieldConfig = PREVIEW_FIELDS.find((f) => f.name === fieldName);
+              const fieldConfig = PREVIEW_FIELDS.find(f => f.name === fieldName);
               const fieldType = fieldConfig?.type || 'string';
               const fieldLabel = fieldConfig?.label || fieldName;
 
@@ -360,11 +354,11 @@ export default function ImportPreviewTable({
 
   // Track confirmed rows
   const confirmedRows = useMemo(() => {
-    return new Set(rows.filter((r) => r.confirmation === 'confirmed').map((r) => r.id));
+    return new Set(rows.filter(r => r.confirmation === 'confirmed').map(r => r.id));
   }, [rows]);
 
   const quarantinedRows = useMemo(() => {
-    return new Set(rows.filter((r) => r.confirmation === 'quarantined').map((r) => r.id));
+    return new Set(rows.filter(r => r.confirmation === 'quarantined').map(r => r.id));
   }, [rows]);
 
   // Fetch rows
@@ -402,7 +396,7 @@ export default function ImportPreviewTable({
 
   // Toggle row confirmation
   const handleToggle = async (rowId: string) => {
-    const row = rows.find((r) => r.id === rowId);
+    const row = rows.find(r => r.id === rowId);
     if (!row) return;
 
     const newStatus: RowConfirmation =
@@ -420,9 +414,7 @@ export default function ImportPreviewTable({
       }
 
       // Update local state
-      setRows((prev) =>
-        prev.map((r) => (r.id === rowId ? { ...r, confirmation: newStatus } : r))
-      );
+      setRows(prev => prev.map(r => (r.id === rowId ? { ...r, confirmation: newStatus } : r)));
     } catch (err) {
       console.error('Failed to toggle row:', err);
     }
@@ -430,8 +422,8 @@ export default function ImportPreviewTable({
 
   // Handle cell edit
   const handleCellEdit = (rowId: string, fieldName: string, newValue: unknown) => {
-    setRows((prev) =>
-      prev.map((r) => {
+    setRows(prev =>
+      prev.map(r => {
         if (r.id !== rowId) return r;
         return {
           ...r,
@@ -444,10 +436,10 @@ export default function ImportPreviewTable({
   // Bulk actions
   const handleConfirmAll = async () => {
     try {
-      const rowIds = rows.filter((r) => r.confirmation !== 'confirmed').map((r) => r.id);
+      const rowIds = rows.filter(r => r.confirmation !== 'confirmed').map(r => r.id);
 
       await Promise.all(
-        rowIds.map((rowId) =>
+        rowIds.map(rowId =>
           fetch(`/api/imports/batches/${batchId}/rows/${rowId}/confirm`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -456,7 +448,7 @@ export default function ImportPreviewTable({
         )
       );
 
-      setRows((prev) => prev.map((r) => ({ ...r, confirmation: 'confirmed' as const })));
+      setRows(prev => prev.map(r => ({ ...r, confirmation: 'confirmed' as const })));
     } catch (err) {
       console.error('Failed to confirm all:', err);
     }
@@ -465,11 +457,11 @@ export default function ImportPreviewTable({
   const handleQuarantineInvalid = async () => {
     try {
       const invalidRows = rows.filter(
-        (r) => r.rowStatus === 'INVALID' || (r.validationErrors?.length ?? 0) > 0
+        r => r.rowStatus === 'INVALID' || (r.validationErrors?.length ?? 0) > 0
       );
 
       await Promise.all(
-        invalidRows.map((row) =>
+        invalidRows.map(row =>
           fetch(`/api/imports/batches/${batchId}/rows/${row.id}/confirm`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -478,8 +470,8 @@ export default function ImportPreviewTable({
         )
       );
 
-      setRows((prev) =>
-        prev.map((r) => {
+      setRows(prev =>
+        prev.map(r => {
           if (r.rowStatus === 'INVALID' || (r.validationErrors?.length ?? 0) > 0) {
             return { ...r, confirmation: 'quarantined' as const };
           }
@@ -497,8 +489,8 @@ export default function ImportPreviewTable({
   const endItem = Math.min((page + 1) * pageSize, total);
 
   // All selected check
-  const allSelected = rows.length > 0 && rows.every((r) => r.confirmation === 'confirmed');
-  const someSelected = rows.some((r) => r.confirmation === 'confirmed');
+  const allSelected = rows.length > 0 && rows.every(r => r.confirmation === 'confirmed');
+  const someSelected = rows.some(r => r.confirmation === 'confirmed');
 
   if (isLoading) {
     return (
@@ -517,9 +509,7 @@ export default function ImportPreviewTable({
   }
 
   if (rows.length === 0) {
-    return (
-      <div className="text-center py-12 text-gray-500">No rows in this batch.</div>
-    );
+    return <div className="text-center py-12 text-gray-500">No rows in this batch.</div>;
   }
 
   return (
@@ -574,7 +564,7 @@ export default function ImportPreviewTable({
             <tr>
               <th className="px-3 py-3 text-left">
                 <button
-                  onClick={() => allSelected ? null : handleConfirmAll()}
+                  onClick={() => (allSelected ? null : handleConfirmAll())}
                   className="p-0.5 rounded hover:bg-gray-100"
                   title="Toggle all"
                 >
@@ -608,7 +598,7 @@ export default function ImportPreviewTable({
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {rows.map((row) => (
+            {rows.map(row => (
               <PreviewRow
                 key={row.id}
                 row={row}
@@ -630,7 +620,7 @@ export default function ImportPreviewTable({
           </p>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              onClick={() => setPage(p => Math.max(0, p - 1))}
               disabled={page === 0}
               className="p-2 rounded-md border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -640,7 +630,7 @@ export default function ImportPreviewTable({
               Page {page + 1} of {totalPages}
             </span>
             <button
-              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+              onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
               disabled={page >= totalPages - 1}
               className="p-2 rounded-md border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >

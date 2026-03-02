@@ -223,10 +223,15 @@ function BookingsTable({ bookings }: { bookings: BookingWithDetails[] }) {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-900">
-                    {booking.courseStartDate ? new Date(booking.courseStartDate).toLocaleDateString() : 'TBC'}
+                    {booking.courseStartDate
+                      ? new Date(booking.courseStartDate).toLocaleDateString()
+                      : 'TBC'}
                   </div>
                   <div className="text-sm text-gray-500">
-                    to {booking.courseEndDate ? new Date(booking.courseEndDate).toLocaleDateString() : 'TBC'}
+                    to{' '}
+                    {booking.courseEndDate
+                      ? new Date(booking.courseEndDate).toLocaleDateString()
+                      : 'TBC'}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">

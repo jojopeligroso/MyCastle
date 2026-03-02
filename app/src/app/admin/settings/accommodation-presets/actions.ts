@@ -111,7 +111,10 @@ export async function deleteAccommodationPreset(id: string) {
       .limit(1);
 
     if (preset?.isDefault) {
-      return { success: false, error: 'Cannot delete the default preset. Set another as default first.' };
+      return {
+        success: false,
+        error: 'Cannot delete the default preset. Set another as default first.',
+      };
     }
 
     await db
@@ -144,10 +147,7 @@ export async function setDefaultAccommodationPreset(id: string) {
       .update(accommodationPresets)
       .set({ isDefault: false, updatedAt: new Date() })
       .where(
-        and(
-          eq(accommodationPresets.tenantId, tenantId),
-          eq(accommodationPresets.isDefault, true)
-        )
+        and(eq(accommodationPresets.tenantId, tenantId), eq(accommodationPresets.isDefault, true))
       );
 
     // Then set the new default

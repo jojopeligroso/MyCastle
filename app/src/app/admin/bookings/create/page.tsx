@@ -5,14 +5,29 @@
 
 import { requireAuth, getTenantId } from '@/lib/auth/utils';
 import { db } from '@/db';
-import { students, users, courses, accommodationTypes, agencies, bookingFeePresets, accommodationPresets } from '@/db/schema';
+import {
+  students,
+  users,
+  courses,
+  accommodationTypes,
+  agencies,
+  bookingFeePresets,
+  accommodationPresets,
+} from '@/db/schema';
 import { eq, and, sql } from 'drizzle-orm';
 import { CreateBookingForm } from './CreateBookingForm';
 
 async function getFormData() {
   const tenantId = await getTenantId();
   if (!tenantId) {
-    return { students: [], courses: [], accommodationTypes: [], agencies: [], feePresets: [], accommodationPresetsList: [] };
+    return {
+      students: [],
+      courses: [],
+      accommodationTypes: [],
+      agencies: [],
+      feePresets: [],
+      accommodationPresetsList: [],
+    };
   }
 
   // Set RLS context
@@ -72,7 +87,13 @@ async function getFormData() {
     .orderBy(agencies.name);
 
   // Fetch fee presets
-  let feePresetsData: { id: string; feeType: string; label: string; amountEur: string; isDefault: boolean | null }[] = [];
+  let feePresetsData: {
+    id: string;
+    feeType: string;
+    label: string;
+    amountEur: string;
+    isDefault: boolean | null;
+  }[] = [];
   try {
     const rawPresets = await db
       .select({
@@ -96,7 +117,12 @@ async function getFormData() {
   }
 
   // Fetch accommodation presets
-  let accommodationPresetsData: { id: string; name: string; pricePerWeekEur: string; isDefault: boolean | null }[] = [];
+  let accommodationPresetsData: {
+    id: string;
+    name: string;
+    pricePerWeekEur: string;
+    isDefault: boolean | null;
+  }[] = [];
   try {
     const rawAccomPresets = await db
       .select({
@@ -106,7 +132,9 @@ async function getFormData() {
         isDefault: accommodationPresets.isDefault,
       })
       .from(accommodationPresets)
-      .where(and(eq(accommodationPresets.tenantId, tenantId), eq(accommodationPresets.isActive, true)))
+      .where(
+        and(eq(accommodationPresets.tenantId, tenantId), eq(accommodationPresets.isActive, true))
+      )
       .orderBy(accommodationPresets.sortOrder);
 
     accommodationPresetsData = rawAccomPresets.map(p => ({

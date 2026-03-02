@@ -55,19 +55,14 @@ describe('Column Matcher', () => {
 
     it('should handle position-based date disambiguation', () => {
       // Course dates before Accom Type, then accommodation dates after
-      const headers = [
-        'Name',
-        'Start Date',
-        'End Date',
-        'Accom Type',
-        'Start Date',
-        'End Date',
-      ];
+      const headers = ['Name', 'Start Date', 'End Date', 'Accom Type', 'Start Date', 'End Date'];
       const result = matchColumns(headers);
 
       const courseStart = result.matched.find(m => m.matchedField?.name === 'courseStartDate');
       const courseEnd = result.matched.find(m => m.matchedField?.name === 'courseEndDate');
-      const accomStart = result.matched.find(m => m.matchedField?.name === 'accommodationStartDate');
+      const accomStart = result.matched.find(
+        m => m.matchedField?.name === 'accommodationStartDate'
+      );
       const accomEnd = result.matched.find(m => m.matchedField?.name === 'accommodationEndDate');
 
       expect(courseStart).toBeDefined();

@@ -46,14 +46,19 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Don't allow confirmation changes on terminal batches
     const terminalStatuses = ['APPLIED', 'REJECTED', 'FAILED_VALIDATION', 'FAILED_SYSTEM'];
     if (terminalStatuses.includes(batch.status)) {
-      return NextResponse.json({ error: 'Cannot modify rows in a terminal batch' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Cannot modify rows in a terminal batch' },
+        { status: 400 }
+      );
     }
 
     // Verify row exists
     const [row] = await db
       .select({ id: stgRows.id })
       .from(stgRows)
-      .where(and(eq(stgRows.id, rowId), eq(stgRows.batchId, batchId), eq(stgRows.tenantId, tenantId)))
+      .where(
+        and(eq(stgRows.id, rowId), eq(stgRows.batchId, batchId), eq(stgRows.tenantId, tenantId))
+      )
       .limit(1);
 
     if (!row) {

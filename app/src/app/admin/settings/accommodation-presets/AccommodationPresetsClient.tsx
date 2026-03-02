@@ -223,7 +223,9 @@ export function AccommodationPresetsClient({ initialPresets, tenantId }: Props) 
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Deposit (EUR)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Deposit (EUR)
+                </label>
                 <input
                   type="number"
                   step="0.01"
@@ -239,7 +241,12 @@ export function AccommodationPresetsClient({ initialPresets, tenantId }: Props) 
               <button
                 onClick={() => {
                   setIsAdding(false);
-                  setNewPreset({ name: '', description: '', pricePerWeekEur: '0', depositEur: '0' });
+                  setNewPreset({
+                    name: '',
+                    description: '',
+                    pricePerWeekEur: '0',
+                    depositEur: '0',
+                  });
                 }}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
                 disabled={isSubmitting}
