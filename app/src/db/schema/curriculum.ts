@@ -108,6 +108,19 @@ export const lessonPlans = pgTable(
     // Status
     status: varchar('status', { length: 50 }).notNull().default('draft'), // draft, published, archived
 
+    // DoS Approval Workflow
+    approvalStatus: varchar('approval_status', { length: 20 }).default('draft'), // draft, pending_approval, approved, rejected
+    submittedForApprovalAt: timestamp('submitted_for_approval_at'),
+    approvedBy: uuid('approved_by').references(() => users.id),
+    approvedAt: timestamp('approved_at'),
+    approvalComments: text('approval_comments'),
+
+    // Speakout context (for RAG)
+    speakoutBook: varchar('speakout_book', { length: 255 }),
+    speakoutUnit: varchar('speakout_unit', { length: 50 }),
+    speakoutLesson: varchar('speakout_lesson', { length: 255 }),
+    teacherIntent: varchar('teacher_intent', { length: 20 }), // follow, deviate, supplement
+
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
@@ -117,6 +130,7 @@ export const lessonPlans = pgTable(
     index('idx_plans_teacher').on(table.teacherId),
     index('idx_plans_cefr').on(table.cefrLevel),
     index('idx_plans_cache_key').on(table.cacheKey),
+    index('idx_plans_approval_status').on(table.approvalStatus),
   ]
 );
 
