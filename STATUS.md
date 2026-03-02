@@ -8,10 +8,10 @@ phase: Phase 1 - Admin UI/UX (Complete) + Student Profile Feature
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-03-02 (Stabilization complete, Student Profile feature 65% done)
-**Current Phase:** Phase 1 Complete + Student Profile Feature (Discovery Phase)
+**Last Updated:** 2026-03-02 (Student Profile Phase 2A schema complete - Task #18)
+**Current Phase:** Phase 1 Complete + Student Profile Feature (Phase 2A Implementation)
 **Current Sprint:** Week 8 of Phase 1
-**Next Milestone:** Student Profile Discovery → Resume Implementation
+**Next Milestone:** CEFR Descriptor Importer (Task #19)
 
 ---
 
@@ -124,9 +124,9 @@ Major schema mismatch fix applied across 66 files:
 **🎉 Phase 1 (Admin UI/UX) - 100% COMPLETE (61/61 tasks)**
 **🎉 Stabilization - 100% COMPLETE (18/18 tasks)**
 
-**📌 Current Focus: Student Profile Feature (65% complete, 11/17 tasks)**
+**📌 Current Focus: Student Profile Feature (52% complete, 12/23 tasks)**
 
-See `STUDENT_PROFILE_ROADMAP.md` for full details. Status: **Discovery Phase - Paused for requirements clarification**.
+See `STUDENT_PROFILE_ROADMAP.md` for full details. Status: **Phase 2A Schema In Progress - Task #18 Complete**.
 
 **What's Built:**
 - ✅ Database schema (6 tables + RLS policies)
@@ -174,9 +174,22 @@ All core admin features implemented and ready for production testing:
 
 ---
 
+### Recent Wins (Mar 2 - Student Profile Phase 2A Schema Complete)
+
+- ✅ **Task #18: FRESH_0028 Schema Updates (Phase 2A)**:
+  - Created migration: FRESH_0028_student_profile_phase2.sql
+  - 5 new tables: coursebooks, coursebook_descriptors, session_learning_objectives, summative_assessment_types, summative_assessments
+  - 10 new cefr_descriptors columns for File A structure (source_index, scale, skill_focus, etc.)
+  - 6 new competency_assessments columns (progress, demonstrated_level, is_complete, etc.)
+  - classes.primary_coursebook_id added
+  - tenants.profile_settings JSONB added
+  - RLS policies for all 5 new tables
+  - Drizzle schemas updated (curriculum.ts, profile.ts, academic.ts, core.ts)
+  - All tests passing, TypeScript clean
+
 ### Recent Wins (Mar 2 - Student Profile Feature + Stabilization Complete)
 
-- ✅ **Student Profile Feature (65% complete)**:
+- ✅ **Student Profile Feature (52% complete)**:
   - Database schema: 6 new tables (student_profile_sensitive, student_notes, level_promotions, diagnostic_sessions, competency_assessments, competency_progress)
   - RLS policies for profile access control
   - 8 API routes: assessments CRUD, progress, notes, diagnostics, level-history, audit
