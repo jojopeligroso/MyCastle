@@ -418,12 +418,18 @@ describe('Profile Type Exports', () => {
         studentId: 'student-uuid',
         descriptorId: 'descriptor-uuid',
         classId: null,
+        sessionId: null, // FRESH_0028
         enrollmentId: null,
         assignmentId: null,
+        learningObjectiveId: null, // FRESH_0028
         assessmentType: 'periodic',
         assessmentDate: '2026-03-01',
         score: 3,
+        progress: 'developing', // FRESH_0028
+        demonstratedLevel: null, // FRESH_0028
+        isComplete: false, // FRESH_0028
         notes: null,
+        isSharedWithStudent: false, // FRESH_0028
         assessedBy: 'teacher-uuid',
         createdAt: new Date(),
         updatedAt: new Date(),

@@ -21,19 +21,35 @@ import { classes } from './academic';
 /**
  * CEFR Descriptors Table
  * Stores Common European Framework of Reference descriptors (A1-C2)
- * Extended for tenant customization in Student Profile feature
+ * Extended with full File A structure from CEFR 2001/2020 Companion Volume
+ * Ref: STUDENT_PROFILE_DISCOVERY.md §1.1
  */
 export const cefrDescriptors = pgTable(
   'cefr_descriptors',
   {
     id: uuid('id').primaryKey().defaultRandom(),
 
-    level: varchar('level', { length: 5 }).notNull(), // A0, A1, A2, B1, B1+, B2, B2+, C1, C2
-    category: varchar('category', { length: 100 }).notNull(), // e.g., "Reading", "Speaking"
-    subcategory: varchar('subcategory', { length: 100 }), // e.g., "Overall reading comprehension"
-
+    // Core descriptor fields
+    level: varchar('level', { length: 5 }).notNull(), // A0, A1, A2, A2+, B1, B1+, B2, B2+, C1, C2
+    category: varchar('category', { length: 100 }).notNull(), // e.g., "Reading", "Speaking" (legacy)
+    subcategory: varchar('subcategory', { length: 100 }), // e.g., "Overall reading comprehension" (legacy)
     descriptorText: text('descriptor_text').notNull(), // The actual CEFR descriptor
 
+    // File A structure columns (FRESH_0028)
+    sourceIndex: integer('source_index'), // Original index from File A spreadsheet
+    activityStrategyCompetence: text('activity_strategy_competence'), // "Communicative Activities", "Communication Strategies", etc.
+    competencies: text('competencies'), // Sub-category field
+    strategies: text('strategies'), // Activity type: "Interaction", "Mediation", etc.
+    mode: text('mode'), // Communication mode: "Spoken", "Written", "Mediating a text", etc.
+    skillFocus: text('skill_focus'), // Traditional skill: "Speaking", "Reading", "Listening", "Writing", "Mediation"
+    isOverall: boolean('is_overall').default(false), // Overall descriptor flag
+    scale: text('scale'), // Key grouping field: "FORMAL DISCUSSION", "COOPERATING", etc.
+
+    // Young Learner variants
+    youngLearners7To10: text('young_learners_7_10'), // YL descriptor for ages 7-10, or NULL
+    youngLearners11To15: text('young_learners_11_15'), // YL descriptor for ages 11-15, or NULL
+
+    // Additional metadata
     metadata: jsonb('metadata').default({}), // Additional context, examples
 
     // Tenant customization (Student Profile feature)
@@ -50,6 +66,9 @@ export const cefrDescriptors = pgTable(
     index('idx_cefr_level').on(table.level),
     index('idx_cefr_category').on(table.category),
     index('idx_cefr_descriptors_tenant').on(table.tenantId),
+    index('idx_cefr_descriptors_scale_level').on(table.scale, table.level),
+    index('idx_cefr_descriptors_skill_focus').on(table.skillFocus),
+    index('idx_cefr_descriptors_source_index').on(table.sourceIndex),
   ]
 );
 

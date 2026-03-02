@@ -51,6 +51,9 @@ export const classes = pgTable(
     // Programme assignment (for programme-specific policies)
     programmeId: uuid('programme_id').references(() => programmes.id), // Optional link to programmes table
 
+    // Coursebook assignment (FRESH_0028)
+    primaryCoursebookId: uuid('primary_coursebook_id'), // FK to coursebooks table (no TS ref to avoid circular dep)
+
     // Schedule
     scheduleDescription: varchar('schedule_description', { length: 500 }), // "Mon/Wed 10:00-11:00"
     startTime: time('start_time'), // Daily start time (e.g., 09:00:00)
@@ -78,6 +81,7 @@ export const classes = pgTable(
     index('idx_classes_status').on(table.status),
     index('idx_classes_dates').on(table.startDate, table.endDate),
     index('idx_classes_schedule_times').on(table.startTime, table.endTime),
+    index('idx_classes_coursebook').on(table.primaryCoursebookId),
   ]
 );
 

@@ -22,7 +22,7 @@ import {
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
 import { tenants, users } from './core';
-import { classes, enrollments, assignments } from './academic';
+import { classes, classSessions, enrollments, assignments } from './academic';
 import { cefrDescriptors } from './curriculum';
 
 // ============================================================================
@@ -89,6 +89,208 @@ export const tenantDescriptorSelection = pgTable(
 );
 
 // ============================================================================
+// COURSEBOOKS (FRESH_0028)
+// ============================================================================
+
+/**
+ * Coursebooks Table
+ * Teacher-facing coursebook definitions with CEFR alignment
+ * Ref: STUDENT_PROFILE_DISCOVERY.md §1.2
+ */
+export const coursebooks = pgTable(
+  'coursebooks',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id, { onDelete: 'cascade' }),
+
+    // Book identification
+    name: text('name').notNull(), // From worksheet name, e.g., "Speakout Intermediate 2nd Edition"
+    publisher: text('publisher'),
+    edition: text('edition'),
+
+    // CEFR range (derived from content)
+    cefrLevelMin: varchar('cefr_level_min', { length: 3 }), // Minimum level in book
+    cefrLevelMax: varchar('cefr_level_max', { length: 3 }), // Maximum level in book
+
+    // Status
+    isActive: boolean('is_active').default(true),
+
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  table => [
+    uniqueIndex('uk_coursebooks_tenant_name').on(table.tenantId, table.name),
+    index('idx_coursebooks_tenant').on(table.tenantId),
+    index('idx_coursebooks_active').on(table.tenantId, table.isActive),
+  ]
+);
+
+/**
+ * Coursebook Descriptors Table
+ * Practical descriptors from coursebook content (File B structure)
+ * Ref: STUDENT_PROFILE_DISCOVERY.md §1.2
+ */
+export const coursebookDescriptors = pgTable(
+  'coursebook_descriptors',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    coursebookId: uuid('coursebook_id')
+      .notNull()
+      .references(() => coursebooks.id, { onDelete: 'cascade' }),
+
+    // Location in book
+    skillFocus: text('skill_focus').notNull(), // Reading, Writing, Listening, Speaking
+    unit: text('unit'), // Unit number or name
+    page: text('page'), // Page number(s), e.g., "12 13"
+    lesson: text('lesson'), // Lesson name
+
+    // CEFR alignment
+    level: varchar('level', { length: 3 }).notNull(), // CEFR level: A1, A2, B1, etc.
+
+    // Descriptor content
+    descriptorText: text('descriptor_text').notNull(), // The practical descriptor
+
+    // Link to official CEFR (optional, LLM-assisted)
+    linkedCefrDescriptorId: uuid('linked_cefr_descriptor_id').references(() => cefrDescriptors.id),
+    linkConfidence: decimal('link_confidence', { precision: 3, scale: 2 }), // 0.00-1.00 confidence
+
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  table => [
+    index('idx_coursebook_desc_coursebook').on(table.coursebookId),
+    index('idx_coursebook_desc_unit').on(table.coursebookId, table.unit),
+    index('idx_coursebook_desc_level').on(table.level),
+    index('idx_coursebook_desc_skill').on(table.skillFocus),
+  ]
+);
+
+// ============================================================================
+// SESSION LEARNING OBJECTIVES (FRESH_0028)
+// ============================================================================
+
+/**
+ * Session Learning Objectives Table
+ * Links class sessions to CEFR/coursebook descriptors for learning tracking
+ * Ref: STUDENT_PROFILE_DISCOVERY.md §2.2
+ */
+export const sessionLearningObjectives = pgTable(
+  'session_learning_objectives',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    sessionId: uuid('session_id')
+      .notNull()
+      .references(() => classSessions.id, { onDelete: 'cascade' }),
+
+    // Descriptor reference (at least one should be set)
+    descriptorId: uuid('descriptor_id').references(() => cefrDescriptors.id),
+    coursebookDescriptorId: uuid('coursebook_descriptor_id').references(
+      () => coursebookDescriptors.id
+    ),
+
+    // Objective classification
+    objectiveType: varchar('objective_type', { length: 20 }).notNull(), // 'primary' or 'secondary'
+    source: varchar('source', { length: 20 }).notNull(), // 'cefr', 'coursebook', or 'custom'
+
+    // Custom descriptor (when source = 'custom')
+    customDescriptorText: text('custom_descriptor_text'),
+
+    // Sort order within session
+    sortOrder: integer('sort_order').default(0),
+
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  table => [
+    uniqueIndex('uk_session_objectives_session_descriptor').on(table.sessionId, table.descriptorId),
+    index('idx_session_objectives_session').on(table.sessionId),
+    index('idx_session_objectives_descriptor').on(table.descriptorId),
+    index('idx_session_objectives_type').on(table.objectiveType),
+  ]
+);
+
+// ============================================================================
+// SUMMATIVE ASSESSMENTS (FRESH_0028)
+// ============================================================================
+
+/**
+ * Summative Assessment Types Table
+ * School-defined formal test types
+ * Ref: STUDENT_PROFILE_DISCOVERY.md §2.3
+ */
+export const summativeAssessmentTypes = pgTable(
+  'summative_assessment_types',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id, { onDelete: 'cascade' }),
+
+    // Type definition
+    name: text('name').notNull(), // e.g., "End of Unit Test", "Mid-Term Exam"
+    description: text('description'),
+
+    // Configuration
+    isActive: boolean('is_active').default(true),
+
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  table => [
+    uniqueIndex('uk_summative_types_tenant_name').on(table.tenantId, table.name),
+    index('idx_summative_types_tenant').on(table.tenantId),
+    index('idx_summative_types_active').on(table.tenantId, table.isActive),
+  ]
+);
+
+/**
+ * Summative Assessments Table
+ * Formal test scores (percentage-based)
+ * Ref: STUDENT_PROFILE_DISCOVERY.md §2.3
+ */
+export const summativeAssessments = pgTable(
+  'summative_assessments',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id, { onDelete: 'cascade' }),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+
+    // Assessment type
+    assessmentTypeId: uuid('assessment_type_id').references(() => summativeAssessmentTypes.id),
+
+    // Assessor
+    assessorId: uuid('assessor_id')
+      .notNull()
+      .references(() => users.id),
+
+    // Score (percentage)
+    scorePercentage: decimal('score_percentage', { precision: 5, scale: 2 }).notNull(),
+
+    // Notes
+    notes: text('notes'),
+
+    // Context
+    classId: uuid('class_id').references(() => classes.id),
+
+    // Date
+    assessmentDate: date('assessment_date').notNull(),
+
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  table => [
+    index('idx_summative_tenant').on(table.tenantId),
+    index('idx_summative_student').on(table.studentId),
+    index('idx_summative_type').on(table.assessmentTypeId),
+    index('idx_summative_date').on(table.assessmentDate),
+    index('idx_summative_class').on(table.classId),
+  ]
+);
+
+// ============================================================================
 // TEACHER NOTES
 // ============================================================================
 
@@ -148,6 +350,8 @@ export const studentNotes = pgTable(
 /**
  * Competency Assessments
  * Individual assessment records (student × descriptor × date × score)
+ * Enhanced with progress tracking (FRESH_0028)
+ * Ref: STUDENT_PROFILE_DISCOVERY.md §2.2
  */
 export const competencyAssessments = pgTable(
   'competency_assessments',
@@ -167,18 +371,28 @@ export const competencyAssessments = pgTable(
 
     // Assessment context
     classId: uuid('class_id').references(() => classes.id),
+    sessionId: uuid('session_id').references(() => classSessions.id), // FRESH_0028
     enrollmentId: uuid('enrollment_id').references(() => enrollments.id),
     assignmentId: uuid('assignment_id').references(() => assignments.id),
+    learningObjectiveId: uuid('learning_objective_id'), // FK to session_learning_objectives (FRESH_0028)
 
     // Assessment details
     assessmentType: varchar('assessment_type', { length: 50 }).notNull(),
     assessmentDate: date('assessment_date').notNull().defaultNow(),
 
-    // Score (1-4 scale)
+    // Score (1-4 scale) - legacy, use progress instead
     score: integer('score').notNull(),
+
+    // Progress tracking (FRESH_0028)
+    progress: varchar('progress', { length: 20 }).default('not_yet'), // not_yet, emerging, developing, achieved
+    demonstratedLevel: varchar('demonstrated_level', { length: 3 }), // May differ from descriptor level
+    isComplete: boolean('is_complete').default(false), // True when achieved
 
     // Optional notes
     notes: text('notes'),
+
+    // Visibility (FRESH_0028)
+    isSharedWithStudent: boolean('is_shared_with_student').default(false),
 
     // Assessor
     assessedBy: uuid('assessed_by')
@@ -192,9 +406,13 @@ export const competencyAssessments = pgTable(
     index('idx_competency_assessments_student').on(table.studentId),
     index('idx_competency_assessments_descriptor').on(table.descriptorId),
     index('idx_competency_assessments_class').on(table.classId),
+    index('idx_competency_assessments_session').on(table.sessionId),
     index('idx_competency_assessments_date').on(table.assessmentDate),
     index('idx_competency_assessments_type').on(table.assessmentType),
     index('idx_competency_assessments_tenant').on(table.tenantId),
+    index('idx_competency_assessments_objective').on(table.learningObjectiveId),
+    index('idx_competency_assessments_shared').on(table.isSharedWithStudent),
+    index('idx_competency_assessments_complete').on(table.isComplete),
   ]
 );
 
@@ -536,6 +754,24 @@ export type NewTenantCefrConfig = typeof tenantCefrConfig.$inferInsert;
 
 export type TenantDescriptorSelection = typeof tenantDescriptorSelection.$inferSelect;
 export type NewTenantDescriptorSelection = typeof tenantDescriptorSelection.$inferInsert;
+
+// Coursebooks (FRESH_0028)
+export type Coursebook = typeof coursebooks.$inferSelect;
+export type NewCoursebook = typeof coursebooks.$inferInsert;
+
+export type CoursebookDescriptor = typeof coursebookDescriptors.$inferSelect;
+export type NewCoursebookDescriptor = typeof coursebookDescriptors.$inferInsert;
+
+// Session Learning Objectives (FRESH_0028)
+export type SessionLearningObjective = typeof sessionLearningObjectives.$inferSelect;
+export type NewSessionLearningObjective = typeof sessionLearningObjectives.$inferInsert;
+
+// Summative Assessments (FRESH_0028)
+export type SummativeAssessmentType = typeof summativeAssessmentTypes.$inferSelect;
+export type NewSummativeAssessmentType = typeof summativeAssessmentTypes.$inferInsert;
+
+export type SummativeAssessment = typeof summativeAssessments.$inferSelect;
+export type NewSummativeAssessment = typeof summativeAssessments.$inferInsert;
 
 export type StudentNote = typeof studentNotes.$inferSelect;
 export type NewStudentNote = typeof studentNotes.$inferInsert;

@@ -29,6 +29,20 @@ export const tenants = pgTable(
     contactEmail: varchar('contact_email', { length: 255 }),
     status: varchar('status', { length: 50 }).notNull().default('active'),
     settings: jsonb('settings').default({}),
+    // Student Profile settings (FRESH_0028)
+    profileSettings: jsonb('profile_settings')
+      .$type<{
+        promotion_threshold_percentage: number;
+        enable_llm_descriptor_matching: boolean;
+        diagnostic_stages: string[];
+        young_learners_enabled: boolean;
+      }>()
+      .default({
+        promotion_threshold_percentage: 90,
+        enable_llm_descriptor_matching: false,
+        diagnostic_stages: ['written_test', 'speaking_interview'],
+        young_learners_enabled: false,
+      }),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
