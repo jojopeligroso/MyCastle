@@ -8,7 +8,7 @@ phase: Phase 1 - Admin UI/UX (Complete) + Student Profile Feature
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-03-02 (CEFR Descriptor Import complete - Task #19)
+**Last Updated:** 2026-03-02 (CEFR Browser admin UI complete)
 **Current Phase:** Phase 1 Complete + Student Profile Feature (Phase 2A Implementation)
 **Current Sprint:** Week 8 of Phase 1
 **Next Milestone:** Teacher Profile View (Task #4)
@@ -173,6 +173,17 @@ All core admin features implemented and ready for production testing:
 **Context:** All Phase 1 tasks complete. System ready for production MVP deployment.
 
 ---
+
+### Recent Wins (Mar 2 - CEFR Browser Admin UI)
+
+- ✅ **CEFR Browser Page** (`/admin/curriculum/cefr`):
+  - Added to sidebar under Academic → CEFR Descriptors
+  - Two tabs: Official CEFR (1,228) and Speakout Textbooks (696)
+  - Filters: Level, Skill, Scale (CEFR) / Book, Unit (Textbook)
+  - Search across descriptor text
+  - Color-coded level badges, skill icons
+  - Young Learner variants displayed when available
+  - API routes: `/api/admin/curriculum/cefr` and `/api/admin/curriculum/textbook`
 
 ### Recent Wins (Mar 2 - CEFR Descriptor Import Complete)
 
