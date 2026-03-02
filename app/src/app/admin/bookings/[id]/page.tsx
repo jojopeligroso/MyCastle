@@ -242,9 +242,7 @@ export default async function ViewBookingPage({ params }: { params: { id: string
               </div>
               <div>
                 <dt className="text-sm font-medium text-gray-500">End Date</dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  {formatDate(booking.courseEndDate)}
-                </dd>
+                <dd className="mt-1 text-sm text-gray-900">{formatDate(booking.courseEndDate)}</dd>
               </div>
               {/* Academic Fields */}
               {booking.placementTestScore && (
@@ -278,7 +276,9 @@ export default async function ViewBookingPage({ params }: { params: { id: string
           </div>
 
           {/* Accommodation Info */}
-          {(booking.accommodationName || booking.accommodationStartDate || booking.accommodationEndDate) && (
+          {(booking.accommodationName ||
+            booking.accommodationStartDate ||
+            booking.accommodationEndDate) && (
             <div className="bg-white shadow rounded-lg p-6">
               <h2 className="text-lg font-medium text-gray-900 mb-4">Accommodation</h2>
               <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">

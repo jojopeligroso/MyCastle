@@ -329,7 +329,9 @@ export const accommodationPresets = pgTable(
       .references(() => tenants.id, { onDelete: 'cascade' }),
     name: varchar('name', { length: 255 }).notNull(),
     description: varchar('description', { length: 500 }),
-    pricePerWeekEur: decimal('price_per_week_eur', { precision: 10, scale: 2 }).notNull().default('0'),
+    pricePerWeekEur: decimal('price_per_week_eur', { precision: 10, scale: 2 })
+      .notNull()
+      .default('0'),
     depositEur: decimal('deposit_eur', { precision: 10, scale: 2 }).default('0'),
     isDefault: boolean('is_default').default(false),
     sortOrder: integer('sort_order').default(0),

@@ -144,7 +144,9 @@ function isAccommodationTypeHeader(normalizedHeader: string): boolean {
  */
 function isAmbiguousDateHeader(normalizedHeader: string): boolean {
   const datePatterns = ['start date', 'startdate', 'start', 'end date', 'enddate', 'end'];
-  return datePatterns.some(pattern => normalizedHeader === pattern || normalizedHeader === pattern.replace(' ', ''));
+  return datePatterns.some(
+    pattern => normalizedHeader === pattern || normalizedHeader === pattern.replace(' ', '')
+  );
 }
 
 /**

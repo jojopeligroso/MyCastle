@@ -2,12 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  createFeePreset,
-  updateFeePreset,
-  deleteFeePreset,
-  setDefaultPreset,
-} from './actions';
+import { createFeePreset, updateFeePreset, deleteFeePreset, setDefaultPreset } from './actions';
 
 interface FeePreset {
   id: string;
@@ -278,9 +273,7 @@ export function BookingFeePresetsClient({ initialPresets, tenantId }: Props) {
                           <input
                             type="text"
                             value={editPreset.label}
-                            onChange={e =>
-                              setEditPreset({ ...editPreset, label: e.target.value })
-                            }
+                            onChange={e => setEditPreset({ ...editPreset, label: e.target.value })}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                           />
                         </div>

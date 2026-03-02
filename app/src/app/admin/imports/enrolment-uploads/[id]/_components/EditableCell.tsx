@@ -101,7 +101,11 @@ function parseInputValue(inputValue: string, fieldType: FieldType): unknown {
       const dec = parseFloat(inputValue);
       return isNaN(dec) ? null : Math.round(dec * 100) / 100;
     case 'boolean':
-      return inputValue.toLowerCase() === 'true' || inputValue === '1' || inputValue.toLowerCase() === 'yes';
+      return (
+        inputValue.toLowerCase() === 'true' ||
+        inputValue === '1' ||
+        inputValue.toLowerCase() === 'yes'
+      );
     default:
       return inputValue;
   }
@@ -167,11 +171,7 @@ export default function EditableCell({
 
   // Non-editable display
   if (!isEditable) {
-    return (
-      <span className="text-gray-900">
-        {formatDisplayValue(value, fieldType)}
-      </span>
-    );
+    return <span className="text-gray-900">{formatDisplayValue(value, fieldType)}</span>;
   }
 
   // Get input type based on field type
@@ -194,9 +194,9 @@ export default function EditableCell({
         ref={inputRef}
         type={getInputType()}
         value={localValue}
-        onChange={(e) => setLocalValue(e.target.value)}
+        onChange={e => setLocalValue(e.target.value)}
         onBlur={handleSave}
-        onKeyDown={(e) => {
+        onKeyDown={e => {
           if (e.key === 'Enter') {
             e.preventDefault();
             inputRef.current?.blur();
