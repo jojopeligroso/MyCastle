@@ -27,3 +27,6 @@ export * from './curriculum';
 
 // Imports schema (ETL workflow for enrollment data)
 export * from './imports';
+
+// Profile schema (Student Profile feature - notes, assessments, diagnostics, promotions)
+export * from './profile';
