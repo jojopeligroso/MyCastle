@@ -155,7 +155,69 @@ Teacher-facing, practical alignment to coursebook content.
 - **School-specific** - each school defines their own process
 - System supports configurable multi-stage diagnostics
 - Stages stored in tenant settings as JSON array
-- Examples: Written test, Speaking interview, Portfolio review
+
+#### Default Template (Castleforbes)
+
+```
+Stage 1: Online MCQ (External)
+├── 40 multiple-choice questions
+├── Completed on school website (external system)
+├── Score sent via webhook to MyCastle
+├── Admin receives notification → forwards to DoS
+└── Output: MCQ percentage score
+
+Stage 2: Oral Diagnostic
+├── 5-10 minute interview with DoS
+├── Scheduling:
+│   ├── DoS has assigned calendar blocks
+│   ├── Email invitation sent first
+│   └── WhatsApp for flexibility/rescheduling if needed
+├── DoS assesses speaking ability
+└── Output: Recommended CEFR level
+
+Stage 3: Provisional Class Assignment
+├── Student placed in class matching recommended level
+├── Level status: "provisional"
+└── Student begins attending classes
+
+Stage 4: Teacher Confirmation
+├── During first week of classes
+├── Teacher observes student in class context
+├── Teacher confirms or recommends adjustment
+└── Level status: "provisional" → "confirmed"
+```
+
+#### MCQ Integration
+
+| Approach | Description |
+|----------|-------------|
+| **MVP** | External MCQ (school website) + webhook receives score |
+| **Future** | Optional in-house MCQ builder |
+| **Webhook** | `POST /api/diagnostics/mcq-result` |
+
+#### Diagnostic Session States
+
+```
+pending_mcq → mcq_completed → oral_scheduled → oral_completed →
+level_advised → provisional_placement → confirmed
+```
+
+#### Data Model Additions
+
+```sql
+diagnostic_sessions:
+  - current_stage TEXT           -- 'mcq', 'oral', 'provisional', 'confirmed'
+  - mcq_score_percentage DECIMAL -- 40Q result (0-100)
+  - mcq_completed_at TIMESTAMPTZ
+  - oral_scheduled_at TIMESTAMPTZ
+  - oral_completed_at TIMESTAMPTZ
+  - oral_notes TEXT              -- DoS notes from interview
+  - recommended_level VARCHAR(3) -- DoS recommendation after oral
+  - actual_placement_level VARCHAR(3)
+  - administered_by UUID         -- DoS who conducted oral
+  - confirmed_by UUID            -- Teacher who confirmed
+  - confirmed_at TIMESTAMPTZ
+```
 
 ---
 
