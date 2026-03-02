@@ -45,12 +45,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         notes: competencyAssessments.notes,
         assessedBy: competencyAssessments.assessedBy,
         createdAt: competencyAssessments.createdAt,
-        // Descriptor details
-        descriptorCode: cefrDescriptors.code,
+        // Descriptor details (level + category serve as identifier)
+        descriptorLevel: cefrDescriptors.level,
         descriptorText: cefrDescriptors.descriptorText,
         descriptorCategory: cefrDescriptors.category,
         descriptorSubcategory: cefrDescriptors.subcategory,
-        descriptorLevel: cefrDescriptors.level,
         // Assessor name
         assessorName: users.name,
       })

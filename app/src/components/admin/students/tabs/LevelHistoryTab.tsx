@@ -254,7 +254,7 @@ export function LevelHistoryTab({
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {promotions.map(promo => (
+                {promotions.map((promo: LevelChange) => (
                   <tr key={promo.id}>
                     <td className="px-4 py-3 text-sm text-gray-900">
                       {new Date(promo.appliedAt || promo.recommendedAt).toLocaleDateString('en-GB')}
@@ -327,7 +327,7 @@ export function LevelHistoryTab({
           </div>
         ) : (
           <div className="space-y-3">
-            {diagnostics.map(session => (
+            {diagnostics.map((session: DiagnosticSession) => (
               <div key={session.id} className="bg-white border border-gray-200 rounded-lg p-4">
                 <div className="flex items-center justify-between">
                   <div>
