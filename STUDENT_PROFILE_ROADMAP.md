@@ -2,8 +2,8 @@
 
 **Created:** 2026-03-02
 **Updated:** 2026-03-02
-**Status:** Discovery Complete - Ready for Implementation
-**Completed:** 11/23 tasks (48%)
+**Status:** Phase 2A Schema In Progress
+**Completed:** 12/23 tasks (52%)
 
 **Reference:** See `STUDENT_PROFILE_DISCOVERY.md` for full requirements
 
@@ -26,6 +26,7 @@
 | #15 | Wire up LevelHistoryTab | 35ae915 |
 | #16 | Wire up EnhancedNotesTab | 35ae915 |
 | #17 | Wire up AuditTrailTab | 35ae915 |
+| #18 | Schema Updates (FRESH_0028) - Phase 2A | pending |
 
 ### What's Built
 
@@ -55,27 +56,31 @@
 
 ---
 
-## Remaining Tasks (12)
+## Remaining Tasks (11)
 
 ### Phase 2A: Schema & Data (Discovery-driven)
 
-#### Task #18: Schema Updates (FRESH_0028)
+#### Task #18: Schema Updates (FRESH_0028) ✅ COMPLETE
 **Estimate:** 1-2 hours | **Dependencies:** None | **Token budget:** ~30k
 **Priority:** HIGH - Blocks #19, #20, #21
+**Completed:** 2026-03-02
 
-**Subtasks:**
-1. Add new tables: `coursebooks`, `coursebook_descriptors`, `session_learning_objectives`, `summative_assessments`, `summative_assessment_types` (30 min)
-2. Update `cefr_descriptors` with full File A structure (20 min)
-3. Update `competency_assessments` with `demonstrated_level`, `is_complete`, `learning_objective_id` (15 min)
-4. Update `classes` with `primary_coursebook_id` (10 min)
-5. Add tenant profile settings JSONB column (10 min)
-6. Create RLS policies for new tables (20 min)
+**What was done:**
+1. Created FRESH_0028_student_profile_phase2.sql migration
+2. Added 5 new tables: `coursebooks`, `coursebook_descriptors`, `session_learning_objectives`, `summative_assessments`, `summative_assessment_types`
+3. Updated `cefr_descriptors` with 10 new File A columns (source_index, activity_strategy_competence, competencies, strategies, mode, skill_focus, is_overall, scale, young_learners_7_10, young_learners_11_15)
+4. Updated `competency_assessments` with 6 new columns (progress, demonstrated_level, is_complete, learning_objective_id, session_id, is_shared_with_student)
+5. Updated `classes` with `primary_coursebook_id`
+6. Updated `tenants` with `profile_settings` JSONB
+7. Created RLS policies for all 5 new tables
+8. Updated Drizzle schemas (curriculum.ts, profile.ts, academic.ts, core.ts)
+9. All tests passing, TypeScript clean
 
 **Acceptance Criteria:**
-- [ ] All new tables created with proper constraints
-- [ ] RLS policies enforce tenant isolation
-- [ ] Migration runs without errors
-- [ ] Drizzle schema updated and types generated
+- [x] All new tables created with proper constraints
+- [x] RLS policies enforce tenant isolation
+- [x] Migration file created (FRESH_0028)
+- [x] Drizzle schema updated and types generated
 
 ---
 
@@ -343,7 +348,8 @@ Phase 2E: Future (independent)
 ```
 app/
 ├── migrations/
-│   └── FRESH_0027_student_profile_feature.sql
+│   ├── FRESH_0027_student_profile_feature.sql
+│   └── FRESH_0028_student_profile_phase2.sql  # NEW - Phase 2A schema
 ├── src/
 │   ├── app/api/admin/students/[id]/
 │   │   ├── assessments/
@@ -365,7 +371,10 @@ app/
 │   │   │   └── index.ts
 │   │   └── AssessmentForm.tsx
 │   ├── db/schema/
-│   │   └── profile.ts
+│   │   ├── profile.ts     # UPDATED - Added coursebooks, summative assessments, session objectives
+│   │   ├── curriculum.ts  # UPDATED - Added File A columns to cefr_descriptors
+│   │   ├── academic.ts    # UPDATED - Added primaryCoursebookId to classes
+│   │   └── core.ts        # UPDATED - Added profileSettings to tenants
 │   └── hooks/
 │       └── useCompetencyAssessments.ts
 
