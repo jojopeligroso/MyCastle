@@ -8,10 +8,10 @@ phase: Phase 1 - Admin UI/UX (Complete) + Student Profile Feature
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-03-02 (Student Profile Phase 2A schema complete - Task #18)
+**Last Updated:** 2026-03-02 (CEFR Descriptor Import complete - Task #19)
 **Current Phase:** Phase 1 Complete + Student Profile Feature (Phase 2A Implementation)
 **Current Sprint:** Week 8 of Phase 1
-**Next Milestone:** CEFR Descriptor Importer (Task #19)
+**Next Milestone:** Teacher Profile View (Task #4)
 
 ---
 
@@ -124,9 +124,9 @@ Major schema mismatch fix applied across 66 files:
 **🎉 Phase 1 (Admin UI/UX) - 100% COMPLETE (61/61 tasks)**
 **🎉 Stabilization - 100% COMPLETE (18/18 tasks)**
 
-**📌 Current Focus: Student Profile Feature (52% complete, 12/23 tasks)**
+**📌 Current Focus: Student Profile Feature (57% complete, 13/23 tasks)**
 
-See `STUDENT_PROFILE_ROADMAP.md` for full details. Status: **Phase 2A Schema In Progress - Task #18 Complete**.
+See `STUDENT_PROFILE_ROADMAP.md` for full details. Status: **Phase 2A Complete - CEFR descriptors imported (Task #19)**.
 
 **What's Built:**
 - ✅ Database schema (6 tables + RLS policies)
@@ -144,7 +144,7 @@ See `STUDENT_PROFILE_ROADMAP.md` for full details. Status: **Phase 2A Schema In 
 - #10 LLM Tutor Architecture Hooks (1-2 hours)
 
 **Discovery Blockers (need stakeholder input):**
-1. CEFR Descriptor Structure - Need Castleforbes spreadsheet
+1. ✅ ~~CEFR Descriptor Structure~~ - RESOLVED: 1,228 official descriptors + 696 Speakout textbook mappings imported
 2. Scoring System - Confirm 1-4 scale and thresholds
 3. Diagnostic Test - Structure and scoring rubric
 4. Promotion Criteria - Evidence requirements
@@ -173,6 +173,18 @@ All core admin features implemented and ready for production testing:
 **Context:** All Phase 1 tasks complete. System ready for production MVP deployment.
 
 ---
+
+### Recent Wins (Mar 2 - CEFR Descriptor Import Complete)
+
+- ✅ **Task #19: CEFR Descriptor Import from Excel**:
+  - Imported 1,228 official CEFR descriptors from "CEFR Filtering tool.xlsx" (File A)
+  - Imported 696 Speakout textbook descriptors from "CEFR descriptions in Speakout Second Edition books.xlsx" (File B)
+  - Created new `textbook_descriptors` table for textbook-specific mappings
+  - Migration: FRESH_0029_textbook_descriptors.sql
+  - Updated seed script to parse both Excel files with proper type handling
+  - Extended `cefr_descriptors` table with File A columns (source_index, scale, skill_focus, etc.)
+  - Levels imported: A1, A2, A2+, B1, B1+, B2, B2+, C1, C2, PreA1
+  - Speakout books: Pre-intermediate, Intermediate, Intermediate Plus, Upper Intermediate, Advanced, Advanced Plus
 
 ### Recent Wins (Mar 2 - Student Profile Phase 2A Schema Complete)
 

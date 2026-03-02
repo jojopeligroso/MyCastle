@@ -1,404 +1,289 @@
 /**
- * T-034: Seed CEFR Descriptors (3 points, S)
+ * Seed CEFR Descriptors from Excel Files
  *
- * Seeds the database with Common European Framework of Reference (CEFR) descriptors
- * Based on CEFR 2018 Companion Volume
+ * Imports two data sources:
+ * - File A: CEFR Filtering tool.xlsx (1,229 official CEFR descriptors)
+ * - File B: CEFR descriptions in Speakout Second Edition books.xlsx (696 textbook mappings)
  *
- * Usage: npx tsx scripts/seed-cefr-descriptors.ts
+ * Usage: npx tsx scripts/seed-cefr-descriptors.ts [--force]
  */
 
+import * as XLSX from 'xlsx';
+import * as path from 'path';
 import { db } from '../src/db';
-import { cefrDescriptors } from '../src/db/schema/curriculum';
+import { cefrDescriptors, textbookDescriptors } from '../src/db/schema/curriculum';
 
-interface CEFRDescriptor {
-  level: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
-  category: string;
-  subcategory?: string;
-  descriptor_text: string;
-  metadata?: Record<string, unknown>;
+// File paths (relative to MyCastle root)
+const FILE_A_PATH = path.resolve(__dirname, '../../CEFR Filtering tool.xlsx');
+const FILE_B_PATH = path.resolve(
+  __dirname,
+  '../../CEFR descriptions in Speakout Second Edition books.xlsx'
+);
+
+/**
+ * Normalize CEFR level to standard format
+ */
+function normalizeLevel(level: string): string {
+  if (!level) return 'A1';
+  const normalized = level.toString().trim().toUpperCase();
+  // Handle variations like "A2+" -> "A2+"
+  return normalized;
 }
 
 /**
- * CEFR 2018 Descriptors
- * Source: Council of Europe CEFR Companion Volume (2018)
+ * Extract category from skill focus (for legacy compatibility)
  */
-const CEFR_DESCRIPTORS: CEFRDescriptor[] = [
-  // A1 Level - Beginner
-  {
-    level: 'A1',
-    category: 'Reading',
-    subcategory: 'Overall reading comprehension',
-    descriptor_text:
-      'Can understand very short, simple texts a single phrase at a time, picking up familiar names, words and basic phrases and rereading as required.',
-  },
-  {
-    level: 'A1',
-    category: 'Listening',
-    subcategory: 'Overall listening comprehension',
-    descriptor_text:
-      'Can follow speech which is very slow and carefully articulated, with long pauses for them to assimilate meaning.',
-  },
-  {
-    level: 'A1',
-    category: 'Speaking',
-    subcategory: 'Spoken interaction',
-    descriptor_text:
-      'Can interact in a simple way but communication is totally dependent on repetition at a slower rate of speech, rephrasing and repair.',
-  },
-  {
-    level: 'A1',
-    category: 'Writing',
-    subcategory: 'Overall written production',
-    descriptor_text: 'Can write simple isolated phrases and sentences.',
-  },
-  {
-    level: 'A1',
-    category: 'Grammar',
-    subcategory: 'Grammatical accuracy',
-    descriptor_text:
-      'Shows only limited control of a few simple grammatical structures and sentence patterns in a memorised repertoire.',
-  },
+function extractCategory(skillFocus: string | undefined): string {
+  if (!skillFocus) return 'General';
+  const skill = skillFocus.toString().trim();
+  // Map to standard categories
+  if (skill.toLowerCase().includes('speak')) return 'Speaking';
+  if (skill.toLowerCase().includes('listen')) return 'Listening';
+  if (skill.toLowerCase().includes('read')) return 'Reading';
+  if (skill.toLowerCase().includes('writ')) return 'Writing';
+  if (skill.toLowerCase().includes('mediat')) return 'Mediation';
+  return skill || 'General';
+}
 
-  // A2 Level - Elementary
-  {
-    level: 'A2',
-    category: 'Reading',
-    subcategory: 'Overall reading comprehension',
-    descriptor_text:
-      'Can understand short, simple texts on familiar matters of a concrete type which consist of high frequency everyday or job-related language.',
-  },
-  {
-    level: 'A2',
-    category: 'Listening',
-    subcategory: 'Overall listening comprehension',
-    descriptor_text:
-      'Can understand phrases and expressions related to areas of most immediate priority (e.g. very basic personal and family information, shopping, local geography, employment).',
-  },
-  {
-    level: 'A2',
-    category: 'Speaking',
-    subcategory: 'Spoken interaction',
-    descriptor_text:
-      'Can communicate in simple and routine tasks requiring a simple and direct exchange of information on familiar topics and activities.',
-  },
-  {
-    level: 'A2',
-    category: 'Writing',
-    subcategory: 'Overall written production',
-    descriptor_text:
-      'Can write short, simple notes and messages. Can write a very simple personal letter, for example thanking someone for something.',
-  },
-  {
-    level: 'A2',
-    category: 'Grammar',
-    subcategory: 'Grammatical accuracy',
-    descriptor_text:
-      'Uses some simple structures correctly, but still systematically makes basic mistakes.',
-  },
+// Row type for File A
+interface FileARow {
+  Index?: number;
+  'Activity.Strategy.Competence'?: string | number;
+  Competencies?: string;
+  Strategies?: string | number;
+  Mode?: string | number;
+  'Skill focus'?: string;
+  Overall?: string;
+  Scale?: string;
+  Level?: string;
+  'CEFR CV 2020 Descriptor'?: string;
+  'Young Learners (7 - 10) descriptors'?: string;
+  'Young Learners (11 - 15) descriptors'?: string;
+}
 
-  // B1 Level - Intermediate
-  {
-    level: 'B1',
-    category: 'Reading',
-    subcategory: 'Overall reading comprehension',
-    descriptor_text:
-      'Can read straightforward factual texts on subjects related to their field of interest with a satisfactory level of comprehension.',
-  },
-  {
-    level: 'B1',
-    category: 'Listening',
-    subcategory: 'Overall listening comprehension',
-    descriptor_text:
-      'Can understand the main points of clear standard speech on familiar matters regularly encountered in work, school, leisure, etc.',
-  },
-  {
-    level: 'B1',
-    category: 'Speaking',
-    subcategory: 'Spoken interaction',
-    descriptor_text:
-      'Can deal with most situations likely to arise whilst travelling in an area where the language is spoken. Can enter unprepared into conversation on topics that are familiar, of personal interest or pertinent to everyday life.',
-  },
-  {
-    level: 'B1',
-    category: 'Writing',
-    subcategory: 'Overall written production',
-    descriptor_text:
-      'Can write simple connected text on topics which are familiar or of personal interest. Can write personal letters describing experiences and impressions.',
-  },
-  {
-    level: 'B1',
-    category: 'Grammar',
-    subcategory: 'Grammatical accuracy',
-    descriptor_text:
-      'Uses reasonably accurately a repertoire of frequently used routines and patterns associated with more predictable situations.',
-  },
+// Row type for File B
+interface FileBRow {
+  'Skill focus'?: string;
+  Book?: string;
+  Unit?: string;
+  Page?: number;
+  Level?: string;
+  Lesson?: string;
+  Descriptor?: string;
+}
 
-  // B2 Level - Upper Intermediate
-  {
-    level: 'B2',
-    category: 'Reading',
-    subcategory: 'Overall reading comprehension',
-    descriptor_text:
-      'Can read with a large degree of independence, adapting style and speed of reading to different texts and purposes, and using appropriate reference sources selectively.',
-  },
-  {
-    level: 'B2',
-    category: 'Listening',
-    subcategory: 'Overall listening comprehension',
-    descriptor_text:
-      'Can understand extended speech and lectures and follow even complex lines of argument provided the topic is reasonably familiar.',
-  },
-  {
-    level: 'B2',
-    category: 'Speaking',
-    subcategory: 'Spoken interaction',
-    descriptor_text:
-      'Can interact with a degree of fluency and spontaneity that makes regular interaction with proficient users quite possible. Can take an active part in discussion in familiar contexts, accounting for and sustaining their views.',
-  },
-  {
-    level: 'B2',
-    category: 'Writing',
-    subcategory: 'Overall written production',
-    descriptor_text:
-      'Can write clear, detailed text on a wide range of subjects related to their interests. Can write an essay or report, passing on information or giving reasons in support of or against a particular point of view.',
-  },
-  {
-    level: 'B2',
-    category: 'Grammar',
-    subcategory: 'Grammatical accuracy',
-    descriptor_text:
-      'Shows a relatively high degree of grammatical control. Does not make errors which cause misunderstanding, and can correct most of their mistakes.',
-  },
+/**
+ * Import File A: Official CEFR Descriptors
+ */
+async function importFileA(): Promise<number> {
+  console.log('\n📖 Reading File A: CEFR Filtering tool.xlsx...');
 
-  // C1 Level - Advanced
-  {
-    level: 'C1',
-    category: 'Reading',
-    subcategory: 'Overall reading comprehension',
-    descriptor_text:
-      'Can understand long and complex factual and literary texts, appreciating distinctions of style. Can understand specialised articles and longer technical instructions, even when they do not relate to their field.',
-  },
-  {
-    level: 'C1',
-    category: 'Listening',
-    subcategory: 'Overall listening comprehension',
-    descriptor_text:
-      'Can understand extended speech even when it is not clearly structured and when relationships are only implied and not signalled explicitly.',
-  },
-  {
-    level: 'C1',
-    category: 'Speaking',
-    subcategory: 'Spoken interaction',
-    descriptor_text:
-      'Can express themselves fluently and spontaneously without much obvious searching for expressions. Can use language flexibly and effectively for social, academic and professional purposes.',
-  },
-  {
-    level: 'C1',
-    category: 'Writing',
-    subcategory: 'Overall written production',
-    descriptor_text:
-      'Can express themselves in clear, well-structured text, expressing points of view at some length. Can write about complex subjects in a letter, an essay or a report, underlining what they consider to be the salient issues.',
-  },
-  {
-    level: 'C1',
-    category: 'Grammar',
-    subcategory: 'Grammatical accuracy',
-    descriptor_text:
-      'Consistently maintains a high degree of grammatical accuracy; errors are rare, difficult to spot and generally corrected when they do occur.',
-  },
+  const workbook = XLSX.readFile(FILE_A_PATH);
+  const sheetName = workbook.SheetNames[0]; // 'CEFR descriptors'
+  const sheet = workbook.Sheets[sheetName];
+  const data = XLSX.utils.sheet_to_json<FileARow>(sheet);
 
-  // C2 Level - Proficiency
-  {
-    level: 'C2',
-    category: 'Reading',
-    subcategory: 'Overall reading comprehension',
-    descriptor_text:
-      'Can understand with ease virtually all forms of the written language, including abstract, structurally or linguistically complex texts such as manuals, specialised articles and literary works.',
-  },
-  {
-    level: 'C2',
-    category: 'Listening',
-    subcategory: 'Overall listening comprehension',
-    descriptor_text:
-      'Has no difficulty in understanding any kind of spoken language, whether live or broadcast, even when delivered at fast speed, provided they have some time to get familiar with the accent.',
-  },
-  {
-    level: 'C2',
-    category: 'Speaking',
-    subcategory: 'Spoken interaction',
-    descriptor_text:
-      'Can take part effortlessly in any conversation or discussion and have a good familiarity with idiomatic expressions and colloquialisms. Can express themselves fluently and convey finer shades of meaning precisely.',
-  },
-  {
-    level: 'C2',
-    category: 'Writing',
-    subcategory: 'Overall written production',
-    descriptor_text:
-      'Can write clear, smoothly flowing text in an appropriate style. Can write complex letters, reports or articles which present a case with an effective logical structure which helps the recipient to notice and remember significant points.',
-  },
-  {
-    level: 'C2',
-    category: 'Grammar',
-    subcategory: 'Grammatical accuracy',
-    descriptor_text:
-      "Maintains consistent grammatical control of complex language, even while attention is otherwise engaged (e.g. in forward planning, in monitoring others' reactions).",
-  },
+  console.log(`   Found ${data.length} rows in sheet "${sheetName}"`);
 
-  // Additional descriptors for teaching context
-  {
-    level: 'A1',
-    category: 'Vocabulary',
-    subcategory: 'Vocabulary range',
-    descriptor_text:
-      'Has a basic vocabulary repertoire of isolated words and phrases related to particular concrete situations.',
-  },
-  {
-    level: 'A2',
-    category: 'Vocabulary',
-    subcategory: 'Vocabulary range',
-    descriptor_text:
-      'Has sufficient vocabulary to conduct routine, everyday transactions involving familiar situations and topics.',
-  },
-  {
-    level: 'B1',
-    category: 'Vocabulary',
-    subcategory: 'Vocabulary range',
-    descriptor_text:
-      'Has sufficient vocabulary to express themselves with some circumlocutions on most topics pertinent to their everyday life such as family, hobbies and interests, work, travel, and current events.',
-  },
-  {
-    level: 'B2',
-    category: 'Vocabulary',
-    subcategory: 'Vocabulary range',
-    descriptor_text:
-      'Has a good range of vocabulary for matters connected to their field and most general topics. Can vary formulation to avoid frequent repetition, but lexical gaps can still cause hesitation and circumlocution.',
-  },
-  {
-    level: 'C1',
-    category: 'Vocabulary',
-    subcategory: 'Vocabulary range',
-    descriptor_text:
-      'Has a good command of a broad vocabulary allowing gaps to be readily overcome with circumlocutions. Little obvious searching for expressions or avoidance strategies; only a conceptually difficult subject can hinder a natural, smooth flow of language.',
-  },
-  {
-    level: 'C2',
-    category: 'Vocabulary',
-    subcategory: 'Vocabulary range',
-    descriptor_text:
-      'Has a good command of a very broad lexical repertoire including idiomatic expressions and colloquialisms; shows awareness of connotative levels of meaning.',
-  },
+  // Filter valid rows (must have descriptor text and level)
+  const validRows = data.filter(
+    row =>
+      row['CEFR CV 2020 Descriptor'] &&
+      row['CEFR CV 2020 Descriptor'].toString().trim() !== '' &&
+      row['Level']
+  );
 
-  // Pronunciation descriptors
-  {
-    level: 'A1',
-    category: 'Speaking',
-    subcategory: 'Phonological control',
-    descriptor_text:
-      'Pronunciation of a very limited repertoire of learnt words and phrases can be understood with some effort by interlocutors used to dealing with speakers of their language group.',
-  },
-  {
-    level: 'A2',
-    category: 'Speaking',
-    subcategory: 'Phonological control',
-    descriptor_text:
-      'Pronunciation is generally clear enough to be understood despite a noticeable foreign accent, but conversational partners will need to ask for repetition from time to time.',
-  },
-  {
-    level: 'B1',
-    category: 'Speaking',
-    subcategory: 'Phonological control',
-    descriptor_text:
-      'Pronunciation is clearly intelligible even if a foreign accent is sometimes evident and occasional mispronunciations occur.',
-  },
-  {
-    level: 'B2',
-    category: 'Speaking',
-    subcategory: 'Phonological control',
-    descriptor_text: 'Has acquired a clear, natural pronunciation and intonation.',
-  },
-  {
-    level: 'C1',
-    category: 'Speaking',
-    subcategory: 'Phonological control',
-    descriptor_text:
-      'Can vary intonation and place sentence stress correctly in order to express finer shades of meaning.',
-  },
-  {
-    level: 'C2',
-    category: 'Speaking',
-    subcategory: 'Phonological control',
-    descriptor_text:
-      'Can convey subtle nuances of meaning precisely by using, with reasonable accuracy, a wide range of intonation patterns and placing stress correctly.',
-  },
-];
+  console.log(`   ${validRows.length} rows have valid descriptor text`);
 
+  // Transform to database format
+  const descriptors = validRows.map((row, index) => ({
+    level: normalizeLevel(row['Level'] || ''),
+    category: extractCategory(row['Skill focus']),
+    subcategory: row['Scale'] || null,
+    descriptorText: (row['CEFR CV 2020 Descriptor'] || '').trim(),
+
+    // File A specific columns
+    sourceIndex: row['Index'] ? Number(row['Index']) : index + 1,
+    activityStrategyCompetence:
+      row['Activity.Strategy.Competence'] !== 0
+        ? String(row['Activity.Strategy.Competence'])
+        : null,
+    competencies: row['Competencies'] ? String(row['Competencies']) : null,
+    strategies: row['Strategies'] !== 0 ? String(row['Strategies']) : null,
+    mode: row['Mode'] !== 0 ? String(row['Mode']) : null,
+    skillFocus: row['Skill focus'] || null,
+    isOverall: row['Overall'] === 'Yes',
+    scale: row['Scale'] || null,
+
+    // Young Learner variants
+    youngLearners7To10:
+      row['Young Learners (7 - 10) descriptors'] &&
+      row['Young Learners (7 - 10) descriptors'] !== 'None available'
+        ? String(row['Young Learners (7 - 10) descriptors'])
+        : null,
+    youngLearners11To15:
+      row['Young Learners (11 - 15) descriptors'] &&
+      row['Young Learners (11 - 15) descriptors'] !== 'None available'
+        ? String(row['Young Learners (11 - 15) descriptors'])
+        : null,
+
+    metadata: {},
+  }));
+
+  // Insert in batches
+  const BATCH_SIZE = 100;
+  let inserted = 0;
+
+  for (let i = 0; i < descriptors.length; i += BATCH_SIZE) {
+    const batch = descriptors.slice(i, i + BATCH_SIZE);
+    await db.insert(cefrDescriptors).values(batch);
+    inserted += batch.length;
+    process.stdout.write(`\r   Inserted ${inserted}/${descriptors.length} descriptors...`);
+  }
+
+  console.log(`\n✅ Imported ${inserted} CEFR descriptors from File A`);
+  return inserted;
+}
+
+/**
+ * Import File B: Speakout Textbook Descriptors
+ */
+async function importFileB(): Promise<number> {
+  console.log('\n📖 Reading File B: CEFR descriptions in Speakout Second Edition books.xlsx...');
+
+  const workbook = XLSX.readFile(FILE_B_PATH);
+  console.log(`   Found ${workbook.SheetNames.length} sheets: ${workbook.SheetNames.join(', ')}`);
+
+  const allDescriptors: Array<{
+    book: string;
+    unit: string;
+    page: number | null;
+    lesson: string | null;
+    level: string;
+    skillFocus: string;
+    descriptorText: string;
+  }> = [];
+
+  // Process each sheet
+  for (const sheetName of workbook.SheetNames) {
+    const sheet = workbook.Sheets[sheetName];
+    const data = XLSX.utils.sheet_to_json<FileBRow>(sheet);
+
+    // Filter valid rows (must have Descriptor text)
+    const validRows = data.filter(
+      row => row['Descriptor'] && row['Descriptor'].toString().trim() !== ''
+    );
+
+    if (validRows.length === 0) {
+      console.log(`   ${sheetName}: 0 valid rows (skipped)`);
+      continue;
+    }
+
+    console.log(`   ${sheetName}: ${validRows.length} valid rows`);
+
+    // Transform rows
+    for (const row of validRows) {
+      // Handle page number - ensure it's a valid integer or null
+      let pageNum: number | null = null;
+      if (row['Page'] !== undefined && row['Page'] !== null) {
+        const parsed = Number(row['Page']);
+        if (!isNaN(parsed) && isFinite(parsed)) {
+          pageNum = Math.floor(parsed);
+        }
+      }
+
+      allDescriptors.push({
+        book: row['Book'] || `Speakout ${sheetName}`,
+        unit: row['Unit'] || '',
+        page: pageNum,
+        lesson: row['Lesson'] || null,
+        level: normalizeLevel(row['Level'] || ''),
+        skillFocus: row['Skill focus'] || 'General',
+        descriptorText: (row['Descriptor'] || '').trim(),
+      });
+    }
+  }
+
+  console.log(`\n   Total valid rows across all sheets: ${allDescriptors.length}`);
+
+  // Insert in batches
+  const BATCH_SIZE = 100;
+  let inserted = 0;
+
+  for (let i = 0; i < allDescriptors.length; i += BATCH_SIZE) {
+    const batch = allDescriptors.slice(i, i + BATCH_SIZE);
+    await db.insert(textbookDescriptors).values(batch);
+    inserted += batch.length;
+    process.stdout.write(
+      `\r   Inserted ${inserted}/${allDescriptors.length} textbook descriptors...`
+    );
+  }
+
+  console.log(`\n✅ Imported ${inserted} textbook descriptors from File B`);
+  return inserted;
+}
+
+/**
+ * Main seed function
+ */
 async function seedCEFRDescriptors() {
   console.log('🌱 Starting CEFR descriptors seed...\n');
 
+  const forceMode = process.argv.includes('--force');
+
   try {
-    // Check if descriptors already exist
-    const existingCount = await db.select().from(cefrDescriptors).execute();
+    // Check existing data
+    const existingCefr = await db.select().from(cefrDescriptors).limit(1);
+    const existingTextbook = await db.select().from(textbookDescriptors).limit(1);
 
-    if (existingCount.length > 0) {
-      console.log(`⚠️  Database already contains ${existingCount.length} CEFR descriptors.`);
-      console.log('To re-seed, first delete existing descriptors.\n');
+    if (existingCefr.length > 0 || existingTextbook.length > 0) {
+      console.log('⚠️  Tables already contain data:');
+      if (existingCefr.length > 0) console.log('   - cefr_descriptors has data');
+      if (existingTextbook.length > 0) console.log('   - textbook_descriptors has data');
 
-      const shouldContinue = process.argv.includes('--force');
-      if (!shouldContinue) {
-        console.log('Run with --force to overwrite existing data.');
+      if (!forceMode) {
+        console.log('\nRun with --force to delete existing data and re-seed.');
         process.exit(0);
       }
 
-      console.log('🗑️  Deleting existing descriptors...');
-      await db.delete(cefrDescriptors).execute();
-      console.log('✅ Deleted existing descriptors\n');
+      console.log('\n🗑️  Deleting existing data (--force mode)...');
+      await db.delete(textbookDescriptors);
+      await db.delete(cefrDescriptors);
+      console.log('✅ Existing data deleted');
     }
 
-    console.log(`📝 Inserting ${CEFR_DESCRIPTORS.length} CEFR descriptors...\n`);
+    // Import both files
+    const cefrCount = await importFileA();
+    const textbookCount = await importFileB();
 
-    // Insert all descriptors
-    await db.insert(cefrDescriptors).values(
-      CEFR_DESCRIPTORS.map(descriptor => ({
-        level: descriptor.level,
-        category: descriptor.category,
-        subcategory: descriptor.subcategory || null,
-        descriptorText: descriptor.descriptor_text,
-        metadata: descriptor.metadata || {},
-      }))
+    // Summary
+    console.log('\n' + '='.repeat(50));
+    console.log('📊 SEED SUMMARY');
+    console.log('='.repeat(50));
+    console.log(`   CEFR Descriptors (File A):     ${cefrCount.toLocaleString()} rows`);
+    console.log(`   Textbook Descriptors (File B): ${textbookCount.toLocaleString()} rows`);
+    console.log(
+      `   TOTAL:                         ${(cefrCount + textbookCount).toLocaleString()} rows`
     );
-
-    console.log('✅ Successfully seeded CEFR descriptors!\n');
-
-    // Summary by level
-    const levels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'] as const;
-    console.log('📊 Summary by level:');
-    for (const level of levels) {
-      const count = CEFR_DESCRIPTORS.filter(d => d.level === level).length;
-      console.log(`   ${level}: ${count} descriptors`);
-    }
+    console.log('='.repeat(50));
 
     console.log('\n🎉 Seed complete!');
-    console.log('\n💡 Verify with: npx tsx scripts/test-db-connection.ts');
-    console.log(
-      '   Or query: SELECT level, category, COUNT(*) FROM cefr_descriptors GROUP BY level, category ORDER BY level, category;'
-    );
+    console.log('\n💡 Verify with SQL:');
+    console.log('   SELECT level, COUNT(*) FROM cefr_descriptors GROUP BY level ORDER BY level;');
+    console.log('   SELECT book, COUNT(*) FROM textbook_descriptors GROUP BY book ORDER BY book;');
   } catch (error) {
-    console.error('❌ Error seeding CEFR descriptors:', error);
+    console.error('\n❌ Error seeding CEFR descriptors:', error);
     throw error;
   }
 }
 
 // Run seed if executed directly
-if (require.main === module) {
-  seedCEFRDescriptors()
-    .then(() => {
-      console.log('\n✨ Seed script completed successfully');
-      process.exit(0);
-    })
-    .catch(error => {
-      console.error('\n💥 Seed script failed:', error);
-      process.exit(1);
-    });
-}
-
-export { seedCEFRDescriptors, CEFR_DESCRIPTORS };
+seedCEFRDescriptors()
+  .then(() => {
+    console.log('\n✨ Seed script completed successfully');
+    process.exit(0);
+  })
+  .catch(error => {
+    console.error('\n💥 Seed script failed:', error);
+    process.exit(1);
+  });
