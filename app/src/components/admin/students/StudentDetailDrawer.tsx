@@ -8,6 +8,10 @@ import {
   AssessmentsTab,
   NotesTab,
   DocumentsTab,
+  LevelHistoryTab,
+  CompetencyProgressTab,
+  EnhancedNotesTab,
+  AuditTrailTab,
 } from './tabs';
 import { StudentEditForm } from './StudentEditForm';
 
@@ -54,17 +58,36 @@ interface StudentDetailDrawerProps {
   canViewSensitiveNotes?: boolean;
   canEdit?: boolean;
   onStudentUpdated?: () => void;
+  // Profile feature props
+  currentUserId?: string;
+  currentUserRole?: 'admin' | 'teacher' | 'dos' | string;
+  isAdmin?: boolean;
+  isTeacher?: boolean;
+  canAddNotes?: boolean;
+  canShareNotes?: boolean;
 }
 
-type TabId = 'personal' | 'courses' | 'attendance' | 'assessments' | 'notes' | 'documents';
+type TabId =
+  | 'personal'
+  | 'courses'
+  | 'attendance'
+  | 'assessments'
+  | 'notes'
+  | 'documents'
+  | 'levelHistory'
+  | 'competency'
+  | 'audit';
 
 const TABS = [
   { id: 'personal' as TabId, label: 'Personal Info', icon: '👤' },
+  { id: 'levelHistory' as TabId, label: 'Level History', icon: '📊' },
+  { id: 'competency' as TabId, label: 'Competency', icon: '🎯' },
   { id: 'courses' as TabId, label: 'Course History', icon: '📚' },
   { id: 'attendance' as TabId, label: 'Attendance', icon: '📋' },
   { id: 'assessments' as TabId, label: 'Assessments', icon: '✅' },
   { id: 'notes' as TabId, label: 'Notes', icon: '📝' },
   { id: 'documents' as TabId, label: 'Documents', icon: '📎' },
+  { id: 'audit' as TabId, label: 'Audit Trail', icon: '🔍', adminOnly: true },
 ];
 
 export function StudentDetailDrawer({
@@ -76,6 +99,12 @@ export function StudentDetailDrawer({
   canViewSensitiveNotes = false,
   canEdit = true,
   onStudentUpdated,
+  currentUserId = '',
+  currentUserRole = 'admin',
+  isAdmin = true,
+  isTeacher = false,
+  canAddNotes = true,
+  canShareNotes = true,
 }: StudentDetailDrawerProps) {
   const [activeTab, setActiveTab] = useState<TabId>('personal');
   const [isApproving, setIsApproving] = useState(false);
@@ -225,7 +254,7 @@ export function StudentDetailDrawer({
         {/* Tab Navigation */}
         <div className="border-b border-gray-200 bg-white">
           <nav className="flex overflow-x-auto -mb-px px-6" aria-label="Tabs">
-            {TABS.map(tab => (
+            {TABS.filter(tab => !('adminOnly' in tab) || (tab.adminOnly && isAdmin)).map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
@@ -263,6 +292,29 @@ export function StudentDetailDrawer({
                 <NotesTab studentId={student.id} canViewSensitiveNotes={canViewSensitiveNotes} />
               )}
               {activeTab === 'documents' && <DocumentsTab studentId={student.id} />}
+              {activeTab === 'levelHistory' && (
+                <LevelHistoryTab
+                  studentId={student.studentId || student.id}
+                  currentLevel={student.currentLevel || student.current_level || null}
+                  initialLevel={null}
+                  levelStatus={student.levelStatus || null}
+                  isAdmin={isAdmin}
+                />
+              )}
+              {activeTab === 'competency' && (
+                <CompetencyProgressTab
+                  studentId={student.studentId || student.id}
+                  currentLevel={student.currentLevel || student.current_level || null}
+                  isTeacher={isTeacher}
+                  isAdmin={isAdmin}
+                />
+              )}
+              {activeTab === 'audit' && isAdmin && (
+                <AuditTrailTab
+                  studentId={student.studentId || student.id}
+                  studentUserId={student.id}
+                />
+              )}
             </>
           )}
         </div>
