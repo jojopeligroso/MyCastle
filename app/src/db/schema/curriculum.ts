@@ -176,9 +176,53 @@ export const lessonPlanMaterials = pgTable('lesson_plan_materials', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+/**
+ * Textbook Descriptors Table (File B)
+ * Maps CEFR descriptors to specific textbook lessons (e.g., Speakout series)
+ * Ref: CEFR descriptions in Speakout Second Edition books.xlsx
+ */
+export const textbookDescriptors = pgTable(
+  'textbook_descriptors',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+
+    // Textbook location
+    book: varchar('book', { length: 255 }).notNull(), // e.g., "Speakout Pre-intermediate 2nd edition"
+    unit: varchar('unit', { length: 50 }).notNull(), // e.g., "Unit 1"
+    page: integer('page'), // Page number
+    lesson: varchar('lesson', { length: 255 }), // e.g., "Feeling good"
+
+    // CEFR mapping
+    level: varchar('level', { length: 5 }).notNull(), // A2+, B1, B1+, B2, C1, etc.
+    skillFocus: varchar('skill_focus', { length: 50 }).notNull(), // Speaking, Listening, Reading, Writing
+
+    // The descriptor text
+    descriptorText: text('descriptor_text').notNull(),
+
+    // Optional link to official CEFR descriptor
+    cefrDescriptorId: uuid('cefr_descriptor_id').references(() => cefrDescriptors.id),
+
+    // Tenant scope (NULL = global/shared)
+    tenantId: uuid('tenant_id').references(() => tenants.id),
+
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  table => [
+    index('idx_textbook_book').on(table.book),
+    index('idx_textbook_level').on(table.level),
+    index('idx_textbook_skill').on(table.skillFocus),
+    index('idx_textbook_unit').on(table.unit),
+    index('idx_textbook_tenant').on(table.tenantId),
+  ]
+);
+
 // Type exports
 export type CefrDescriptor = typeof cefrDescriptors.$inferSelect;
 export type NewCefrDescriptor = typeof cefrDescriptors.$inferInsert;
+
+export type TextbookDescriptor = typeof textbookDescriptors.$inferSelect;
+export type NewTextbookDescriptor = typeof textbookDescriptors.$inferInsert;
 
 export type LessonPlan = typeof lessonPlans.$inferSelect;
 export type NewLessonPlan = typeof lessonPlans.$inferInsert;
