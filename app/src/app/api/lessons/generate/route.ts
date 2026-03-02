@@ -36,18 +36,18 @@ export async function POST(request: NextRequest) {
 
     // Check if plan already exists in cache/database
     const existingPlan = await db.query.lessonPlans.findFirst({
-      where: (plans, { eq }) => eq(plans.cache_key, cacheKey),
+      where: (plans, { eq }) => eq(plans.cacheKey, cacheKey),
     });
 
     if (existingPlan) {
       console.log(`Cache hit for lesson plan: ${cacheKey}`);
       return NextResponse.json({
         id: existingPlan.id,
-        plan: existingPlan.json_plan,
+        plan: existingPlan.jsonPlan,
         cache_key: cacheKey,
         is_cached: true,
         generation_time_ms: Date.now() - startTime,
-        created_at: existingPlan.created_at,
+        created_at: existingPlan.createdAt,
       });
     }
 
@@ -62,17 +62,17 @@ export async function POST(request: NextRequest) {
     const [savedPlan] = await db
       .insert(lessonPlans)
       .values({
-        tenant_id: tenantId || 'default-tenant',
-        teacher_id: user.id,
-        class_id: validatedRequest.class_id || null,
-        cefr_level: validatedRequest.cefr_level,
-        descriptor_id: validatedRequest.descriptor_id || null,
+        tenantId: tenantId || 'default-tenant',
+        teacherId: user.id,
+        classId: validatedRequest.class_id || null,
+        cefrLevel: validatedRequest.cefr_level,
+        descriptorId: validatedRequest.descriptor_id || null,
         title: plan.title,
         topic: plan.topic,
-        duration_minutes: plan.duration_minutes.toString(),
-        json_plan: plan,
-        is_ai_generated: 'true',
-        cache_key: cacheKey,
+        durationMinutes: plan.duration_minutes.toString(),
+        jsonPlan: plan,
+        isAiGenerated: 'true',
+        cacheKey: cacheKey,
         status: 'draft',
       })
       .returning();
@@ -88,11 +88,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         id: savedPlan.id,
-        plan: savedPlan.json_plan,
+        plan: savedPlan.jsonPlan,
         cache_key: cacheKey,
         is_cached: false,
         generation_time_ms: generationTime,
-        created_at: savedPlan.created_at,
+        created_at: savedPlan.createdAt,
       },
       { status: 201 }
     );
