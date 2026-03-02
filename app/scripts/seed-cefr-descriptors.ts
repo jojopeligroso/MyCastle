@@ -362,7 +362,7 @@ async function seedCEFRDescriptors() {
         level: descriptor.level,
         category: descriptor.category,
         subcategory: descriptor.subcategory || null,
-        descriptor_text: descriptor.descriptor_text,
+        descriptorText: descriptor.descriptor_text,
         metadata: descriptor.metadata || {},
       }))
     );

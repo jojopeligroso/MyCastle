@@ -79,16 +79,16 @@ async function main() {
       const [plan] = await db
         .insert(lessonPlans)
         .values({
-          tenant_id: session.tenantId,
-          class_id: class_id,
-          teacher_id: session.userId,
+          tenantId: session.tenantId,
+          classId: class_id,
+          teacherId: session.userId,
           title: `${topic} - ${cefr_level}`,
-          cefr_level: cefr_level,
-          duration_minutes: duration_minutes,
-          json_plan: lessonContent,
-          is_ai_generated: 'true',
+          cefrLevel: cefr_level,
+          durationMinutes: duration_minutes,
+          jsonPlan: lessonContent,
+          isAiGenerated: 'true',
           status: 'draft',
-        } as typeof lessonPlans.$inferInsert)
+        })
         .returning();
 
       return {
