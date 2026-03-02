@@ -1,0 +1,218 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { db } from '@/db';
+import { competencyAssessments, competencyProgress, users } from '@/db/schema';
+import { cefrDescriptors } from '@/db/schema/curriculum';
+import { eq, and, desc, sql } from 'drizzle-orm';
+import { requireAuth, getTenantId, getUserId } from '@/lib/auth/utils';
+
+/**
+ * GET /api/admin/students/[id]/assessments
+ * Fetch all competency assessments for a student
+ */
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    await requireAuth(['admin', 'teacher', 'dos']);
+    const tenantId = await getTenantId();
+    const { id: studentId } = await params;
+
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Tenant context required' }, { status: 403 });
+    }
+
+    // Verify student exists
+    const [student] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(and(eq(users.id, studentId), eq(users.role, 'student')))
+      .limit(1);
+
+    if (!student) {
+      return NextResponse.json({ error: 'Student not found' }, { status: 404 });
+    }
+
+    // Fetch assessments with descriptor details
+    const assessments = await db
+      .select({
+        id: competencyAssessments.id,
+        studentId: competencyAssessments.studentId,
+        descriptorId: competencyAssessments.descriptorId,
+        classId: competencyAssessments.classId,
+        enrollmentId: competencyAssessments.enrollmentId,
+        assignmentId: competencyAssessments.assignmentId,
+        assessmentType: competencyAssessments.assessmentType,
+        assessmentDate: competencyAssessments.assessmentDate,
+        score: competencyAssessments.score,
+        notes: competencyAssessments.notes,
+        assessedBy: competencyAssessments.assessedBy,
+        createdAt: competencyAssessments.createdAt,
+        // Descriptor details
+        descriptorCode: cefrDescriptors.code,
+        descriptorText: cefrDescriptors.descriptorText,
+        descriptorCategory: cefrDescriptors.category,
+        descriptorSubcategory: cefrDescriptors.subcategory,
+        descriptorLevel: cefrDescriptors.level,
+        // Assessor name
+        assessorName: users.name,
+      })
+      .from(competencyAssessments)
+      .leftJoin(cefrDescriptors, eq(competencyAssessments.descriptorId, cefrDescriptors.id))
+      .leftJoin(users, eq(competencyAssessments.assessedBy, users.id))
+      .where(
+        and(
+          eq(competencyAssessments.studentId, studentId),
+          eq(competencyAssessments.tenantId, tenantId)
+        )
+      )
+      .orderBy(desc(competencyAssessments.assessmentDate), desc(competencyAssessments.createdAt));
+
+    return NextResponse.json({ assessments });
+  } catch (error) {
+    console.error('Error fetching assessments:', error);
+    return NextResponse.json({ error: 'Failed to fetch assessments' }, { status: 500 });
+  }
+}
+
+/**
+ * POST /api/admin/students/[id]/assessments
+ * Create a new competency assessment
+ */
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    await requireAuth(['admin', 'teacher', 'dos']);
+    const tenantId = await getTenantId();
+    const userId = await getUserId();
+    const { id: studentId } = await params;
+    const body = await request.json();
+
+    if (!tenantId || !userId) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 403 });
+    }
+
+    // Validate required fields
+    const { descriptorId, assessmentType, score, notes, classId, enrollmentId, assignmentId } =
+      body;
+
+    if (!descriptorId) {
+      return NextResponse.json({ error: 'descriptorId is required' }, { status: 400 });
+    }
+    if (!assessmentType) {
+      return NextResponse.json({ error: 'assessmentType is required' }, { status: 400 });
+    }
+    if (score === undefined || score === null) {
+      return NextResponse.json({ error: 'score is required' }, { status: 400 });
+    }
+    if (score < 1 || score > 4) {
+      return NextResponse.json({ error: 'score must be between 1 and 4' }, { status: 400 });
+    }
+
+    // Verify student exists
+    const [student] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(and(eq(users.id, studentId), eq(users.role, 'student')))
+      .limit(1);
+
+    if (!student) {
+      return NextResponse.json({ error: 'Student not found' }, { status: 404 });
+    }
+
+    // Verify descriptor exists
+    const [descriptor] = await db
+      .select({ id: cefrDescriptors.id })
+      .from(cefrDescriptors)
+      .where(eq(cefrDescriptors.id, descriptorId))
+      .limit(1);
+
+    if (!descriptor) {
+      return NextResponse.json({ error: 'Descriptor not found' }, { status: 404 });
+    }
+
+    // Create assessment
+    const [newAssessment] = await db
+      .insert(competencyAssessments)
+      .values({
+        tenantId,
+        studentId,
+        descriptorId,
+        classId: classId || null,
+        enrollmentId: enrollmentId || null,
+        assignmentId: assignmentId || null,
+        assessmentType,
+        assessmentDate: body.assessmentDate || new Date().toISOString().split('T')[0],
+        score,
+        notes: notes || null,
+        assessedBy: userId,
+      })
+      .returning();
+
+    // Update competency progress (denormalized table)
+    await updateCompetencyProgress(tenantId, studentId, descriptorId, enrollmentId);
+
+    return NextResponse.json({ assessment: newAssessment }, { status: 201 });
+  } catch (error) {
+    console.error('Error creating assessment:', error);
+    return NextResponse.json({ error: 'Failed to create assessment' }, { status: 500 });
+  }
+}
+
+/**
+ * Update the denormalized competency_progress table after an assessment
+ */
+async function updateCompetencyProgress(
+  tenantId: string,
+  studentId: string,
+  descriptorId: string,
+  enrollmentId: string | null
+) {
+  // Calculate aggregated score
+  const result = await db
+    .select({
+      avgScore: sql<string>`avg(${competencyAssessments.score})`,
+      count: sql<number>`count(*)::int`,
+      lastAssessed: sql<string>`max(${competencyAssessments.assessmentDate})`,
+    })
+    .from(competencyAssessments)
+    .where(
+      and(
+        eq(competencyAssessments.tenantId, tenantId),
+        eq(competencyAssessments.studentId, studentId),
+        eq(competencyAssessments.descriptorId, descriptorId)
+      )
+    );
+
+  const avgScore = result[0]?.avgScore ? parseFloat(result[0].avgScore) : null;
+  const count = result[0]?.count || 0;
+  const isCompetent = avgScore !== null && avgScore >= 3.5;
+
+  // Upsert into competency_progress
+  await db
+    .insert(competencyProgress)
+    .values({
+      tenantId,
+      studentId,
+      descriptorId,
+      enrollmentId: enrollmentId || null,
+      currentScore: avgScore?.toFixed(2) || null,
+      assessmentCount: count,
+      lastAssessedAt: result[0]?.lastAssessed ? new Date(result[0].lastAssessed) : null,
+      isCompetent,
+      competentSince: isCompetent ? new Date() : null,
+    })
+    .onConflictDoUpdate({
+      target: [
+        competencyProgress.studentId,
+        competencyProgress.descriptorId,
+        competencyProgress.enrollmentId,
+      ],
+      set: {
+        currentScore: avgScore?.toFixed(2) || null,
+        assessmentCount: count,
+        lastAssessedAt: result[0]?.lastAssessed ? new Date(result[0].lastAssessed) : null,
+        isCompetent,
+        competentSince: isCompetent
+          ? sql`COALESCE(${competencyProgress.competentSince}, NOW())`
+          : null,
+        updatedAt: new Date(),
+      },
+    });
+}
