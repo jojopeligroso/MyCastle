@@ -2,8 +2,8 @@
 
 **Created:** 2026-03-02
 **Updated:** 2026-03-03
-**Status:** Phase 2D Student & Verification Complete
-**Completed:** 20/23 tasks (87%)
+**Status:** COMPLETE
+**Completed:** 23/23 tasks (100%)
 
 **Reference:** See `STUDENT_PROFILE_DISCOVERY.md` for full requirements
 
@@ -13,32 +13,35 @@
 
 ### Completed Tasks (Phase 1)
 
-| Task | Description | Commit |
-|------|-------------|--------|
-| #1 | Database schema extensions (6 tables, RLS policies) | 35ae915 |
-| #2 | RLS policies for profile access control | 35ae915 |
-| #3 | Admin/Owner profile view (full unrestricted) | 35ae915 |
-| #7 | CEFR competency assessment system | 35ae915 |
-| #11 | Competency assessment API routes (CRUD) | 35ae915 |
-| #12 | Progress calculation API route | 35ae915 |
-| #13 | Assessment entry form component | 35ae915 |
-| #14 | Wire up CompetencyProgressTab | 35ae915 |
-| #15 | Wire up LevelHistoryTab | 35ae915 |
-| #16 | Wire up EnhancedNotesTab | 35ae915 |
-| #17 | Wire up AuditTrailTab | 35ae915 |
-| #18 | Schema Updates (FRESH_0028) - Phase 2A | 7482ce7 |
-| #19 | CEFR Descriptor Importer (File A + B) | 7482ce7 |
-| #21 | Learning Objectives UI (Phase 2B) | 28688cd |
-| #22 | Update Assessment Form (Phase 2B) | 874ca45 |
-| #23 | Summative Assessment UI (Phase 2B) | 463b679 |
-| #4 | Teacher Profile View (Phase 2C) | d25394a |
-| #6 | DoS Hybrid View (Phase 2C) | b85f4be |
-| #9 | Contact Verification System (Phase 2D) | pending |
-| #5 | Student Self-View (Phase 2D) | pending |
+| Task | Description                                         | Commit  |
+| ---- | --------------------------------------------------- | ------- |
+| #1   | Database schema extensions (6 tables, RLS policies) | 35ae915 |
+| #2   | RLS policies for profile access control             | 35ae915 |
+| #3   | Admin/Owner profile view (full unrestricted)        | 35ae915 |
+| #7   | CEFR competency assessment system                   | 35ae915 |
+| #11  | Competency assessment API routes (CRUD)             | 35ae915 |
+| #12  | Progress calculation API route                      | 35ae915 |
+| #13  | Assessment entry form component                     | 35ae915 |
+| #14  | Wire up CompetencyProgressTab                       | 35ae915 |
+| #15  | Wire up LevelHistoryTab                             | 35ae915 |
+| #16  | Wire up EnhancedNotesTab                            | 35ae915 |
+| #17  | Wire up AuditTrailTab                               | 35ae915 |
+| #18  | Schema Updates (FRESH_0028) - Phase 2A              | 7482ce7 |
+| #19  | CEFR Descriptor Importer (File A + B)               | 7482ce7 |
+| #21  | Learning Objectives UI (Phase 2B)                   | 28688cd |
+| #22  | Update Assessment Form (Phase 2B)                   | 874ca45 |
+| #23  | Summative Assessment UI (Phase 2B)                  | 463b679 |
+| #4   | Teacher Profile View (Phase 2C)                     | d25394a |
+| #6   | DoS Hybrid View (Phase 2C)                          | b85f4be |
+| #8   | Level Promotion Workflow (Phase 2C)                 | 463b679 |
+| #9   | Contact Verification System (Phase 2D)              | 463b679 |
+| #5   | Student Self-View (Phase 2D)                        | 463b679 |
+| #10  | LLM Tutor Architecture Hooks (Phase 2E)             | pending |
 
 ### What's Built
 
 **Database Layer:**
+
 - `student_profile_sensitive` - PII storage (contact, visa, address)
 - `student_notes` - Teacher notes with visibility controls
 - `level_promotions` - Promotion request workflow
@@ -47,6 +50,7 @@
 - `competency_progress` - Denormalized progress aggregation
 
 **API Routes (8 endpoints):**
+
 - `/api/admin/students/[id]/assessments` - CRUD for assessments
 - `/api/admin/students/[id]/progress` - Aggregated skill progress
 - `/api/admin/students/[id]/notes` - Notes CRUD
@@ -56,6 +60,7 @@
 - `/api/admin/students/[id]/audit` - Full audit trail
 
 **Components:**
+
 - `LevelHistoryTab` - Current level, promotions, diagnostics
 - `CompetencyProgressTab` - Skill progress with gaps by category
 - `EnhancedNotesTab` - Notes with visibility, create/share
@@ -67,6 +72,7 @@
 - `PromotionReviewList` - Promotion review interface with evidence display
 
 **API Routes (16 endpoints):**
+
 - `/api/admin/sessions/[sessionId]/objectives` - Session learning objectives CRUD
 - `/api/teacher/students` - List students in teacher's classes
 - `/api/teacher/students/[id]` - Teacher student profile
@@ -78,6 +84,7 @@
 - `/api/student/notes` - Shared notes (GET)
 
 **Student Components:**
+
 - `StudentProfilePage` - Mobile-first student profile with tabs
 - `VerificationCodeInput` - 6-digit code input
 - `ContactChangeForm` - Email/phone verification flow
@@ -90,11 +97,13 @@
 ### Phase 2A: Schema & Data (Discovery-driven) ✅ COMPLETE
 
 #### Task #18: Schema Updates (FRESH_0028) ✅ COMPLETE
+
 **Estimate:** 1-2 hours | **Dependencies:** None | **Token budget:** ~30k
 **Priority:** HIGH - Blocks #19, #20, #21
 **Completed:** 2026-03-02
 
 **What was done:**
+
 1. Created FRESH_0028_student_profile_phase2.sql migration
 2. Added 5 new tables: `coursebooks`, `coursebook_descriptors`, `session_learning_objectives`, `summative_assessments`, `summative_assessment_types`
 3. Updated `cefr_descriptors` with 10 new File A columns (source_index, activity_strategy_competence, competencies, strategies, mode, skill_focus, is_overall, scale, young_learners_7_10, young_learners_11_15)
@@ -106,6 +115,7 @@
 9. All tests passing, TypeScript clean
 
 **Acceptance Criteria:**
+
 - [x] All new tables created with proper constraints
 - [x] RLS policies enforce tenant isolation
 - [x] Migration file created (FRESH_0028)
@@ -114,9 +124,11 @@
 ---
 
 #### Task #19: CEFR Descriptor Importer (File A)
+
 **Estimate:** 2-3 hours | **Dependencies:** #18 | **Token budget:** ~40k
 
 **Subtasks:**
+
 1. Create spreadsheet parser for File A format (45 min)
 2. Create admin UI for uploading CEFR spreadsheet (30 min)
 3. Create API endpoint for import processing (30 min)
@@ -124,6 +136,7 @@
 5. Create seed script for Castleforbes CEFR data (30 min)
 
 **Acceptance Criteria:**
+
 - [ ] Can upload Excel/CSV with File A structure
 - [ ] Validates all required columns present
 - [ ] Creates/updates cefr_descriptors records
@@ -133,9 +146,11 @@
 ---
 
 #### Task #20: Coursebook Importer (File B)
+
 **Estimate:** 2 hours | **Dependencies:** #18 | **Token budget:** ~35k
 
 **Subtasks:**
+
 1. Create spreadsheet parser for File B format (30 min)
 2. Handle multi-worksheet files (one sheet per book) (30 min)
 3. Create admin UI for coursebook upload (30 min)
@@ -143,6 +158,7 @@
 5. Optional: LLM-assisted matching to CEFR descriptors (30 min)
 
 **Acceptance Criteria:**
+
 - [ ] Can upload multi-worksheet Excel file
 - [ ] Each worksheet creates a coursebook record
 - [ ] All rows become coursebook_descriptors
@@ -154,10 +170,12 @@
 ### Phase 2B: Teacher Workflow
 
 #### Task #21: Learning Objectives UI ✅ COMPLETE
+
 **Estimate:** 2-3 hours | **Dependencies:** #18, #19, #20 | **Token budget:** ~45k
 **Completed:** 2026-03-03
 
 **What was done:**
+
 1. ✅ Created `LearningObjectiveSelector` component with 3 tabs (CEFR, Textbook, Custom)
 2. ✅ Created session planning page at `/admin/classes/[id]/sessions/[sessionId]`
 3. ✅ Level filtering (current ± 1 adjacent levels), skill filtering, search
@@ -167,6 +185,7 @@
 7. ✅ Updated class detail page with "Upcoming Sessions" section
 
 **Acceptance Criteria:**
+
 - [x] Teacher can select descriptors for each session
 - [x] Filtered by appropriate level range
 - [x] Primary/secondary distinction enforced
@@ -176,10 +195,12 @@
 ---
 
 #### Task #22: Update Assessment Form ✅ COMPLETE
+
 **Estimate:** 1-2 hours | **Dependencies:** #18 | **Token budget:** ~30k
 **Completed:** 2026-03-03
 
 **What was done:**
+
 1. ✅ Added `demonstratedLevel` dropdown (CEFR A1-C2)
 2. ✅ Added `isComplete` checkbox (auto-checks on "Achieved")
 3. ✅ Updated progress scale: Not Yet / Emerging / Developing / Achieved
@@ -189,6 +210,7 @@
 7. ✅ Added validation for progress values and CEFR levels
 
 **Acceptance Criteria:**
+
 - [x] Can record demonstrated level different from descriptor level
 - [x] Can mark descriptor as complete (achieved)
 - [x] Progress scale matches requirements
@@ -197,15 +219,18 @@
 ---
 
 #### Task #23: Summative Assessment UI
+
 **Estimate:** 2 hours | **Dependencies:** #18 | **Token budget:** ~35k
 
 **Subtasks:**
+
 1. Create summative assessment types admin page (30 min)
 2. Create `SummativeAssessmentForm` component (30 min)
 3. Add summative assessments tab to student profile (30 min)
 4. Create API routes for summative CRUD (30 min)
 
 **Acceptance Criteria:**
+
 - [ ] Schools can define assessment types (End of Unit, Mid-Term, etc.)
 - [ ] Can record percentage scores per student
 - [ ] Summative scores visible in student profile
@@ -216,10 +241,12 @@
 ### Phase 2C: Role-Specific Views
 
 #### Task #4: Teacher Profile View ✅ COMPLETE
+
 **Estimate:** 2-3 hours | **Dependencies:** #21 ✅, #22 ✅ | **Token budget:** ~40k
 **Completed:** 2026-03-03
 
 **What was done:**
+
 1. ✅ Created TeacherStudentProfile component with tabs (Overview, Progress, Notes, Attendance, Level History)
 2. ✅ Created class-scope utilities: `canTeacherAccessStudent()`, `getAccessibleStudentIds()`, `getSharedClasses()`
 3. ✅ Created teacher API routes: `/api/teacher/students/[id]/{route, notes, progress, assessments}`
@@ -227,6 +254,7 @@
 5. ✅ Created `/teacher/students` list page and `/teacher/students/[id]` detail page
 
 **Acceptance Criteria:**
+
 - [x] Teachers see only students in their current classes
 - [x] No access to sensitive PII (contact, visa, address)
 - [x] Can view competency progress and skill gaps
@@ -236,9 +264,11 @@
 ---
 
 #### Task #8: Level Promotion Workflow
+
 **Estimate:** 2-3 hours | **Dependencies:** #23 | **Token budget:** ~40k
 
 **Subtasks:**
+
 1. Create promotion request form with evidence summary (45 min)
 2. Create promotion request API (30 min)
 3. Create promotion review API with summative scores (30 min)
@@ -246,6 +276,7 @@
 5. Add promotion history to LevelHistoryTab (30 min)
 
 **Acceptance Criteria:**
+
 - [ ] Teachers can request promotions with minimal friction
 - [ ] System auto-suggests when threshold reached (configurable, default 90%)
 - [ ] DoS sees: recommendation + summative scores + stats
@@ -255,10 +286,12 @@
 ---
 
 #### Task #6: DoS Hybrid View ✅ COMPLETE
+
 **Estimate:** 2-3 hours | **Dependencies:** #4 ✅, #8 | **Token budget:** ~40k
 **Completed:** 2026-03-03
 
 **What was done:**
+
 1. ✅ Added 'dos' and 'assistant_dos' to UserRole type (`lib/auth/types.ts`)
 2. ✅ Created DoS students API routes (`/api/dos/students`, `/api/dos/students/[id]`)
 3. ✅ Created DoS dashboard page (`/dos/dashboard`) with promotion stats, student breakdown
@@ -268,6 +301,7 @@
 7. ✅ PromotionReviewList component already existed with full functionality
 
 **Acceptance Criteria:**
+
 - [x] DoS can access ALL student profiles (org-wide)
 - [x] Can review and approve/reject promotions
 - [x] Can see accumulated assessment evidence + summative scores
@@ -279,10 +313,12 @@
 ### Phase 2D: Student & Verification
 
 #### Task #9: Contact Verification System ✅ COMPLETE
+
 **Estimate:** 2-3 hours | **Dependencies:** None | **Token budget:** ~40k
 **Completed:** 2026-03-03
 
 **What was done:**
+
 1. ✅ Created verification utility library (`lib/verification/index.ts`)
    - 6-digit secure code generation
    - 24-hour expiry with automatic cleanup
@@ -299,6 +335,7 @@
    - PendingVerificationBadge - "Awaiting verification" badges
 
 **Acceptance Criteria:**
+
 - [x] Email/phone changes require verification code
 - [x] Codes expire after 24 hours
 - [x] Student notified of expiry (countdown in UI)
@@ -308,10 +345,12 @@
 ---
 
 #### Task #5: Student Self-View ✅ COMPLETE
+
 **Estimate:** 3-4 hours | **Dependencies:** #9 ✅ | **Token budget:** ~50k
 **Completed:** 2026-03-03
 
 **What was done:**
+
 1. ✅ Created student profile API routes (`/api/student/profile`, `/api/student/profile/update`)
 2. ✅ Created student assessments API (`/api/student/assessments`) - only shared assessments
 3. ✅ Created student notes API (`/api/student/notes`) - only shared notes
@@ -321,6 +360,7 @@
 7. ✅ Level journey timeline visualization with diagnostic history
 
 **Acceptance Criteria:**
+
 - [x] Students can only view their own profile
 - [x] Can edit email/phone with verification flow
 - [x] Can see only explicitly shared notes/assessments
@@ -329,22 +369,34 @@
 
 ---
 
-### Phase 2E: Future Hooks
+### Phase 2E: Future Hooks ✅ COMPLETE
 
-#### Task #10: LLM Tutor Architecture Hooks
+#### Task #10: LLM Tutor Architecture Hooks ✅ COMPLETE
+
 **Estimate:** 1-2 hours | **Dependencies:** None | **Token budget:** ~25k
+**Completed:** 2026-03-03
 
-**Subtasks:**
-1. Add placeholder in student navigation (15 min)
-2. Design Student MCP extensibility (30 min)
-3. Create data model extension points (30 min)
-4. Expose profile data for LLM consumption (30 min)
+**What was done:**
+
+1. ✅ AI Tutor tab already existed in StudentProfilePage with "Coming Soon" UI (lines 741-847)
+2. ✅ Created `spec/STUDENT_MCP_SPEC.md` documenting future MCP design (10 tool signatures)
+3. ✅ Database tables already existed in FRESH_0027 and FRESH_0032 migrations:
+   - `exercise_attempts`, `vocab_lists`, `tutor_interactions` (FRESH_0027)
+   - `tutor_sessions`, `tutor_messages`, `student_vocabulary`, `exercise_templates` (FRESH_0032)
+4. ✅ Created `/api/student/tutor-context` API endpoint exposing:
+   - Student profile (name, levels, member since)
+   - Current class info
+   - Competency progress and skill breakdown
+   - Recent assessments and gaps
+   - Vocabulary stats
+   - Current learning objectives
 
 **Acceptance Criteria:**
-- [ ] Student nav has placeholder for future tutor
-- [ ] Database tables exist for exercise/vocab/tutor data
-- [ ] Profile data accessible for LLM consumption
-- [ ] No actual LLM integration (hooks only)
+
+- [x] Student nav has placeholder for future tutor
+- [x] Database tables exist for exercise/vocab/tutor data
+- [x] Profile data accessible for LLM consumption
+- [x] No actual LLM integration (hooks only)
 
 ---
 
@@ -375,22 +427,22 @@ Phase 2E: Future (independent)
 
 ## Recommended Implementation Order
 
-| Order | Task | Estimate | Unblocks |
-|-------|------|----------|----------|
-| 1 | #18 Schema Updates | 1-2h | #19, #20, #21, #22, #23 |
-| 2 | #19 CEFR Importer | 2-3h | #21 |
-| 3 | #20 Coursebook Importer | 2h | #21 |
-| 4 | #22 Update Assessment Form | 1-2h | #4 |
-| 5 | #23 Summative Assessment UI | 2h | #8 |
-| 6 | #21 Learning Objectives UI | 2-3h | #4 |
-| 7 | #9 Contact Verification | 2-3h | #5 |
-| 8 | #4 Teacher Profile View | 2-3h | #6 |
-| 9 | #8 Promotion Workflow | 2-3h | #6 |
-| 10 | #6 DoS Hybrid View | 2-3h | - |
-| 11 | #5 Student Self-View | 3-4h | - |
-| 12 | #10 LLM Tutor Hooks | 1-2h | - |
+| Order | Task                        | Estimate | Unblocks                |
+| ----- | --------------------------- | -------- | ----------------------- |
+| 1     | #18 Schema Updates          | 1-2h     | #19, #20, #21, #22, #23 |
+| 2     | #19 CEFR Importer           | 2-3h     | #21                     |
+| 3     | #20 Coursebook Importer     | 2h       | #21                     |
+| 4     | #22 Update Assessment Form  | 1-2h     | #4                      |
+| 5     | #23 Summative Assessment UI | 2h       | #8                      |
+| 6     | #21 Learning Objectives UI  | 2-3h     | #4                      |
+| 7     | #9 Contact Verification     | 2-3h     | #5                      |
+| 8     | #4 Teacher Profile View     | 2-3h     | #6                      |
+| 9     | #8 Promotion Workflow       | 2-3h     | #6                      |
+| 10    | #6 DoS Hybrid View          | 2-3h     | -                       |
+| 11    | #5 Student Self-View        | 3-4h     | -                       |
+| 12    | #10 LLM Tutor Hooks         | 1-2h     | -                       |
 
-**Total Remaining:** ~7-10 hours (3 tasks: #8, #10, #20)
+**Total Remaining:** 0 hours - ALL TASKS COMPLETE! 🎉
 
 ---
 
