@@ -37,11 +37,17 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         studentId: competencyAssessments.studentId,
         descriptorId: competencyAssessments.descriptorId,
         classId: competencyAssessments.classId,
+        sessionId: competencyAssessments.sessionId,
         enrollmentId: competencyAssessments.enrollmentId,
         assignmentId: competencyAssessments.assignmentId,
+        learningObjectiveId: competencyAssessments.learningObjectiveId,
         assessmentType: competencyAssessments.assessmentType,
         assessmentDate: competencyAssessments.assessmentDate,
         score: competencyAssessments.score,
+        progress: competencyAssessments.progress,
+        demonstratedLevel: competencyAssessments.demonstratedLevel,
+        isComplete: competencyAssessments.isComplete,
+        isSharedWithStudent: competencyAssessments.isSharedWithStudent,
         notes: competencyAssessments.notes,
         assessedBy: competencyAssessments.assessedBy,
         createdAt: competencyAssessments.createdAt,
@@ -88,8 +94,21 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     // Validate required fields
-    const { descriptorId, assessmentType, score, notes, classId, enrollmentId, assignmentId } =
-      body;
+    const {
+      descriptorId,
+      assessmentType,
+      score,
+      progress,
+      demonstratedLevel,
+      isComplete,
+      isSharedWithStudent,
+      notes,
+      classId,
+      sessionId,
+      enrollmentId,
+      assignmentId,
+      learningObjectiveId,
+    } = body;
 
     if (!descriptorId) {
       return NextResponse.json({ error: 'descriptorId is required' }, { status: 400 });
@@ -102,6 +121,21 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
     if (score < 1 || score > 4) {
       return NextResponse.json({ error: 'score must be between 1 and 4' }, { status: 400 });
+    }
+
+    // Validate progress if provided
+    const validProgress = ['not_yet', 'emerging', 'developing', 'achieved'];
+    if (progress && !validProgress.includes(progress)) {
+      return NextResponse.json(
+        { error: 'progress must be one of: not_yet, emerging, developing, achieved' },
+        { status: 400 }
+      );
+    }
+
+    // Validate demonstratedLevel if provided
+    const validLevels = ['A1', 'A2', 'A2+', 'B1', 'B1+', 'B2', 'B2+', 'C1', 'C2', 'PreA1'];
+    if (demonstratedLevel && !validLevels.includes(demonstratedLevel)) {
+      return NextResponse.json({ error: 'Invalid CEFR level' }, { status: 400 });
     }
 
     // Verify student exists
@@ -134,11 +168,17 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         studentId,
         descriptorId,
         classId: classId || null,
+        sessionId: sessionId || null,
         enrollmentId: enrollmentId || null,
         assignmentId: assignmentId || null,
+        learningObjectiveId: learningObjectiveId || null,
         assessmentType,
         assessmentDate: body.assessmentDate || new Date().toISOString().split('T')[0],
         score,
+        progress: progress || 'not_yet',
+        demonstratedLevel: demonstratedLevel || null,
+        isComplete: isComplete || false,
+        isSharedWithStudent: isSharedWithStudent || false,
         notes: notes || null,
         assessedBy: userId,
       })
