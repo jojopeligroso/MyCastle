@@ -3,7 +3,7 @@
 **Created:** 2026-03-02
 **Updated:** 2026-03-03
 **Status:** Phase 2C Role-Specific Views In Progress
-**Completed:** 18/23 tasks (78%)
+**Completed:** 19/23 tasks (83%)
 
 **Reference:** See `STUDENT_PROFILE_DISCOVERY.md` for full requirements
 
@@ -32,7 +32,8 @@
 | #22 | Update Assessment Form (Phase 2B) | 874ca45 |
 | #23 | Summative Assessment UI (Phase 2B) | 463b679 |
 | #4 | Teacher Profile View (Phase 2C) | d25394a |
-| #6 | DoS Hybrid View (Phase 2C) | pending |
+| #6 | DoS Hybrid View (Phase 2C) | b85f4be |
+| #9 | Contact Verification System (Phase 2D) | pending |
 
 ### What's Built
 
@@ -73,7 +74,7 @@
 
 ---
 
-## Remaining Tasks (5)
+## Remaining Tasks (4)
 
 ### Phase 2A: Schema & Data (Discovery-driven) ✅ COMPLETE
 
@@ -266,22 +267,32 @@
 
 ### Phase 2D: Student & Verification
 
-#### Task #9: Contact Verification System
+#### Task #9: Contact Verification System ✅ COMPLETE
 **Estimate:** 2-3 hours | **Dependencies:** None | **Token budget:** ~40k
+**Completed:** 2026-03-03
 
-**Subtasks:**
-1. Create verification code generation (30 min)
-2. Create email verification flow (45 min)
-3. Create phone verification flow (45 min)
-4. Create verification UI components (30 min)
-5. Add expiry handling (30 min)
+**What was done:**
+1. ✅ Created verification utility library (`lib/verification/index.ts`)
+   - 6-digit secure code generation
+   - 24-hour expiry with automatic cleanup
+   - Max 5 attempts per code
+   - 2-minute cooldown between requests
+2. ✅ Created API routes (`/api/student/verify/`)
+   - POST /request - Request verification code
+   - POST /confirm - Verify code and update contact
+   - GET /pending - List pending verifications
+   - POST /[id]/cancel - Cancel pending verification
+3. ✅ Created UI components (`components/student/`)
+   - VerificationCodeInput - 6-digit input with paste support
+   - ContactChangeForm - Full verification flow UI
+   - PendingVerificationBadge - "Awaiting verification" badges
 
 **Acceptance Criteria:**
-- [ ] Email/phone changes require verification code
-- [ ] Codes expire after 24 hours
-- [ ] Student notified of expiry
-- [ ] Pending changes show "awaiting verification" badge
-- [ ] Audit log records verification attempts
+- [x] Email/phone changes require verification code
+- [x] Codes expire after 24 hours
+- [x] Student notified of expiry (countdown in UI)
+- [x] Pending changes show "awaiting verification" badge
+- [x] Audit log records verification attempts (attempts column)
 
 ---
 
