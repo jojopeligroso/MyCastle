@@ -8,7 +8,7 @@ phase: Phase 1 - Admin UI/UX (Complete) + Student Profile Feature
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-03-03 (Assessment Form enhanced with progress tracking)
+**Last Updated:** 2026-03-03 (Learning Objectives UI complete - Task #21)
 **Current Phase:** Phase 1 Complete + Student Profile Feature (Phase 2B Implementation)
 **Current Sprint:** Week 8 of Phase 1
 **Next Milestone:** Summative Assessment UI (Task #23)
@@ -124,9 +124,9 @@ Major schema mismatch fix applied across 66 files:
 **🎉 Phase 1 (Admin UI/UX) - 100% COMPLETE (61/61 tasks)**
 **🎉 Stabilization - 100% COMPLETE (18/18 tasks)**
 
-**📌 Current Focus: Student Profile Feature (61% complete, 14/23 tasks)**
+**📌 Current Focus: Student Profile Feature (65% complete, 15/23 tasks)**
 
-See `STUDENT_PROFILE_ROADMAP.md` for full details. Status: **Phase 2B In Progress - Assessment Form updated (Task #22)**.
+See `STUDENT_PROFILE_ROADMAP.md` for full details. Status: **Phase 2B In Progress - Learning Objectives UI complete (Task #21)**.
 
 **What's Built:**
 - ✅ Database schema (6 tables + RLS policies)
@@ -134,9 +134,9 @@ See `STUDENT_PROFILE_ROADMAP.md` for full details. Status: **Phase 2B In Progres
 - ✅ CEFR competency assessment system
 - ✅ 8 API routes for assessments, progress, notes, diagnostics, audit
 - ✅ 4 profile tab components (LevelHistory, CompetencyProgress, EnhancedNotes, AuditTrail)
+- ✅ Learning Objectives selector for session planning
 
-**Remaining Tasks (9):**
-- #21 Learning Objectives UI (2-3 hours)
+**Remaining Tasks (8):**
 - #23 Summative Assessment UI (2 hours)
 - #4 Teacher Profile View (2-3 hours, depends on #21, #22)
 - #8 Level Promotion Workflow (2-3 hours, depends on #23)
@@ -175,6 +175,19 @@ All core admin features implemented and ready for production testing:
 **Context:** All Phase 1 tasks complete. System ready for production MVP deployment.
 
 ---
+
+### Recent Wins (Mar 3 - Learning Objectives UI)
+
+- ✅ **Task #21: Learning Objectives UI (Phase 2B)**:
+  - Created `LearningObjectiveSelector` component with 3 tabs: CEFR, Textbook, Custom
+  - Level filtering (current ± 1 level), skill filtering, search functionality
+  - Primary/Secondary objective distinction with soft limits (2P / 6S max)
+  - API route: GET/PUT `/api/admin/sessions/[sessionId]/objectives`
+  - Session planning page: `/admin/classes/[id]/sessions/[sessionId]`
+  - Updated class detail page with "Upcoming Sessions" section
+  - Color-coded selected objectives with type toggle
+  - Page references shown for textbook descriptors
+  - Files: LearningObjectiveSelector.tsx, objectives/route.ts, session page.tsx, class detail page
 
 ### Recent Wins (Mar 3 - Assessment Form Enhanced)
 
