@@ -75,7 +75,9 @@ export function PromotionReviewList({ promotions, currentFilter }: PromotionRevi
       rejected: 'bg-red-100 text-red-800',
     };
     return (
-      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded ${styles[status] || 'bg-gray-100 text-gray-800'}`}>
+      <span
+        className={`inline-flex px-2 py-1 text-xs font-medium rounded ${styles[status] || 'bg-gray-100 text-gray-800'}`}
+      >
         {status.charAt(0).toUpperCase() + status.slice(1)}
       </span>
     );
@@ -189,13 +191,27 @@ export function PromotionReviewList({ promotions, currentFilter }: PromotionRevi
                       {promotion.studentName || 'Unknown Student'}
                     </Link>
                     <div className="flex items-center gap-2">
-                      <span className={`inline-flex px-2 py-0.5 text-sm font-medium rounded ${getLevelColor(promotion.fromLevel)}`}>
+                      <span
+                        className={`inline-flex px-2 py-0.5 text-sm font-medium rounded ${getLevelColor(promotion.fromLevel)}`}
+                      >
                         {promotion.fromLevel}
                       </span>
-                      <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                      <svg
+                        className="w-4 h-4 text-gray-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 7l5 5m0 0l-5 5m5-5H6"
+                        />
                       </svg>
-                      <span className={`inline-flex px-2 py-0.5 text-sm font-medium rounded ${getLevelColor(promotion.toLevel)}`}>
+                      <span
+                        className={`inline-flex px-2 py-0.5 text-sm font-medium rounded ${getLevelColor(promotion.toLevel)}`}
+                      >
                         {promotion.toLevel}
                       </span>
                     </div>
@@ -207,9 +223,7 @@ export function PromotionReviewList({ promotions, currentFilter }: PromotionRevi
                     Requested by {promotion.recommenderName || 'Unknown'} on{' '}
                     {new Date(promotion.recommendedAt).toLocaleDateString('en-GB')}
                   </span>
-                  {promotion.fromClassName && (
-                    <span>from {promotion.fromClassName}</span>
-                  )}
+                  {promotion.fromClassName && <span>from {promotion.fromClassName}</span>}
                 </div>
               </div>
 
@@ -247,14 +261,20 @@ export function PromotionReviewList({ promotions, currentFilter }: PromotionRevi
                         {promotion.evidenceSummary.strongCandidate ? (
                           <span className="inline-flex items-center text-sm font-medium text-green-700">
                             <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              <path
+                                fillRule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                clipRule="evenodd"
+                              />
                             </svg>
                             Strong Candidate
                           </span>
                         ) : promotion.evidenceSummary.meetsThreshold ? (
                           <span className="text-sm font-medium text-blue-700">Meets Threshold</span>
                         ) : (
-                          <span className="text-sm font-medium text-amber-700">Below Threshold</span>
+                          <span className="text-sm font-medium text-amber-700">
+                            Below Threshold
+                          </span>
                         )}
                       </div>
                     </>
@@ -278,7 +298,9 @@ export function PromotionReviewList({ promotions, currentFilter }: PromotionRevi
                     </p>
                     <p className="text-xs text-gray-400 mt-1">
                       Reviewed by {promotion.reviewerName || 'Unknown'} on{' '}
-                      {promotion.reviewedAt ? new Date(promotion.reviewedAt).toLocaleDateString('en-GB') : 'Unknown'}
+                      {promotion.reviewedAt
+                        ? new Date(promotion.reviewedAt).toLocaleDateString('en-GB')
+                        : 'Unknown'}
                     </p>
                   </div>
                 )}
