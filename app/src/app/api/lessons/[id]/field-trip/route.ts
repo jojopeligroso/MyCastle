@@ -14,20 +14,14 @@ import { FieldTripSchema } from '@/lib/lessons/chat-types';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = await requireAuth(['teacher', 'admin']);
     const tenantId = await getTenantId();
     const { id } = await params;
 
     if (!id) {
-      return NextResponse.json(
-        { error: 'Lesson plan ID is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Lesson plan ID is required' }, { status: 400 });
     }
 
     // Parse and validate field trip data
@@ -38,19 +32,11 @@ export async function PATCH(
     const [plan] = await db
       .select()
       .from(lessonPlans)
-      .where(
-        and(
-          eq(lessonPlans.id, id),
-          tenantId ? eq(lessonPlans.tenantId, tenantId) : undefined
-        )
-      )
+      .where(and(eq(lessonPlans.id, id), tenantId ? eq(lessonPlans.tenantId, tenantId) : undefined))
       .limit(1);
 
     if (!plan) {
-      return NextResponse.json(
-        { error: 'Lesson plan not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Lesson plan not found' }, { status: 404 });
     }
 
     // Update the json_plan with field trip data
@@ -83,9 +69,7 @@ export async function PATCH(
       .where(eq(lessonPlans.id, id))
       .returning();
 
-    console.log(
-      `Field trip added to lesson plan ${id} by ${user.id}`
-    );
+    console.log(`Field trip added to lesson plan ${id} by ${user.id}`);
 
     return NextResponse.json({
       success: true,
@@ -108,9 +92,6 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    return NextResponse.json(
-      { error: 'Failed to save field trip' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to save field trip' }, { status: 500 });
   }
 }

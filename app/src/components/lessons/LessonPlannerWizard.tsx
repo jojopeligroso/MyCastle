@@ -25,9 +25,7 @@ interface GeneratedPlan {
 
 export default function LessonPlannerWizard() {
   const [phase, setPhase] = useState<WizardPhase>('speakout');
-  const [speakoutContext, setSpeakoutContext] = useState<SpeakoutContext | null>(
-    null
-  );
+  const [speakoutContext, setSpeakoutContext] = useState<SpeakoutContext | null>(null);
   const [intent, setIntent] = useState<TeacherIntent | null>(null);
   const [_chatContext, setChatContext] = useState<ChatContext | null>(null);
   const [generatedPlan, setGeneratedPlan] = useState<GeneratedPlan | null>(null);
@@ -92,9 +90,7 @@ export default function LessonPlannerWizard() {
           additional_context: JSON.stringify({
             speakout: speakoutContext,
             intent,
-            conversation: context.messages
-              .filter(m => m.role === 'user')
-              .map(m => m.content),
+            conversation: context.messages.filter(m => m.role === 'user').map(m => m.content),
           }),
         }),
       });
@@ -111,9 +107,7 @@ export default function LessonPlannerWizard() {
       });
       setPhase('preview');
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Failed to generate lesson plan'
-      );
+      setError(err instanceof Error ? err.message : 'Failed to generate lesson plan');
     } finally {
       setIsGenerating(false);
     }
@@ -147,9 +141,7 @@ export default function LessonPlannerWizard() {
         throw new Error('Failed to publish lesson plan');
       }
 
-      setGeneratedPlan(prev =>
-        prev ? { ...prev, approvalStatus: 'draft' } : null
-      );
+      setGeneratedPlan(prev => (prev ? { ...prev, approvalStatus: 'draft' } : null));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to publish');
     } finally {
@@ -164,21 +156,16 @@ export default function LessonPlannerWizard() {
     setError(null);
 
     try {
-      const response = await fetch(
-        `/api/lessons/${generatedPlan.id}/request-approval`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-        }
-      );
+      const response = await fetch(`/api/lessons/${generatedPlan.id}/request-approval`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
 
       if (!response.ok) {
         throw new Error('Failed to submit for approval');
       }
 
-      setGeneratedPlan(prev =>
-        prev ? { ...prev, approvalStatus: 'pending_approval' } : null
-      );
+      setGeneratedPlan(prev => (prev ? { ...prev, approvalStatus: 'pending_approval' } : null));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to submit');
     } finally {
@@ -197,14 +184,11 @@ export default function LessonPlannerWizard() {
     setError(null);
 
     try {
-      const response = await fetch(
-        `/api/lessons/${generatedPlan.id}/field-trip`,
-        {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(fieldTrip),
-        }
-      );
+      const response = await fetch(`/api/lessons/${generatedPlan.id}/field-trip`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(fieldTrip),
+      });
 
       if (!response.ok) {
         throw new Error('Failed to save field trip');
@@ -259,11 +243,7 @@ export default function LessonPlannerWizard() {
                         }`}
                       >
                         {isCompleted ? (
-                          <svg
-                            className="w-5 h-5"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                             <path
                               fillRule="evenodd"
                               d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -312,10 +292,7 @@ export default function LessonPlannerWizard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
             {error}
-            <button
-              onClick={() => setError(null)}
-              className="ml-4 text-red-500 hover:text-red-700"
-            >
+            <button onClick={() => setError(null)} className="ml-4 text-red-500 hover:text-red-700">
               Dismiss
             </button>
           </div>
@@ -327,13 +304,8 @@ export default function LessonPlannerWizard() {
         {/* Phase 1: Speakout Selection */}
         {phase === 'speakout' && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">
-              Select a Speakout Lesson
-            </h2>
-            <SpeakoutSelector
-              onSelect={handleSpeakoutSelect}
-              selectedContext={speakoutContext}
-            />
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">Select a Speakout Lesson</h2>
+            <SpeakoutSelector onSelect={handleSpeakoutSelect} selectedContext={speakoutContext} />
             <div className="mt-6 flex justify-end">
               <button
                 onClick={goNext}
@@ -349,10 +321,7 @@ export default function LessonPlannerWizard() {
         {/* Phase 2: Intent Selection */}
         {phase === 'intent' && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <TeacherIntentSelector
-              selectedIntent={intent}
-              onSelect={handleIntentSelect}
-            />
+            <TeacherIntentSelector selectedIntent={intent} onSelect={handleIntentSelect} />
             <div className="mt-6 flex justify-between">
               <button
                 onClick={goBack}
@@ -373,7 +342,10 @@ export default function LessonPlannerWizard() {
 
         {/* Phase 3: Chat Interface */}
         {phase === 'chat' && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden" style={{ height: 'calc(100vh - 250px)', minHeight: '500px' }}>
+          <div
+            className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+            style={{ height: 'calc(100vh - 250px)', minHeight: '500px' }}
+          >
             {isGenerating ? (
               <div className="flex flex-col items-center justify-center h-full">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600" />

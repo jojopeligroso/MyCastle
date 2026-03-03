@@ -19,10 +19,7 @@ const approvalSchema = z.object({
   comments: z.string().optional(),
 });
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // Only DoS or admin can approve
     const user = await requireAuth(['dos', 'admin', 'super_admin']);
@@ -30,10 +27,7 @@ export async function POST(
     const { id } = await params;
 
     if (!id) {
-      return NextResponse.json(
-        { error: 'Lesson plan ID is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Lesson plan ID is required' }, { status: 400 });
     }
 
     // Parse and validate request body
@@ -44,27 +38,16 @@ export async function POST(
     const [plan] = await db
       .select()
       .from(lessonPlans)
-      .where(
-        and(
-          eq(lessonPlans.id, id),
-          tenantId ? eq(lessonPlans.tenantId, tenantId) : undefined
-        )
-      )
+      .where(and(eq(lessonPlans.id, id), tenantId ? eq(lessonPlans.tenantId, tenantId) : undefined))
       .limit(1);
 
     if (!plan) {
-      return NextResponse.json(
-        { error: 'Lesson plan not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Lesson plan not found' }, { status: 404 });
     }
 
     // Check if pending approval
     if (plan.approvalStatus !== 'pending_approval') {
-      return NextResponse.json(
-        { error: 'Lesson plan is not pending approval' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Lesson plan is not pending approval' }, { status: 400 });
     }
 
     // Update the lesson plan
@@ -80,9 +63,7 @@ export async function POST(
       .where(eq(lessonPlans.id, id))
       .returning();
 
-    console.log(
-      `Lesson plan ${id} ${decision} by DoS ${user.id}`
-    );
+    console.log(`Lesson plan ${id} ${decision} by DoS ${user.id}`);
 
     // TODO: Send notification to teacher
     // This would integrate with the notification system
@@ -115,9 +96,6 @@ export async function POST(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    return NextResponse.json(
-      { error: 'Failed to process approval' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to process approval' }, { status: 500 });
   }
 }

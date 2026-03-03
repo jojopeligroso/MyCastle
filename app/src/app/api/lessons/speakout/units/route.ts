@@ -21,10 +21,7 @@ export async function GET(request: NextRequest) {
     const book = searchParams.get('book');
 
     if (!book) {
-      return NextResponse.json(
-        { error: 'Missing required parameter: book' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing required parameter: book' }, { status: 400 });
     }
 
     // Get distinct units with lesson count for the specified book

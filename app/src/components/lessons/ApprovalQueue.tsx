@@ -32,9 +32,7 @@ interface RecentlyProcessed {
 
 export default function ApprovalQueue() {
   const [pendingApprovals, setPendingApprovals] = useState<PendingApproval[]>([]);
-  const [recentlyProcessed, setRecentlyProcessed] = useState<RecentlyProcessed[]>(
-    []
-  );
+  const [recentlyProcessed, setRecentlyProcessed] = useState<RecentlyProcessed[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
@@ -62,10 +60,7 @@ export default function ApprovalQueue() {
     }
   };
 
-  const handleApproval = async (
-    planId: string,
-    decision: 'approved' | 'rejected'
-  ) => {
+  const handleApproval = async (planId: string, decision: 'approved' | 'rejected') => {
     setProcessing(true);
     setError(null);
 
@@ -114,12 +109,8 @@ export default function ApprovalQueue() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">
-            Lesson Plan Approvals
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            Review and approve teacher lesson plans
-          </p>
+          <h2 className="text-xl font-semibold text-gray-900">Lesson Plan Approvals</h2>
+          <p className="text-sm text-gray-500 mt-1">Review and approve teacher lesson plans</p>
         </div>
         <button
           onClick={fetchApprovals}
@@ -130,9 +121,7 @@ export default function ApprovalQueue() {
       </div>
 
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-          {error}
-        </div>
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">{error}</div>
       )}
 
       {/* Pending Approvals */}
@@ -144,9 +133,7 @@ export default function ApprovalQueue() {
         </div>
 
         {pendingApprovals.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">
-            No lesson plans pending approval
-          </div>
+          <div className="p-8 text-center text-gray-500">No lesson plans pending approval</div>
         ) : (
           <ul className="divide-y divide-gray-200">
             {pendingApprovals.map(plan => (
@@ -154,9 +141,7 @@ export default function ApprovalQueue() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center space-x-2">
-                      <h4 className="text-sm font-medium text-gray-900">
-                        {plan.title}
-                      </h4>
+                      <h4 className="text-sm font-medium text-gray-900">{plan.title}</h4>
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
                         {plan.cefrLevel}
                       </span>
@@ -231,21 +216,16 @@ export default function ApprovalQueue() {
       {recentlyProcessed.length > 0 && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
-            <h3 className="text-sm font-semibold text-gray-900">
-              Recently Processed
-            </h3>
+            <h3 className="text-sm font-semibold text-gray-900">Recently Processed</h3>
           </div>
           <ul className="divide-y divide-gray-200">
             {recentlyProcessed.map(plan => (
               <li key={plan.id} className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="text-sm font-medium text-gray-900">
-                      {plan.title}
-                    </h4>
+                    <h4 className="text-sm font-medium text-gray-900">{plan.title}</h4>
                     <p className="text-xs text-gray-500">
-                      by {plan.teacherName} |{' '}
-                      {plan.approvedAt && formatDate(plan.approvedAt)}
+                      by {plan.teacherName} | {plan.approvedAt && formatDate(plan.approvedAt)}
                     </p>
                     {plan.approvalComments && (
                       <p className="text-xs text-gray-400 mt-1 italic">

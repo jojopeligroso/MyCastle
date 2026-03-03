@@ -13,39 +13,25 @@ import { eq, and } from 'drizzle-orm';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = await requireAuth(['teacher', 'admin']);
     const tenantId = await getTenantId();
     const { id } = await params;
 
     if (!id) {
-      return NextResponse.json(
-        { error: 'Lesson plan ID is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Lesson plan ID is required' }, { status: 400 });
     }
 
     // Find the lesson plan
     const [plan] = await db
       .select()
       .from(lessonPlans)
-      .where(
-        and(
-          eq(lessonPlans.id, id),
-          tenantId ? eq(lessonPlans.tenantId, tenantId) : undefined
-        )
-      )
+      .where(and(eq(lessonPlans.id, id), tenantId ? eq(lessonPlans.tenantId, tenantId) : undefined))
       .limit(1);
 
     if (!plan) {
-      return NextResponse.json(
-        { error: 'Lesson plan not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Lesson plan not found' }, { status: 404 });
     }
 
     // Check if already pending or approved
@@ -57,10 +43,7 @@ export async function POST(
     }
 
     if (plan.approvalStatus === 'approved') {
-      return NextResponse.json(
-        { error: 'Lesson plan is already approved' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Lesson plan is already approved' }, { status: 400 });
     }
 
     // Parse request body for optional notes
@@ -86,9 +69,7 @@ export async function POST(
       .where(eq(lessonPlans.id, id))
       .returning();
 
-    console.log(
-      `Lesson plan ${id} submitted for approval by ${user.id}`
-    );
+    console.log(`Lesson plan ${id} submitted for approval by ${user.id}`);
 
     // TODO: Send notification to DoS users
     // This would integrate with the notification system
@@ -108,9 +89,6 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    return NextResponse.json(
-      { error: 'Failed to submit for approval' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to submit for approval' }, { status: 500 });
   }
 }

@@ -32,10 +32,7 @@ export async function buildSpeakoutContext(
         cefrScale: cefrDescriptors.scale,
       })
       .from(textbookDescriptors)
-      .leftJoin(
-        cefrDescriptors,
-        eq(textbookDescriptors.cefrDescriptorId, cefrDescriptors.id)
-      )
+      .leftJoin(cefrDescriptors, eq(textbookDescriptors.cefrDescriptorId, cefrDescriptors.id))
       .where(
         and(
           eq(textbookDescriptors.book, book),
@@ -78,21 +75,14 @@ export async function buildSpeakoutContext(
 /**
  * Build additional CEFR context based on level and skills
  */
-export async function buildCefrContext(
-  level: string,
-  skillFocus?: string[]
-): Promise<string> {
+export async function buildCefrContext(level: string, skillFocus?: string[]): Promise<string> {
   try {
     // Build query conditions
     const conditions = [eq(cefrDescriptors.level, level)];
 
     if (skillFocus && skillFocus.length > 0) {
       conditions.push(
-        or(
-          ...skillFocus.map(skill =>
-            ilike(cefrDescriptors.skillFocus, `%${skill}%`)
-          )
-        )!
+        or(...skillFocus.map(skill => ilike(cefrDescriptors.skillFocus, `%${skill}%`)))!
       );
     }
 
@@ -110,9 +100,7 @@ export async function buildCefrContext(
       return '';
     }
 
-    return descriptors
-      .map(d => `- [${d.skillFocus || 'General'}] ${d.descriptorText}`)
-      .join('\n');
+    return descriptors.map(d => `- [${d.skillFocus || 'General'}] ${d.descriptorText}`).join('\n');
   } catch (error) {
     console.error('Error building CEFR context:', error);
     return '';
@@ -194,12 +182,7 @@ export async function getRelatedLessons(
         skillFocus: textbookDescriptors.skillFocus,
       })
       .from(textbookDescriptors)
-      .where(
-        and(
-          eq(textbookDescriptors.book, book),
-          eq(textbookDescriptors.unit, unit)
-        )
-      )
+      .where(and(eq(textbookDescriptors.book, book), eq(textbookDescriptors.unit, unit)))
       .limit(5);
 
     return related

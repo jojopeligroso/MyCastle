@@ -76,16 +76,12 @@ export default function LessonPlanPreview({
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                 {plan.cefr_level}
               </span>
-              <span className="text-sm text-gray-500">
-                {plan.duration_minutes} minutes
-              </span>
+              <span className="text-sm text-gray-500">{plan.duration_minutes} minutes</span>
               <span className="text-sm text-gray-500">|</span>
               <span className="text-sm text-gray-500">{plan.topic}</span>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
-            {getStatusBadge()}
-          </div>
+          <div className="flex items-center space-x-2">{getStatusBadge()}</div>
         </div>
       </div>
 
@@ -106,9 +102,7 @@ export default function LessonPlanPreview({
                 <div>
                   <p className="text-sm text-gray-900">{obj.description}</p>
                   {obj.cefr_alignment && (
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      CEFR: {obj.cefr_alignment}
-                    </p>
+                    <p className="text-xs text-gray-500 mt-0.5">CEFR: {obj.cefr_alignment}</p>
                   )}
                 </div>
               </li>
@@ -124,19 +118,12 @@ export default function LessonPlanPreview({
         >
           <div className="space-y-3">
             {plan.activities.map((activity, idx) => (
-              <div
-                key={idx}
-                className="bg-gray-50 rounded-lg p-4 border border-gray-100"
-              >
+              <div key={idx} className="bg-gray-50 rounded-lg p-4 border border-gray-100">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-medium text-gray-900">{activity.name}</h4>
-                  <span className="text-sm text-gray-500">
-                    {activity.duration_minutes} min
-                  </span>
+                  <span className="text-sm text-gray-500">{activity.duration_minutes} min</span>
                 </div>
-                <p className="text-sm text-gray-600 mb-2">
-                  {activity.description}
-                </p>
+                <p className="text-sm text-gray-600 mb-2">{activity.description}</p>
                 <div className="flex flex-wrap gap-2">
                   {activity.interaction_pattern && (
                     <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700">
@@ -166,10 +153,7 @@ export default function LessonPlanPreview({
           >
             <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {plan.materials.map((material, idx) => (
-                <li
-                  key={idx}
-                  className="flex items-center text-sm text-gray-600"
-                >
+                <li key={idx} className="flex items-center text-sm text-gray-600">
                   <svg
                     className="w-4 h-4 mr-2 text-gray-400"
                     fill="none"
@@ -205,16 +189,11 @@ export default function LessonPlanPreview({
                       {assess.type}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {assess.description}
-                  </p>
+                  <p className="text-sm text-gray-600 mt-1">{assess.description}</p>
                   {assess.success_criteria && assess.success_criteria.length > 0 && (
                     <ul className="mt-2 space-y-1">
                       {assess.success_criteria.map((criterion, cIdx) => (
-                        <li
-                          key={cIdx}
-                          className="text-xs text-gray-500 flex items-center"
-                        >
+                        <li key={cIdx} className="text-xs text-gray-500 flex items-center">
                           <svg
                             className="w-3 h-3 mr-1 text-green-500"
                             fill="currentColor"
@@ -263,9 +242,7 @@ export default function LessonPlanPreview({
       {/* Action buttons */}
       <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="text-xs text-gray-500">
-            Plan ID: {planId.substring(0, 8)}...
-          </div>
+          <div className="text-xs text-gray-500">Plan ID: {planId.substring(0, 8)}...</div>
           <div className="flex flex-wrap gap-2">
             <button
               onClick={onSaveDraft}
@@ -284,9 +261,7 @@ export default function LessonPlanPreview({
             <button
               onClick={onRequestApproval}
               disabled={
-                isSaving ||
-                approvalStatus === 'pending_approval' ||
-                approvalStatus === 'approved'
+                isSaving || approvalStatus === 'pending_approval' || approvalStatus === 'approved'
               }
               className="px-4 py-2 text-sm font-medium text-white bg-amber-600 border border-transparent rounded-md hover:bg-amber-700 disabled:opacity-50"
             >
@@ -333,12 +308,7 @@ function Section({
           viewBox="0 0 24 24"
           stroke="currentColor"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 9l-7 7-7-7"
-          />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
       {isExpanded && <div className="p-4">{children}</div>}
