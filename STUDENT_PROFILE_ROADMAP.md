@@ -3,7 +3,7 @@
 **Created:** 2026-03-02
 **Updated:** 2026-03-03
 **Status:** Phase 2C Role-Specific Views In Progress
-**Completed:** 17/23 tasks (74%)
+**Completed:** 18/23 tasks (78%)
 
 **Reference:** See `STUDENT_PROFILE_DISCOVERY.md` for full requirements
 
@@ -32,6 +32,7 @@
 | #22 | Update Assessment Form (Phase 2B) | 874ca45 |
 | #23 | Summative Assessment UI (Phase 2B) | 463b679 |
 | #4 | Teacher Profile View (Phase 2C) | d25394a |
+| #6 | DoS Hybrid View (Phase 2C) | pending |
 
 ### What's Built
 
@@ -59,13 +60,20 @@
 - `AuditTrailTab` - Timeline of profile changes
 - `AssessmentForm` - Record CEFR assessments
 - `LearningObjectiveSelector` - Session learning objectives (CEFR/textbook/custom)
+- `TeacherStudentProfile` - Teacher-specific student profile view
+- `DoSStudentProfile` - DoS-specific student profile with promotion approval
+- `PromotionReviewList` - Promotion review interface with evidence display
 
-**API Routes (9 endpoints):**
+**API Routes (12 endpoints):**
 - `/api/admin/sessions/[sessionId]/objectives` - Session learning objectives CRUD
+- `/api/teacher/students` - List students in teacher's classes
+- `/api/teacher/students/[id]` - Teacher student profile
+- `/api/dos/students` - List all students (org-wide for DoS)
+- `/api/dos/students/[id]` - DoS student profile with promotion data
 
 ---
 
-## Remaining Tasks (8)
+## Remaining Tasks (5)
 
 ### Phase 2A: Schema & Data (Discovery-driven) ✅ COMPLETE
 
@@ -234,22 +242,25 @@
 
 ---
 
-#### Task #6: DoS Hybrid View
-**Estimate:** 2-3 hours | **Dependencies:** #4, #8 | **Token budget:** ~40k
+#### Task #6: DoS Hybrid View ✅ COMPLETE
+**Estimate:** 2-3 hours | **Dependencies:** #4 ✅, #8 | **Token budget:** ~40k
+**Completed:** 2026-03-03
 
-**Subtasks:**
-1. Create DoS dashboard component (45 min)
-2. Create promotion review interface with evidence (45 min)
-3. Create DoS-specific API routes (30 min)
-4. Adapt existing tabs for DoS context (30 min)
-5. Add Assistant DoS role support (30 min)
+**What was done:**
+1. ✅ Added 'dos' and 'assistant_dos' to UserRole type (`lib/auth/types.ts`)
+2. ✅ Created DoS students API routes (`/api/dos/students`, `/api/dos/students/[id]`)
+3. ✅ Created DoS dashboard page (`/dos/dashboard`) with promotion stats, student breakdown
+4. ✅ Created DoS students list page (`/dos/students`) with filtering and promotion status
+5. ✅ Created DoSStudentProfile component with promotion approval inline
+6. ✅ Created DoS student detail page (`/dos/students/[id]`)
+7. ✅ PromotionReviewList component already existed with full functionality
 
 **Acceptance Criteria:**
-- [ ] DoS can access ALL student profiles (org-wide)
-- [ ] Can review and approve/reject promotions
-- [ ] Can see accumulated assessment evidence + summative scores
-- [ ] Has all teacher capabilities
-- [ ] Pending promotions prominently visible
+- [x] DoS can access ALL student profiles (org-wide)
+- [x] Can review and approve/reject promotions
+- [x] Can see accumulated assessment evidence + summative scores
+- [x] Has all teacher capabilities
+- [x] Pending promotions prominently visible
 
 ---
 
@@ -378,6 +389,24 @@ app/
 │   │   ├── level-history/route.ts
 │   │   ├── diagnostics/route.ts
 │   │   └── audit/route.ts
+│   ├── app/api/dos/students/
+│   │   ├── route.ts                  # NEW - DoS student list (org-wide)
+│   │   └── [id]/route.ts             # NEW - DoS student detail
+│   ├── app/api/teacher/students/
+│   │   ├── route.ts                  # NEW - Teacher student list (class-scoped)
+│   │   └── [id]/
+│   │       ├── route.ts              # NEW - Teacher student detail
+│   │       ├── notes/route.ts        # NEW - Teacher notes
+│   │       ├── progress/route.ts     # NEW - Teacher progress view
+│   │       └── assessments/route.ts  # NEW - Teacher assessments
+│   ├── app/dos/
+│   │   ├── dashboard/page.tsx        # NEW - DoS dashboard
+│   │   └── students/
+│   │       ├── page.tsx              # NEW - DoS students list
+│   │       └── [id]/page.tsx         # NEW - DoS student detail page
+│   ├── app/teacher/students/
+│   │   ├── page.tsx                  # NEW - Teacher students list
+│   │   └── [id]/page.tsx             # NEW - Teacher student detail page
 │   ├── components/admin/students/
 │   │   ├── tabs/
 │   │   │   ├── LevelHistoryTab.tsx
@@ -385,7 +414,18 @@ app/
 │   │   │   ├── EnhancedNotesTab.tsx
 │   │   │   ├── AuditTrailTab.tsx
 │   │   │   └── index.ts
-│   │   └── AssessmentForm.tsx
+│   │   ├── AssessmentForm.tsx
+│   │   └── promotions/
+│   │       └── PromotionReviewList.tsx
+│   ├── components/teacher/
+│   │   ├── TeacherStudentProfile.tsx # NEW - Teacher profile component
+│   │   └── index.ts
+│   ├── components/dos/
+│   │   ├── DoSStudentProfile.tsx     # NEW - DoS profile component
+│   │   └── index.ts
+│   ├── lib/teachers/
+│   │   ├── canAccessStudent.ts       # NEW - Teacher access control utilities
+│   │   └── index.ts
 │   ├── db/schema/
 │   │   ├── profile.ts     # UPDATED - Added coursebooks, summative assessments, session objectives
 │   │   ├── curriculum.ts  # UPDATED - Added File A columns to cefr_descriptors
