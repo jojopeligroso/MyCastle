@@ -93,7 +93,7 @@ interface Note {
   author: string;
 }
 
-type TabId = 'overview' | 'progress' | 'assessments' | 'notes' | 'history';
+type TabId = 'overview' | 'progress' | 'assessments' | 'notes' | 'history' | 'tutor';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
@@ -183,6 +183,20 @@ export function StudentProfilePage() {
             strokeLinejoin="round"
             strokeWidth={2}
             d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+          />
+        </svg>
+      ),
+    },
+    {
+      id: 'tutor',
+      label: 'AI Tutor',
+      icon: (
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
           />
         </svg>
       ),
@@ -316,6 +330,8 @@ export function StudentProfilePage() {
               currentLevel={profile.currentLevel}
             />
           )}
+
+          {activeTab === 'tutor' && <TutorTab />}
         </div>
       </div>
     </div>
@@ -717,6 +733,110 @@ function HistoryTab({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// AI Tutor Tab - Placeholder for future LLM integration
+function TutorTab() {
+  return (
+    <div className="text-center py-12">
+      {/* AI Tutor Icon */}
+      <div className="mx-auto w-20 h-20 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center mb-4">
+        <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+          />
+        </svg>
+      </div>
+
+      <h3 className="text-xl font-semibold text-gray-900 mb-2">AI Tutor Coming Soon</h3>
+
+      <p className="text-gray-500 max-w-md mx-auto mb-6">
+        Your personal AI language tutor is being developed. Soon you will be able to practice
+        speaking, get instant feedback, and work on personalized exercises.
+      </p>
+
+      {/* Feature Preview Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto mt-8">
+        <div className="bg-purple-50 rounded-lg p-4">
+          <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center mx-auto mb-3">
+            <svg
+              className="w-5 h-5 text-purple-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+              />
+            </svg>
+          </div>
+          <h4 className="font-medium text-purple-900 mb-1">Speaking Practice</h4>
+          <p className="text-xs text-purple-600">Conversational AI partner</p>
+        </div>
+
+        <div className="bg-blue-50 rounded-lg p-4">
+          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-3">
+            <svg
+              className="w-5 h-5 text-blue-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+              />
+            </svg>
+          </div>
+          <h4 className="font-medium text-blue-900 mb-1">Vocabulary Builder</h4>
+          <p className="text-xs text-blue-600">Personalized word lists</p>
+        </div>
+
+        <div className="bg-green-50 rounded-lg p-4">
+          <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3">
+            <svg
+              className="w-5 h-5 text-green-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+              />
+            </svg>
+          </div>
+          <h4 className="font-medium text-green-900 mb-1">Smart Exercises</h4>
+          <p className="text-xs text-green-600">Targeted skill practice</p>
+        </div>
+      </div>
+
+      {/* Coming Soon Badge */}
+      <div className="mt-8">
+        <span className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-700 text-sm font-medium">
+          <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          In Development
+        </span>
+      </div>
     </div>
   );
 }

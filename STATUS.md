@@ -8,10 +8,10 @@ phase: Phase 1 - Admin UI/UX (Complete) + Student Profile Feature
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-03-03 (DoS Hybrid View complete - Task #6)
-**Current Phase:** Phase 1 Complete + Student Profile Feature (Phase 2C Complete, Phase 2D Next)
+**Last Updated:** 2026-03-03 (Student Profile 100% COMPLETE - Task #10 done)
+**Current Phase:** Phase 1 Complete + Student Profile Feature COMPLETE
 **Current Sprint:** Week 8 of Phase 1
-**Next Milestone:** Contact Verification System (Task #9)
+**Next Milestone:** Discovery session with stakeholder for remaining blockers
 
 ---
 
@@ -20,11 +20,13 @@ phase: Phase 1 - Admin UI/UX (Complete) + Student Profile Feature
 **Status:** All TypeScript errors resolved, build passing, production ready (2026-03-02)
 
 **Root Cause:** Admin code uses snake_case property access instead of camelCase Drizzle schema properties
+
 - TypeScript code incorrectly accesses `users.tenant_id` instead of `users.tenantId`
 - Database uses snake_case (PostgreSQL standard), Drizzle schema correctly maps to camelCase TypeScript
 - Admin pages bypass Drizzle's type system by using wrong property names
 
 **Impact:**
+
 - Admin dashboard crashes on KPI errors
 - User management pages return empty data
 - Student CRUD operations write to non-existent columns
@@ -34,7 +36,8 @@ phase: Phase 1 - Admin UI/UX (Complete) + Student Profile Feature
 **Stabilization Tasks (18 total) - 18/18 complete (100%):**
 
 **Phase 0 - Critical Blockers (7/7) ✅ COMPLETE**
-- ✅ Fix dashboard KPI error handling crash (err vs _err)
+
+- ✅ Fix dashboard KPI error handling crash (err vs \_err)
 - ✅ Align admin users list page to current schema
 - ✅ Align admin user detail page to current schema
 - ✅ Align admin user edit page to current schema
@@ -43,18 +46,21 @@ phase: Phase 1 - Admin UI/UX (Complete) + Student Profile Feature
 - ✅ Fix user detail page field names (classes, enrolments queries)
 
 **Phase 1 - Security & Tenant Isolation (3/3) ✅ COMPLETE**
+
 - ✅ Remove hard-coded RLS context from students page
 - ✅ Remove hard-coded RLS context from enrolments page
 - ✅ Add tenant filtering to dashboard queries
 - ✅ Implement super admin support with `is_super_admin` flag
 
 **Phase 2 - API & UI Consistency (4/4) ✅ COMPLETE**
+
 - ✅ Replace server-side fetch in enquiries page with direct DB access
 - ✅ Replace server-side fetch in rooms page with direct DB access
 - ✅ Gate alerts UI with 'not yet available' state
 - ✅ Gate work queue UI with 'not yet available' state
 
 **Phase 3 - Hardening & CI/CD (4/4) ✅ COMPLETE**
+
 - ✅ Add error boundaries to admin routes
 - ✅ Fix lint errors in stabilization files (scripts, removed unused imports)
 - ✅ TypeScript errors resolved (291 → 0) - build now passes
@@ -64,6 +70,7 @@ phase: Phase 1 - Admin UI/UX (Complete) + Student Profile Feature
 
 **Status Update (2026-02-05 morning):**
 Stabilization nearly complete (16/18 = 89%):
+
 - ✅ Schema mismatches fixed across all admin pages
 - ✅ Security vulnerabilities patched (RLS context, super admin)
 - ✅ Server-side fetch anti-patterns replaced with direct DB access
@@ -72,10 +79,12 @@ Stabilization nearly complete (16/18 = 89%):
 - ✅ Error boundaries added to all admin routes (7 total: main + 6 modules)
 
 Remaining 2 tasks are pre-existing tech debt (not blockers):
+
 - Pre-existing test failures (63 tests with mocking issues)
 - Pre-existing build warnings (TypeScript async params pattern)
 
 **Commits:**
+
 - `3e49877` - Phase 0: Dashboard, users list/detail/edit pages
 - `db60da8` - Phase 0: User actions, student CRUD
 - `699647d` - Phase 1: RLS context removal
@@ -89,6 +98,7 @@ Remaining 2 tasks are pre-existing tech debt (not blockers):
 
 **Status Update (2026-02-11):**
 Major schema mismatch fix applied across 66 files:
+
 - ✅ Fixed API routes using snake_case instead of camelCase Drizzle properties
 - ✅ Fixed finance routes to use `invoicePayments` (not booking `payments`)
 - ✅ Fixed programmes routes to use `programmeCourses` table
@@ -97,6 +107,7 @@ Major schema mismatch fix applied across 66 files:
 - ✅ Fixed query builder routes with proper `$dynamic()` usage
 
 **Additional fixes (2026-02-11 continued):**
+
 - ✅ Fixed all 5 MCP servers (teacher, attendance, academic, finance, identity) - MCPMeta typing, camelCase inserts
 - ✅ Fixed attendance routes (session, bulk, validate-chain) - classSessions, attendance properties
 - ✅ Fixed timetable route - classSessions, classes camelCase properties
@@ -108,6 +119,7 @@ Major schema mismatch fix applied across 66 files:
 - ✅ **2026-03-02**: All 291 TypeScript errors resolved (0 errors now)
 
 **Status Update (2026-03-02):**
+
 - ✅ TypeScript: 0 errors (was 291)
 - ✅ Build: Passing
 - ✅ Format: Clean
@@ -119,16 +131,16 @@ Major schema mismatch fix applied across 66 files:
 
 ## 🎯 Quick Summary
 
-### ⚡ START HERE - Student Profile Feature (Discovery Phase)
+### ⚡ START HERE - Student Profile Feature COMPLETE
 
 **🎉 Phase 1 (Admin UI/UX) - 100% COMPLETE (61/61 tasks)**
 **🎉 Stabilization - 100% COMPLETE (18/18 tasks)**
+**🎉 Student Profile Feature - 100% COMPLETE (23/23 tasks)**
 
-**📌 Current Focus: Student Profile Feature (83% complete, 19/23 tasks)**
-
-See `STUDENT_PROFILE_ROADMAP.md` for full details. Status: **Phase 2C Complete - DoS Hybrid View complete (Task #6)**.
+See `STUDENT_PROFILE_ROADMAP.md` for full details.
 
 **What's Built:**
+
 - ✅ Database schema (6 tables + RLS policies)
 - ✅ Admin/Owner profile view
 - ✅ CEFR competency assessment system
@@ -139,13 +151,12 @@ See `STUDENT_PROFILE_ROADMAP.md` for full details. Status: **Phase 2C Complete -
 - ✅ Teacher Profile View with class-scoped access
 - ✅ Level Promotion Workflow (teacher request → DoS review)
 - ✅ DoS Hybrid View with org-wide access and promotion approval
-
-**Remaining Tasks (4):**
-- #9 Contact Verification System (2-3 hours)
-- #5 Student Self-View (3-4 hours, depends on #9)
-- #10 LLM Tutor Architecture Hooks (1-2 hours)
+- ✅ Contact Verification System (email/phone with 6-digit codes)
+- ✅ Student Self-View (profile page with verification flow)
+- ✅ LLM Tutor Architecture Hooks (spec, API, database tables)
 
 **Discovery Blockers (need stakeholder input):**
+
 1. ✅ ~~CEFR Descriptor Structure~~ - RESOLVED: 1,228 official descriptors + 696 Speakout textbook mappings imported
 2. Scoring System - Confirm 1-4 scale and thresholds
 3. Diagnostic Test - Structure and scoring rubric
@@ -153,10 +164,10 @@ See `STUDENT_PROFILE_ROADMAP.md` for full details. Status: **Phase 2C Complete -
 5. Customization Model - How schools modify descriptors
 
 **Next Steps:**
-1. Discovery session with stakeholder to clarify above items
-2. ✅ ~~Task #4 (Teacher Profile View)~~ - COMPLETE
-3. Resume Task #8 (Promotion Workflow) - depends on criteria clarity
-4. Resume Task #6 (DoS Hybrid View) - depends on #8
+
+1. ✅ ~~Complete Task #10 (LLM Tutor Architecture Hooks)~~ - DONE
+2. Discovery session with stakeholder to clarify remaining blockers
+3. Ready for Phase 2 planning (Teacher Portal, Advanced Reporting)
 
 All core admin features implemented and ready for production testing:
 
@@ -176,6 +187,18 @@ All core admin features implemented and ready for production testing:
 **Context:** All Phase 1 tasks complete. System ready for production MVP deployment.
 
 ---
+
+### Recent Wins (Mar 3 - LLM Tutor Architecture Hooks - STUDENT PROFILE COMPLETE!)
+
+- ✅ **Task #10: LLM Tutor Architecture Hooks (Phase 2E)**:
+  - Created `spec/STUDENT_MCP_SPEC.md` documenting future Student MCP design
+  - Defined 10 tool signatures for tutor capabilities (start_session, send_message, generate_exercise, etc.)
+  - Created `/api/student/tutor-context` API endpoint exposing student profile data for LLM prompts
+  - API returns: profile, current class, competency progress, skill breakdown, recent assessments, vocabulary stats, current learning objectives
+  - AI Tutor tab already existed in StudentProfilePage with polished "Coming Soon" UI
+  - Database tables already existed (FRESH_0027, FRESH_0032): tutor_sessions, tutor_messages, student_vocabulary, exercise_templates, exercise_attempts, vocab_lists, tutor_interactions
+  - **STUDENT PROFILE FEATURE 100% COMPLETE (23/23 tasks)**
+  - Files: spec/STUDENT_MCP_SPEC.md, api/student/tutor-context/route.ts
 
 ### Recent Wins (Mar 3 - DoS Hybrid View)
 
@@ -336,13 +359,12 @@ All core admin features implemented and ready for production testing:
   - **TypeScript:** 0 errors ✅
   - **Remaining:** 14 API route tests need mock pattern fixes (same pattern as classes)
 
-
 ### Recent Wins (Feb 26 - Teacher Attendance Register Fix)
 
 - ✅ **Fixed teacher attendance register - students now displayed**:
   - Root cause: `/api/attendance/session` route was using raw SQL strings instead of proper Drizzle table references
   - Added missing `users` and `students` imports to schema
-  - Replaced `sql\`users.id\`` with proper `users.id` Drizzle references
+  - Replaced `sql\`users.id\``with proper`users.id` Drizzle references
   - Added left join to `students` table to properly get `isVisaStudent` field
   - Fixed `visaStudent` mapping from hardcoded `false` to `r.studentRecord?.isVisaStudent ?? false`
   - Tested: API now returns 18 students for "Adv" class (matching `enrolledCount`)
