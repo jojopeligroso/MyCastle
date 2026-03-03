@@ -1,9 +1,9 @@
 # Student Profile Feature - Implementation Roadmap
 
 **Created:** 2026-03-02
-**Updated:** 2026-03-02
-**Status:** Phase 2A Schema In Progress
-**Completed:** 12/23 tasks (52%)
+**Updated:** 2026-03-03
+**Status:** Phase 2B Teacher Workflow In Progress
+**Completed:** 14/23 tasks (61%)
 
 **Reference:** See `STUDENT_PROFILE_DISCOVERY.md` for full requirements
 
@@ -26,7 +26,9 @@
 | #15 | Wire up LevelHistoryTab | 35ae915 |
 | #16 | Wire up EnhancedNotesTab | 35ae915 |
 | #17 | Wire up AuditTrailTab | 35ae915 |
-| #18 | Schema Updates (FRESH_0028) - Phase 2A | pending |
+| #18 | Schema Updates (FRESH_0028) - Phase 2A | 7482ce7 |
+| #19 | CEFR Descriptor Importer (File A + B) | 7482ce7 |
+| #22 | Update Assessment Form (Phase 2B) | pending |
 
 ### What's Built
 
@@ -56,9 +58,9 @@
 
 ---
 
-## Remaining Tasks (11)
+## Remaining Tasks (9)
 
-### Phase 2A: Schema & Data (Discovery-driven)
+### Phase 2A: Schema & Data (Discovery-driven) ✅ COMPLETE
 
 #### Task #18: Schema Updates (FRESH_0028) ✅ COMPLETE
 **Estimate:** 1-2 hours | **Dependencies:** None | **Token budget:** ~30k
@@ -143,21 +145,24 @@
 
 ---
 
-#### Task #22: Update Assessment Form
+#### Task #22: Update Assessment Form ✅ COMPLETE
 **Estimate:** 1-2 hours | **Dependencies:** #18 | **Token budget:** ~30k
+**Completed:** 2026-03-03
 
-**Subtasks:**
-1. Add `demonstrated_level` dropdown (15 min)
-2. Add `is_complete` checkbox/toggle (15 min)
-3. Update progress scale to match discovery (Not yet/Emerging/Developing/Achieved) (20 min)
-4. Link assessment to learning objective if in session context (20 min)
-5. Add visibility toggle for sharing with student (15 min)
+**What was done:**
+1. ✅ Added `demonstratedLevel` dropdown (CEFR A1-C2)
+2. ✅ Added `isComplete` checkbox (auto-checks on "Achieved")
+3. ✅ Updated progress scale: Not Yet / Emerging / Developing / Achieved
+4. ✅ Added `sessionId` prop for learning objective context
+5. ✅ Added `isSharedWithStudent` visibility toggle
+6. ✅ Updated API route to accept/return all new fields
+7. ✅ Added validation for progress values and CEFR levels
 
 **Acceptance Criteria:**
-- [ ] Can record demonstrated level different from descriptor level
-- [ ] Can mark descriptor as complete (achieved)
-- [ ] Progress scale matches requirements
-- [ ] Assessment links to session objective when applicable
+- [x] Can record demonstrated level different from descriptor level
+- [x] Can mark descriptor as complete (achieved)
+- [x] Progress scale matches requirements
+- [x] Assessment links to session objective when applicable
 
 ---
 

@@ -1,17 +1,17 @@
 ---
 status: FEATURE_DEVELOPMENT
-last_updated: 2026-03-02
-next_review: 2026-03-05
+last_updated: 2026-03-03
+next_review: 2026-03-06
 owner: Eoin Malone
 phase: Phase 1 - Admin UI/UX (Complete) + Student Profile Feature
 ---
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-03-02 (CEFR Browser admin UI complete)
-**Current Phase:** Phase 1 Complete + Student Profile Feature (Phase 2A Implementation)
+**Last Updated:** 2026-03-03 (Assessment Form enhanced with progress tracking)
+**Current Phase:** Phase 1 Complete + Student Profile Feature (Phase 2B Implementation)
 **Current Sprint:** Week 8 of Phase 1
-**Next Milestone:** Teacher Profile View (Task #4)
+**Next Milestone:** Summative Assessment UI (Task #23)
 
 ---
 
@@ -124,9 +124,9 @@ Major schema mismatch fix applied across 66 files:
 **🎉 Phase 1 (Admin UI/UX) - 100% COMPLETE (61/61 tasks)**
 **🎉 Stabilization - 100% COMPLETE (18/18 tasks)**
 
-**📌 Current Focus: Student Profile Feature (57% complete, 13/23 tasks)**
+**📌 Current Focus: Student Profile Feature (61% complete, 14/23 tasks)**
 
-See `STUDENT_PROFILE_ROADMAP.md` for full details. Status: **Phase 2A Complete - CEFR descriptors imported (Task #19)**.
+See `STUDENT_PROFILE_ROADMAP.md` for full details. Status: **Phase 2B In Progress - Assessment Form updated (Task #22)**.
 
 **What's Built:**
 - ✅ Database schema (6 tables + RLS policies)
@@ -135,12 +135,14 @@ See `STUDENT_PROFILE_ROADMAP.md` for full details. Status: **Phase 2A Complete -
 - ✅ 8 API routes for assessments, progress, notes, diagnostics, audit
 - ✅ 4 profile tab components (LevelHistory, CompetencyProgress, EnhancedNotes, AuditTrail)
 
-**Remaining Tasks (6):**
-- #4 Teacher Profile View (2-3 hours)
-- #5 Student Self-View (3-4 hours, depends on #9)
+**Remaining Tasks (9):**
+- #21 Learning Objectives UI (2-3 hours)
+- #23 Summative Assessment UI (2 hours)
+- #4 Teacher Profile View (2-3 hours, depends on #21, #22)
+- #8 Level Promotion Workflow (2-3 hours, depends on #23)
 - #6 DoS Hybrid View (2-3 hours, depends on #4, #8)
-- #8 Level Promotion Workflow (2-3 hours)
 - #9 Contact Verification System (2-3 hours)
+- #5 Student Self-View (3-4 hours, depends on #9)
 - #10 LLM Tutor Architecture Hooks (1-2 hours)
 
 **Discovery Blockers (need stakeholder input):**
@@ -173,6 +175,17 @@ All core admin features implemented and ready for production testing:
 **Context:** All Phase 1 tasks complete. System ready for production MVP deployment.
 
 ---
+
+### Recent Wins (Mar 3 - Assessment Form Enhanced)
+
+- ✅ **Task #22: Update Assessment Form (Phase 2B)**:
+  - Updated progress scale to: Not Yet / Emerging / Developing / Achieved
+  - Added `demonstratedLevel` dropdown (CEFR A1-C2) for when student performs differently
+  - Added `isComplete` checkbox (auto-checks on "Achieved")
+  - Added `isSharedWithStudent` toggle for visibility control
+  - Updated API route to accept/return new fields: progress, demonstratedLevel, isComplete, isSharedWithStudent, sessionId, learningObjectiveId
+  - Added validation for progress values and CEFR levels
+  - Files: AssessmentForm.tsx, assessments/route.ts
 
 ### Recent Wins (Mar 2 - CEFR Browser Admin UI)
 

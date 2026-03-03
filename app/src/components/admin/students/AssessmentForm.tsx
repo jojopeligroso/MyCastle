@@ -14,6 +14,7 @@ interface AssessmentFormProps {
   studentId: string;
   studentName: string;
   classId?: string;
+  sessionId?: string;
   enrollmentId?: string;
   currentLevel?: string | null;
   onSuccess?: () => void;
@@ -27,17 +28,39 @@ const ASSESSMENT_TYPES = [
   { value: 'placement', label: 'Placement Assessment' },
 ];
 
-const SCORE_OPTIONS = [
-  { value: 1, label: '1 - Not demonstrated', color: 'text-red-600' },
-  { value: 2, label: '2 - Emerging', color: 'text-amber-600' },
-  { value: 3, label: '3 - Developing', color: 'text-blue-600' },
-  { value: 4, label: '4 - Competent', color: 'text-green-600' },
+// Updated progress scale per requirements
+const PROGRESS_OPTIONS = [
+  { value: 'not_yet', label: 'Not Yet', score: 1, color: 'text-red-600', bgColor: 'bg-red-50' },
+  {
+    value: 'emerging',
+    label: 'Emerging',
+    score: 2,
+    color: 'text-amber-600',
+    bgColor: 'bg-amber-50',
+  },
+  {
+    value: 'developing',
+    label: 'Developing',
+    score: 3,
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-50',
+  },
+  {
+    value: 'achieved',
+    label: 'Achieved',
+    score: 4,
+    color: 'text-green-600',
+    bgColor: 'bg-green-50',
+  },
 ];
+
+const CEFR_LEVELS = ['A1', 'A2', 'A2+', 'B1', 'B1+', 'B2', 'B2+', 'C1', 'C2'];
 
 export function AssessmentForm({
   studentId,
   studentName,
   classId,
+  sessionId,
   enrollmentId,
   currentLevel,
   onSuccess,
@@ -53,7 +76,10 @@ export function AssessmentForm({
     descriptorId: '',
     assessmentType: 'periodic' as 'periodic' | 'ad_hoc' | 'end_of_unit' | 'placement',
     assessmentDate: new Date().toISOString().split('T')[0],
-    score: 0,
+    progress: 'not_yet' as 'not_yet' | 'emerging' | 'developing' | 'achieved',
+    demonstratedLevel: '' as string, // May differ from descriptor's native level
+    isComplete: false,
+    isSharedWithStudent: false,
     notes: '',
   });
 
@@ -92,6 +118,12 @@ export function AssessmentForm({
     ? descriptors.filter(d => d.category === selectedCategory)
     : descriptors;
 
+  // Map progress to numeric score for backwards compatibility
+  const progressToScore = (progress: string): number => {
+    const option = PROGRESS_OPTIONS.find(o => o.value === progress);
+    return option?.score || 1;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -100,8 +132,8 @@ export function AssessmentForm({
       return;
     }
 
-    if (formData.score < 1 || formData.score > 4) {
-      setError('Please select a valid score');
+    if (!formData.progress) {
+      setError('Please select a progress level');
       return;
     }
 
@@ -109,19 +141,23 @@ export function AssessmentForm({
     setError(null);
 
     try {
-      const response = await fetch('/api/admin/competency-assessments', {
+      const response = await fetch(`/api/admin/students/${studentId}/assessments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          studentId,
           descriptorId: formData.descriptorId,
           classId,
+          sessionId,
           enrollmentId,
           assessmentType: formData.assessmentType,
           assessmentDate: formData.assessmentDate,
-          score: formData.score,
+          score: progressToScore(formData.progress), // Backwards compatibility
+          progress: formData.progress,
+          demonstratedLevel: formData.demonstratedLevel || undefined,
+          isComplete: formData.isComplete,
+          isSharedWithStudent: formData.isSharedWithStudent,
           notes: formData.notes || undefined,
         }),
       });
@@ -136,7 +172,10 @@ export function AssessmentForm({
         descriptorId: '',
         assessmentType: 'periodic',
         assessmentDate: new Date().toISOString().split('T')[0],
-        score: 0,
+        progress: 'not_yet',
+        demonstratedLevel: '',
+        isComplete: false,
+        isSharedWithStudent: false,
         notes: '',
       });
 
@@ -294,25 +333,91 @@ export function AssessmentForm({
           </div>
         )}
 
-        {/* Score Selection */}
+        {/* Progress Selection */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Score (1-4 Scale)</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Progress Level</label>
           <div className="grid grid-cols-2 gap-2">
-            {SCORE_OPTIONS.map(option => (
+            {PROGRESS_OPTIONS.map(option => (
               <button
                 key={option.value}
                 type="button"
-                onClick={() => setFormData({ ...formData, score: option.value })}
+                onClick={() =>
+                  setFormData({
+                    ...formData,
+                    progress: option.value as typeof formData.progress,
+                    isComplete: option.value === 'achieved',
+                  })
+                }
                 className={`p-3 text-left rounded-lg border-2 transition-colors ${
-                  formData.score === option.value
-                    ? 'border-purple-500 bg-purple-50'
+                  formData.progress === option.value
+                    ? `border-purple-500 ${option.bgColor}`
                     : 'border-gray-200 hover:border-gray-300'
                 }`}
               >
-                <span className={`text-lg font-bold ${option.color}`}>{option.value}</span>
-                <p className="text-xs text-gray-600 mt-1">{option.label.split(' - ')[1]}</p>
+                <span className={`text-lg font-bold ${option.color}`}>{option.label}</span>
+                <p className="text-xs text-gray-500 mt-1">Score: {option.score}/4</p>
               </button>
             ))}
+          </div>
+        </div>
+
+        {/* Demonstrated Level (optional - may differ from descriptor) */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Demonstrated Level{' '}
+            <span className="text-gray-400 font-normal">
+              (optional - if different from descriptor)
+            </span>
+          </label>
+          <select
+            value={formData.demonstratedLevel}
+            onChange={e => setFormData({ ...formData, demonstratedLevel: e.target.value })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+          >
+            <option value="">Same as descriptor level</option>
+            {CEFR_LEVELS.map(level => (
+              <option key={level} value={level}>
+                {level}
+              </option>
+            ))}
+          </select>
+          {selectedDescriptor && (
+            <p className="text-xs text-gray-500 mt-1">
+              Descriptor level: <span className="font-medium">{selectedDescriptor.level}</span>
+            </p>
+          )}
+        </div>
+
+        {/* Completion & Visibility Toggles */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Mark as Complete */}
+          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+            <input
+              type="checkbox"
+              id="isComplete"
+              checked={formData.isComplete}
+              onChange={e => setFormData({ ...formData, isComplete: e.target.checked })}
+              className="h-4 w-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
+            />
+            <label htmlFor="isComplete" className="text-sm text-gray-700">
+              <span className="font-medium">Mark as Complete</span>
+              <p className="text-xs text-gray-500">Descriptor fully achieved</p>
+            </label>
+          </div>
+
+          {/* Share with Student */}
+          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+            <input
+              type="checkbox"
+              id="isSharedWithStudent"
+              checked={formData.isSharedWithStudent}
+              onChange={e => setFormData({ ...formData, isSharedWithStudent: e.target.checked })}
+              className="h-4 w-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
+            />
+            <label htmlFor="isSharedWithStudent" className="text-sm text-gray-700">
+              <span className="font-medium">Share with Student</span>
+              <p className="text-xs text-gray-500">Visible in student profile</p>
+            </label>
           </div>
         </div>
 
@@ -341,7 +446,7 @@ export function AssessmentForm({
           )}
           <button
             type="submit"
-            disabled={isSubmitting || !formData.descriptorId || formData.score < 1}
+            disabled={isSubmitting || !formData.descriptorId || !formData.progress}
             className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isSubmitting ? 'Saving...' : 'Record Assessment'}
