@@ -8,10 +8,10 @@ phase: Phase 1 - Admin UI/UX (Complete) + Student Profile Feature
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-03-03 (Teacher Profile View complete - Task #4)
+**Last Updated:** 2026-03-03 (Level Promotion Workflow complete - Task #8)
 **Current Phase:** Phase 1 Complete + Student Profile Feature (Phase 2C Implementation)
 **Current Sprint:** Week 8 of Phase 1
-**Next Milestone:** Level Promotion Workflow (Task #8)
+**Next Milestone:** DoS Hybrid View (Task #6)
 
 ---
 
@@ -124,9 +124,9 @@ Major schema mismatch fix applied across 66 files:
 **🎉 Phase 1 (Admin UI/UX) - 100% COMPLETE (61/61 tasks)**
 **🎉 Stabilization - 100% COMPLETE (18/18 tasks)**
 
-**📌 Current Focus: Student Profile Feature (74% complete, 17/23 tasks)**
+**📌 Current Focus: Student Profile Feature (78% complete, 18/23 tasks)**
 
-See `STUDENT_PROFILE_ROADMAP.md` for full details. Status: **Phase 2C In Progress - Teacher Profile View complete (Task #4)**.
+See `STUDENT_PROFILE_ROADMAP.md` for full details. Status: **Phase 2C In Progress - Level Promotion Workflow complete (Task #8)**.
 
 **What's Built:**
 - ✅ Database schema (6 tables + RLS policies)
@@ -136,11 +136,12 @@ See `STUDENT_PROFILE_ROADMAP.md` for full details. Status: **Phase 2C In Progres
 - ✅ 4 profile tab components (LevelHistory, CompetencyProgress, EnhancedNotes, AuditTrail)
 - ✅ Learning Objectives selector for session planning
 - ✅ Summative Assessment UI with types management and student scoring
+- ✅ Teacher Profile View with class-scoped access
+- ✅ Level Promotion Workflow (teacher request → DoS review)
 - ✅ Teacher Profile View (class-scoped access, no sensitive PII)
 
-**Remaining Tasks (6):**
-- #8 Level Promotion Workflow (2-3 hours, depends on #23)
-- #6 DoS Hybrid View (2-3 hours, depends on #4 ✅, #8)
+**Remaining Tasks (5):**
+- #6 DoS Hybrid View (2-3 hours, depends on #4 ✅, #8 ✅)
 - #9 Contact Verification System (2-3 hours)
 - #5 Student Self-View (3-4 hours, depends on #9)
 - #10 LLM Tutor Architecture Hooks (1-2 hours)
@@ -176,6 +177,21 @@ All core admin features implemented and ready for production testing:
 **Context:** All Phase 1 tasks complete. System ready for production MVP deployment.
 
 ---
+
+### Recent Wins (Mar 3 - Level Promotion Workflow)
+
+- ✅ **Task #8: Level Promotion Workflow (Phase 2C)**:
+  - Created `/admin/promotions` page for DoS to review pending promotions
+  - Created PromotionReviewList component with approve/reject actions
+  - Created PromotionRequestForm component with evidence summary
+  - Updated LevelHistoryTab with "Request Promotion" button and form modal
+  - API routes: `/api/admin/students/[id]/promotions` (GET/POST)
+  - API routes: `/api/admin/promotions` (GET list), `/api/admin/promotions/[id]/review` (PUT)
+  - Auto-suggests promotion when avg summative score >= 90%
+  - Shows evidence: summative scores, competency progress stats
+  - Enrollment transfer on approval (close old enrollment, create new)
+  - Added "Level Promotions" to admin sidebar
+  - Files: promotions/page.tsx, PromotionReviewList.tsx, PromotionRequestForm.tsx, promotions API routes
 
 ### Recent Wins (Mar 3 - Summative Assessment UI)
 
