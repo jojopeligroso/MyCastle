@@ -16,12 +16,7 @@ const intentOptions: IntentOption[] = [
     description:
       'Use the textbook lesson as designed. Get tips for maximizing effectiveness and managing timing.',
     icon: (
-      <svg
-        className="w-6 h-6"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
+      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -37,12 +32,7 @@ const intentOptions: IntentOption[] = [
     description:
       'Use Speakout objectives as a starting point but create custom activities tailored to your class.',
     icon: (
-      <svg
-        className="w-6 h-6"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
+      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -58,12 +48,7 @@ const intentOptions: IntentOption[] = [
     description:
       'Enhance the textbook lesson with additional activities, materials, and extension tasks.',
     icon: (
-      <svg
-        className="w-6 h-6"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
+      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -135,9 +120,7 @@ export default function TeacherIntentSelector({
             {/* Content */}
             <h4
               className={`mt-3 font-medium ${
-                selectedIntent === option.value
-                  ? 'text-indigo-900'
-                  : 'text-gray-900'
+                selectedIntent === option.value ? 'text-indigo-900' : 'text-gray-900'
               }`}
             >
               {option.label}

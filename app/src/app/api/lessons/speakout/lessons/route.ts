@@ -44,16 +44,8 @@ export async function GET(request: NextRequest) {
         cefrScale: cefrDescriptors.scale,
       })
       .from(textbookDescriptors)
-      .leftJoin(
-        cefrDescriptors,
-        eq(textbookDescriptors.cefrDescriptorId, cefrDescriptors.id)
-      )
-      .where(
-        and(
-          eq(textbookDescriptors.book, book),
-          eq(textbookDescriptors.unit, unit)
-        )
-      )
+      .leftJoin(cefrDescriptors, eq(textbookDescriptors.cefrDescriptorId, cefrDescriptors.id))
+      .where(and(eq(textbookDescriptors.book, book), eq(textbookDescriptors.unit, unit)))
       .orderBy(
         sql`${textbookDescriptors.page} ASC NULLS LAST`,
         sql`${textbookDescriptors.lesson} ASC`

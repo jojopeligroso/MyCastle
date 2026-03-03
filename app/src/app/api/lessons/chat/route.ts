@@ -109,12 +109,9 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    return new Response(
-      JSON.stringify({ error: 'Failed to process chat message' }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
+    return new Response(JSON.stringify({ error: 'Failed to process chat message' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 }

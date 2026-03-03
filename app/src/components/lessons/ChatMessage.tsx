@@ -7,10 +7,7 @@ interface ChatMessageProps {
   isStreaming?: boolean;
 }
 
-export default function ChatMessage({
-  message,
-  isStreaming = false,
-}: ChatMessageProps) {
+export default function ChatMessage({ message, isStreaming = false }: ChatMessageProps) {
   const isUser = message.role === 'user';
   const isSystem = message.role === 'system';
 
@@ -34,11 +31,7 @@ export default function ChatMessage({
         } px-4 py-3`}
       >
         {/* Message content */}
-        <div
-          className={`text-sm whitespace-pre-wrap ${
-            isUser ? 'text-white' : 'text-gray-900'
-          }`}
-        >
+        <div className={`text-sm whitespace-pre-wrap ${isUser ? 'text-white' : 'text-gray-900'}`}>
           {message.content}
           {isStreaming && (
             <span className="inline-flex ml-1">
@@ -48,11 +41,7 @@ export default function ChatMessage({
         </div>
 
         {/* Timestamp */}
-        <div
-          className={`text-xs mt-1 ${
-            isUser ? 'text-indigo-200' : 'text-gray-400'
-          }`}
-        >
+        <div className={`text-xs mt-1 ${isUser ? 'text-indigo-200' : 'text-gray-400'}`}>
           {formatTime(message.timestamp)}
         </div>
       </div>

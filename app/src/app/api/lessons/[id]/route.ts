@@ -17,38 +17,24 @@ export const dynamic = 'force-dynamic';
 /**
  * Get a specific lesson plan
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAuth(['teacher', 'admin', 'dos']);
     const tenantId = await getTenantId();
     const { id } = await params;
 
     if (!id) {
-      return NextResponse.json(
-        { error: 'Lesson plan ID is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Lesson plan ID is required' }, { status: 400 });
     }
 
     const [plan] = await db
       .select()
       .from(lessonPlans)
-      .where(
-        and(
-          eq(lessonPlans.id, id),
-          tenantId ? eq(lessonPlans.tenantId, tenantId) : undefined
-        )
-      )
+      .where(and(eq(lessonPlans.id, id), tenantId ? eq(lessonPlans.tenantId, tenantId) : undefined))
       .limit(1);
 
     if (!plan) {
-      return NextResponse.json(
-        { error: 'Lesson plan not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Lesson plan not found' }, { status: 404 });
     }
 
     return NextResponse.json({
@@ -62,10 +48,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    return NextResponse.json(
-      { error: 'Failed to fetch lesson plan' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch lesson plan' }, { status: 500 });
   }
 }
 
@@ -79,20 +62,14 @@ const updateSchema = z.object({
 /**
  * Update a lesson plan
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAuth(['teacher', 'admin']);
     const tenantId = await getTenantId();
     const { id } = await params;
 
     if (!id) {
-      return NextResponse.json(
-        { error: 'Lesson plan ID is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Lesson plan ID is required' }, { status: 400 });
     }
 
     // Parse and validate request body
@@ -103,19 +80,11 @@ export async function PATCH(
     const [existingPlan] = await db
       .select()
       .from(lessonPlans)
-      .where(
-        and(
-          eq(lessonPlans.id, id),
-          tenantId ? eq(lessonPlans.tenantId, tenantId) : undefined
-        )
-      )
+      .where(and(eq(lessonPlans.id, id), tenantId ? eq(lessonPlans.tenantId, tenantId) : undefined))
       .limit(1);
 
     if (!existingPlan) {
-      return NextResponse.json(
-        { error: 'Lesson plan not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Lesson plan not found' }, { status: 404 });
     }
 
     // Build update object
@@ -161,9 +130,6 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    return NextResponse.json(
-      { error: 'Failed to update lesson plan' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to update lesson plan' }, { status: 500 });
   }
 }

@@ -93,9 +93,6 @@ export async function GET() {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    return NextResponse.json(
-      { error: 'Failed to fetch approvals' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch approvals' }, { status: 500 });
   }
 }

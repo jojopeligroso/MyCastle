@@ -200,12 +200,7 @@ export default function LessonChatInterface({
                 disabled={!inputValue.trim() || isLoading}
                 className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
               >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -239,29 +234,19 @@ export default function LessonChatInterface({
             {speakoutContext && (
               <div className="mt-4 space-y-3">
                 <div>
-                  <span className="text-xs font-medium text-gray-500">
-                    Book
-                  </span>
+                  <span className="text-xs font-medium text-gray-500">Book</span>
                   <p className="text-sm text-gray-900">{speakoutContext.book}</p>
                 </div>
                 <div>
-                  <span className="text-xs font-medium text-gray-500">
-                    Unit
-                  </span>
+                  <span className="text-xs font-medium text-gray-500">Unit</span>
                   <p className="text-sm text-gray-900">{speakoutContext.unit}</p>
                 </div>
                 <div>
-                  <span className="text-xs font-medium text-gray-500">
-                    Lesson
-                  </span>
-                  <p className="text-sm text-gray-900">
-                    {speakoutContext.lesson}
-                  </p>
+                  <span className="text-xs font-medium text-gray-500">Lesson</span>
+                  <p className="text-sm text-gray-900">{speakoutContext.lesson}</p>
                 </div>
                 <div>
-                  <span className="text-xs font-medium text-gray-500">
-                    CEFR Level
-                  </span>
+                  <span className="text-xs font-medium text-gray-500">CEFR Level</span>
                   <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                     {speakoutContext.level}
                   </span>
@@ -269,9 +254,7 @@ export default function LessonChatInterface({
 
                 {/* Learning Objectives */}
                 <div className="mt-4">
-                  <span className="text-xs font-medium text-gray-500">
-                    Learning Objectives
-                  </span>
+                  <span className="text-xs font-medium text-gray-500">Learning Objectives</span>
                   <ul className="mt-2 space-y-2">
                     {speakoutContext.descriptors.slice(0, 4).map((d, idx) => (
                       <li key={idx} className="text-xs text-gray-600">
@@ -293,9 +276,7 @@ export default function LessonChatInterface({
 
             {intent && (
               <div className="mt-6">
-                <span className="text-xs font-medium text-gray-500">
-                  Your Approach
-                </span>
+                <span className="text-xs font-medium text-gray-500">Your Approach</span>
                 <p className="text-sm text-gray-900 capitalize mt-1">
                   {intent === 'follow' && 'Following Speakout'}
                   {intent === 'deviate' && 'Deviating from Speakout'}
@@ -310,14 +291,11 @@ export default function LessonChatInterface({
   );
 }
 
-function buildGreetingMessage(
-  context: SpeakoutContext,
-  intent: TeacherIntent
-): string {
+function buildGreetingMessage(context: SpeakoutContext, intent: TeacherIntent): string {
   const intentText = {
-    follow: "follow the Speakout lesson as designed",
-    deviate: "create a custom lesson based on the Speakout objectives",
-    supplement: "enhance the Speakout lesson with additional activities",
+    follow: 'follow the Speakout lesson as designed',
+    deviate: 'create a custom lesson based on the Speakout objectives',
+    supplement: 'enhance the Speakout lesson with additional activities',
   };
 
   return `Great! I'll help you ${intentText[intent]} for "${context.lesson}" (${context.level}).
