@@ -8,10 +8,10 @@ phase: Phase 1 - Admin UI/UX (Complete) + Student Profile Feature
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-03-03 (Summative Assessment UI complete - Task #23)
-**Current Phase:** Phase 1 Complete + Student Profile Feature (Phase 2B Implementation)
+**Last Updated:** 2026-03-03 (Teacher Profile View complete - Task #4)
+**Current Phase:** Phase 1 Complete + Student Profile Feature (Phase 2C Implementation)
 **Current Sprint:** Week 8 of Phase 1
-**Next Milestone:** Teacher Profile View (Task #4)
+**Next Milestone:** Level Promotion Workflow (Task #8)
 
 ---
 
@@ -124,9 +124,9 @@ Major schema mismatch fix applied across 66 files:
 **🎉 Phase 1 (Admin UI/UX) - 100% COMPLETE (61/61 tasks)**
 **🎉 Stabilization - 100% COMPLETE (18/18 tasks)**
 
-**📌 Current Focus: Student Profile Feature (70% complete, 16/23 tasks)**
+**📌 Current Focus: Student Profile Feature (74% complete, 17/23 tasks)**
 
-See `STUDENT_PROFILE_ROADMAP.md` for full details. Status: **Phase 2B In Progress - Summative Assessment UI complete (Task #23)**.
+See `STUDENT_PROFILE_ROADMAP.md` for full details. Status: **Phase 2C In Progress - Teacher Profile View complete (Task #4)**.
 
 **What's Built:**
 - ✅ Database schema (6 tables + RLS policies)
@@ -136,11 +136,11 @@ See `STUDENT_PROFILE_ROADMAP.md` for full details. Status: **Phase 2B In Progres
 - ✅ 4 profile tab components (LevelHistory, CompetencyProgress, EnhancedNotes, AuditTrail)
 - ✅ Learning Objectives selector for session planning
 - ✅ Summative Assessment UI with types management and student scoring
+- ✅ Teacher Profile View (class-scoped access, no sensitive PII)
 
-**Remaining Tasks (7):**
-- #4 Teacher Profile View (2-3 hours, depends on #21, #22)
+**Remaining Tasks (6):**
 - #8 Level Promotion Workflow (2-3 hours, depends on #23)
-- #6 DoS Hybrid View (2-3 hours, depends on #4, #8)
+- #6 DoS Hybrid View (2-3 hours, depends on #4 ✅, #8)
 - #9 Contact Verification System (2-3 hours)
 - #5 Student Self-View (3-4 hours, depends on #9)
 - #10 LLM Tutor Architecture Hooks (1-2 hours)
@@ -154,8 +154,9 @@ See `STUDENT_PROFILE_ROADMAP.md` for full details. Status: **Phase 2B In Progres
 
 **Next Steps:**
 1. Discovery session with stakeholder to clarify above items
-2. Resume Task #4 (Teacher Profile View) - no blockers
+2. ✅ ~~Task #4 (Teacher Profile View)~~ - COMPLETE
 3. Resume Task #8 (Promotion Workflow) - depends on criteria clarity
+4. Resume Task #6 (DoS Hybrid View) - depends on #8
 
 All core admin features implemented and ready for production testing:
 
@@ -188,6 +189,19 @@ All core admin features implemented and ready for production testing:
   - Color-coded score badges: green (80+), blue (60+), amber (40+), red (<40)
   - Links to settings page from assessments tab
   - Files: assessment-types/page.tsx, summative-types routes, AssessmentTypesManager.tsx, SummativeAssessmentForm.tsx, AssessmentsTab.tsx
+
+### Recent Wins (Mar 3 - Teacher Profile View)
+
+- ✅ **Task #4: Teacher Profile View (Phase 2C)**:
+  - Created `/teacher/students` list page with class-filtered students
+  - Created `/teacher/students/[id]` detail page with TeacherStudentProfile component
+  - Class-scope access control via `canTeacherAccessStudent()` utility
+  - Teacher API routes: GET/POST for students, notes, progress, assessments
+  - Reuses existing tabs with teacher-specific props (isTeacher, canViewSensitiveNotes)
+  - No access to sensitive PII (contact, visa, address, medical notes)
+  - Teachers can add notes (general, academic, behavioral only)
+  - Teachers cannot see audit trail
+  - Commit: d25394a (11 files, 1,968 lines)
 
 ### Recent Wins (Mar 3 - Learning Objectives UI)
 
