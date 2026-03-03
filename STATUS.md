@@ -8,10 +8,10 @@ phase: Phase 1 - Admin UI/UX (Complete) + Student Profile Feature
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-03-03 (Learning Objectives UI complete - Task #21)
+**Last Updated:** 2026-03-03 (Summative Assessment UI complete - Task #23)
 **Current Phase:** Phase 1 Complete + Student Profile Feature (Phase 2B Implementation)
 **Current Sprint:** Week 8 of Phase 1
-**Next Milestone:** Summative Assessment UI (Task #23)
+**Next Milestone:** Teacher Profile View (Task #4)
 
 ---
 
@@ -124,9 +124,9 @@ Major schema mismatch fix applied across 66 files:
 **🎉 Phase 1 (Admin UI/UX) - 100% COMPLETE (61/61 tasks)**
 **🎉 Stabilization - 100% COMPLETE (18/18 tasks)**
 
-**📌 Current Focus: Student Profile Feature (65% complete, 15/23 tasks)**
+**📌 Current Focus: Student Profile Feature (70% complete, 16/23 tasks)**
 
-See `STUDENT_PROFILE_ROADMAP.md` for full details. Status: **Phase 2B In Progress - Learning Objectives UI complete (Task #21)**.
+See `STUDENT_PROFILE_ROADMAP.md` for full details. Status: **Phase 2B In Progress - Summative Assessment UI complete (Task #23)**.
 
 **What's Built:**
 - ✅ Database schema (6 tables + RLS policies)
@@ -135,9 +135,9 @@ See `STUDENT_PROFILE_ROADMAP.md` for full details. Status: **Phase 2B In Progres
 - ✅ 8 API routes for assessments, progress, notes, diagnostics, audit
 - ✅ 4 profile tab components (LevelHistory, CompetencyProgress, EnhancedNotes, AuditTrail)
 - ✅ Learning Objectives selector for session planning
+- ✅ Summative Assessment UI with types management and student scoring
 
-**Remaining Tasks (8):**
-- #23 Summative Assessment UI (2 hours)
+**Remaining Tasks (7):**
 - #4 Teacher Profile View (2-3 hours, depends on #21, #22)
 - #8 Level Promotion Workflow (2-3 hours, depends on #23)
 - #6 DoS Hybrid View (2-3 hours, depends on #4, #8)
@@ -175,6 +175,19 @@ All core admin features implemented and ready for production testing:
 **Context:** All Phase 1 tasks complete. System ready for production MVP deployment.
 
 ---
+
+### Recent Wins (Mar 3 - Summative Assessment UI)
+
+- ✅ **Task #23: Summative Assessment UI (Phase 2B)**:
+  - Created `/admin/settings/assessment-types` page for managing assessment types
+  - AssessmentTypesManager component with CRUD operations, activate/deactivate toggle
+  - SummativeAssessmentForm for recording student assessments with score, date, notes
+  - Updated AssessmentsTab with table display, stats cards (total, average), form modal
+  - API routes: `/api/admin/summative-types` (GET/POST) and `/api/admin/summative-types/[id]` (GET/PUT/DELETE)
+  - API route: `/api/admin/students/[id]/summative` (GET/POST)
+  - Color-coded score badges: green (80+), blue (60+), amber (40+), red (<40)
+  - Links to settings page from assessments tab
+  - Files: assessment-types/page.tsx, summative-types routes, AssessmentTypesManager.tsx, SummativeAssessmentForm.tsx, AssessmentsTab.tsx
 
 ### Recent Wins (Mar 3 - Learning Objectives UI)
 
