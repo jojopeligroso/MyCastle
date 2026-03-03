@@ -7,10 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, getUserId } from '@/lib/auth/utils';
 import { cancelVerification } from '@/lib/verification';
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAuth(['student']);
     const userId = await getUserId();
@@ -35,9 +32,6 @@ export async function POST(
     });
   } catch (error) {
     console.error('Error cancelling verification:', error);
-    return NextResponse.json(
-      { error: 'Failed to cancel verification' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to cancel verification' }, { status: 500 });
   }
 }

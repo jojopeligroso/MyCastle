@@ -22,15 +22,15 @@ interface StudentListItem {
   pendingToLevel: string | null;
 }
 
-async function getStudents(tenantId: string, filters: { level?: string; promotion?: string; search?: string }) {
+async function getStudents(
+  tenantId: string,
+  filters: { level?: string; promotion?: string; search?: string }
+) {
   // Set RLS context
   await db.execute(sql.raw(`SET app.tenant_id = '${tenantId}'`));
 
   // Build conditions
-  const conditions = [
-    eq(users.role, 'student'),
-    eq(users.tenantId, tenantId),
-  ];
+  const conditions = [eq(users.role, 'student'), eq(users.tenantId, tenantId)];
 
   if (filters.level) {
     conditions.push(eq(users.currentLevel, filters.level));
@@ -67,24 +67,18 @@ async function getStudents(tenantId: string, filters: { level?: string; promotio
   // Get pending promotions
   const studentIds = studentsData.filter(s => s.id).map(s => s.id as string);
 
-  const pendingPromotions = studentIds.length > 0
-    ? await db
-        .select({
-          studentId: levelPromotions.studentId,
-          toLevel: levelPromotions.toLevel,
-        })
-        .from(levelPromotions)
-        .where(
-          and(
-            eq(levelPromotions.tenantId, tenantId),
-            eq(levelPromotions.status, 'pending')
-          )
-        )
-    : [];
+  const pendingPromotions =
+    studentIds.length > 0
+      ? await db
+          .select({
+            studentId: levelPromotions.studentId,
+            toLevel: levelPromotions.toLevel,
+          })
+          .from(levelPromotions)
+          .where(and(eq(levelPromotions.tenantId, tenantId), eq(levelPromotions.status, 'pending')))
+      : [];
 
-  const promotionMap = new Map(
-    pendingPromotions.map(p => [p.studentId, p.toLevel])
-  );
+  const promotionMap = new Map(pendingPromotions.map(p => [p.studentId, p.toLevel]));
 
   let result: StudentListItem[] = studentsData.map(s => ({
     id: s.id || s.userId,
@@ -182,7 +176,12 @@ export default async function DoSStudentsPage({
           className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700"
         >
           <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
           Review Promotions
           {counts.pendingPromotions > 0 && (
@@ -340,8 +339,18 @@ export default async function DoSStudentsPage({
                       </span>
                       {student.hasPendingPromotion && (
                         <>
-                          <svg className="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                          <svg
+                            className="w-4 h-4 text-amber-500"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M13 7l5 5m0 0l-5 5m5-5H6"
+                            />
                           </svg>
                           <span
                             className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${getLevelBadgeColor(student.pendingToLevel)}`}

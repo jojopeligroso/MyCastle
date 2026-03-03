@@ -55,10 +55,7 @@ export function generateVerificationCode(): string {
 /**
  * Check if user has a pending verification that's still in cooldown
  */
-async function checkCooldown(
-  userId: string,
-  contactType: ContactType
-): Promise<Date | null> {
+async function checkCooldown(userId: string, contactType: ContactType): Promise<Date | null> {
   const cooldownTime = new Date();
   cooldownTime.setMinutes(cooldownTime.getMinutes() - RESEND_COOLDOWN_MINUTES);
 
@@ -167,10 +164,7 @@ export async function getVerificationCode(verificationId: string): Promise<strin
     .select({ code: contactVerifications.verificationCode })
     .from(contactVerifications)
     .where(
-      and(
-        eq(contactVerifications.id, verificationId),
-        eq(contactVerifications.status, 'pending')
-      )
+      and(eq(contactVerifications.id, verificationId), eq(contactVerifications.status, 'pending'))
     )
     .limit(1);
 
@@ -301,10 +295,7 @@ export async function getPendingVerifications(userId: string) {
 /**
  * Cancel a pending verification
  */
-export async function cancelVerification(
-  userId: string,
-  verificationId: string
-): Promise<boolean> {
+export async function cancelVerification(userId: string, verificationId: string): Promise<boolean> {
   const result = await db
     .update(contactVerifications)
     .set({ status: 'cancelled' })

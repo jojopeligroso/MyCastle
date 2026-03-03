@@ -24,7 +24,6 @@ interface EvidenceSummary {
   strongCandidate: boolean;
 }
 
-
 async function getPromotions(tenantId: string, status: string = 'pending') {
   // Set RLS context
   await db.execute(sql.raw(`SET app.tenant_id = '${tenantId}'`));

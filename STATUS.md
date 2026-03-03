@@ -8,10 +8,10 @@ phase: Phase 1 - Admin UI/UX (Complete) + Student Profile Feature
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-03-03 (Level Promotion Workflow complete - Task #8)
-**Current Phase:** Phase 1 Complete + Student Profile Feature (Phase 2C Implementation)
+**Last Updated:** 2026-03-03 (DoS Hybrid View complete - Task #6)
+**Current Phase:** Phase 1 Complete + Student Profile Feature (Phase 2C Complete, Phase 2D Next)
 **Current Sprint:** Week 8 of Phase 1
-**Next Milestone:** DoS Hybrid View (Task #6)
+**Next Milestone:** Contact Verification System (Task #9)
 
 ---
 
@@ -124,9 +124,9 @@ Major schema mismatch fix applied across 66 files:
 **🎉 Phase 1 (Admin UI/UX) - 100% COMPLETE (61/61 tasks)**
 **🎉 Stabilization - 100% COMPLETE (18/18 tasks)**
 
-**📌 Current Focus: Student Profile Feature (78% complete, 18/23 tasks)**
+**📌 Current Focus: Student Profile Feature (83% complete, 19/23 tasks)**
 
-See `STUDENT_PROFILE_ROADMAP.md` for full details. Status: **Phase 2C In Progress - Level Promotion Workflow complete (Task #8)**.
+See `STUDENT_PROFILE_ROADMAP.md` for full details. Status: **Phase 2C Complete - DoS Hybrid View complete (Task #6)**.
 
 **What's Built:**
 - ✅ Database schema (6 tables + RLS policies)
@@ -138,10 +138,9 @@ See `STUDENT_PROFILE_ROADMAP.md` for full details. Status: **Phase 2C In Progres
 - ✅ Summative Assessment UI with types management and student scoring
 - ✅ Teacher Profile View with class-scoped access
 - ✅ Level Promotion Workflow (teacher request → DoS review)
-- ✅ Teacher Profile View (class-scoped access, no sensitive PII)
+- ✅ DoS Hybrid View with org-wide access and promotion approval
 
-**Remaining Tasks (5):**
-- #6 DoS Hybrid View (2-3 hours, depends on #4 ✅, #8 ✅)
+**Remaining Tasks (4):**
 - #9 Contact Verification System (2-3 hours)
 - #5 Student Self-View (3-4 hours, depends on #9)
 - #10 LLM Tutor Architecture Hooks (1-2 hours)
@@ -177,6 +176,20 @@ All core admin features implemented and ready for production testing:
 **Context:** All Phase 1 tasks complete. System ready for production MVP deployment.
 
 ---
+
+### Recent Wins (Mar 3 - DoS Hybrid View)
+
+- ✅ **Task #6: DoS Hybrid View (Phase 2C)**:
+  - Created `/dos/dashboard` page with promotion stats, student breakdown by level
+  - Created `/dos/students` list page with level/promotion filtering and search
+  - Created `/dos/students/[id]` detail page with DoSStudentProfile component
+  - DoSStudentProfile: 6 tabs (Overview, Progress, Assessments, Notes, Attendance, Level History)
+  - Inline promotion review with approve/reject actions and notes
+  - Assessment Evidence panel: summative avg, competency rate, attendance, promotion readiness
+  - API routes: `/api/dos/students` (list), `/api/dos/students/[id]` (detail with promotion data)
+  - Added 'dos' and 'assistant_dos' to UserRole type
+  - All routes enforce DoS role access control
+  - Files: dos/dashboard, dos/students, DoSStudentProfile.tsx, dos API routes
 
 ### Recent Wins (Mar 3 - Level Promotion Workflow)
 

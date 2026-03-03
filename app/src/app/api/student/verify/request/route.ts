@@ -78,9 +78,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error requesting verification:', error);
-    return NextResponse.json(
-      { error: 'Failed to request verification' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to request verification' }, { status: 500 });
   }
 }

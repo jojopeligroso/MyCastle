@@ -21,7 +21,9 @@ export default async function DoSStudentDetailPage({ params }: PageProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-red-50 text-red-800 p-4 rounded-lg">
           <h3 className="font-medium">Authentication Error</h3>
-          <p className="text-sm mt-1">Unable to verify your session. Please try logging in again.</p>
+          <p className="text-sm mt-1">
+            Unable to verify your session. Please try logging in again.
+          </p>
         </div>
       </div>
     );

@@ -5,4 +5,8 @@
 
 export { VerificationCodeInput } from './VerificationCodeInput';
 export { ContactChangeForm } from './ContactChangeForm';
-export { PendingVerificationBadge, PendingVerificationInlineBadge } from './PendingVerificationBadge';
+export {
+  PendingVerificationBadge,
+  PendingVerificationInlineBadge,
+} from './PendingVerificationBadge';
+export { StudentProfilePage } from './StudentProfilePage';

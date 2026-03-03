@@ -11,10 +11,7 @@ import { levelPromotions, summativeAssessments, competencyProgress } from '@/db/
 import { eq, and, sql, desc, count, avg, gte } from 'drizzle-orm';
 import { requireAuth, getTenantId } from '@/lib/auth/utils';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAuth(['admin', 'dos', 'assistant_dos']);
     const tenantId = await getTenantId();
@@ -63,12 +60,7 @@ export async function GET(
       })
       .from(enrollments)
       .innerJoin(classes, eq(enrollments.classId, classes.id))
-      .where(
-        and(
-          eq(enrollments.studentId, studentId),
-          eq(enrollments.status, 'active')
-        )
-      )
+      .where(and(eq(enrollments.studentId, studentId), eq(enrollments.status, 'active')))
       .limit(1);
 
     // Get promotion history
@@ -99,9 +91,10 @@ export async function GET(
       .from(competencyProgress)
       .where(eq(competencyProgress.studentId, studentId));
 
-    const competencyRate = competencyStats.total > 0
-      ? Math.round((Number(competencyStats.competent) / Number(competencyStats.total)) * 100)
-      : 0;
+    const competencyRate =
+      competencyStats.total > 0
+        ? Math.round((Number(competencyStats.competent) / Number(competencyStats.total)) * 100)
+        : 0;
 
     // Get summative assessment summary (last 90 days)
     const ninetyDaysAgo = new Date();
