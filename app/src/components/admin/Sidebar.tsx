@@ -26,6 +26,7 @@ const navigation: (NavItem | NavGroup)[] = [
     items: [
       { name: 'Timetable', href: '/admin/timetable' },
       { name: 'Progress', href: '/admin/progress' },
+      { name: 'Level Promotions', href: '/admin/promotions' },
       { name: 'Lesson Planner', href: '/admin/academic/lesson-planner' },
       { name: 'CEFR Descriptors', href: '/admin/curriculum/cefr' },
     ],

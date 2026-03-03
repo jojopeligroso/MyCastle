@@ -1,6 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import useSWR from 'swr';
+import { PromotionRequestForm } from '../PromotionRequestForm';
 
 interface LevelChange {
   id: string;
@@ -28,31 +30,63 @@ interface DiagnosticSession {
   administeredBy: { name: string } | null;
 }
 
+interface EvidenceSummary {
+  summativeScores: Array<{
+    id: string;
+    scorePercentage: number;
+    assessmentDate: string;
+  }>;
+  avgSummativeScore: number | null;
+  competencyStats: {
+    total: number;
+    achieved: number;
+    developing: number;
+    emerging: number;
+  };
+  competencyRate: number | null;
+  meetsThreshold: boolean;
+  strongCandidate: boolean;
+}
+
+interface PromotionData {
+  promotions: LevelChange[];
+  evidence: EvidenceSummary;
+  hasPendingPromotion: boolean;
+}
+
 interface LevelHistoryTabProps {
   studentId: string;
+  studentName?: string;
   currentLevel: string | null;
   initialLevel: string | null;
   levelStatus: 'confirmed' | 'provisional' | 'pending_approval' | null;
   isAdmin?: boolean;
+  canRequestPromotion?: boolean;
 }
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 export function LevelHistoryTab({
   studentId,
+  studentName = 'Student',
   currentLevel,
   initialLevel,
   levelStatus,
   isAdmin = false,
+  canRequestPromotion = true,
 }: LevelHistoryTabProps) {
-  // Fetch level history
+  const [showPromotionForm, setShowPromotionForm] = useState(false);
+
+  // Fetch promotions with evidence
   const {
-    data: levelData,
-    isLoading: levelLoading,
-    error: levelError,
-  } = useSWR<{
-    promotions: LevelChange[];
-  }>(studentId ? `/api/admin/students/${studentId}/level-history` : null, fetcher);
+    data: promotionData,
+    isLoading: promotionLoading,
+    error: promotionError,
+    mutate: mutatePromotions,
+  } = useSWR<PromotionData>(
+    studentId ? `/api/admin/students/${studentId}/promotions` : null,
+    fetcher
+  );
 
   // Fetch diagnostics
   const {
@@ -63,10 +97,17 @@ export function LevelHistoryTab({
     diagnostics: DiagnosticSession[];
   }>(studentId ? `/api/admin/students/${studentId}/diagnostics` : null, fetcher);
 
-  const promotions = levelData?.promotions || [];
+  const promotions = promotionData?.promotions || [];
+  const evidence = promotionData?.evidence;
+  const hasPendingPromotion = promotionData?.hasPendingPromotion || false;
   const diagnostics = diagnosticData?.diagnostics || [];
-  const isLoading = levelLoading || diagnosticLoading;
-  const hasError = levelError || diagnosticError;
+  const isLoading = promotionLoading || diagnosticLoading;
+  const hasError = promotionError || diagnosticError;
+
+  const handlePromotionSuccess = () => {
+    setShowPromotionForm(false);
+    mutatePromotions();
+  };
 
   const getLevelBadgeColor = (level: string | null): string => {
     if (!level) return 'bg-gray-100 text-gray-800';
@@ -200,15 +241,80 @@ export function LevelHistoryTab({
         </div>
       </section>
 
+      {/* Promotion Request Modal */}
+      {showPromotionForm && evidence && currentLevel && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <PromotionRequestForm
+              studentId={studentId}
+              studentName={studentName}
+              currentLevel={currentLevel}
+              evidence={evidence}
+              onSuccess={handlePromotionSuccess}
+              onCancel={() => setShowPromotionForm(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Promotion Suggestion Banner */}
+      {evidence?.strongCandidate && !hasPendingPromotion && canRequestPromotion && currentLevel && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0">
+              <svg className="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h4 className="text-sm font-semibold text-green-800">Ready for Promotion</h4>
+              <p className="text-sm text-green-700 mt-1">
+                This student has an average summative score of{' '}
+                <strong>{evidence.avgSummativeScore?.toFixed(1)}%</strong> (last 90 days), exceeding
+                the 90% threshold for promotion.
+              </p>
+              <button
+                onClick={() => setShowPromotionForm(true)}
+                className="mt-3 inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700"
+              >
+                <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 10l7-7m0 0l7 7m-7-7v18"
+                  />
+                </svg>
+                Request Promotion
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Level Promotion History */}
       <section>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-semibold text-gray-900">Level Change History</h3>
-          {isAdmin && (
-            <button className="px-3 py-1.5 text-xs font-medium text-purple-600 border border-purple-300 rounded hover:bg-purple-50 transition-colors">
-              Manual Level Adjustment
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {canRequestPromotion && currentLevel && !hasPendingPromotion && (
+              <button
+                onClick={() => setShowPromotionForm(true)}
+                className="px-3 py-1.5 text-xs font-medium text-purple-600 border border-purple-300 rounded hover:bg-purple-50 transition-colors"
+              >
+                Request Promotion
+              </button>
+            )}
+            {isAdmin && (
+              <button className="px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-300 rounded hover:bg-gray-50 transition-colors">
+                Manual Adjustment
+              </button>
+            )}
+          </div>
         </div>
 
         {promotions.length === 0 ? (
