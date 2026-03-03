@@ -10,9 +10,22 @@ import Link from 'next/link';
 
 async function getTeachers(tenantId: string) {
   // Get all teachers with their assigned class count
+  // Note: Only select columns that exist in the database to avoid schema mismatch errors
   const teachers = await db
     .select({
-      teacher: users,
+      teacher: {
+        id: users.id,
+        tenantId: users.tenantId,
+        email: users.email,
+        name: users.name,
+        phone: users.phone,
+        avatarUrl: users.avatarUrl,
+        role: users.role,
+        isActive: users.isActive,
+        lastLogin: users.lastLogin,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt,
+      },
       assignedClassesCount: count(classes.id),
     })
     .from(users)
