@@ -7,8 +7,13 @@ import type { User } from '@supabase/supabase-js';
 
 /**
  * User roles in the system
+ * - admin: Full system access
+ * - dos: Director of Studies - can access all students, approve promotions
+ * - assistant_dos: Assistant Director of Studies - same as dos
+ * - teacher: Can access students in their classes
+ * - student: Can access own profile
  */
-export type UserRole = 'admin' | 'teacher' | 'student';
+export type UserRole = 'admin' | 'dos' | 'assistant_dos' | 'teacher' | 'student';
 
 /**
  * Extended user metadata

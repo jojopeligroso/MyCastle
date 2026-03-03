@@ -11,23 +11,19 @@ import { requireAuth, getTenantId } from '@/lib/auth/utils';
 import { alias } from 'drizzle-orm/pg-core';
 import { PromotionReviewList } from '@/components/admin/promotions/PromotionReviewList';
 
-interface PromotionWithDetails {
-  id: string;
-  studentId: string;
-  studentName: string | null;
-  fromLevel: string;
-  toLevel: string;
-  status: string;
-  recommendedAt: Date;
-  recommendationReason: string | null;
-  evidenceSummary: Record<string, unknown> | null;
-  recommenderName: string | null;
-  reviewedAt: Date | null;
-  reviewNotes: string | null;
-  reviewerName: string | null;
-  fromClassName: string | null;
-  currentSummativeAvg: number | null;
+interface EvidenceSummary {
+  avgSummativeScore: number | null;
+  competencyRate: number | null;
+  competencyStats: {
+    total: number;
+    achieved: number;
+    developing: number;
+    emerging: number;
+  };
+  meetsThreshold: boolean;
+  strongCandidate: boolean;
 }
+
 
 async function getPromotions(tenantId: string, status: string = 'pending') {
   // Set RLS context
@@ -71,9 +67,7 @@ async function getPromotions(tenantId: string, status: string = 'pending') {
     .orderBy(desc(levelPromotions.recommendedAt));
 
   // Get summative averages for pending promotions
-  const pendingStudentIds = promotions
-    .filter(p => p.status === 'pending')
-    .map(p => p.studentId);
+  const pendingStudentIds = promotions.filter(p => p.status === 'pending').map(p => p.studentId);
 
   const summativeAverages: Record<string, number> = {};
 
@@ -103,8 +97,9 @@ async function getPromotions(tenantId: string, status: string = 'pending') {
 
   return promotions.map(p => ({
     ...p,
+    evidenceSummary: p.evidenceSummary as EvidenceSummary | null,
     currentSummativeAvg: summativeAverages[p.studentId] || null,
-  })) as PromotionWithDetails[];
+  }));
 }
 
 async function getPromotionCounts(tenantId: string) {
@@ -177,10 +172,7 @@ export default async function PromotionsPage({
       </div>
 
       {/* Promotions List */}
-      <PromotionReviewList
-        promotions={promotions}
-        currentFilter={statusFilter}
-      />
+      <PromotionReviewList promotions={promotions} currentFilter={statusFilter} />
     </div>
   );
 }
