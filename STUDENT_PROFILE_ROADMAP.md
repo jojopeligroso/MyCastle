@@ -2,8 +2,8 @@
 
 **Created:** 2026-03-02
 **Updated:** 2026-03-03
-**Status:** Phase 2B Teacher Workflow In Progress
-**Completed:** 15/23 tasks (65%)
+**Status:** Phase 2C Role-Specific Views In Progress
+**Completed:** 17/23 tasks (74%)
 
 **Reference:** See `STUDENT_PROFILE_DISCOVERY.md` for full requirements
 
@@ -28,8 +28,10 @@
 | #17 | Wire up AuditTrailTab | 35ae915 |
 | #18 | Schema Updates (FRESH_0028) - Phase 2A | 7482ce7 |
 | #19 | CEFR Descriptor Importer (File A + B) | 7482ce7 |
-| #21 | Learning Objectives UI (Phase 2B) | pending |
+| #21 | Learning Objectives UI (Phase 2B) | 28688cd |
 | #22 | Update Assessment Form (Phase 2B) | 874ca45 |
+| #23 | Summative Assessment UI (Phase 2B) | 463b679 |
+| #4 | Teacher Profile View (Phase 2C) | d25394a |
 
 ### What's Built
 
@@ -193,22 +195,23 @@
 
 ### Phase 2C: Role-Specific Views
 
-#### Task #4: Teacher Profile View
-**Estimate:** 2-3 hours | **Dependencies:** #21, #22 | **Token budget:** ~40k
+#### Task #4: Teacher Profile View ✅ COMPLETE
+**Estimate:** 2-3 hours | **Dependencies:** #21 ✅, #22 ✅ | **Token budget:** ~40k
+**Completed:** 2026-03-03
 
-**Subtasks:**
-1. Create TeacherStudentProfile component (45 min)
-2. Create class-scope middleware/hook (30 min)
-3. Create teacher-specific API routes (45 min)
-4. Adapt existing tabs for teacher context (30 min)
-5. Add teacher route/page (30 min)
+**What was done:**
+1. ✅ Created TeacherStudentProfile component with tabs (Overview, Progress, Notes, Attendance, Level History)
+2. ✅ Created class-scope utilities: `canTeacherAccessStudent()`, `getAccessibleStudentIds()`, `getSharedClasses()`
+3. ✅ Created teacher API routes: `/api/teacher/students/[id]/{route, notes, progress, assessments}`
+4. ✅ Adapted existing tabs with `isTeacher=true` and `canViewSensitiveNotes=false` props
+5. ✅ Created `/teacher/students` list page and `/teacher/students/[id]` detail page
 
 **Acceptance Criteria:**
-- [ ] Teachers see only students in their current classes
-- [ ] No access to sensitive PII (contact, visa, address)
-- [ ] Can view competency progress and skill gaps
-- [ ] Can add notes (private or shareable)
-- [ ] Cannot see audit trail
+- [x] Teachers see only students in their current classes
+- [x] No access to sensitive PII (contact, visa, address)
+- [x] Can view competency progress and skill gaps
+- [x] Can add notes (general, academic, behavioral - not medical/pastoral)
+- [x] Cannot see audit trail
 
 ---
 
