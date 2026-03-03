@@ -3,7 +3,7 @@
 **Created:** 2026-03-02
 **Updated:** 2026-03-03
 **Status:** Phase 2B Teacher Workflow In Progress
-**Completed:** 14/23 tasks (61%)
+**Completed:** 15/23 tasks (65%)
 
 **Reference:** See `STUDENT_PROFILE_DISCOVERY.md` for full requirements
 
@@ -28,7 +28,8 @@
 | #17 | Wire up AuditTrailTab | 35ae915 |
 | #18 | Schema Updates (FRESH_0028) - Phase 2A | 7482ce7 |
 | #19 | CEFR Descriptor Importer (File A + B) | 7482ce7 |
-| #22 | Update Assessment Form (Phase 2B) | pending |
+| #21 | Learning Objectives UI (Phase 2B) | pending |
+| #22 | Update Assessment Form (Phase 2B) | 874ca45 |
 
 ### What's Built
 
@@ -55,10 +56,14 @@
 - `EnhancedNotesTab` - Notes with visibility, create/share
 - `AuditTrailTab` - Timeline of profile changes
 - `AssessmentForm` - Record CEFR assessments
+- `LearningObjectiveSelector` - Session learning objectives (CEFR/textbook/custom)
+
+**API Routes (9 endpoints):**
+- `/api/admin/sessions/[sessionId]/objectives` - Session learning objectives CRUD
 
 ---
 
-## Remaining Tasks (9)
+## Remaining Tasks (8)
 
 ### Phase 2A: Schema & Data (Discovery-driven) ✅ COMPLETE
 
@@ -126,22 +131,25 @@
 
 ### Phase 2B: Teacher Workflow
 
-#### Task #21: Learning Objectives UI
+#### Task #21: Learning Objectives UI ✅ COMPLETE
 **Estimate:** 2-3 hours | **Dependencies:** #18, #19, #20 | **Token budget:** ~45k
+**Completed:** 2026-03-03
 
-**Subtasks:**
-1. Create `LearningObjectiveSelector` component (45 min)
-2. Add to class session planning view (30 min)
-3. Filter descriptors by class level range (20 min)
-4. Support primary (max 2) and secondary (max 6) objectives (30 min)
-5. Show coursebook suggestions based on class's primary book (30 min)
+**What was done:**
+1. ✅ Created `LearningObjectiveSelector` component with 3 tabs (CEFR, Textbook, Custom)
+2. ✅ Created session planning page at `/admin/classes/[id]/sessions/[sessionId]`
+3. ✅ Level filtering (current ± 1 adjacent levels), skill filtering, search
+4. ✅ Primary (max 2) and secondary (max 6) objectives with soft limits
+5. ✅ Page references shown for textbook descriptors
+6. ✅ API route: GET/PUT `/api/admin/sessions/[sessionId]/objectives`
+7. ✅ Updated class detail page with "Upcoming Sessions" section
 
 **Acceptance Criteria:**
-- [ ] Teacher can select descriptors for each session
-- [ ] Filtered by appropriate level range
-- [ ] Primary/secondary distinction enforced
-- [ ] Shows coursebook page references when available
-- [ ] Soft limits enforced (2 primary, 6 secondary)
+- [x] Teacher can select descriptors for each session
+- [x] Filtered by appropriate level range
+- [x] Primary/secondary distinction enforced
+- [x] Shows coursebook page references when available
+- [x] Soft limits enforced (2 primary, 6 secondary)
 
 ---
 

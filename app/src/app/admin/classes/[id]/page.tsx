@@ -3,8 +3,8 @@
  */
 
 import { db } from '@/db';
-import { classes, users, enrollments, students } from '@/db/schema';
-import { eq, and, sql } from 'drizzle-orm';
+import { classes, users, enrollments, students, classSessions } from '@/db/schema';
+import { eq, and, sql, gte, asc } from 'drizzle-orm';
 import { requireAuth, getTenantId } from '@/lib/auth/utils';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
@@ -48,6 +48,32 @@ async function getEnrolledStudents(classId: string) {
   return result;
 }
 
+async function getUpcomingSessions(classId: string, tenantId: string) {
+  const today = new Date().toISOString().split('T')[0];
+
+  const result = await db
+    .select({
+      id: classSessions.id,
+      sessionDate: classSessions.sessionDate,
+      startTime: classSessions.startTime,
+      endTime: classSessions.endTime,
+      topic: classSessions.topic,
+      status: classSessions.status,
+    })
+    .from(classSessions)
+    .where(
+      and(
+        eq(classSessions.classId, classId),
+        eq(classSessions.tenantId, tenantId),
+        gte(classSessions.sessionDate, today)
+      )
+    )
+    .orderBy(asc(classSessions.sessionDate))
+    .limit(5);
+
+  return result;
+}
+
 export default async function ClassDetailPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAuth();
   const { id } = await params;
@@ -64,6 +90,7 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ id
   }
 
   const enrolledStudents = await getEnrolledStudents(id);
+  const upcomingSessions = await getUpcomingSessions(id, tenantId);
 
   const { class: cls, teacher } = classData;
   const enrollmentPercentage = Math.round((enrolledStudents.length / cls.capacity) * 100);
@@ -166,6 +193,82 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ id
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <dt className="text-sm font-medium text-gray-500">Description</dt>
                 <dd className="mt-1 text-sm text-gray-900">{cls.description}</dd>
+              </div>
+            )}
+          </div>
+
+          {/* Upcoming Sessions */}
+          <div className="bg-white shadow rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">Upcoming Sessions</h2>
+              <Link
+                href={`/admin/attendance?classId=${cls.id}`}
+                className="text-sm text-purple-600 hover:text-purple-800"
+              >
+                View All Sessions →
+              </Link>
+            </div>
+
+            {upcomingSessions.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">No upcoming sessions scheduled</p>
+            ) : (
+              <div className="space-y-3">
+                {upcomingSessions.map(session => {
+                  const sessionDate = new Date(session.sessionDate);
+                  const isToday = sessionDate.toDateString() === new Date().toDateString();
+                  const startTime = session.startTime?.toString().slice(0, 5) || '--:--';
+                  const endTime = session.endTime?.toString().slice(0, 5) || '--:--';
+
+                  return (
+                    <div
+                      key={session.id}
+                      className={`flex items-center justify-between p-3 rounded-lg border ${
+                        isToday ? 'bg-purple-50 border-purple-200' : 'bg-gray-50 border-gray-200'
+                      }`}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="text-center min-w-[60px]">
+                          <div className="text-xs text-gray-500 uppercase">
+                            {sessionDate.toLocaleDateString('en-IE', { weekday: 'short' })}
+                          </div>
+                          <div className="text-lg font-bold text-gray-900">
+                            {sessionDate.getDate()}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {sessionDate.toLocaleDateString('en-IE', { month: 'short' })}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {startTime} - {endTime}
+                          </div>
+                          {session.topic && (
+                            <div className="text-xs text-gray-500">{session.topic}</div>
+                          )}
+                          {isToday && (
+                            <span className="inline-flex items-center px-2 py-0.5 mt-1 text-xs font-medium bg-purple-100 text-purple-800 rounded">
+                              Today
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Link
+                          href={`/admin/classes/${cls.id}/sessions/${session.id}`}
+                          className="px-3 py-1.5 text-xs font-medium text-purple-700 bg-purple-100 rounded hover:bg-purple-200"
+                        >
+                          Plan
+                        </Link>
+                        <Link
+                          href={`/admin/attendance/${session.id}`}
+                          className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 rounded hover:bg-gray-200"
+                        >
+                          Attendance
+                        </Link>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -300,6 +403,12 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ id
                 className="block w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
               >
                 Manage Enrollments
+              </Link>
+              <Link
+                href="/admin/curriculum/cefr"
+                className="block w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
+              >
+                Browse CEFR Descriptors
               </Link>
             </div>
           </div>
