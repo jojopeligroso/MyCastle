@@ -75,7 +75,9 @@ export function ContactChangeForm({
       }
 
       const minutes = Math.ceil((expiresAt.getTime() - now.getTime()) / 60000);
-      setTimeRemaining(minutes > 60 ? `${Math.floor(minutes / 60)}h ${minutes % 60}m` : `${minutes}m`);
+      setTimeRemaining(
+        minutes > 60 ? `${Math.floor(minutes / 60)}h ${minutes % 60}m` : `${minutes}m`
+      );
     };
 
     updateExpiry();
@@ -187,13 +189,9 @@ export function ContactChangeForm({
       {step === 'input' ? (
         <form onSubmit={handleRequestVerification} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              New {getLabel()}
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">New {getLabel()}</label>
             {currentValue && (
-              <p className="text-sm text-gray-500 mb-2">
-                Current: {maskValue(currentValue)}
-              </p>
+              <p className="text-sm text-gray-500 mb-2">Current: {maskValue(currentValue)}</p>
             )}
             <input
               type={getInputType()}
@@ -242,9 +240,7 @@ export function ContactChangeForm({
             <p className="text-sm text-gray-500 mt-1">
               We sent a 6-digit code to {verification?.maskedValue}
             </p>
-            <p className="text-xs text-gray-400 mt-1">
-              Code expires in {timeRemaining}
-            </p>
+            <p className="text-xs text-gray-400 mt-1">Code expires in {timeRemaining}</p>
           </div>
 
           <VerificationCodeInput

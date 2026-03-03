@@ -2,8 +2,8 @@
 
 **Created:** 2026-03-02
 **Updated:** 2026-03-03
-**Status:** Phase 2C Role-Specific Views In Progress
-**Completed:** 19/23 tasks (83%)
+**Status:** Phase 2D Student & Verification Complete
+**Completed:** 20/23 tasks (87%)
 
 **Reference:** See `STUDENT_PROFILE_DISCOVERY.md` for full requirements
 
@@ -34,6 +34,7 @@
 | #4 | Teacher Profile View (Phase 2C) | d25394a |
 | #6 | DoS Hybrid View (Phase 2C) | b85f4be |
 | #9 | Contact Verification System (Phase 2D) | pending |
+| #5 | Student Self-View (Phase 2D) | pending |
 
 ### What's Built
 
@@ -65,16 +66,26 @@
 - `DoSStudentProfile` - DoS-specific student profile with promotion approval
 - `PromotionReviewList` - Promotion review interface with evidence display
 
-**API Routes (12 endpoints):**
+**API Routes (16 endpoints):**
 - `/api/admin/sessions/[sessionId]/objectives` - Session learning objectives CRUD
 - `/api/teacher/students` - List students in teacher's classes
 - `/api/teacher/students/[id]` - Teacher student profile
 - `/api/dos/students` - List all students (org-wide for DoS)
 - `/api/dos/students/[id]` - DoS student profile with promotion data
+- `/api/student/profile` - Student's own profile (GET)
+- `/api/student/profile/update` - Update profile (name/avatar)
+- `/api/student/assessments` - Shared assessments (GET)
+- `/api/student/notes` - Shared notes (GET)
+
+**Student Components:**
+- `StudentProfilePage` - Mobile-first student profile with tabs
+- `VerificationCodeInput` - 6-digit code input
+- `ContactChangeForm` - Email/phone verification flow
+- `PendingVerificationBadge` - Verification status badges
 
 ---
 
-## Remaining Tasks (4)
+## Remaining Tasks (3)
 
 ### Phase 2A: Schema & Data (Discovery-driven) ✅ COMPLETE
 
@@ -296,23 +307,25 @@
 
 ---
 
-#### Task #5: Student Self-View
-**Estimate:** 3-4 hours | **Dependencies:** #9 | **Token budget:** ~50k
+#### Task #5: Student Self-View ✅ COMPLETE
+**Estimate:** 3-4 hours | **Dependencies:** #9 ✅ | **Token budget:** ~50k
+**Completed:** 2026-03-03
 
-**Subtasks:**
-1. Create StudentProfilePage component (1 hour)
-2. Create self-service edit forms (45 min)
-3. Create student-specific API routes (45 min)
-4. Show only teacher-shared assessments/notes (30 min)
-5. Add diagnostic history section (30 min)
-6. Handle empty states (30 min)
+**What was done:**
+1. ✅ Created student profile API routes (`/api/student/profile`, `/api/student/profile/update`)
+2. ✅ Created student assessments API (`/api/student/assessments`) - only shared assessments
+3. ✅ Created student notes API (`/api/student/notes`) - only shared notes
+4. ✅ Created StudentProfilePage component with mobile-first tabs (Overview, Progress, Assessments, Notes, History)
+5. ✅ Integrated ContactChangeForm for email/phone verification flow
+6. ✅ Created student profile page at `/student/profile`
+7. ✅ Level journey timeline visualization with diagnostic history
 
 **Acceptance Criteria:**
-- [ ] Students can only view their own profile
-- [ ] Can edit email/phone with verification flow
-- [ ] Can see only explicitly shared notes/assessments
-- [ ] Can see diagnostic history and level progression
-- [ ] Mobile-first UI with proper touch targets
+- [x] Students can only view their own profile
+- [x] Can edit email/phone with verification flow
+- [x] Can see only explicitly shared notes/assessments
+- [x] Can see diagnostic history and level progression
+- [x] Mobile-first UI with proper touch targets
 
 ---
 
@@ -377,7 +390,7 @@ Phase 2E: Future (independent)
 | 11 | #5 Student Self-View | 3-4h | - |
 | 12 | #10 LLM Tutor Hooks | 1-2h | - |
 
-**Total Remaining:** ~24-32 hours
+**Total Remaining:** ~7-10 hours (3 tasks: #8, #10, #20)
 
 ---
 
@@ -418,6 +431,19 @@ app/
 │   ├── app/teacher/students/
 │   │   ├── page.tsx                  # NEW - Teacher students list
 │   │   └── [id]/page.tsx             # NEW - Teacher student detail page
+│   ├── app/student/profile/
+│   │   └── page.tsx                  # NEW - Student self-view page
+│   ├── app/api/student/
+│   │   ├── profile/
+│   │   │   ├── route.ts              # NEW - Student profile GET
+│   │   │   └── update/route.ts       # NEW - Student profile update
+│   │   ├── assessments/route.ts      # NEW - Shared assessments
+│   │   ├── notes/route.ts            # NEW - Shared notes
+│   │   └── verify/
+│   │       ├── request/route.ts      # NEW - Request verification
+│   │       ├── confirm/route.ts      # NEW - Confirm verification
+│   │       ├── pending/route.ts      # NEW - List pending
+│   │       └── [id]/cancel/route.ts  # NEW - Cancel verification
 │   ├── components/admin/students/
 │   │   ├── tabs/
 │   │   │   ├── LevelHistoryTab.tsx
@@ -434,6 +460,14 @@ app/
 │   ├── components/dos/
 │   │   ├── DoSStudentProfile.tsx     # NEW - DoS profile component
 │   │   └── index.ts
+│   ├── components/student/
+│   │   ├── StudentProfilePage.tsx    # NEW - Student self-view component
+│   │   ├── VerificationCodeInput.tsx # NEW - 6-digit code input
+│   │   ├── ContactChangeForm.tsx     # NEW - Email/phone verification
+│   │   ├── PendingVerificationBadge.tsx # NEW - Verification badges
+│   │   └── index.ts
+│   ├── lib/verification/
+│   │   └── index.ts                  # NEW - Verification utilities
 │   ├── lib/teachers/
 │   │   ├── canAccessStudent.ts       # NEW - Teacher access control utilities
 │   │   └── index.ts

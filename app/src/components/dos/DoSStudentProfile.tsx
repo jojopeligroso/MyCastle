@@ -105,10 +105,12 @@ export function DoSStudentProfile({ studentId, dosUserId }: DoSStudentProfilePro
   const [error, setError] = useState<string | null>(null);
 
   // Fetch student data from DoS API
-  const { data, isLoading, error: fetchError, mutate } = useSWR<StudentData>(
-    `/api/dos/students/${studentId}`,
-    fetcher
-  );
+  const {
+    data,
+    isLoading,
+    error: fetchError,
+    mutate,
+  } = useSWR<StudentData>(`/api/dos/students/${studentId}`, fetcher);
 
   const tabs: { id: TabId; label: string; icon: React.ReactNode }[] = [
     {
@@ -516,7 +518,9 @@ function DoSOverviewTab({
           </div>
           <div className="bg-blue-50 rounded-lg p-4">
             <p className="text-sm text-blue-600">Competency Progress</p>
-            <p className="text-2xl font-semibold text-blue-700">{assessmentSummary.competencyRate}%</p>
+            <p className="text-2xl font-semibold text-blue-700">
+              {assessmentSummary.competencyRate}%
+            </p>
             <p className="text-xs text-blue-500 mt-1">
               {assessmentSummary.competencyAchieved} / {assessmentSummary.competencyTotal} achieved
             </p>
@@ -655,7 +659,9 @@ function DoSOverviewTab({
             </div>
             <div>
               <dt className="text-sm text-gray-500">Student Number</dt>
-              <dd className="text-sm font-medium text-gray-900">{student.studentNumber || 'N/A'}</dd>
+              <dd className="text-sm font-medium text-gray-900">
+                {student.studentNumber || 'N/A'}
+              </dd>
             </div>
             <div>
               <dt className="text-sm text-gray-500">Current Class</dt>
