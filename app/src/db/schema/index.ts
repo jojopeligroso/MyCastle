@@ -30,3 +30,6 @@ export * from './imports';
 
 // Profile schema (Student Profile feature - notes, assessments, diagnostics, promotions)
 export * from './profile';
+
+// Documents schema (Document management, emergency contacts, notifications, letter templates)
+export * from './documents';
