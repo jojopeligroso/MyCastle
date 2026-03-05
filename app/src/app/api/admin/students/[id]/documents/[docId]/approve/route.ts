@@ -36,11 +36,7 @@ export async function POST(
     // Verify document exists and is pending
     const document = await db.query.studentDocuments.findFirst({
       where: (docs, { and, eq }) =>
-        and(
-          eq(docs.id, docId),
-          eq(docs.studentId, studentId),
-          eq(docs.tenantId, tenantId)
-        ),
+        and(eq(docs.id, docId), eq(docs.studentId, studentId), eq(docs.tenantId, tenantId)),
     });
 
     if (!document) {
@@ -61,14 +57,9 @@ export async function POST(
         approvalStatus: 'approved',
         reviewedBy: userId,
         reviewedAt: new Date(),
-        rejectionReason: null,  // Clear any previous rejection reason
+        rejectionReason: null, // Clear any previous rejection reason
       })
-      .where(
-        and(
-          eq(studentDocuments.id, docId),
-          eq(studentDocuments.tenantId, tenantId)
-        )
-      )
+      .where(and(eq(studentDocuments.id, docId), eq(studentDocuments.tenantId, tenantId)))
       .returning();
 
     // TODO: Create audit log entry
@@ -80,9 +71,6 @@ export async function POST(
     });
   } catch (error) {
     console.error('Error approving document:', error);
-    return NextResponse.json(
-      { error: 'Failed to approve document' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to approve document' }, { status: 500 });
   }
 }

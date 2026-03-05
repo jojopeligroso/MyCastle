@@ -58,19 +58,13 @@ export async function GET(
     });
 
     if (!contact) {
-      return NextResponse.json(
-        { error: 'Emergency contact not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Emergency contact not found' }, { status: 404 });
     }
 
     return NextResponse.json({ contact });
   } catch (error) {
     console.error('Error fetching emergency contact:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch emergency contact' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch emergency contact' }, { status: 500 });
   }
 }
 
@@ -119,20 +113,18 @@ export async function PATCH(
     });
 
     if (!existing) {
-      return NextResponse.json(
-        { error: 'Emergency contact not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Emergency contact not found' }, { status: 404 });
     }
 
     // If priority is changing, check if new priority is available
     if (data.priority !== undefined && data.priority !== existing.priority) {
+      const newPriority = data.priority; // TypeScript narrowing
       const priorityTaken = await db.query.emergencyContacts.findFirst({
         where: (contacts, { and, eq }) =>
           and(
             eq(contacts.studentId, studentId),
             eq(contacts.tenantId, tenantId),
-            eq(contacts.priority, data.priority)
+            eq(contacts.priority, newPriority)
           ),
       });
 
@@ -170,12 +162,7 @@ export async function PATCH(
     const [updated] = await db
       .update(emergencyContacts)
       .set(updateData)
-      .where(
-        and(
-          eq(emergencyContacts.id, contactId),
-          eq(emergencyContacts.tenantId, tenantId)
-        )
-      )
+      .where(and(eq(emergencyContacts.id, contactId), eq(emergencyContacts.tenantId, tenantId)))
       .returning();
 
     // TODO: Create audit log entry
@@ -199,10 +186,7 @@ export async function PATCH(
       );
     }
 
-    return NextResponse.json(
-      { error: 'Failed to update emergency contact' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to update emergency contact' }, { status: 500 });
   }
 }
 
@@ -237,21 +221,13 @@ export async function DELETE(
     });
 
     if (!existing) {
-      return NextResponse.json(
-        { error: 'Emergency contact not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Emergency contact not found' }, { status: 404 });
     }
 
     // Hard delete (emergency contacts don't need soft delete)
     await db
       .delete(emergencyContacts)
-      .where(
-        and(
-          eq(emergencyContacts.id, contactId),
-          eq(emergencyContacts.tenantId, tenantId)
-        )
-      );
+      .where(and(eq(emergencyContacts.id, contactId), eq(emergencyContacts.tenantId, tenantId)));
 
     // TODO: Create audit log entry
     // TODO: Send notification/alert if student now has <2 contacts
@@ -262,9 +238,6 @@ export async function DELETE(
     });
   } catch (error) {
     console.error('Error deleting emergency contact:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete emergency contact' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to delete emergency contact' }, { status: 500 });
   }
 }

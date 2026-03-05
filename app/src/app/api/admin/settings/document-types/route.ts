@@ -23,9 +23,7 @@ const createDocumentTypeSchema = z.object({
   adminCanUpload: z.boolean().optional().default(true),
   studentCanUpload: z.boolean().optional().default(false),
   requiresApproval: z.boolean().optional().default(false),
-  defaultVisibility: z
-    .enum(['admin_only', 'staff_only', 'student_can_view'])
-    .default('admin_only'),
+  defaultVisibility: z.enum(['admin_only', 'staff_only', 'student_can_view']).default('admin_only'),
   requiresExpiry: z.boolean().optional().default(false),
   expiryAlertDays: z.array(z.number().int().min(1).max(365)).optional().default([60, 30]),
   isRequired: z.boolean().optional().default(false),
@@ -54,11 +52,7 @@ export async function GET(_request: NextRequest) {
       .select()
       .from(documentTypes)
       .where(eq(documentTypes.tenantId, tenantId))
-      .orderBy(
-        documentTypes.category,
-        documentTypes.displayOrder,
-        desc(documentTypes.createdAt)
-      );
+      .orderBy(documentTypes.category, documentTypes.displayOrder, desc(documentTypes.createdAt));
 
     // Group types by category
     const groupedByCategory = types.reduce(
@@ -96,10 +90,7 @@ export async function GET(_request: NextRequest) {
     });
   } catch (error) {
     console.error('Error fetching document types:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch document types' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch document types' }, { status: 500 });
   }
 }
 
@@ -135,8 +126,7 @@ export async function POST(request: NextRequest) {
 
     // Check for duplicate name within tenant
     const existing = await db.query.documentTypes.findFirst({
-      where: (dt, { and, eq }) =>
-        and(eq(dt.tenantId, tenantId), eq(dt.name, data.name)),
+      where: (dt, { and, eq }) => and(eq(dt.tenantId, tenantId), eq(dt.name, data.name)),
     });
 
     if (existing) {
@@ -201,9 +191,6 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error('Error creating document type:', error);
-    return NextResponse.json(
-      { error: 'Failed to create document type' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to create document type' }, { status: 500 });
   }
 }

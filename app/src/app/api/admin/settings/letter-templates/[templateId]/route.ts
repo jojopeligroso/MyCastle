@@ -60,10 +60,7 @@ export async function GET(
     });
 
     if (!template) {
-      return NextResponse.json(
-        { error: 'Letter template not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Letter template not found' }, { status: 404 });
     }
 
     // Get usage count (how many letters have been generated with this template)
@@ -80,10 +77,7 @@ export async function GET(
     });
   } catch (error) {
     console.error('Error fetching letter template:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch letter template' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch letter template' }, { status: 500 });
   }
 }
 
@@ -128,10 +122,7 @@ export async function PATCH(
     });
 
     if (!existing) {
-      return NextResponse.json(
-        { error: 'Letter template not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Letter template not found' }, { status: 404 });
     }
 
     // Build update object
@@ -148,33 +139,27 @@ export async function PATCH(
 
     // If custom placeholders are being updated, merge with common ones
     if (data.customPlaceholders !== undefined) {
-      const commonPlaceholders = existing.availablePlaceholders.filter(
-        (p: any) =>
-          [
-            '{{student_name}}',
-            '{{student_first_name}}',
-            '{{class_name}}',
-            '{{school_name}}',
-            '{{current_date}}',
-          ].includes(p.key)
+      const commonPlaceholders = existing.availablePlaceholders.filter((p: any) =>
+        [
+          '{{student_name}}',
+          '{{student_first_name}}',
+          '{{class_name}}',
+          '{{school_name}}',
+          '{{current_date}}',
+        ].includes(p.key)
       );
 
-      updateData.availablePlaceholders = [
-        ...commonPlaceholders,
-        ...data.customPlaceholders,
-      ];
+      updateData.availablePlaceholders = [...commonPlaceholders, ...data.customPlaceholders];
     }
 
     // Validate content placeholders if content is being updated
     if (data.content !== undefined) {
       const contentPlaceholders = data.content.match(/\{\{[^}]+\}\}/g) || [];
-      const definedKeys = (
-        updateData.availablePlaceholders || existing.availablePlaceholders
-      ).map((p: any) => p.key);
-
-      const undefinedPlaceholders = contentPlaceholders.filter(
-        p => !definedKeys.includes(p)
+      const definedKeys = (updateData.availablePlaceholders || existing.availablePlaceholders).map(
+        (p: any) => p.key
       );
+
+      const undefinedPlaceholders = contentPlaceholders.filter(p => !definedKeys.includes(p));
 
       if (undefinedPlaceholders.length > 0) {
         return NextResponse.json(
@@ -192,12 +177,7 @@ export async function PATCH(
     const [updated] = await db
       .update(letterTemplates)
       .set(updateData)
-      .where(
-        and(
-          eq(letterTemplates.id, templateId),
-          eq(letterTemplates.tenantId, tenantId)
-        )
-      )
+      .where(and(eq(letterTemplates.id, templateId), eq(letterTemplates.tenantId, tenantId)))
       .returning();
 
     // TODO: Create audit log entry
@@ -208,10 +188,7 @@ export async function PATCH(
     });
   } catch (error) {
     console.error('Error updating letter template:', error);
-    return NextResponse.json(
-      { error: 'Failed to update letter template' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to update letter template' }, { status: 500 });
   }
 }
 
@@ -242,10 +219,7 @@ export async function DELETE(
     });
 
     if (!existing) {
-      return NextResponse.json(
-        { error: 'Letter template not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Letter template not found' }, { status: 404 });
     }
 
     // Check if template has been used
@@ -262,12 +236,7 @@ export async function DELETE(
           isActive: false,
           updatedAt: new Date(),
         })
-        .where(
-          and(
-            eq(letterTemplates.id, templateId),
-            eq(letterTemplates.tenantId, tenantId)
-          )
-        );
+        .where(and(eq(letterTemplates.id, templateId), eq(letterTemplates.tenantId, tenantId)));
 
       return NextResponse.json({
         message: 'Letter template deactivated (has been used)',
@@ -279,12 +248,7 @@ export async function DELETE(
     // Hard delete if never used
     await db
       .delete(letterTemplates)
-      .where(
-        and(
-          eq(letterTemplates.id, templateId),
-          eq(letterTemplates.tenantId, tenantId)
-        )
-      );
+      .where(and(eq(letterTemplates.id, templateId), eq(letterTemplates.tenantId, tenantId)));
 
     // TODO: Create audit log entry
 
@@ -293,9 +257,6 @@ export async function DELETE(
     });
   } catch (error) {
     console.error('Error deleting letter template:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete letter template' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to delete letter template' }, { status: 500 });
   }
 }

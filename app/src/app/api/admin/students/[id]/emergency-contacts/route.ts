@@ -22,7 +22,6 @@ const createEmergencyContactSchema = z.object({
   phone: z.string().min(1, 'Phone is required').max(50),
   email: z.string().email().optional().or(z.literal('')),
   address: z.string().optional(),
-  isLegalGuardian: z.boolean().optional().default(false),
   priority: z.number().int().min(1).max(2), // 1=primary, 2=secondary
   notes: z.string().optional(),
 });
@@ -31,10 +30,7 @@ const createEmergencyContactSchema = z.object({
 // GET - List all emergency contacts for student
 // ============================================================================
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAuth(['admin', 'dos', 'teacher']);
     const tenantId = await getTenantId();
@@ -52,10 +48,7 @@ export async function GET(
       .select()
       .from(emergencyContacts)
       .where(
-        and(
-          eq(emergencyContacts.studentId, studentId),
-          eq(emergencyContacts.tenantId, tenantId)
-        )
+        and(eq(emergencyContacts.studentId, studentId), eq(emergencyContacts.tenantId, tenantId))
       )
       .orderBy(asc(emergencyContacts.priority));
 
@@ -74,10 +67,7 @@ export async function GET(
     });
   } catch (error) {
     console.error('Error fetching emergency contacts:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch emergency contacts' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch emergency contacts' }, { status: 500 });
   }
 }
 
@@ -85,10 +75,7 @@ export async function GET(
 // POST - Add new emergency contact
 // ============================================================================
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAuth(['admin', 'dos']);
     const tenantId = await getTenantId();
@@ -117,15 +104,11 @@ export async function POST(
 
     // Verify student exists and belongs to tenant
     const student = await db.query.users.findFirst({
-      where: (users, { and, eq }) =>
-        and(eq(users.id, studentId), eq(users.tenantId, tenantId)),
+      where: (users, { and, eq }) => and(eq(users.id, studentId), eq(users.tenantId, tenantId)),
     });
 
     if (!student) {
-      return NextResponse.json(
-        { error: 'Student not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Student not found' }, { status: 404 });
     }
 
     // Check if max contacts (2) already exists
@@ -133,10 +116,7 @@ export async function POST(
       .select()
       .from(emergencyContacts)
       .where(
-        and(
-          eq(emergencyContacts.studentId, studentId),
-          eq(emergencyContacts.tenantId, tenantId)
-        )
+        and(eq(emergencyContacts.studentId, studentId), eq(emergencyContacts.tenantId, tenantId))
       );
 
     if (existingContacts.length >= 2) {
@@ -175,7 +155,6 @@ export async function POST(
         phone: data.phone,
         email: data.email || null,
         address: data.address || null,
-        isLegalGuardian: data.isLegalGuardian,
         priority: data.priority,
         isPrimary,
         notes: data.notes || null,
@@ -206,9 +185,6 @@ export async function POST(
       );
     }
 
-    return NextResponse.json(
-      { error: 'Failed to create emergency contact' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to create emergency contact' }, { status: 500 });
   }
 }

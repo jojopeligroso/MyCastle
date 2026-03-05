@@ -146,11 +146,13 @@ WITH CHECK (
 ## 📁 Step 3: Folder Structure Convention
 
 **Path Format:**
+
 ```
 {tenant_id}/{student_id}/{timestamp}_{filename}
 ```
 
 **Example:**
+
 ```
 550e8400-e29b-41d4-a716-446655440000/  (tenant_id)
 └── 660e9500-f30c-52e5-b827-557766551111/  (student_id)
@@ -162,6 +164,7 @@ WITH CHECK (
 **Timestamp Format:** `YYYYMMdd_HHmmss`
 
 **Filename Sanitization:**
+
 - Remove spaces → underscore
 - Lowercase
 - Remove special characters (except underscore, hyphen, period)
@@ -172,6 +175,7 @@ WITH CHECK (
 ## 🧪 Step 4: Test Storage Access
 
 ### Test 1: Admin Upload
+
 ```typescript
 import { createClient } from '@supabase/supabase-js';
 
@@ -181,7 +185,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 await supabase.rpc('set_user_context', {
   p_user_id: adminUserId,
   p_tenant_id: tenantId,
-  p_role: 'admin'
+  p_role: 'admin',
 });
 
 // Upload file
@@ -189,38 +193,34 @@ const file = new File(['test content'], 'test.pdf', { type: 'application/pdf' })
 const timestamp = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15);
 const path = `${tenantId}/${studentId}/${timestamp}_test.pdf`;
 
-const { data, error } = await supabase.storage
-  .from('student-documents')
-  .upload(path, file);
+const { data, error } = await supabase.storage.from('student-documents').upload(path, file);
 
 console.log('Upload result:', data, error);
 ```
 
 ### Test 2: Student Read (Shared Document)
+
 ```typescript
 // Set RLS context for student
 await supabase.rpc('set_user_context', {
   p_user_id: studentId,
   p_tenant_id: tenantId,
-  p_role: 'student'
+  p_role: 'student',
 });
 
 // Try to download shared document
-const { data, error } = await supabase.storage
-  .from('student-documents')
-  .download(path);
+const { data, error } = await supabase.storage.from('student-documents').download(path);
 
 console.log('Download result:', data ? 'Success' : 'Failed', error);
 ```
 
 ### Test 3: Verify Tenant Isolation
+
 ```typescript
 // Try to access another tenant's document (should fail)
 const wrongTenantPath = `${otherTenantId}/${studentId}/${timestamp}_test.pdf`;
 
-const { data, error } = await supabase.storage
-  .from('student-documents')
-  .download(wrongTenantPath);
+const { data, error } = await supabase.storage.from('student-documents').download(wrongTenantPath);
 
 console.log('Should fail:', error); // Expected: RLS policy violation
 ```
@@ -230,18 +230,22 @@ console.log('Should fail:', error); // Expected: RLS policy violation
 ## 🚨 Troubleshooting
 
 ### Error: "new row violates row-level security policy"
+
 - **Cause:** RLS context not set before operation
 - **Solution:** Call `set_user_context()` before every storage operation
 
 ### Error: "File size exceeds limit"
+
 - **Cause:** File > 25MB
 - **Solution:** Check file size on client before upload, show error to user
 
 ### Error: "MIME type not allowed"
+
 - **Cause:** Uploading unsupported file type
 - **Solution:** Validate file extension/MIME type before upload
 
 ### Storage fills up too quickly
+
 - **Monitor:** Check Supabase dashboard → Storage → Usage
 - **Solution:** Implement document archival policy (soft delete old documents)
 
@@ -250,6 +254,7 @@ console.log('Should fail:', error); // Expected: RLS policy violation
 ## 📊 Storage Monitoring
 
 ### Query: Total storage usage per tenant
+
 ```sql
 SELECT
   (storage.foldername(name))[1]::uuid AS tenant_id,
@@ -263,6 +268,7 @@ ORDER BY total_bytes DESC;
 ```
 
 ### Query: Largest files
+
 ```sql
 SELECT
   name,

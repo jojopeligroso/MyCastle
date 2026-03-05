@@ -76,22 +76,16 @@ export async function GET(
         emailSubject: notificationRules.emailSubject,
         emailBody: notificationRules.emailBody,
         isActive: notificationRules.isActive,
-        priority: notificationRules.priority,
         createdAt: notificationRules.createdAt,
         updatedAt: notificationRules.updatedAt,
       })
       .from(notificationRules)
       .leftJoin(documentTypes, eq(notificationRules.documentTypeId, documentTypes.id))
-      .where(
-        and(eq(notificationRules.id, ruleId), eq(notificationRules.tenantId, tenantId))
-      )
+      .where(and(eq(notificationRules.id, ruleId), eq(notificationRules.tenantId, tenantId)))
       .limit(1);
 
     if (!rule || rule.length === 0) {
-      return NextResponse.json(
-        { error: 'Notification rule not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Notification rule not found' }, { status: 404 });
     }
 
     // TODO: Get notification history for this rule (when notifications_sent table exists)
@@ -105,10 +99,7 @@ export async function GET(
     });
   } catch (error) {
     console.error('Error fetching notification rule:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch notification rule' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch notification rule' }, { status: 500 });
   }
 }
 
@@ -148,29 +139,21 @@ export async function PATCH(
 
     // Verify rule exists
     const existing = await db.query.notificationRules.findFirst({
-      where: (rules, { and, eq }) =>
-        and(eq(rules.id, ruleId), eq(rules.tenantId, tenantId)),
+      where: (rules, { and, eq }) => and(eq(rules.id, ruleId), eq(rules.tenantId, tenantId)),
     });
 
     if (!existing) {
-      return NextResponse.json(
-        { error: 'Notification rule not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Notification rule not found' }, { status: 404 });
     }
 
     // Validate document type if being updated
     if (data.documentTypeId !== undefined && data.documentTypeId) {
       const docType = await db.query.documentTypes.findFirst({
-        where: (dt, { and, eq }) =>
-          and(eq(dt.id, data.documentTypeId!), eq(dt.tenantId, tenantId)),
+        where: (dt, { and, eq }) => and(eq(dt.id, data.documentTypeId!), eq(dt.tenantId, tenantId)),
       });
 
       if (!docType) {
-        return NextResponse.json(
-          { error: 'Document type not found' },
-          { status: 404 }
-        );
+        return NextResponse.json({ error: 'Document type not found' }, { status: 404 });
       }
     }
 
@@ -180,21 +163,14 @@ export async function PATCH(
     };
 
     if (data.name !== undefined) updateData.name = data.name;
-    if (data.description !== undefined)
-      updateData.description = data.description || null;
+    if (data.description !== undefined) updateData.description = data.description || null;
     if (data.eventType !== undefined) updateData.eventType = data.eventType;
-    if (data.documentTypeId !== undefined)
-      updateData.documentTypeId = data.documentTypeId;
-    if (data.triggerDaysBefore !== undefined)
-      updateData.triggerDaysBefore = data.triggerDaysBefore;
-    if (data.recipientRoles !== undefined)
-      updateData.recipientRoles = data.recipientRoles;
-    if (data.notificationType !== undefined)
-      updateData.notificationType = data.notificationType;
-    if (data.emailSubject !== undefined)
-      updateData.emailSubject = data.emailSubject || null;
-    if (data.emailBody !== undefined)
-      updateData.emailBody = data.emailBody || null;
+    if (data.documentTypeId !== undefined) updateData.documentTypeId = data.documentTypeId;
+    if (data.triggerDaysBefore !== undefined) updateData.triggerDaysBefore = data.triggerDaysBefore;
+    if (data.recipientRoles !== undefined) updateData.recipientRoles = data.recipientRoles;
+    if (data.notificationType !== undefined) updateData.notificationType = data.notificationType;
+    if (data.emailSubject !== undefined) updateData.emailSubject = data.emailSubject || null;
+    if (data.emailBody !== undefined) updateData.emailBody = data.emailBody || null;
     if (data.isActive !== undefined) updateData.isActive = data.isActive;
     if (data.priority !== undefined) updateData.priority = data.priority;
 
@@ -202,12 +178,7 @@ export async function PATCH(
     const [updated] = await db
       .update(notificationRules)
       .set(updateData)
-      .where(
-        and(
-          eq(notificationRules.id, ruleId),
-          eq(notificationRules.tenantId, tenantId)
-        )
-      )
+      .where(and(eq(notificationRules.id, ruleId), eq(notificationRules.tenantId, tenantId)))
       .returning();
 
     // TODO: Create audit log entry
@@ -218,10 +189,7 @@ export async function PATCH(
     });
   } catch (error) {
     console.error('Error updating notification rule:', error);
-    return NextResponse.json(
-      { error: 'Failed to update notification rule' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to update notification rule' }, { status: 500 });
   }
 }
 
@@ -247,26 +215,17 @@ export async function DELETE(
 
     // Verify rule exists
     const existing = await db.query.notificationRules.findFirst({
-      where: (rules, { and, eq }) =>
-        and(eq(rules.id, ruleId), eq(rules.tenantId, tenantId)),
+      where: (rules, { and, eq }) => and(eq(rules.id, ruleId), eq(rules.tenantId, tenantId)),
     });
 
     if (!existing) {
-      return NextResponse.json(
-        { error: 'Notification rule not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Notification rule not found' }, { status: 404 });
     }
 
     // Hard delete notification rule
     await db
       .delete(notificationRules)
-      .where(
-        and(
-          eq(notificationRules.id, ruleId),
-          eq(notificationRules.tenantId, tenantId)
-        )
-      );
+      .where(and(eq(notificationRules.id, ruleId), eq(notificationRules.tenantId, tenantId)));
 
     // TODO: Create audit log entry
     // TODO: Cancel any scheduled notifications for this rule
@@ -276,9 +235,6 @@ export async function DELETE(
     });
   } catch (error) {
     console.error('Error deleting notification rule:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete notification rule' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to delete notification rule' }, { status: 500 });
   }
 }

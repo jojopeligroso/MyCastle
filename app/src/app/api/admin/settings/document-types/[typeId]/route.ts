@@ -55,15 +55,11 @@ export async function GET(
 
     // Get document type
     const docType = await db.query.documentTypes.findFirst({
-      where: (types, { and, eq }) =>
-        and(eq(types.id, typeId), eq(types.tenantId, tenantId)),
+      where: (types, { and, eq }) => and(eq(types.id, typeId), eq(types.tenantId, tenantId)),
     });
 
     if (!docType) {
-      return NextResponse.json(
-        { error: 'Document type not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Document type not found' }, { status: 404 });
     }
 
     // Get usage statistics
@@ -75,10 +71,7 @@ export async function GET(
       })
       .from(studentDocuments)
       .where(
-        and(
-          eq(studentDocuments.documentTypeId, typeId),
-          eq(studentDocuments.tenantId, tenantId)
-        )
+        and(eq(studentDocuments.documentTypeId, typeId), eq(studentDocuments.tenantId, tenantId))
       );
 
     return NextResponse.json({
@@ -91,10 +84,7 @@ export async function GET(
     });
   } catch (error) {
     console.error('Error fetching document type:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch document type' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch document type' }, { status: 500 });
   }
 }
 
@@ -134,22 +124,17 @@ export async function PATCH(
 
     // Verify document type exists
     const existing = await db.query.documentTypes.findFirst({
-      where: (types, { and, eq }) =>
-        and(eq(types.id, typeId), eq(types.tenantId, tenantId)),
+      where: (types, { and, eq }) => and(eq(types.id, typeId), eq(types.tenantId, tenantId)),
     });
 
     if (!existing) {
-      return NextResponse.json(
-        { error: 'Document type not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Document type not found' }, { status: 404 });
     }
 
     // Check for name conflict if name is being changed
     if (data.name && data.name !== existing.name) {
       const nameConflict = await db.query.documentTypes.findFirst({
-        where: (dt, { and, eq }) =>
-          and(eq(dt.tenantId, tenantId), eq(dt.name, data.name!)),
+        where: (dt, { and, eq }) => and(eq(dt.tenantId, tenantId), eq(dt.name, data.name!)),
       });
 
       if (nameConflict) {
@@ -197,32 +182,22 @@ export async function PATCH(
 
     if (data.name !== undefined) updateData.name = data.name;
     if (data.category !== undefined) updateData.category = data.category;
-    if (data.description !== undefined)
-      updateData.description = data.description || null;
-    if (data.adminCanUpload !== undefined)
-      updateData.adminCanUpload = data.adminCanUpload;
-    if (data.studentCanUpload !== undefined)
-      updateData.studentCanUpload = data.studentCanUpload;
-    if (data.requiresApproval !== undefined)
-      updateData.requiresApproval = data.requiresApproval;
-    if (data.defaultVisibility !== undefined)
-      updateData.defaultVisibility = data.defaultVisibility;
-    if (data.requiresExpiry !== undefined)
-      updateData.requiresExpiry = data.requiresExpiry;
-    if (data.expiryAlertDays !== undefined)
-      updateData.expiryAlertDays = data.expiryAlertDays;
+    if (data.description !== undefined) updateData.description = data.description || null;
+    if (data.adminCanUpload !== undefined) updateData.adminCanUpload = data.adminCanUpload;
+    if (data.studentCanUpload !== undefined) updateData.studentCanUpload = data.studentCanUpload;
+    if (data.requiresApproval !== undefined) updateData.requiresApproval = data.requiresApproval;
+    if (data.defaultVisibility !== undefined) updateData.defaultVisibility = data.defaultVisibility;
+    if (data.requiresExpiry !== undefined) updateData.requiresExpiry = data.requiresExpiry;
+    if (data.expiryAlertDays !== undefined) updateData.expiryAlertDays = data.expiryAlertDays;
     if (data.isRequired !== undefined) updateData.isRequired = data.isRequired;
-    if (data.displayOrder !== undefined)
-      updateData.displayOrder = data.displayOrder;
+    if (data.displayOrder !== undefined) updateData.displayOrder = data.displayOrder;
     if (data.isActive !== undefined) updateData.isActive = data.isActive;
 
     // Update document type
     const [updated] = await db
       .update(documentTypes)
       .set(updateData)
-      .where(
-        and(eq(documentTypes.id, typeId), eq(documentTypes.tenantId, tenantId))
-      )
+      .where(and(eq(documentTypes.id, typeId), eq(documentTypes.tenantId, tenantId)))
       .returning();
 
     // TODO: Create audit log entry
@@ -234,10 +209,7 @@ export async function PATCH(
     });
   } catch (error) {
     console.error('Error updating document type:', error);
-    return NextResponse.json(
-      { error: 'Failed to update document type' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to update document type' }, { status: 500 });
   }
 }
 
@@ -263,15 +235,11 @@ export async function DELETE(
 
     // Verify document type exists
     const existing = await db.query.documentTypes.findFirst({
-      where: (types, { and, eq }) =>
-        and(eq(types.id, typeId), eq(types.tenantId, tenantId)),
+      where: (types, { and, eq }) => and(eq(types.id, typeId), eq(types.tenantId, tenantId)),
     });
 
     if (!existing) {
-      return NextResponse.json(
-        { error: 'Document type not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Document type not found' }, { status: 404 });
     }
 
     // Check if document type is in use
@@ -279,10 +247,7 @@ export async function DELETE(
       .select({ count: sql<number>`COUNT(*)` })
       .from(studentDocuments)
       .where(
-        and(
-          eq(studentDocuments.documentTypeId, typeId),
-          eq(studentDocuments.tenantId, tenantId)
-        )
+        and(eq(studentDocuments.documentTypeId, typeId), eq(studentDocuments.tenantId, tenantId))
       );
 
     const hasDocuments = Number(documentsCount[0]?.count || 0) > 0;
@@ -295,9 +260,7 @@ export async function DELETE(
           isActive: false,
           updatedAt: new Date(),
         })
-        .where(
-          and(eq(documentTypes.id, typeId), eq(documentTypes.tenantId, tenantId))
-        );
+        .where(and(eq(documentTypes.id, typeId), eq(documentTypes.tenantId, tenantId)));
 
       return NextResponse.json({
         message: 'Document type deactivated (has existing documents)',
@@ -309,9 +272,7 @@ export async function DELETE(
     // Hard delete if no documents exist
     await db
       .delete(documentTypes)
-      .where(
-        and(eq(documentTypes.id, typeId), eq(documentTypes.tenantId, tenantId))
-      );
+      .where(and(eq(documentTypes.id, typeId), eq(documentTypes.tenantId, tenantId)));
 
     // TODO: Create audit log entry
     // TODO: Delete associated notification rules
@@ -321,9 +282,6 @@ export async function DELETE(
     });
   } catch (error) {
     console.error('Error deleting document type:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete document type' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to delete document type' }, { status: 500 });
   }
 }

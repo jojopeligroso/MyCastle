@@ -18,7 +18,6 @@ import {
   jsonb,
   index,
   uniqueIndex,
-  check,
   pgEnum,
 } from 'drizzle-orm/pg-core';
 import { tenants, users } from './core';
@@ -42,11 +41,7 @@ export const documentVisibilityEnum = pgEnum('document_visibility', [
   'student_can_view',
 ]);
 
-export const approvalStatusEnum = pgEnum('approval_status', [
-  'pending',
-  'approved',
-  'rejected',
-]);
+export const approvalStatusEnum = pgEnum('approval_status', ['pending', 'approved', 'rejected']);
 
 export const notificationEventTypeEnum = pgEnum('notification_event_type', [
   'document_expiry',
@@ -64,11 +59,7 @@ export const notificationEntityTypeEnum = pgEnum('notification_entity_type', [
   'custom',
 ]);
 
-export const notificationTypeEnum = pgEnum('notification_type', [
-  'email',
-  'in_app',
-  'both',
-]);
+export const notificationTypeEnum = pgEnum('notification_type', ['email', 'in_app', 'both']);
 
 export const letterCategoryEnum = pgEnum('letter_category', [
   'correspondence',
@@ -77,11 +68,7 @@ export const letterCategoryEnum = pgEnum('letter_category', [
   'other',
 ]);
 
-export const outputFormatEnum = pgEnum('output_format', [
-  'pdf',
-  'docx',
-  'both',
-]);
+export const outputFormatEnum = pgEnum('output_format', ['pdf', 'docx', 'both']);
 
 // ============================================================================
 // DOCUMENT TYPES
@@ -174,13 +161,11 @@ export const studentDocuments = pgTable(
 
     // Version control (soft delete)
     isCurrent: boolean('is_current').default(true).notNull(),
-    supersededBy: uuid('superseded_by').references(() => studentDocuments.id),
+    supersededBy: uuid('superseded_by'), // Self-reference to student_documents.id (FK defined in SQL)
     supersededAt: timestamp('superseded_at'),
 
     // Approval workflow
-    approvalStatus: varchar('approval_status', { length: 50 })
-      .default('approved')
-      .notNull(),
+    approvalStatus: varchar('approval_status', { length: 50 }).default('approved').notNull(),
     reviewedBy: uuid('reviewed_by').references(() => users.id),
     reviewedAt: timestamp('reviewed_at'),
     rejectionReason: text('rejection_reason'),
@@ -204,10 +189,7 @@ export const studentDocuments = pgTable(
   ]
 );
 
-// Self-reference for superseded_by
-export const studentDocumentsRelations = {
-  supersededBy: studentDocuments,
-};
+// Note: Self-reference for superseded_by is handled via SQL foreign key constraint
 
 // ============================================================================
 // EMERGENCY CONTACTS
@@ -246,10 +228,7 @@ export const emergencyContacts = pgTable(
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
   table => [
-    uniqueIndex('uk_emergency_contacts_student_priority').on(
-      table.studentId,
-      table.priority
-    ),
+    uniqueIndex('uk_emergency_contacts_student_priority').on(table.studentId, table.priority),
     index('idx_emergency_contacts_student').on(table.studentId),
     index('idx_emergency_contacts_tenant').on(table.tenantId),
     index('idx_emergency_contacts_primary').on(table.isPrimary),
@@ -287,18 +266,11 @@ export const notificationRules = pgTable(
     triggerDaysBefore: integer('trigger_days_before'),
 
     // Recipients
-    recipientRoles: jsonb('recipient_roles')
-      .$type<string[]>()
-      .default([])
-      .notNull(),
-    includeEmergencyContact: boolean('include_emergency_contact')
-      .default(false)
-      .notNull(),
+    recipientRoles: jsonb('recipient_roles').$type<string[]>().default([]).notNull(),
+    includeEmergencyContact: boolean('include_emergency_contact').default(false).notNull(),
 
     // Message template
-    notificationType: varchar('notification_type', { length: 50 })
-      .default('email')
-      .notNull(),
+    notificationType: varchar('notification_type', { length: 50 }).default('email').notNull(),
     emailSubject: text('email_subject'),
     emailBody: text('email_body'),
 
@@ -340,10 +312,7 @@ export const letterTemplates = pgTable(
 
     // Template content
     content: text('content').notNull(),
-    availablePlaceholders: jsonb('available_placeholders')
-      .$type<string[]>()
-      .default([])
-      .notNull(),
+    availablePlaceholders: jsonb('available_placeholders').$type<string[]>().default([]).notNull(),
 
     // Output format
     outputFormat: varchar('output_format', { length: 50 }).default('pdf').notNull(),

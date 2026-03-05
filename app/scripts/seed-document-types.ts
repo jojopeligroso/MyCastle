@@ -34,11 +34,11 @@ const defaultDocumentTypes: DocumentTypeSeed[] = [
     category: 'identity',
     description: 'Copy of student passport (photo page)',
     adminCanUpload: true,
-    studentCanUpload: true,  // Students can upload, requires approval
+    studentCanUpload: true, // Students can upload, requires approval
     requiresApproval: true,
     defaultVisibility: 'admin_only',
     requiresExpiry: true,
-    expiryAlertDays: [180, 90, 30],  // 6 months, 3 months, 1 month
+    expiryAlertDays: [180, 90, 30], // 6 months, 3 months, 1 month
     isRequired: true,
     displayOrder: 1,
   },
@@ -81,7 +81,7 @@ const defaultDocumentTypes: DocumentTypeSeed[] = [
     requiresApproval: true,
     defaultVisibility: 'admin_only',
     requiresExpiry: true,
-    expiryAlertDays: [60, 30, 14, 7],  // 2 months, 1 month, 2 weeks, 1 week
+    expiryAlertDays: [60, 30, 14, 7], // 2 months, 1 month, 2 weeks, 1 week
     isRequired: true,
     displayOrder: 10,
   },
@@ -165,7 +165,7 @@ const defaultDocumentTypes: DocumentTypeSeed[] = [
     adminCanUpload: true,
     studentCanUpload: false,
     requiresApproval: false,
-    defaultVisibility: 'student_can_view',  // Students can see their test results
+    defaultVisibility: 'student_can_view', // Students can see their test results
     requiresExpiry: false,
     expiryAlertDays: [],
     isRequired: false,
@@ -178,7 +178,7 @@ const defaultDocumentTypes: DocumentTypeSeed[] = [
     adminCanUpload: true,
     studentCanUpload: false,
     requiresApproval: false,
-    defaultVisibility: 'staff_only',  // Teachers can see, students need explicit sharing
+    defaultVisibility: 'staff_only', // Teachers can see, students need explicit sharing
     requiresExpiry: false,
     expiryAlertDays: [],
     isRequired: false,
@@ -237,7 +237,7 @@ const defaultDocumentTypes: DocumentTypeSeed[] = [
     defaultVisibility: 'admin_only',
     requiresExpiry: false,
     expiryAlertDays: [],
-    isRequired: false,  // Only for minors
+    isRequired: false, // Only for minors
     displayOrder: 40,
   },
   {
@@ -307,7 +307,7 @@ async function seedDocumentTypes() {
   try {
     // Get all tenants
     const tenants = await db.query.tenants.findMany({
-      where: (tenants, { eq }) => eq(tenants.isActive, true),
+      where: (tenants, { eq }) => eq(tenants.status, 'active'),
     });
 
     if (tenants.length === 0) {
@@ -327,8 +327,7 @@ async function seedDocumentTypes() {
       for (const docType of defaultDocumentTypes) {
         // Check if document type already exists
         const existing = await db.query.documentTypes.findFirst({
-          where: (dt, { and, eq }) =>
-            and(eq(dt.tenantId, tenant.id), eq(dt.name, docType.name)),
+          where: (dt, { and, eq }) => and(eq(dt.tenantId, tenant.id), eq(dt.name, docType.name)),
         });
 
         if (existing) {
@@ -358,13 +357,9 @@ async function seedDocumentTypes() {
 
     // Show summary by category
     console.log('📊 Summary by category:');
-    const categories = [
-      ...new Set(defaultDocumentTypes.map(dt => dt.category)),
-    ];
+    const categories = [...new Set(defaultDocumentTypes.map(dt => dt.category))];
     for (const category of categories) {
-      const count = defaultDocumentTypes.filter(
-        dt => dt.category === category
-      ).length;
+      const count = defaultDocumentTypes.filter(dt => dt.category === category).length;
       console.log(`   ${category}: ${count} types`);
     }
     console.log('');

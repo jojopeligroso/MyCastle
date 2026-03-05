@@ -20,12 +20,12 @@ import { createClient } from '@supabase/supabase-js';
 
 const uploadDocumentSchema = z.object({
   fileName: z.string().min(1),
-  fileUrl: z.string().min(1),  // Path in Supabase Storage
-  fileSize: z.number().int().positive().max(26214400),  // 25MB in bytes
+  fileUrl: z.string().min(1), // Path in Supabase Storage
+  fileSize: z.number().int().positive().max(26214400), // 25MB in bytes
   mimeType: z.string().min(1),
   documentTypeId: z.string().uuid(),
-  documentDate: z.string().optional(),  // YYYY-MM-DD
-  expiryDate: z.string().optional(),    // YYYY-MM-DD
+  documentDate: z.string().optional(), // YYYY-MM-DD
+  expiryDate: z.string().optional(), // YYYY-MM-DD
   notes: z.string().optional(),
   isSharedWithStudent: z.boolean().optional().default(false),
 });
@@ -34,10 +34,7 @@ const uploadDocumentSchema = z.object({
 // GET - List all documents for student
 // ============================================================================
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAuth(['admin', 'dos', 'teacher']);
     const tenantId = await getTenantId();
@@ -76,22 +73,22 @@ export async function GET(
       .leftJoin(users, eq(studentDocuments.uploadedBy, users.id))
       .leftJoin(documentTypes, eq(studentDocuments.documentTypeId, documentTypes.id))
       .where(
-        and(
-          eq(studentDocuments.studentId, studentId),
-          eq(studentDocuments.tenantId, tenantId)
-        )
+        and(eq(studentDocuments.studentId, studentId), eq(studentDocuments.tenantId, tenantId))
       )
       .orderBy(desc(studentDocuments.uploadedAt));
 
     // Group documents by category
-    const groupedByCategory = documents.reduce((acc, doc) => {
-      const category = doc.documentTypeCategory || 'other';
-      if (!acc[category]) {
-        acc[category] = [];
-      }
-      acc[category].push(doc);
-      return acc;
-    }, {} as Record<string, typeof documents>);
+    const groupedByCategory = documents.reduce(
+      (acc, doc) => {
+        const category = doc.documentTypeCategory || 'other';
+        if (!acc[category]) {
+          acc[category] = [];
+        }
+        acc[category].push(doc);
+        return acc;
+      },
+      {} as Record<string, typeof documents>
+    );
 
     // Calculate statistics
     const stats = {
@@ -119,10 +116,7 @@ export async function GET(
     });
   } catch (error) {
     console.error('Error fetching student documents:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch documents' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch documents' }, { status: 500 });
   }
 }
 
@@ -130,10 +124,7 @@ export async function GET(
 // POST - Upload document metadata (file already uploaded to Storage)
 // ============================================================================
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAuth(['admin', 'dos']);
     const tenantId = await getTenantId();
@@ -163,28 +154,20 @@ export async function POST(
 
     // Verify student exists and belongs to tenant
     const student = await db.query.users.findFirst({
-      where: (users, { and, eq }) =>
-        and(eq(users.id, studentId), eq(users.tenantId, tenantId)),
+      where: (users, { and, eq }) => and(eq(users.id, studentId), eq(users.tenantId, tenantId)),
     });
 
     if (!student) {
-      return NextResponse.json(
-        { error: 'Student not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Student not found' }, { status: 404 });
     }
 
     // Verify document type exists
     const docType = await db.query.documentTypes.findFirst({
-      where: (dt, { and, eq }) =>
-        and(eq(dt.id, data.documentTypeId), eq(dt.tenantId, tenantId)),
+      where: (dt, { and, eq }) => and(eq(dt.id, data.documentTypeId), eq(dt.tenantId, tenantId)),
     });
 
     if (!docType) {
-      return NextResponse.json(
-        { error: 'Document type not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Document type not found' }, { status: 404 });
     }
 
     // Create document record
@@ -198,12 +181,12 @@ export async function POST(
         fileUrl: data.fileUrl,
         fileSize: data.fileSize,
         mimeType: data.mimeType,
-        documentDate: data.documentDate ? new Date(data.documentDate) : null,
-        expiryDate: data.expiryDate ? new Date(data.expiryDate) : null,
+        documentDate: data.documentDate || null,
+        expiryDate: data.expiryDate || null,
         notes: data.notes,
         isSharedWithStudent: data.isSharedWithStudent ?? false,
         isCurrent: true,
-        approvalStatus: 'approved',  // Admin uploads are auto-approved
+        approvalStatus: 'approved', // Admin uploads are auto-approved
         uploadedBy: userId,
         uploadedAt: new Date(),
       })
@@ -221,9 +204,6 @@ export async function POST(
     );
   } catch (error) {
     console.error('Error uploading document:', error);
-    return NextResponse.json(
-      { error: 'Failed to upload document' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to upload document' }, { status: 500 });
   }
 }

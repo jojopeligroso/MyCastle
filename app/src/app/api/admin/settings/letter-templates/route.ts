@@ -125,10 +125,7 @@ export async function GET(_request: NextRequest) {
     });
   } catch (error) {
     console.error('Error fetching letter templates:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch letter templates' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch letter templates' }, { status: 500 });
   }
 }
 
@@ -163,24 +160,20 @@ export async function POST(request: NextRequest) {
     await db.execute(sql.raw(`SET app.tenant_id = '${tenantId}'`));
 
     // Combine common placeholders with custom ones
-    const allPlaceholders = [
-      ...COMMON_PLACEHOLDERS,
-      ...(data.customPlaceholders || []),
-    ];
+    const allPlaceholderObjects = [...COMMON_PLACEHOLDERS, ...(data.customPlaceholders || [])];
+    // Store just the keys in the database
+    const allPlaceholders = allPlaceholderObjects.map(p => p.key);
 
     // Validate that content only uses defined placeholders
     const contentPlaceholders = data.content.match(/\{\{[^}]+\}\}/g) || [];
-    const definedKeys = allPlaceholders.map(p => p.key);
-    const undefinedPlaceholders = contentPlaceholders.filter(
-      p => !definedKeys.includes(p)
-    );
+    const undefinedPlaceholders = contentPlaceholders.filter(p => !allPlaceholders.includes(p));
 
     if (undefinedPlaceholders.length > 0) {
       return NextResponse.json(
         {
           error: 'Content contains undefined placeholders',
           undefinedPlaceholders,
-          availablePlaceholders: definedKeys,
+          availablePlaceholders: allPlaceholders,
         },
         { status: 400 }
       );
@@ -212,9 +205,6 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error('Error creating letter template:', error);
-    return NextResponse.json(
-      { error: 'Failed to create letter template' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to create letter template' }, { status: 500 });
   }
 }
