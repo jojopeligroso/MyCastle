@@ -47,11 +47,7 @@ export async function GET(
     // Get document
     const document = await db.query.studentDocuments.findFirst({
       where: (docs, { and, eq }) =>
-        and(
-          eq(docs.id, docId),
-          eq(docs.studentId, studentId),
-          eq(docs.tenantId, tenantId)
-        ),
+        and(eq(docs.id, docId), eq(docs.studentId, studentId), eq(docs.tenantId, tenantId)),
       with: {
         // TODO: Add relations when defined in schema/documents.ts
       },
@@ -105,11 +101,7 @@ export async function PATCH(
     // Verify document exists
     const existing = await db.query.studentDocuments.findFirst({
       where: (docs, { and, eq }) =>
-        and(
-          eq(docs.id, docId),
-          eq(docs.studentId, studentId),
-          eq(docs.tenantId, tenantId)
-        ),
+        and(eq(docs.id, docId), eq(docs.studentId, studentId), eq(docs.tenantId, tenantId)),
     });
 
     if (!existing) {
@@ -140,12 +132,7 @@ export async function PATCH(
     const [updated] = await db
       .update(studentDocuments)
       .set(updateData)
-      .where(
-        and(
-          eq(studentDocuments.id, docId),
-          eq(studentDocuments.tenantId, tenantId)
-        )
-      )
+      .where(and(eq(studentDocuments.id, docId), eq(studentDocuments.tenantId, tenantId)))
       .returning();
 
     // TODO: Create audit log entry
@@ -157,10 +144,7 @@ export async function PATCH(
     });
   } catch (error) {
     console.error('Error updating document:', error);
-    return NextResponse.json(
-      { error: 'Failed to update document' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to update document' }, { status: 500 });
   }
 }
 
@@ -187,11 +171,7 @@ export async function DELETE(
     // Verify document exists
     const existing = await db.query.studentDocuments.findFirst({
       where: (docs, { and, eq }) =>
-        and(
-          eq(docs.id, docId),
-          eq(docs.studentId, studentId),
-          eq(docs.tenantId, tenantId)
-        ),
+        and(eq(docs.id, docId), eq(docs.studentId, studentId), eq(docs.tenantId, tenantId)),
     });
 
     if (!existing) {
@@ -206,12 +186,7 @@ export async function DELETE(
         supersededAt: new Date(),
         // Note: supersededBy would be set if replacing with a new document
       })
-      .where(
-        and(
-          eq(studentDocuments.id, docId),
-          eq(studentDocuments.tenantId, tenantId)
-        )
-      );
+      .where(and(eq(studentDocuments.id, docId), eq(studentDocuments.tenantId, tenantId)));
 
     // Note: We don't delete the file from Supabase Storage
     // This preserves the document history
@@ -224,9 +199,6 @@ export async function DELETE(
     });
   } catch (error) {
     console.error('Error deleting document:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete document' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to delete document' }, { status: 500 });
   }
 }

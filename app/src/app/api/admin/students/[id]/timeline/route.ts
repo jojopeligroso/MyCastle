@@ -15,7 +15,7 @@ import { db } from '@/db';
 import {
   studentDocuments,
   documentTypes,
-  classEnrollments,
+  enrollments,
   classes,
   generatedLetters,
   letterTemplates,
@@ -55,10 +55,7 @@ interface TimelineEvent {
 // GET - Get student timeline
 // ============================================================================
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAuth(['admin', 'dos', 'teacher']);
     const tenantId = await getTenantId();
@@ -94,8 +91,7 @@ export async function GET(
 
     // Verify student exists
     const student = await db.query.users.findFirst({
-      where: (users, { and, eq }) =>
-        and(eq(users.id, studentId), eq(users.tenantId, tenantId)),
+      where: (users, { and, eq }) => and(eq(users.id, studentId), eq(users.tenantId, tenantId)),
     });
 
     if (!student) {
@@ -207,34 +203,34 @@ export async function GET(
     // ========================================================================
     if (eventTypes.includes('enrollment')) {
       const enrollmentConditions = [
-        eq(classEnrollments.studentId, studentId),
-        eq(classEnrollments.tenantId, tenantId),
+        eq(enrollments.studentId, studentId),
+        eq(enrollments.tenantId, tenantId),
       ];
 
       if (from) {
-        enrollmentConditions.push(gte(classEnrollments.enrolledAt, new Date(from)));
+        enrollmentConditions.push(gte(enrollments.enrollmentDate, from));
       }
       if (to) {
-        enrollmentConditions.push(lte(classEnrollments.enrolledAt, new Date(to)));
+        enrollmentConditions.push(lte(enrollments.enrollmentDate, to));
       }
 
-      const enrollments = await db
+      const enrollmentRecords = await db
         .select({
-          id: classEnrollments.id,
-          enrolledAt: classEnrollments.enrolledAt,
-          status: classEnrollments.status,
+          id: enrollments.id,
+          enrollmentDate: enrollments.enrollmentDate,
+          status: enrollments.status,
           className: classes.name,
           classStartDate: classes.startDate,
           classEndDate: classes.endDate,
         })
-        .from(classEnrollments)
-        .leftJoin(classes, eq(classEnrollments.classId, classes.id))
+        .from(enrollments)
+        .leftJoin(classes, eq(enrollments.classId, classes.id))
         .where(and(...enrollmentConditions));
 
-      for (const enrollment of enrollments) {
+      for (const enrollment of enrollmentRecords) {
         events.push({
           id: `enrollment-${enrollment.id}`,
-          timestamp: enrollment.enrolledAt,
+          timestamp: new Date(enrollment.enrollmentDate),
           eventType: 'enrollment',
           title: `Enrolled in ${enrollment.className}`,
           description: `Status: ${enrollment.status}`,
@@ -273,7 +269,7 @@ export async function GET(
           generatedBy: generatedLetters.generatedBy,
           generatedByName: users.name,
           templateName: letterTemplates.name,
-          outputFormat: generatedLetters.outputFormat,
+          outputFormat: letterTemplates.outputFormat,
         })
         .from(generatedLetters)
         .leftJoin(users, eq(generatedLetters.generatedBy, users.id))
@@ -286,11 +282,11 @@ export async function GET(
           timestamp: letter.generatedAt,
           eventType: 'letter_generated',
           title: `Letter Generated: ${letter.templateName}`,
-          description: `Format: ${letter.outputFormat}`,
+          description: `Format: ${letter.outputFormat || 'PDF'}`,
           metadata: {
             letterId: letter.id,
             templateName: letter.templateName,
-            format: letter.outputFormat,
+            format: letter.outputFormat || 'pdf',
           },
           relatedEntityId: letter.id,
           performedBy: letter.generatedBy
@@ -352,9 +348,6 @@ export async function GET(
     });
   } catch (error) {
     console.error('Error fetching student timeline:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch student timeline' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch student timeline' }, { status: 500 });
   }
 }

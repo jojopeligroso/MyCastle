@@ -36,11 +36,7 @@ export async function GET(
     // Get document metadata
     const document = await db.query.studentDocuments.findFirst({
       where: (docs, { and, eq }) =>
-        and(
-          eq(docs.id, docId),
-          eq(docs.studentId, studentId),
-          eq(docs.tenantId, tenantId)
-        ),
+        and(eq(docs.id, docId), eq(docs.studentId, studentId), eq(docs.tenantId, tenantId)),
       with: {
         documentType: true,
       },
@@ -60,7 +56,7 @@ export async function GET(
     }
 
     // Permission check based on role and document visibility
-    const role = currentUser.primaryRole;
+    const role = currentUser.role;
     const isStudent = role === 'student';
     const isOwnDocument = userId === studentId;
 
@@ -87,10 +83,7 @@ export async function GET(
 
     if (!supabaseUrl || !supabaseServiceKey) {
       console.error('Missing Supabase credentials');
-      return NextResponse.json(
-        { error: 'Server configuration error' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -103,17 +96,11 @@ export async function GET(
 
     if (error) {
       console.error('Error generating signed URL:', error);
-      return NextResponse.json(
-        { error: 'Failed to generate download URL' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Failed to generate download URL' }, { status: 500 });
     }
 
     if (!data?.signedUrl) {
-      return NextResponse.json(
-        { error: 'Failed to generate download URL' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Failed to generate download URL' }, { status: 500 });
     }
 
     // TODO: Create audit log entry (document accessed)
@@ -128,9 +115,6 @@ export async function GET(
     });
   } catch (error) {
     console.error('Error generating download URL:', error);
-    return NextResponse.json(
-      { error: 'Failed to generate download URL' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to generate download URL' }, { status: 500 });
   }
 }

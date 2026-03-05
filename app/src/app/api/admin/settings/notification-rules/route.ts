@@ -37,7 +37,6 @@ const createNotificationRuleSchema = z.object({
   emailSubject: z.string().min(1).max(500).optional(),
   emailBody: z.string().min(1).optional(), // Supports {{placeholders}}
   isActive: z.boolean().optional().default(true),
-  priority: z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
 });
 
 // ============================================================================
@@ -71,7 +70,6 @@ export async function GET(_request: NextRequest) {
         emailSubject: notificationRules.emailSubject,
         emailBody: notificationRules.emailBody,
         isActive: notificationRules.isActive,
-        priority: notificationRules.priority,
         createdAt: notificationRules.createdAt,
         updatedAt: notificationRules.updatedAt,
       })
@@ -106,21 +104,11 @@ export async function GET(_request: NextRequest) {
           },
           {} as Record<string, number>
         ),
-        byPriority: rules.reduce(
-          (acc, r) => {
-            acc[r.priority] = (acc[r.priority] || 0) + 1;
-            return acc;
-          },
-          {} as Record<string, number>
-        ),
       },
     });
   } catch (error) {
     console.error('Error fetching notification rules:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch notification rules' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch notification rules' }, { status: 500 });
   }
 }
 
@@ -157,22 +145,15 @@ export async function POST(request: NextRequest) {
     // Validate document type if specified
     if (data.documentTypeId) {
       const docType = await db.query.documentTypes.findFirst({
-        where: (dt, { and, eq }) =>
-          and(eq(dt.id, data.documentTypeId!), eq(dt.tenantId, tenantId)),
+        where: (dt, { and, eq }) => and(eq(dt.id, data.documentTypeId!), eq(dt.tenantId, tenantId)),
       });
 
       if (!docType) {
-        return NextResponse.json(
-          { error: 'Document type not found' },
-          { status: 404 }
-        );
+        return NextResponse.json({ error: 'Document type not found' }, { status: 404 });
       }
 
       // Validate event type matches document type requirement
-      if (
-        data.eventType === 'document_expiry' &&
-        !docType.requiresExpiry
-      ) {
+      if (data.eventType === 'document_expiry' && !docType.requiresExpiry) {
         return NextResponse.json(
           {
             error: 'Cannot create expiry notification for document type without expiry requirement',
@@ -210,7 +191,6 @@ export async function POST(request: NextRequest) {
         emailSubject: data.emailSubject || null,
         emailBody: data.emailBody || null,
         isActive: data.isActive ?? true,
-        priority: data.priority,
       })
       .returning();
 
@@ -225,9 +205,6 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error('Error creating notification rule:', error);
-    return NextResponse.json(
-      { error: 'Failed to create notification rule' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to create notification rule' }, { status: 500 });
   }
 }
