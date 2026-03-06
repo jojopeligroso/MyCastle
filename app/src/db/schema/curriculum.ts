@@ -231,12 +231,53 @@ export const textbookDescriptors = pgTable(
   ]
 );
 
+/**
+ * Custom Descriptors Table
+ * School-specific learning objectives that supplement official CEFR descriptors
+ * Ref: FRESH_0035_custom_descriptors.sql
+ */
+export const customDescriptors = pgTable(
+  'custom_descriptors',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id, { onDelete: 'cascade' }),
+
+    // Descriptor content
+    cefrLevel: varchar('cefr_level', { length: 10 }).notNull(), // A1, A2, B1, B2, C1, C2
+    skill: varchar('skill', { length: 50 }).notNull(), // reading, writing, listening, speaking, grammar, vocabulary
+    descriptorText: text('descriptor_text').notNull(),
+
+    // Optional categorization
+    category: varchar('category', { length: 100 }), // e.g., "Business English", "Academic Writing"
+
+    // Audit
+    createdBy: uuid('created_by').references(() => users.id),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+
+    // Status
+    isActive: boolean('is_active').default(true).notNull(),
+  },
+  table => [
+    index('idx_custom_descriptors_tenant').on(table.tenantId),
+    index('idx_custom_descriptors_level').on(table.cefrLevel),
+    index('idx_custom_descriptors_skill').on(table.skill),
+    index('idx_custom_descriptors_active').on(table.isActive),
+    index('idx_custom_descriptors_category').on(table.category),
+  ]
+);
+
 // Type exports
 export type CefrDescriptor = typeof cefrDescriptors.$inferSelect;
 export type NewCefrDescriptor = typeof cefrDescriptors.$inferInsert;
 
 export type TextbookDescriptor = typeof textbookDescriptors.$inferSelect;
 export type NewTextbookDescriptor = typeof textbookDescriptors.$inferInsert;
+
+export type CustomDescriptor = typeof customDescriptors.$inferSelect;
+export type NewCustomDescriptor = typeof customDescriptors.$inferInsert;
 
 export type LessonPlan = typeof lessonPlans.$inferSelect;
 export type NewLessonPlan = typeof lessonPlans.$inferInsert;
