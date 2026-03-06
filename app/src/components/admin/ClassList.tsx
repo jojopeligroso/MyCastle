@@ -65,6 +65,33 @@ export function ClassList({ classes, teachers, filters }: Props) {
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [searchInput, setSearchInput] = useState(filters.search || '');
+  const [deletingClassId, setDeletingClassId] = useState<string | null>(null);
+
+  // Delete class handler
+  const handleDeleteClass = async (classId: string, className: string) => {
+    if (!confirm(`Are you sure you want to delete "${className}"? This will cancel the class.`)) {
+      return;
+    }
+
+    setDeletingClassId(classId);
+    try {
+      const response = await fetch(`/api/admin/classes/${classId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to delete class');
+      }
+
+      // Refresh the page to show updated data
+      router.refresh();
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Failed to delete class');
+    } finally {
+      setDeletingClassId(null);
+    }
+  };
 
   // Update URL with new filter
   const updateFilter = useCallback(
@@ -391,10 +418,19 @@ export function ClassList({ classes, teachers, filters }: Props) {
                     </Link>
                     <Link
                       href={`/admin/classes/${cls.id}/edit`}
-                      className="text-blue-600 hover:text-blue-900"
+                      className="text-blue-600 hover:text-blue-900 mr-4"
                     >
                       Edit
                     </Link>
+                    {cls.status !== 'cancelled' && (
+                      <button
+                        onClick={() => handleDeleteClass(cls.id, cls.name)}
+                        disabled={deletingClassId === cls.id}
+                        className="text-red-600 hover:text-red-900 disabled:opacity-50"
+                      >
+                        {deletingClassId === cls.id ? 'Deleting...' : 'Delete'}
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))
