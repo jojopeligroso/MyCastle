@@ -295,10 +295,12 @@ export function StudentDetailDrawer({
               {activeTab === 'levelHistory' && (
                 <LevelHistoryTab
                   studentId={student.studentId || student.id}
+                  studentRecordId={student.id}
                   currentLevel={student.currentLevel || student.current_level || null}
                   initialLevel={null}
                   levelStatus={student.levelStatus || null}
                   isAdmin={isAdmin}
+                  canAddDiagnostic={isAdmin}
                 />
               )}
               {activeTab === 'competency' && (

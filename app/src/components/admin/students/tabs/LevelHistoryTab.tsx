@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import useSWR from 'swr';
 import { PromotionRequestForm } from '../PromotionRequestForm';
 
@@ -56,24 +57,28 @@ interface PromotionData {
 
 interface LevelHistoryTabProps {
   studentId: string;
+  studentRecordId?: string; // The primary key in students table (for admin URLs)
   studentName?: string;
   currentLevel: string | null;
   initialLevel: string | null;
   levelStatus: 'confirmed' | 'provisional' | 'pending_approval' | null;
   isAdmin?: boolean;
   canRequestPromotion?: boolean;
+  canAddDiagnostic?: boolean;
 }
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 export function LevelHistoryTab({
   studentId,
+  studentRecordId,
   studentName = 'Student',
   currentLevel,
   initialLevel,
   levelStatus,
   isAdmin = false,
   canRequestPromotion = true,
+  canAddDiagnostic = false,
 }: LevelHistoryTabProps) {
   const [showPromotionForm, setShowPromotionForm] = useState(false);
 
@@ -409,7 +414,25 @@ export function LevelHistoryTab({
 
       {/* Diagnostic History */}
       <section>
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">Diagnostic History</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-semibold text-gray-900">Diagnostic History</h3>
+          {canAddDiagnostic && studentRecordId && (
+            <Link
+              href={`/admin/students/${studentRecordId}/diagnostic`}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-purple-700 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              New Diagnostic
+            </Link>
+          )}
+        </div>
 
         {diagnostics.length === 0 ? (
           <div className="bg-gray-50 rounded-lg p-6 text-center">

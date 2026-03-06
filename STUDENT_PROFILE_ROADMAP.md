@@ -1,9 +1,9 @@
 # Student Profile Feature - Implementation Roadmap
 
 **Created:** 2026-03-02
-**Updated:** 2026-03-03
-**Status:** COMPLETE
-**Completed:** 23/23 tasks (100%)
+**Updated:** 2026-03-06
+**Status:** IN_PROGRESS
+**Completed:** 24/26 tasks (92%) - Phase 3 tasks in progress
 
 **Reference:** See `STUDENT_PROFILE_DISCOVERY.md` for full requirements
 
@@ -400,49 +400,148 @@
 
 ---
 
+### Phase 3: Discovery Session Tasks (2026-03-05)
+
+These tasks were identified during the discovery session to clarify remaining blockers.
+
+#### Task #24: Diagnostic Test Input Form ✅ COMPLETE
+
+**Estimate:** 2-3 hours | **Dependencies:** None | **Token budget:** ~35k
+**Priority:** HIGH - Core placement workflow
+**Completed:** 2026-03-06
+
+**What was done:**
+1. ✅ Created `/admin/students/[id]/diagnostic` page with RLS context setup
+2. ✅ Created DiagnosticInputForm component with 4 sections (Written Test, Oral Test, Level Recommendation, Provisional Placement)
+3. ✅ Extended API route with POST (create) and PUT (update) handlers
+4. ✅ Provisional enrollment created via `expectedEndDate` set to 1 week
+5. ✅ Added "New Diagnostic" button to LevelHistoryTab in student profile
+
+**Acceptance Criteria:**
+- [x] Admin can input written test results
+- [x] DoS can add oral test results and level recommendation
+- [x] Provisional enrollment created in recommended class
+- [x] Diagnostic history visible on student profile
+- [x] DoS can finalize placement after first week
+
+---
+
+#### Task #25: Textbook Selection for Tenants
+
+**Estimate:** 1-2 hours | **Dependencies:** None | **Token budget:** ~25k
+**Priority:** MEDIUM - Affects descriptor filtering
+
+**Implementation:**
+- Add `active_textbooks` JSONB column to `tenants` table
+- Create `/admin/settings/curriculum` page for textbook selection
+- TextbookSelector component showing available series
+- Update Learning Objectives selector to filter by active textbooks
+
+**Subtasks:**
+1. Migration: Add `tenants.active_textbooks` JSONB column (15 min)
+2. Create TextbookSelector component (30 min)
+3. Create settings page at `/admin/settings/curriculum` (30 min)
+4. Update Learning Objectives selector filtering (30 min)
+
+**Acceptance Criteria:**
+- [ ] Admin can select active textbook series in settings
+- [ ] Learning Objectives selector only shows descriptors from active textbooks
+- [ ] CEFR Browser textbook tab filters by active selection
+- [ ] Changes persist and apply immediately
+- [ ] Default behavior unchanged for existing tenants
+
+---
+
+#### Task #26: Custom Descriptors for Schools
+
+**Estimate:** 2-3 hours | **Dependencies:** #25 | **Token budget:** ~40k
+**Priority:** MEDIUM - School-specific learning objectives
+
+**Implementation:**
+- Create `custom_descriptors` table (tenant-scoped)
+- RLS policies: tenant isolation, admin CRUD, teachers read-only
+- Create `/admin/settings/custom-descriptors` page
+- Update Learning Objectives selector to include custom descriptors
+
+**Database Migration:**
+- FRESH_0034_custom_descriptors.sql
+- Table: id, tenant_id, cefr_level, skill, descriptor_text, created_by, created_at, is_active
+- RLS policies for multi-tenant security
+
+**Subtasks:**
+1. Create FRESH_0034 migration with table + RLS (30 min)
+2. Update Drizzle schema (15 min)
+3. Create CustomDescriptorManager component (45 min)
+4. Create settings page at `/admin/settings/custom-descriptors` (30 min)
+5. Update Learning Objectives selector with custom tab (30 min)
+
+**Acceptance Criteria:**
+- [ ] Admin can create custom learning objectives
+- [ ] Custom descriptors appear in Learning Objectives selector
+- [ ] Custom descriptors visually distinguished from official CEFR
+- [ ] Teachers can use custom descriptors in assessments
+- [ ] Custom descriptors scoped to tenant (not visible to other schools)
+- [ ] Official CEFR descriptors remain read-only
+
+---
+
 ## Dependency Graph
 
 ```
-Phase 2A: Schema & Data
+Phase 2A: Schema & Data ✅ COMPLETE
 #18 Schema Updates ──┬──▶ #19 CEFR Importer
                      ├──▶ #20 Coursebook Importer
                      ├──▶ #22 Update Assessment Form
                      └──▶ #23 Summative Assessment UI
 
-Phase 2B: Teacher Workflow
+Phase 2B: Teacher Workflow ✅ COMPLETE
 #19, #20, #18 ──▶ #21 Learning Objectives UI
 
-Phase 2C: Role Views
+Phase 2C: Role Views ✅ COMPLETE
 #21, #22 ──▶ #4 Teacher View ──┐
 #23 ──────▶ #8 Promotion ──────┼──▶ #6 DoS View
                                │
-Phase 2D: Student
+Phase 2D: Student ✅ COMPLETE
 #9 Verification ───────────────┴──▶ #5 Student Self-View
 
-Phase 2E: Future (independent)
+Phase 2E: Future (independent) ✅ COMPLETE
 #10 LLM Hooks
+
+Phase 3: Discovery Session Tasks (NEW)
+#24 Diagnostic Input ──▶ (independent)
+#25 Textbook Selection ──▶ #26 Custom Descriptors
 ```
 
 ---
 
 ## Recommended Implementation Order
 
-| Order | Task                        | Estimate | Unblocks                |
-| ----- | --------------------------- | -------- | ----------------------- |
-| 1     | #18 Schema Updates          | 1-2h     | #19, #20, #21, #22, #23 |
-| 2     | #19 CEFR Importer           | 2-3h     | #21                     |
-| 3     | #20 Coursebook Importer     | 2h       | #21                     |
-| 4     | #22 Update Assessment Form  | 1-2h     | #4                      |
-| 5     | #23 Summative Assessment UI | 2h       | #8                      |
-| 6     | #21 Learning Objectives UI  | 2-3h     | #4                      |
-| 7     | #9 Contact Verification     | 2-3h     | #5                      |
-| 8     | #4 Teacher Profile View     | 2-3h     | #6                      |
-| 9     | #8 Promotion Workflow       | 2-3h     | #6                      |
-| 10    | #6 DoS Hybrid View          | 2-3h     | -                       |
-| 11    | #5 Student Self-View        | 3-4h     | -                       |
-| 12    | #10 LLM Tutor Hooks         | 1-2h     | -                       |
+### Phase 1-2 (COMPLETE)
 
-**Total Remaining:** 0 hours - ALL TASKS COMPLETE! 🎉
+| Order | Task                        | Estimate | Status      |
+| ----- | --------------------------- | -------- | ----------- |
+| 1     | #18 Schema Updates          | 1-2h     | ✅ Complete |
+| 2     | #19 CEFR Importer           | 2-3h     | ✅ Complete |
+| 3     | #20 Coursebook Importer     | 2h       | ✅ Complete |
+| 4     | #22 Update Assessment Form  | 1-2h     | ✅ Complete |
+| 5     | #23 Summative Assessment UI | 2h       | ✅ Complete |
+| 6     | #21 Learning Objectives UI  | 2-3h     | ✅ Complete |
+| 7     | #9 Contact Verification     | 2-3h     | ✅ Complete |
+| 8     | #4 Teacher Profile View     | 2-3h     | ✅ Complete |
+| 9     | #8 Promotion Workflow       | 2-3h     | ✅ Complete |
+| 10    | #6 DoS Hybrid View          | 2-3h     | ✅ Complete |
+| 11    | #5 Student Self-View        | 3-4h     | ✅ Complete |
+| 12    | #10 LLM Tutor Hooks         | 1-2h     | ✅ Complete |
+
+### Phase 3 (Discovery Session - NEW)
+
+| Order | Task                       | Estimate | Status      |
+| ----- | -------------------------- | -------- | ----------- |
+| 13    | #24 Diagnostic Input Form  | 2-3h     | ✅ Complete |
+| 14    | #25 Textbook Selection     | 1-2h     | Pending     |
+| 15    | #26 Custom Descriptors     | 2-3h     | Blocked #25 |
+
+**Total Remaining:** ~3-5 hours (2 tasks)
 
 ---
 

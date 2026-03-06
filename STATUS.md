@@ -1,6 +1,6 @@
 ---
 status: FEATURE_DEVELOPMENT
-last_updated: 2026-03-05
+last_updated: 2026-03-06
 next_review: 2026-03-08
 owner: Eoin Malone
 phase: Phase 1 - Admin UI/UX (Complete) + Student Profile Feature + Document Management
@@ -8,10 +8,10 @@ phase: Phase 1 - Admin UI/UX (Complete) + Student Profile Feature + Document Man
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-03-05 (FRESH_0033 Document Management System migration complete)
-**Current Phase:** Phase 1 Complete + Student Profile Feature COMPLETE
+**Last Updated:** 2026-03-06 (Task #24 Diagnostic Test Input Form complete)
+**Current Phase:** Phase 1 Complete + Student Profile Feature 92%
 **Current Sprint:** Week 8 of Phase 1
-**Next Milestone:** Discovery session with stakeholder for remaining blockers
+**Next Milestone:** Complete Phase 3 tasks (Textbook Selection, Custom Descriptors)
 
 ---
 
@@ -131,15 +131,15 @@ Major schema mismatch fix applied across 66 files:
 
 ## 🎯 Quick Summary
 
-### ⚡ START HERE - Student Profile Feature COMPLETE
+### ⚡ START HERE - Phase 3 Tasks Ready
 
 **🎉 Phase 1 (Admin UI/UX) - 100% COMPLETE (61/61 tasks)**
 **🎉 Stabilization - 100% COMPLETE (18/18 tasks)**
-**🎉 Student Profile Feature - 100% COMPLETE (23/23 tasks)**
+**🔄 Student Profile Feature - 92% COMPLETE (24/26 tasks) - Phase 3 in progress**
 
 See `STUDENT_PROFILE_ROADMAP.md` for full details.
 
-**What's Built:**
+**What's Built (Phase 1-2):**
 
 - ✅ Database schema (6 tables + RLS policies)
 - ✅ Admin/Owner profile view
@@ -155,19 +155,24 @@ See `STUDENT_PROFILE_ROADMAP.md` for full details.
 - ✅ Student Self-View (profile page with verification flow)
 - ✅ LLM Tutor Architecture Hooks (spec, API, database tables)
 
-**Discovery Blockers (need stakeholder input):**
+**Discovery Session Complete (2026-03-05):**
 
-1. ✅ ~~CEFR Descriptor Structure~~ - RESOLVED: 1,228 official descriptors + 696 Speakout textbook mappings imported
-2. Scoring System - Confirm 1-4 scale and thresholds
-3. Diagnostic Test - Structure and scoring rubric
-4. Promotion Criteria - Evidence requirements
-5. Customization Model - How schools modify descriptors
+1. ✅ ~~CEFR Descriptor Structure~~ - RESOLVED: 1,228 official descriptors + 696 Speakout mappings
+2. ✅ **Scoring System** - 4-point scale confirmed. "Achieved" = competency per descriptor
+3. ✅ **Diagnostic Test** - Manual input: Admin written → DoS oral → Provisional placement
+4. ✅ **Promotion Criteria** - Teacher judgment + combined evidence (already implemented)
+5. ✅ **Customization Model** - Textbook selection + custom descriptors. CEFR read-only
+
+**Phase 3 Tasks (from discovery):**
+
+- ✅ Task #24: Diagnostic Test Input Form - COMPLETE
+- ⏳ Task #25: Textbook Selection for Tenants (1-2h)
+- ⏳ Task #26: Custom Descriptors for Schools (2-3h) - blocked by #25
 
 **Next Steps:**
 
-1. ✅ ~~Complete Task #10 (LLM Tutor Architecture Hooks)~~ - DONE
-2. Discovery session with stakeholder to clarify remaining blockers
-3. Ready for Phase 2 planning (Teacher Portal, Advanced Reporting)
+1. Start with Task #25 (Textbook Selection) - enables custom descriptors filtering
+2. Then Task #26 (Custom Descriptors) - school-specific learning objectives
 
 All core admin features implemented and ready for production testing:
 
@@ -187,6 +192,23 @@ All core admin features implemented and ready for production testing:
 **Context:** All Phase 1 tasks complete. System ready for production MVP deployment.
 
 ---
+
+### Recent Wins (Mar 6 - Diagnostic Test Input Form)
+
+- ✅ **Task #24: Diagnostic Test Input Form (Phase 3)**:
+  - Created `/admin/students/[id]/diagnostic` page with RLS context setup
+  - Created DiagnosticInputForm component with 4 sections:
+    - Written Test (score 0-100, notes)
+    - Oral Test (DoS section - score 0-100, notes)
+    - Level Recommendation (CEFR A1-C2 dropdown)
+    - Provisional Placement (class selection)
+  - Extended API route with POST (create) and PUT (update) handlers
+  - Zod validation for all input fields
+  - Status progression: in_progress → written_complete → oral_complete → completed
+  - Provisional enrollment created with 1-week `expectedEndDate`
+  - Added "New Diagnostic" button to LevelHistoryTab in student profile drawer
+  - Color-coded score display (green 80+, blue 60+, amber 40+, red <40)
+  - Files: diagnostic/page.tsx, DiagnosticInputForm.tsx, diagnostics/route.ts (extended), LevelHistoryTab.tsx (updated)
 
 ### Recent Wins (Mar 3 - LLM Tutor Architecture Hooks - STUDENT PROFILE COMPLETE!)
 
