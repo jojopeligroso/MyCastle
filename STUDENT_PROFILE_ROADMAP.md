@@ -3,7 +3,7 @@
 **Created:** 2026-03-02
 **Updated:** 2026-03-06
 **Status:** IN_PROGRESS
-**Completed:** 24/26 tasks (92%) - Phase 3 tasks in progress
+**Completed:** 25/26 tasks (96%) - Phase 3 nearly complete
 
 **Reference:** See `STUDENT_PROFILE_DISCOVERY.md` for full requirements
 
@@ -92,7 +92,7 @@
 
 ---
 
-## Remaining Tasks (3)
+## Remaining Tasks (1)
 
 ### Phase 2A: Schema & Data (Discovery-driven) ✅ COMPLETE
 
@@ -426,29 +426,27 @@ These tasks were identified during the discovery session to clarify remaining bl
 
 ---
 
-#### Task #25: Textbook Selection for Tenants
+#### Task #25: Textbook Selection for Tenants ✅ COMPLETE
 
 **Estimate:** 1-2 hours | **Dependencies:** None | **Token budget:** ~25k
 **Priority:** MEDIUM - Affects descriptor filtering
+**Completed:** 2026-03-06
 
-**Implementation:**
-- Add `active_textbooks` JSONB column to `tenants` table
-- Create `/admin/settings/curriculum` page for textbook selection
-- TextbookSelector component showing available series
-- Update Learning Objectives selector to filter by active textbooks
-
-**Subtasks:**
-1. Migration: Add `tenants.active_textbooks` JSONB column (15 min)
-2. Create TextbookSelector component (30 min)
-3. Create settings page at `/admin/settings/curriculum` (30 min)
-4. Update Learning Objectives selector filtering (30 min)
+**What was done:**
+1. ✅ Created FRESH_0034_textbook_selection.sql migration adding `active_textbooks` JSONB column
+2. ✅ Updated Drizzle schema in core.ts with `activeTextbooks` field
+3. ✅ Created `/api/admin/settings/curriculum` API route (GET/PUT)
+4. ✅ Created TextbookSelector component with grid of toggleable textbook cards
+5. ✅ Created curriculum settings page at `/admin/settings/curriculum`
+6. ✅ Updated `/api/admin/curriculum/textbook` with `filterByTenant=true` query param
+7. ✅ Updated LearningObjectiveSelector to use tenant-filtered textbooks
 
 **Acceptance Criteria:**
-- [ ] Admin can select active textbook series in settings
-- [ ] Learning Objectives selector only shows descriptors from active textbooks
-- [ ] CEFR Browser textbook tab filters by active selection
-- [ ] Changes persist and apply immediately
-- [ ] Default behavior unchanged for existing tenants
+- [x] Admin can select active textbook series in settings
+- [x] Learning Objectives selector only shows descriptors from active textbooks
+- [x] CEFR Browser textbook tab filters by active selection
+- [x] Changes persist and apply immediately
+- [x] Default behavior unchanged for existing tenants (NULL = all active)
 
 ---
 
@@ -538,10 +536,10 @@ Phase 3: Discovery Session Tasks (NEW)
 | Order | Task                       | Estimate | Status      |
 | ----- | -------------------------- | -------- | ----------- |
 | 13    | #24 Diagnostic Input Form  | 2-3h     | ✅ Complete |
-| 14    | #25 Textbook Selection     | 1-2h     | Pending     |
-| 15    | #26 Custom Descriptors     | 2-3h     | Blocked #25 |
+| 14    | #25 Textbook Selection     | 1-2h     | ✅ Complete |
+| 15    | #26 Custom Descriptors     | 2-3h     | Pending     |
 
-**Total Remaining:** ~3-5 hours (2 tasks)
+**Total Remaining:** ~2-3 hours (1 task)
 
 ---
 

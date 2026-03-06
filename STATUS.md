@@ -8,8 +8,8 @@ phase: Phase 1 - Admin UI/UX (Complete) + Student Profile Feature + Document Man
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-03-06 (Task #24 Diagnostic Test Input Form complete)
-**Current Phase:** Phase 1 Complete + Student Profile Feature 92%
+**Last Updated:** 2026-03-06 (Task #25 Textbook Selection for Tenants complete)
+**Current Phase:** Phase 1 Complete + Student Profile Feature 96%
 **Current Sprint:** Week 8 of Phase 1
 **Next Milestone:** Complete Phase 3 tasks (Textbook Selection, Custom Descriptors)
 
@@ -135,7 +135,7 @@ Major schema mismatch fix applied across 66 files:
 
 **🎉 Phase 1 (Admin UI/UX) - 100% COMPLETE (61/61 tasks)**
 **🎉 Stabilization - 100% COMPLETE (18/18 tasks)**
-**🔄 Student Profile Feature - 92% COMPLETE (24/26 tasks) - Phase 3 in progress**
+**🔄 Student Profile Feature - 96% COMPLETE (25/26 tasks) - Phase 3 nearly complete**
 
 See `STUDENT_PROFILE_ROADMAP.md` for full details.
 
@@ -166,13 +166,12 @@ See `STUDENT_PROFILE_ROADMAP.md` for full details.
 **Phase 3 Tasks (from discovery):**
 
 - ✅ Task #24: Diagnostic Test Input Form - COMPLETE
-- ⏳ Task #25: Textbook Selection for Tenants (1-2h)
-- ⏳ Task #26: Custom Descriptors for Schools (2-3h) - blocked by #25
+- ✅ Task #25: Textbook Selection for Tenants - COMPLETE
+- ⏳ Task #26: Custom Descriptors for Schools (2-3h)
 
 **Next Steps:**
 
-1. Start with Task #25 (Textbook Selection) - enables custom descriptors filtering
-2. Then Task #26 (Custom Descriptors) - school-specific learning objectives
+1. Task #26 (Custom Descriptors) - school-specific learning objectives (final task!)
 
 All core admin features implemented and ready for production testing:
 
@@ -192,6 +191,18 @@ All core admin features implemented and ready for production testing:
 **Context:** All Phase 1 tasks complete. System ready for production MVP deployment.
 
 ---
+
+### Recent Wins (Mar 6 - Textbook Selection for Tenants)
+
+- ✅ **Task #25: Textbook Selection for Tenants (Phase 3)**:
+  - Created FRESH_0034_textbook_selection.sql migration adding `active_textbooks` JSONB column to tenants
+  - Updated Drizzle schema in core.ts with `activeTextbooks` field (NULL = all active, array = filtered)
+  - Created `/api/admin/settings/curriculum` API route (GET available textbooks, PUT update selection)
+  - Created TextbookSelector component with grid of toggleable textbook cards showing descriptor counts
+  - Created curriculum settings page at `/admin/settings/curriculum` with breadcrumbs and info card
+  - Updated `/api/admin/curriculum/textbook` with `filterByTenant=true` query param support
+  - Updated LearningObjectiveSelector to use tenant-filtered textbooks automatically
+  - Files: FRESH_0034, core.ts, curriculum/route.ts, TextbookSelector.tsx, curriculum/page.tsx, textbook/route.ts, LearningObjectiveSelector.tsx
 
 ### Recent Wins (Mar 6 - Diagnostic Test Input Form)
 

@@ -43,6 +43,9 @@ export const tenants = pgTable(
         diagnostic_stages: ['written_test', 'speaking_interview'],
         young_learners_enabled: false,
       }),
+    // Active textbooks for Learning Objectives filtering (FRESH_0034)
+    // NULL = all textbooks active, empty array = none, array of book names = filtered
+    activeTextbooks: jsonb('active_textbooks').$type<string[] | null>().default(null),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },

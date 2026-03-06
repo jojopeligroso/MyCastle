@@ -109,7 +109,7 @@ export function LearningObjectiveSelector({
       try {
         const [cefrRes, textbookRes] = await Promise.all([
           fetch('/api/admin/curriculum/cefr'),
-          fetch('/api/admin/curriculum/textbook'),
+          fetch('/api/admin/curriculum/textbook?filterByTenant=true'),
         ]);
 
         if (!cefrRes.ok || !textbookRes.ok) {
