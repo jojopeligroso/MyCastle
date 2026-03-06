@@ -2,8 +2,8 @@
 
 **Created:** 2026-03-02
 **Updated:** 2026-03-06
-**Status:** IN_PROGRESS
-**Completed:** 25/26 tasks (96%) - Phase 3 nearly complete
+**Status:** COMPLETE
+**Completed:** 26/26 tasks (100%) - All phases complete
 
 **Reference:** See `STUDENT_PROFILE_DISCOVERY.md` for full requirements
 
@@ -450,36 +450,28 @@ These tasks were identified during the discovery session to clarify remaining bl
 
 ---
 
-#### Task #26: Custom Descriptors for Schools
+#### Task #26: Custom Descriptors for Schools ✅ COMPLETE
 
 **Estimate:** 2-3 hours | **Dependencies:** #25 | **Token budget:** ~40k
 **Priority:** MEDIUM - School-specific learning objectives
+**Completed:** 2026-03-06
 
-**Implementation:**
-- Create `custom_descriptors` table (tenant-scoped)
-- RLS policies: tenant isolation, admin CRUD, teachers read-only
-- Create `/admin/settings/custom-descriptors` page
-- Update Learning Objectives selector to include custom descriptors
-
-**Database Migration:**
-- FRESH_0034_custom_descriptors.sql
-- Table: id, tenant_id, cefr_level, skill, descriptor_text, created_by, created_at, is_active
-- RLS policies for multi-tenant security
-
-**Subtasks:**
-1. Create FRESH_0034 migration with table + RLS (30 min)
-2. Update Drizzle schema (15 min)
-3. Create CustomDescriptorManager component (45 min)
-4. Create settings page at `/admin/settings/custom-descriptors` (30 min)
-5. Update Learning Objectives selector with custom tab (30 min)
+**What was done:**
+1. ✅ Created FRESH_0035_custom_descriptors.sql migration with table + RLS policies
+2. ✅ Updated Drizzle schema in curriculum.ts with `customDescriptors` table
+3. ✅ Created `/api/admin/curriculum/custom` API routes (GET list, POST create)
+4. ✅ Created `/api/admin/curriculum/custom/[id]` API routes (GET, PUT, DELETE)
+5. ✅ Created CustomDescriptorManager component with full CRUD UI
+6. ✅ Created settings page at `/admin/settings/custom-descriptors`
+7. ✅ Updated LearningObjectiveSelector with Custom tab showing saved descriptors
 
 **Acceptance Criteria:**
-- [ ] Admin can create custom learning objectives
-- [ ] Custom descriptors appear in Learning Objectives selector
-- [ ] Custom descriptors visually distinguished from official CEFR
-- [ ] Teachers can use custom descriptors in assessments
-- [ ] Custom descriptors scoped to tenant (not visible to other schools)
-- [ ] Official CEFR descriptors remain read-only
+- [x] Admin can create custom learning objectives
+- [x] Custom descriptors appear in Learning Objectives selector
+- [x] Custom descriptors visually distinguished from official CEFR ("Custom" badge)
+- [x] Teachers can use custom descriptors in assessments
+- [x] Custom descriptors scoped to tenant (not visible to other schools)
+- [x] Official CEFR descriptors remain read-only
 
 ---
 
@@ -531,15 +523,15 @@ Phase 3: Discovery Session Tasks (NEW)
 | 11    | #5 Student Self-View        | 3-4h     | ✅ Complete |
 | 12    | #10 LLM Tutor Hooks         | 1-2h     | ✅ Complete |
 
-### Phase 3 (Discovery Session - NEW)
+### Phase 3 (Discovery Session - NEW) ✅ COMPLETE
 
 | Order | Task                       | Estimate | Status      |
 | ----- | -------------------------- | -------- | ----------- |
 | 13    | #24 Diagnostic Input Form  | 2-3h     | ✅ Complete |
 | 14    | #25 Textbook Selection     | 1-2h     | ✅ Complete |
-| 15    | #26 Custom Descriptors     | 2-3h     | Pending     |
+| 15    | #26 Custom Descriptors     | 2-3h     | ✅ Complete |
 
-**Total Remaining:** ~2-3 hours (1 task)
+**Total Remaining:** 0 tasks - Student Profile Feature complete!
 
 ---
 

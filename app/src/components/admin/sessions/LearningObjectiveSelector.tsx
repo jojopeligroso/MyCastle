@@ -28,12 +28,22 @@ interface TextbookDescriptor {
   descriptorText: string;
 }
 
+interface CustomDescriptor {
+  id: string;
+  cefrLevel: string;
+  skill: string;
+  descriptorText: string;
+  category: string | null;
+  isActive: boolean;
+}
+
 interface SelectedObjective {
   id?: string; // Database ID if already saved
-  source: 'cefr' | 'coursebook' | 'custom';
+  source: 'cefr' | 'coursebook' | 'custom' | 'custom_saved';
   objectiveType: 'primary' | 'secondary';
   descriptorId?: string;
   coursebookDescriptorId?: string;
+  customDescriptorId?: string; // Reference to saved custom descriptor
   customDescriptorText?: string;
   sortOrder: number;
   // Display data
@@ -41,6 +51,7 @@ interface SelectedObjective {
   level?: string;
   skillFocus?: string;
   pageRef?: string;
+  category?: string;
 }
 
 interface LearningObjectiveSelectorProps {
@@ -80,6 +91,7 @@ export function LearningObjectiveSelector({
   // State for descriptors
   const [cefrDescriptors, setCefrDescriptors] = useState<CefrDescriptor[]>([]);
   const [textbookDescriptors, setTextbookDescriptors] = useState<TextbookDescriptor[]>([]);
+  const [customDescriptors, setCustomDescriptors] = useState<CustomDescriptor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -107,19 +119,25 @@ export function LearningObjectiveSelector({
       setError(null);
 
       try {
-        const [cefrRes, textbookRes] = await Promise.all([
+        const [cefrRes, textbookRes, customRes] = await Promise.all([
           fetch('/api/admin/curriculum/cefr'),
           fetch('/api/admin/curriculum/textbook?filterByTenant=true'),
+          fetch('/api/admin/curriculum/custom'),
         ]);
 
         if (!cefrRes.ok || !textbookRes.ok) {
           throw new Error('Failed to fetch descriptors');
         }
 
-        const [cefrData, textbookData] = await Promise.all([cefrRes.json(), textbookRes.json()]);
+        const [cefrData, textbookData, customData] = await Promise.all([
+          cefrRes.json(),
+          textbookRes.json(),
+          customRes.ok ? customRes.json() : { descriptors: [] },
+        ]);
 
         setCefrDescriptors(cefrData.descriptors || []);
         setTextbookDescriptors(textbookData.descriptors || []);
+        setCustomDescriptors(customData.descriptors || []);
       } catch (err) {
         console.error('Error fetching descriptors:', err);
         setError('Failed to load descriptors. Please try again.');
@@ -204,18 +222,22 @@ export function LearningObjectiveSelector({
   const secondaryCount = selectedObjectives.filter(o => o.objectiveType === 'secondary').length;
 
   // Check if descriptor is already selected
-  const isSelected = (descriptorId: string, source: 'cefr' | 'coursebook'): boolean => {
+  const isSelected = (
+    descriptorId: string,
+    source: 'cefr' | 'coursebook' | 'custom_saved'
+  ): boolean => {
     return selectedObjectives.some(
       o =>
         (source === 'cefr' && o.descriptorId === descriptorId) ||
-        (source === 'coursebook' && o.coursebookDescriptorId === descriptorId)
+        (source === 'coursebook' && o.coursebookDescriptorId === descriptorId) ||
+        (source === 'custom_saved' && o.customDescriptorId === descriptorId)
     );
   };
 
   // Add objective
   const addObjective = (
-    descriptor: CefrDescriptor | TextbookDescriptor,
-    source: 'cefr' | 'coursebook',
+    descriptor: CefrDescriptor | TextbookDescriptor | CustomDescriptor,
+    source: 'cefr' | 'coursebook' | 'custom_saved',
     type: 'primary' | 'secondary'
   ) => {
     if (type === 'primary' && primaryCount >= MAX_PRIMARY) {
@@ -232,18 +254,27 @@ export function LearningObjectiveSelector({
       objectiveType: type,
       sortOrder: selectedObjectives.length,
       displayText: descriptor.descriptorText,
-      level: descriptor.level,
-      skillFocus: 'skillFocus' in descriptor ? (descriptor.skillFocus ?? undefined) : undefined,
     };
 
     if (source === 'cefr') {
-      newObjective.descriptorId = descriptor.id;
-    } else {
-      newObjective.coursebookDescriptorId = descriptor.id;
+      const cefrDesc = descriptor as CefrDescriptor;
+      newObjective.descriptorId = cefrDesc.id;
+      newObjective.level = cefrDesc.level;
+      newObjective.skillFocus = cefrDesc.skillFocus ?? undefined;
+    } else if (source === 'coursebook') {
       const tbDesc = descriptor as TextbookDescriptor;
+      newObjective.coursebookDescriptorId = tbDesc.id;
+      newObjective.level = tbDesc.level;
+      newObjective.skillFocus = tbDesc.skillFocus;
       if (tbDesc.page) {
         newObjective.pageRef = `p.${tbDesc.page}`;
       }
+    } else if (source === 'custom_saved') {
+      const customDesc = descriptor as CustomDescriptor;
+      newObjective.customDescriptorId = customDesc.id;
+      newObjective.level = customDesc.cefrLevel;
+      newObjective.skillFocus = customDesc.skill;
+      newObjective.category = customDesc.category ?? undefined;
     }
 
     setSelectedObjectives([...selectedObjectives, newObjective]);
@@ -435,15 +466,22 @@ export function LearningObjectiveSelector({
                           ? 'bg-emerald-100 text-emerald-700'
                           : objective.source === 'coursebook'
                             ? 'bg-amber-100 text-amber-700'
-                            : 'bg-gray-100 text-gray-700'
+                            : objective.source === 'custom_saved'
+                              ? 'bg-indigo-100 text-indigo-700 border border-indigo-200'
+                              : 'bg-gray-100 text-gray-700'
                       }`}
                     >
                       {objective.source === 'cefr'
                         ? 'CEFR'
                         : objective.source === 'coursebook'
                           ? 'Textbook'
-                          : 'Custom'}
+                          : objective.source === 'custom_saved'
+                            ? 'Custom'
+                            : 'Ad-hoc'}
                     </span>
+                    {objective.category && (
+                      <span className="text-xs text-amber-600">{objective.category}</span>
+                    )}
                   </div>
                 </div>
                 {!readOnly && (
@@ -504,7 +542,7 @@ export function LearningObjectiveSelector({
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              Custom
+              Custom {customDescriptors.length > 0 && `(${customDescriptors.length})`}
             </button>
           </div>
 
@@ -700,34 +738,129 @@ export function LearningObjectiveSelector({
 
           {/* Custom Objective Input */}
           {activeTab === 'custom' && (
-            <div className="border border-gray-200 rounded-lg p-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Custom Learning Objective
-              </label>
-              <textarea
-                value={customText}
-                onChange={e => setCustomText(e.target.value)}
-                placeholder="Enter a custom learning objective for this session..."
-                rows={3}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-              />
-              <div className="flex gap-2 mt-3">
-                <button
-                  type="button"
-                  onClick={() => addCustomObjective('primary')}
-                  disabled={!customText.trim() || primaryCount >= MAX_PRIMARY}
-                  className="px-3 py-2 text-sm font-medium text-purple-700 bg-purple-100 rounded-md hover:bg-purple-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Add as Primary
-                </button>
-                <button
-                  type="button"
-                  onClick={() => addCustomObjective('secondary')}
-                  disabled={!customText.trim() || secondaryCount >= MAX_SECONDARY}
-                  className="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Add as Secondary
-                </button>
+            <div className="space-y-4">
+              {/* Saved Custom Descriptors */}
+              {customDescriptors.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">
+                    School Custom Descriptors
+                  </h4>
+                  <div className="max-h-60 overflow-y-auto border border-gray-200 rounded-lg divide-y divide-gray-100">
+                    {customDescriptors.map(descriptor => {
+                      const selected = isSelected(descriptor.id, 'custom_saved');
+                      return (
+                        <div
+                          key={descriptor.id}
+                          className={`p-3 hover:bg-gray-50 ${selected ? 'bg-blue-50' : ''}`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm text-gray-900 line-clamp-2">
+                                {descriptor.descriptorText}
+                              </p>
+                              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                <span className="text-xs px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded">
+                                  {descriptor.cefrLevel}
+                                </span>
+                                <span className="text-xs text-gray-500 capitalize">
+                                  {descriptor.skill}
+                                </span>
+                                {descriptor.category && (
+                                  <span className="text-xs text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">
+                                    {descriptor.category}
+                                  </span>
+                                )}
+                                <span className="text-xs px-1.5 py-0.5 bg-indigo-100 text-indigo-700 rounded border border-indigo-200">
+                                  Custom
+                                </span>
+                              </div>
+                            </div>
+                            {!selected && (
+                              <div className="flex gap-1 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    addObjective(descriptor, 'custom_saved', 'primary')
+                                  }
+                                  disabled={primaryCount >= MAX_PRIMARY}
+                                  className="px-2 py-1 text-xs font-medium text-purple-700 bg-purple-100 rounded hover:bg-purple-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                  +P
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    addObjective(descriptor, 'custom_saved', 'secondary')
+                                  }
+                                  disabled={secondaryCount >= MAX_SECONDARY}
+                                  className="px-2 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                  +S
+                                </button>
+                              </div>
+                            )}
+                            {selected && (
+                              <span className="text-xs text-indigo-600 font-medium">Selected</span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    <a
+                      href="/admin/settings/custom-descriptors"
+                      className="text-purple-600 hover:underline"
+                    >
+                      Manage custom descriptors →
+                    </a>
+                  </p>
+                </div>
+              )}
+
+              {/* Ad-hoc Custom Input */}
+              <div className="border border-gray-200 rounded-lg p-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {customDescriptors.length > 0
+                    ? 'Or enter a one-time custom objective'
+                    : 'Custom Learning Objective'}
+                </label>
+                <textarea
+                  value={customText}
+                  onChange={e => setCustomText(e.target.value)}
+                  placeholder="Enter a custom learning objective for this session..."
+                  rows={3}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+                <div className="flex gap-2 mt-3">
+                  <button
+                    type="button"
+                    onClick={() => addCustomObjective('primary')}
+                    disabled={!customText.trim() || primaryCount >= MAX_PRIMARY}
+                    className="px-3 py-2 text-sm font-medium text-purple-700 bg-purple-100 rounded-md hover:bg-purple-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Add as Primary
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => addCustomObjective('secondary')}
+                    disabled={!customText.trim() || secondaryCount >= MAX_SECONDARY}
+                    className="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Add as Secondary
+                  </button>
+                </div>
+                {customDescriptors.length === 0 && (
+                  <p className="text-xs text-gray-500 mt-3">
+                    Want to reuse custom objectives?{' '}
+                    <a
+                      href="/admin/settings/custom-descriptors"
+                      className="text-purple-600 hover:underline"
+                    >
+                      Create school custom descriptors →
+                    </a>
+                  </p>
+                )}
               </div>
             </div>
           )}
