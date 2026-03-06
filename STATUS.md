@@ -1196,7 +1196,31 @@ All core admin features implemented and ready for production testing:
 
 ## 🐛 Known Issues
 
-**None currently** - All core booking and payment functionality working as expected.
+### Lesson Planner Enhancements Needed
+
+**Status:** UI built, needs architectural improvements
+
+1. **Agent-based generation required**
+   - Current: Direct API call to generate lesson plan
+   - Needed: Run via agent so AI can incorporate existing page context (Speakout selection, chat history, teacher intent)
+   - The LessonPlannerWizard has context but generation doesn't fully utilize it
+
+2. **Generation progress UI**
+   - Current: Simple spinner with "Generating lesson plan..."
+   - Needed: Multi-stage progress indicator showing:
+     - Analyzing context...
+     - Building objectives...
+     - Designing activities...
+     - Finalizing plan...
+   - User should see what stage of generation they're at
+
+3. **Page wiring**
+   - `/teacher/lesson-planner` currently uses simple `LessonPlannerForm`
+   - Full `LessonPlannerWizard` exists but not wired to the page
+   - Wizard has 4-phase flow: Speakout → Intent → Chat → Preview
+
+**Components ready:** SpeakoutSelector, TeacherIntentSelector, LessonChatInterface, LessonPlanPreview, FieldTripForm
+**API ready:** /api/lessons/chat (streaming), /api/lessons/generate, /api/lessons/[id], /api/lessons/approvals
 
 ### Recently Resolved
 
