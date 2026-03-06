@@ -173,7 +173,12 @@ export default async function TeachersPage() {
                   teachers.map(({ teacher, assignedClassesCount }) => (
                     <tr key={teacher.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{teacher.name}</div>
+                        <Link
+                          href={`/admin/users/${teacher.id}`}
+                          className="text-sm font-medium text-gray-900 hover:text-purple-600"
+                        >
+                          {teacher.name}
+                        </Link>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-500">{teacher.email}</div>
@@ -201,19 +206,17 @@ export default async function TeachersPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <Link
+                          href={`/admin/users/${teacher.id}/edit`}
+                          className="text-purple-600 hover:text-purple-900 font-medium mr-4"
+                        >
+                          Edit
+                        </Link>
+                        <Link
                           href={`/admin/users/${teacher.id}`}
-                          className="text-blue-600 hover:text-blue-900 mr-3"
+                          className="text-gray-600 hover:text-gray-900"
                         >
                           View Profile
                         </Link>
-                        {assignedClassesCount > 0 && (
-                          <Link
-                            href={`/admin/teachers/${teacher.id}/classes`}
-                            className="text-green-600 hover:text-green-900"
-                          >
-                            View Classes ({assignedClassesCount})
-                          </Link>
-                        )}
                       </td>
                     </tr>
                   ))

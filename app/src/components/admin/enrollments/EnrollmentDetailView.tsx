@@ -166,7 +166,12 @@ export default function EnrollmentDetailView({
           <div className="space-y-3">
             <div>
               <p className="text-sm font-medium text-gray-500">Name</p>
-              <p className="text-sm text-gray-900">{student.name}</p>
+              <Link
+                href={`/admin/students/${student.id}`}
+                className="text-sm text-gray-900 hover:text-purple-600"
+              >
+                {student.name}
+              </Link>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">Email</p>

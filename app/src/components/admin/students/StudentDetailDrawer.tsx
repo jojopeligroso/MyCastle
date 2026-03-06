@@ -306,6 +306,7 @@ export function StudentDetailDrawer({
               {activeTab === 'competency' && (
                 <CompetencyProgressTab
                   studentId={student.studentId || student.id}
+                  studentName={student.name || 'Student'}
                   currentLevel={student.currentLevel || student.current_level || null}
                   isTeacher={isTeacher}
                   isAdmin={isAdmin}

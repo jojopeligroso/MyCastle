@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import useSWR from 'swr';
+import { AssessmentForm } from '../AssessmentForm';
 
 interface SkillGap {
   id: string;
@@ -23,6 +24,7 @@ interface SkillGroup {
 
 interface CompetencyProgressTabProps {
   studentId: string;
+  studentName?: string;
   currentLevel: string | null;
   isTeacher?: boolean;
   isAdmin?: boolean;
@@ -32,17 +34,24 @@ const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 export function CompetencyProgressTab({
   studentId,
+  studentName = 'Student',
   currentLevel,
   isTeacher = false,
   isAdmin = false,
 }: CompetencyProgressTabProps) {
   // Fetch progress data
-  const { data, isLoading, error } = useSWR<{
+  const { data, isLoading, error, mutate } = useSWR<{
     skillGroups: SkillGroup[];
     summary: { competent: number; total: number; progress: number };
   }>(studentId ? `/api/admin/students/${studentId}/progress` : null, fetcher);
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [showAssessmentForm, setShowAssessmentForm] = useState(false);
+
+  const handleAssessmentSuccess = () => {
+    setShowAssessmentForm(false);
+    mutate(); // Refresh progress data
+  };
 
   const skillGroups = data?.skillGroups || [
     { category: 'Reading', competent: 0, total: 0, gaps: [] },
@@ -150,7 +159,10 @@ export function CompetencyProgressTab({
             )}
           </div>
           {(isTeacher || isAdmin) && (
-            <button className="px-3 py-1.5 text-xs font-medium text-white bg-purple-600 rounded hover:bg-purple-700 transition-colors">
+            <button
+              onClick={() => setShowAssessmentForm(true)}
+              className="px-3 py-1.5 text-xs font-medium text-white bg-purple-600 rounded hover:bg-purple-700 transition-colors"
+            >
               Add Assessment
             </button>
           )}
@@ -287,7 +299,10 @@ export function CompetencyProgressTab({
               Teachers can add assessments to track progress against CEFR descriptors
             </p>
             {(isTeacher || isAdmin) && (
-              <button className="mt-4 px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded hover:bg-purple-700 transition-colors">
+              <button
+                onClick={() => setShowAssessmentForm(true)}
+                className="mt-4 px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded hover:bg-purple-700 transition-colors"
+              >
                 Record First Assessment
               </button>
             )}
@@ -317,6 +332,27 @@ export function CompetencyProgressTab({
           </div>
         </div>
       </section>
+
+      {/* Assessment Form Modal */}
+      {showAssessmentForm && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4">
+            <div
+              className="fixed inset-0 bg-black/50 transition-opacity"
+              onClick={() => setShowAssessmentForm(false)}
+            />
+            <div className="relative w-full max-w-2xl">
+              <AssessmentForm
+                studentId={studentId}
+                studentName={studentName}
+                currentLevel={currentLevel}
+                onSuccess={handleAssessmentSuccess}
+                onCancel={() => setShowAssessmentForm(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

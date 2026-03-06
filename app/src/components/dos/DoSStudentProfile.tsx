@@ -444,6 +444,7 @@ export function DoSStudentProfile({ studentId, dosUserId }: DoSStudentProfilePro
           {activeTab === 'progress' && (
             <CompetencyProgressTab
               studentId={studentId}
+              studentName={student.name || 'Student'}
               currentLevel={student.currentLevel}
               isTeacher={false}
               isAdmin={true}

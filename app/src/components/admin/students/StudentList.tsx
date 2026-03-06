@@ -252,9 +252,13 @@ export function StudentList({ students, onStudentClick }: StudentListProps) {
                       )}
                     </div>
                     <div className="ml-4">
-                      <div className="text-sm font-medium text-gray-900">
+                      <Link
+                        href={`/admin/students/${student.id}`}
+                        className="text-sm font-medium text-gray-900 hover:text-purple-600"
+                        onClick={e => e.stopPropagation()}
+                      >
                         {student.name || 'Unknown'}
-                      </div>
+                      </Link>
                       <div className="text-sm text-gray-500">{student.email}</div>
                     </div>
                   </div>

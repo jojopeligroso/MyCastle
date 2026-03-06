@@ -19,7 +19,7 @@ async function getUser(userId: string, tenantId: string) {
   return result[0] || null;
 }
 
-async function getUserEnrollments(userId: string) {
+async function getUserEnrollments(userId: string, tenantId: string) {
   const userEnrollments = await db
     .select({
       enrollment: enrollments,
@@ -27,17 +27,17 @@ async function getUserEnrollments(userId: string) {
     })
     .from(enrollments)
     .innerJoin(classes, eq(enrollments.classId, classes.id))
-    .where(eq(enrollments.studentId, userId))
+    .where(and(eq(enrollments.studentId, userId), eq(classes.tenantId, tenantId)))
     .orderBy(enrollments.enrollmentDate);
 
   return userEnrollments;
 }
 
-async function getUserClasses(userId: string) {
+async function getUserClasses(userId: string, tenantId: string) {
   const userClasses = await db
     .select()
     .from(classes)
-    .where(eq(classes.teacherId, userId))
+    .where(and(eq(classes.teacherId, userId), eq(classes.tenantId, tenantId)))
     .orderBy(classes.startDate);
 
   return userClasses;
@@ -59,8 +59,8 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
   }
 
   // Fetch role-specific data
-  const enrollments = user.role === 'student' ? await getUserEnrollments(id) : [];
-  const teacherClasses = user.role === 'teacher' ? await getUserClasses(id) : [];
+  const enrollments = user.role === 'student' ? await getUserEnrollments(id, tenantId) : [];
+  const teacherClasses = user.role === 'teacher' ? await getUserClasses(id, tenantId) : [];
 
   const getStatusBadge = (status: string) => {
     const styles = {
