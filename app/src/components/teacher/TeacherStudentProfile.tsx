@@ -296,6 +296,7 @@ export function TeacherStudentProfile({ studentId, teacherId }: TeacherStudentPr
           {activeTab === 'progress' && (
             <CompetencyProgressTab
               studentId={studentId}
+              studentName={student.name || 'Student'}
               currentLevel={student.currentLevel}
               isTeacher={true}
               isAdmin={false}

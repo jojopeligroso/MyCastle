@@ -167,7 +167,12 @@ export function UserList({ users }: Props) {
                 <tr key={user.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
-                      <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                      <Link
+                        href={`/admin/users/${user.id}`}
+                        className="text-sm font-medium text-gray-900 hover:text-purple-600"
+                      >
+                        {user.name}
+                      </Link>
                       <div className="text-sm text-gray-500">{user.email}</div>
                     </div>
                   </td>

@@ -325,7 +325,12 @@ export function ClassList({ classes, teachers, filters }: Props) {
                   <td className="px-6 py-4 whitespace-nowrap">
                     {teacher ? (
                       <div>
-                        <div className="text-sm text-gray-900">{teacher.name}</div>
+                        <Link
+                          href={`/admin/users/${teacher.id}`}
+                          className="text-sm text-gray-900 hover:text-purple-600"
+                        >
+                          {teacher.name}
+                        </Link>
                         <div className="text-sm text-gray-500">{teacher.email}</div>
                       </div>
                     ) : (

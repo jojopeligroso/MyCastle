@@ -19,9 +19,29 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { CompetencyProgressTab } from '@/components/admin/students/tabs/CompetencyProgressTab';
 
+// Mock SWR
+jest.mock('swr', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    data: {
+      skillGroups: [
+        { category: 'Reading', competent: 5, total: 10, gaps: [] },
+        { category: 'Writing', competent: 3, total: 10, gaps: [] },
+        { category: 'Listening', competent: 7, total: 10, gaps: [] },
+        { category: 'Speaking', competent: 4, total: 10, gaps: [] },
+      ],
+      summary: { competent: 19, total: 40, progress: 47.5 },
+    },
+    isLoading: false,
+    error: null,
+    mutate: jest.fn(),
+  })),
+}));
+
 describe('CompetencyProgressTab', () => {
   const defaultProps = {
     studentId: 'student-123',
+    studentName: 'Test Student',
     currentLevel: 'B1',
   };
 
@@ -98,9 +118,24 @@ describe('CompetencyProgressTab', () => {
   });
 
   describe('Progress Display', () => {
-    it('displays "No descriptors tracked" when no data exists', () => {
+    it('displays "No descriptors tracked" when total is 0', () => {
+      // Override mock for empty state
+      const useSWR = require('swr').default;
+      useSWR.mockReturnValueOnce({
+        data: {
+          skillGroups: [
+            { category: 'Reading', competent: 0, total: 0, gaps: [] },
+            { category: 'Writing', competent: 0, total: 0, gaps: [] },
+            { category: 'Listening', competent: 0, total: 0, gaps: [] },
+            { category: 'Speaking', competent: 0, total: 0, gaps: [] },
+          ],
+          summary: { competent: 0, total: 0, progress: 0 },
+        },
+        isLoading: false,
+        error: null,
+        mutate: jest.fn(),
+      });
       render(<CompetencyProgressTab {...defaultProps} />);
-      // All categories should show "No descriptors tracked" in the initial mock state
       const noDataMessages = screen.getAllByText('No descriptors tracked');
       expect(noDataMessages.length).toBe(4);
     });
@@ -135,6 +170,22 @@ describe('CompetencyProgressTab', () => {
 
   describe('Empty State', () => {
     it('displays comprehensive empty state when no data exists', () => {
+      // Override mock for empty state
+      const useSWR = require('swr').default;
+      useSWR.mockReturnValueOnce({
+        data: {
+          skillGroups: [
+            { category: 'Reading', competent: 0, total: 0, gaps: [] },
+            { category: 'Writing', competent: 0, total: 0, gaps: [] },
+            { category: 'Listening', competent: 0, total: 0, gaps: [] },
+            { category: 'Speaking', competent: 0, total: 0, gaps: [] },
+          ],
+          summary: { competent: 0, total: 0, progress: 0 },
+        },
+        isLoading: false,
+        error: null,
+        mutate: jest.fn(),
+      });
       render(<CompetencyProgressTab {...defaultProps} />);
       expect(screen.getByText('No competency assessments recorded')).toBeInTheDocument();
       expect(screen.getByText(/Teachers can add assessments/)).toBeInTheDocument();
@@ -158,6 +209,22 @@ describe('CompetencyProgressTab', () => {
     });
 
     it('displays Record First Assessment button in empty state for teachers', () => {
+      // Override mock for empty state
+      const useSWR = require('swr').default;
+      useSWR.mockReturnValueOnce({
+        data: {
+          skillGroups: [
+            { category: 'Reading', competent: 0, total: 0, gaps: [] },
+            { category: 'Writing', competent: 0, total: 0, gaps: [] },
+            { category: 'Listening', competent: 0, total: 0, gaps: [] },
+            { category: 'Speaking', competent: 0, total: 0, gaps: [] },
+          ],
+          summary: { competent: 0, total: 0, progress: 0 },
+        },
+        isLoading: false,
+        error: null,
+        mutate: jest.fn(),
+      });
       render(<CompetencyProgressTab {...defaultProps} isTeacher={true} />);
       expect(screen.getByText('Record First Assessment')).toBeInTheDocument();
     });

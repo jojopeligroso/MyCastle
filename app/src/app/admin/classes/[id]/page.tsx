@@ -306,8 +306,17 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ id
                   <tbody className="divide-y divide-gray-200">
                     {enrolledStudents.map(student => (
                       <tr key={student.userId}>
-                        <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                          {student.userName}
+                        <td className="px-4 py-3 text-sm font-medium">
+                          {student.studentId ? (
+                            <Link
+                              href={`/admin/students/${student.studentId}`}
+                              className="text-gray-900 hover:text-purple-600"
+                            >
+                              {student.userName}
+                            </Link>
+                          ) : (
+                            <span className="text-gray-900">{student.userName}</span>
+                          )}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-500">
                           {student.studentNumber || 'N/A'}
@@ -342,13 +351,18 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ id
             <h3 className="text-sm font-semibold text-gray-900 mb-4">Assigned Teacher</h3>
             {teacher ? (
               <div>
-                <p className="text-sm font-medium text-gray-900">{teacher.name}</p>
+                <Link
+                  href={`/admin/users/${teacher.id}`}
+                  className="text-sm font-medium text-gray-900 hover:text-purple-600"
+                >
+                  {teacher.name}
+                </Link>
                 <p className="text-sm text-gray-500 mb-2">{teacher.email}</p>
                 <Link
-                  href={`/admin/teachers`}
-                  className="text-sm text-blue-600 hover:text-blue-800"
+                  href={`/admin/users/${teacher.id}/edit`}
+                  className="text-sm text-purple-600 hover:text-purple-800"
                 >
-                  View Teachers →
+                  Edit Teacher →
                 </Link>
               </div>
             ) : (
