@@ -66,7 +66,11 @@ export async function GET(request: NextRequest) {
       .from(customDescriptors)
       .leftJoin(users, eq(customDescriptors.createdBy, users.id))
       .where(and(...conditions))
-      .orderBy(customDescriptors.cefrLevel, customDescriptors.skill, desc(customDescriptors.createdAt));
+      .orderBy(
+        customDescriptors.cefrLevel,
+        customDescriptors.skill,
+        desc(customDescriptors.createdAt)
+      );
 
     // Get counts by level and skill for stats
     const countByLevel = await db

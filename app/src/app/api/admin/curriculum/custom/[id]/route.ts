@@ -15,7 +15,9 @@ import { z } from 'zod';
 // Validation schema for updating custom descriptor
 const updateDescriptorSchema = z.object({
   cefrLevel: z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2']).optional(),
-  skill: z.enum(['reading', 'writing', 'listening', 'speaking', 'grammar', 'vocabulary']).optional(),
+  skill: z
+    .enum(['reading', 'writing', 'listening', 'speaking', 'grammar', 'vocabulary'])
+    .optional(),
   descriptorText: z.string().min(10, 'Descriptor text must be at least 10 characters').optional(),
   category: z.string().max(100).nullable().optional(),
   isActive: z.boolean().optional(),
