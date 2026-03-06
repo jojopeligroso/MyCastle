@@ -12,7 +12,10 @@ async function runMigration() {
 
   try {
     // Read the migration file
-    const migrationPath = path.join(__dirname, '../migrations/FRESH_0033_student_documents_system.sql');
+    const migrationPath = path.join(
+      __dirname,
+      '../migrations/FRESH_0033_student_documents_system.sql'
+    );
     const migrationSQL = fs.readFileSync(migrationPath, 'utf-8');
 
     console.log('📄 Migration file loaded:', migrationPath);

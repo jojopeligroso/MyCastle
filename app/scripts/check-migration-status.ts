@@ -42,7 +42,9 @@ async function checkMigrationStatus() {
       console.log('\n✅ Backend API is ready to use!');
       console.log('\nNext steps:');
       console.log('  1. Set up Supabase Storage bucket (see FRESH_0033_supabase_storage_setup.md)');
-      console.log('  2. Run emergency contact migration (FRESH_0033_migrate_emergency_contacts.sql)');
+      console.log(
+        '  2. Run emergency contact migration (FRESH_0033_migrate_emergency_contacts.sql)'
+      );
       console.log('  3. Seed document types (npx tsx scripts/seed-document-types.ts)');
       console.log('  4. Regenerate types (npm run db:generate)\n');
       process.exit(0);
