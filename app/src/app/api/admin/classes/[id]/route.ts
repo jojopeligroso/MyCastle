@@ -224,7 +224,28 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
         updatedAt: new Date(),
       })
       .where(eq(classes.id, id))
-      .returning();
+      .returning({
+        id: classes.id,
+        name: classes.name,
+        code: classes.code,
+        level: classes.level,
+        subject: classes.subject,
+        capacity: classes.capacity,
+        enrolledCount: classes.enrolledCount,
+        teacherId: classes.teacherId,
+        programmeId: classes.programmeId,
+        scheduleDescription: classes.scheduleDescription,
+        startTime: classes.startTime,
+        endTime: classes.endTime,
+        breakDurationMinutes: classes.breakDurationMinutes,
+        daysOfWeek: classes.daysOfWeek,
+        startDate: classes.startDate,
+        endDate: classes.endDate,
+        showCapacityPublicly: classes.showCapacityPublicly,
+        status: classes.status,
+        createdAt: classes.createdAt,
+        updatedAt: classes.updatedAt,
+      });
 
     // Track changes for audit log
     const changes: Record<string, { old: string | number | null; new: string | number | null }> =
@@ -358,7 +379,28 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       .update(classes)
       .set(updateData)
       .where(and(eq(classes.id, id), eq(classes.tenantId, tenantId)))
-      .returning();
+      .returning({
+        id: classes.id,
+        name: classes.name,
+        code: classes.code,
+        level: classes.level,
+        subject: classes.subject,
+        capacity: classes.capacity,
+        enrolledCount: classes.enrolledCount,
+        teacherId: classes.teacherId,
+        programmeId: classes.programmeId,
+        scheduleDescription: classes.scheduleDescription,
+        startTime: classes.startTime,
+        endTime: classes.endTime,
+        breakDurationMinutes: classes.breakDurationMinutes,
+        daysOfWeek: classes.daysOfWeek,
+        startDate: classes.startDate,
+        endDate: classes.endDate,
+        showCapacityPublicly: classes.showCapacityPublicly,
+        status: classes.status,
+        createdAt: classes.createdAt,
+        updatedAt: classes.updatedAt,
+      });
 
     return NextResponse.json({
       success: true,

@@ -187,7 +187,30 @@ export async function POST(request: NextRequest) {
         showCapacityPublicly: validatedData.show_capacity_publicly,
         status: 'active',
       })
-      .returning();
+      .returning({
+        id: classes.id,
+        tenantId: classes.tenantId,
+        name: classes.name,
+        code: classes.code,
+        description: classes.description,
+        level: classes.level,
+        subject: classes.subject,
+        capacity: classes.capacity,
+        enrolledCount: classes.enrolledCount,
+        teacherId: classes.teacherId,
+        programmeId: classes.programmeId,
+        scheduleDescription: classes.scheduleDescription,
+        startTime: classes.startTime,
+        endTime: classes.endTime,
+        breakDurationMinutes: classes.breakDurationMinutes,
+        daysOfWeek: classes.daysOfWeek,
+        startDate: classes.startDate,
+        endDate: classes.endDate,
+        showCapacityPublicly: classes.showCapacityPublicly,
+        status: classes.status,
+        createdAt: classes.createdAt,
+        updatedAt: classes.updatedAt,
+      });
 
     // Generate sessions if requested
     let sessionsCreated = 0;
