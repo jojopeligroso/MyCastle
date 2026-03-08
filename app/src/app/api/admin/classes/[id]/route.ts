@@ -144,7 +144,20 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
 
     // Fetch existing class to verify ownership and get old values for audit log
     const [existingClass] = await db
-      .select()
+      .select({
+        id: classes.id,
+        name: classes.name,
+        code: classes.code,
+        level: classes.level,
+        subject: classes.subject,
+        capacity: classes.capacity,
+        enrolledCount: classes.enrolledCount,
+        teacherId: classes.teacherId,
+        programmeId: classes.programmeId,
+        startTime: classes.startTime,
+        endTime: classes.endTime,
+        status: classes.status,
+      })
       .from(classes)
       .where(and(eq(classes.id, id), eq(classes.tenantId, tenantId)))
       .limit(1);
@@ -306,7 +319,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     // Check if class exists and belongs to tenant
     const [existingClass] = await db
-      .select()
+      .select({ id: classes.id, enrolledCount: classes.enrolledCount })
       .from(classes)
       .where(and(eq(classes.id, id), eq(classes.tenantId, tenantId)))
       .limit(1);
@@ -397,7 +410,7 @@ export async function DELETE(
 
     // Check if class exists and belongs to tenant
     const [existingClass] = await db
-      .select()
+      .select({ id: classes.id })
       .from(classes)
       .where(and(eq(classes.id, id), eq(classes.tenantId, tenantId)))
       .limit(1);
