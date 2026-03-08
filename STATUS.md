@@ -8,7 +8,7 @@ phase: Phase 1 - Admin UI/UX (Complete) + Student Profile Feature + Document Man
 
 # MyCastle Project Status
 
-**Last Updated:** 2026-03-08 (Classes API schema mismatch fix)
+**Last Updated:** 2026-03-08 (Classes API complete - all CRUD endpoints verified)
 **Current Phase:** Phase 1 Complete + Student Profile Feature 100%
 **Current Sprint:** Week 8 of Phase 1
 **Next Milestone:** Student Profile Feature COMPLETE - Ready for production testing
@@ -189,6 +189,36 @@ All core admin features implemented and ready for production testing:
 **Context:** All Phase 1 tasks complete. System ready for production MVP deployment.
 
 ---
+
+### Recent Wins (Mar 8 - Classes API Schema Mismatch Fix & Full CRUD Verification)
+
+- ✅ **Classes API Schema Mismatch Resolution**:
+  - **Root Cause Identified**: Drizzle schema in `academic.ts` defined `primaryCoursebookId` column (from planned migration FRESH_0028), but the column didn't exist in the actual database. This caused all queries using `.select()` or `.returning()` without explicit columns to fail with "column does not exist" errors.
+  - **Affected Operations**: POST (create), PUT (full update), PATCH (partial update), DELETE - all failed when attempting class operations
+  - **Fix Applied - Explicit Column Selection**:
+    - `app/src/app/api/admin/classes/route.ts`: Updated POST handler's `.returning()` to specify 22 explicit columns instead of returning all schema columns
+    - `app/src/app/api/admin/classes/[id]/route.ts`: Updated 5 queries across PUT, PATCH, DELETE handlers:
+      - PUT: `.select()` now specifies 12 columns needed for validation/audit logging
+      - PUT: `.returning()` now specifies 20 columns
+      - PATCH: `.select()` now specifies only `id` and `enrolledCount`
+      - PATCH: `.returning()` now specifies 20 columns
+      - DELETE: `.select()` now specifies only `id`
+  - **Database Schema Sync**: Added missing `coursebooks` table and `primary_coursebook_id` column to database via direct SQL to sync with Drizzle schema expectations
+  - **Commits**:
+    - `4e791bb` - fix: use explicit column selection in classes API to avoid schema mismatch
+    - `1adc9d0` - fix: use explicit column selection in all classes API returning() calls
+  - **All Endpoints Verified Working**:
+    | Method | Endpoint | Test Result |
+    |--------|----------|-------------|
+    | GET | `/api/admin/classes` | ✅ Returns paginated class list with teacher info |
+    | GET | `/api/admin/classes/[id]` | ✅ Returns single class with all fields |
+    | POST | `/api/admin/classes` | ✅ Creates class, returns full object, auto-generates code |
+    | PUT | `/api/admin/classes/[id]` | ✅ Full update with audit logging, capacity validation |
+    | PATCH | `/api/admin/classes/[id]` | ✅ Partial update, only changes specified fields |
+    | DELETE | `/api/admin/classes/[id]` | ✅ Soft delete (sets status to 'cancelled') |
+  - **Test Class Created**: "Test Morning Class" (ID: `e8a5e783-808c-460e-826d-1b46e28bafc4`) - B1 General English, MWF 09:00-12:00, capacity 25
+  - **Files Modified**: `route.ts` (POST), `[id]/route.ts` (GET, PUT, PATCH, DELETE)
+  - **Pattern Established**: When Drizzle schema columns don't exist in DB, use explicit column selection in `.select()` and `.returning()` calls to avoid runtime errors
 
 ### Recent Wins (Mar 6 - Custom Descriptors for Schools - STUDENT PROFILE 100% COMPLETE!)
 
