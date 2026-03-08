@@ -1,5 +1,6 @@
 /**
- * Admin Class API - Update and delete individual class
+ * Admin Class API - CRUD for individual class
+ * GET /api/admin/classes/[id] - Get single class
  * PUT /api/admin/classes/[id] - Update class (full update)
  * PATCH /api/admin/classes/[id] - Update class (partial update - legacy)
  * DELETE /api/admin/classes/[id] - Delete class
@@ -7,10 +8,78 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { classes, auditLogs } from '@/db/schema';
+import { classes, auditLogs, users } from '@/db/schema';
 import { requireAuth, getTenantId } from '@/lib/auth/utils';
 import { z } from 'zod';
 import { eq, and } from 'drizzle-orm';
+
+/**
+ * GET /api/admin/classes/[id] - Get single class by ID
+ */
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const user = await requireAuth();
+    const tenantId = await getTenantId();
+
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Tenant not found' }, { status: 400 });
+    }
+
+    // Verify admin role
+    const userRole = user.user_metadata?.role || user.app_metadata?.role;
+    const isAdmin =
+      userRole === 'admin' || userRole === 'super_admin' || userRole?.startsWith('admin_');
+
+    if (!isAdmin) {
+      return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 403 });
+    }
+
+    // Fetch class with teacher info
+    const [classData] = await db
+      .select({
+        id: classes.id,
+        name: classes.name,
+        code: classes.code,
+        description: classes.description,
+        level: classes.level,
+        subject: classes.subject,
+        capacity: classes.capacity,
+        enrolledCount: classes.enrolledCount,
+        status: classes.status,
+        startDate: classes.startDate,
+        endDate: classes.endDate,
+        startTime: classes.startTime,
+        endTime: classes.endTime,
+        breakDurationMinutes: classes.breakDurationMinutes,
+        daysOfWeek: classes.daysOfWeek,
+        scheduleDescription: classes.scheduleDescription,
+        showCapacityPublicly: classes.showCapacityPublicly,
+        teacherId: classes.teacherId,
+        teacherName: users.name,
+        teacherEmail: users.email,
+        programmeId: classes.programmeId,
+        createdAt: classes.createdAt,
+        updatedAt: classes.updatedAt,
+      })
+      .from(classes)
+      .leftJoin(users, eq(classes.teacherId, users.id))
+      .where(and(eq(classes.id, id), eq(classes.tenantId, tenantId)))
+      .limit(1);
+
+    if (!classData) {
+      return NextResponse.json({ error: 'Class not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ data: classData });
+  } catch (error) {
+    console.error('Error fetching class:', error);
+    return NextResponse.json({ error: 'Failed to fetch class' }, { status: 500 });
+  }
+}
 
 // Full update schema (for PUT)
 const updateClassFullSchema = z.object({

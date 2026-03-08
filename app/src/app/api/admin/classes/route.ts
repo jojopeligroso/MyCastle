@@ -1,16 +1,105 @@
 /**
  * Admin Classes API - Create and list classes
+ * GET /api/admin/classes - List classes with search and pagination
  * POST /api/admin/classes - Create new class
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { classes } from '@/db/schema';
+import { classes, users } from '@/db/schema';
 import { classSessions } from '@/db/schema/academic';
 import { requireAuth, getTenantId } from '@/lib/auth/utils';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, or, ilike, sql, desc } from 'drizzle-orm';
 import { z } from 'zod';
 import { generateSessions } from '@/lib/utils/generateSessions';
+
+/**
+ * GET /api/admin/classes - List all classes with optional filters
+ */
+export async function GET(request: NextRequest) {
+  try {
+    const user = await requireAuth();
+    const tenantId = await getTenantId();
+
+    if (!tenantId) {
+      return NextResponse.json({ error: 'Tenant not found' }, { status: 400 });
+    }
+
+    // Verify admin role
+    const userRole = user.user_metadata?.role || user.app_metadata?.role;
+    const isAdmin =
+      userRole === 'admin' || userRole === 'super_admin' || userRole?.startsWith('admin_');
+
+    if (!isAdmin) {
+      return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const search = searchParams.get('search');
+    const status = searchParams.get('status');
+    const limit = parseInt(searchParams.get('limit') || '50');
+    const offset = parseInt(searchParams.get('offset') || '0');
+
+    // Build query conditions
+    const conditions = [eq(classes.tenantId, tenantId)];
+
+    if (search) {
+      conditions.push(
+        or(ilike(classes.name, `%${search}%`), ilike(classes.code, `%${search}%`))!
+      );
+    }
+
+    if (status) {
+      conditions.push(eq(classes.status, status));
+    }
+
+    // Query classes with teacher info
+    const data = await db
+      .select({
+        id: classes.id,
+        name: classes.name,
+        code: classes.code,
+        level: classes.level,
+        subject: classes.subject,
+        capacity: classes.capacity,
+        enrolledCount: classes.enrolledCount,
+        status: classes.status,
+        startDate: classes.startDate,
+        endDate: classes.endDate,
+        startTime: classes.startTime,
+        endTime: classes.endTime,
+        daysOfWeek: classes.daysOfWeek,
+        teacherId: classes.teacherId,
+        teacherName: users.name,
+        createdAt: classes.createdAt,
+      })
+      .from(classes)
+      .leftJoin(users, eq(classes.teacherId, users.id))
+      .where(and(...conditions))
+      .orderBy(desc(classes.createdAt))
+      .limit(limit)
+      .offset(offset);
+
+    // Get total count
+    const [{ count }] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(classes)
+      .where(and(...conditions));
+
+    return NextResponse.json({
+      data,
+      pagination: {
+        total: count,
+        limit,
+        offset,
+        hasMore: offset + data.length < count,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching classes:', error);
+    return NextResponse.json({ error: 'Failed to fetch classes' }, { status: 500 });
+  }
+}
 
 const createClassSchema = z.object({
   name: z.string().min(1),
