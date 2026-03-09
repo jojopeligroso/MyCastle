@@ -286,3 +286,63 @@ export const ROW_CONFIRMATION = {
 } as const;
 
 export type RowConfirmation = (typeof ROW_CONFIRMATION)[keyof typeof ROW_CONFIRMATION];
+
+/**
+ * Pending Classes Table
+ * Classes detected in Excel that don't exist in database
+ * Requires admin approval with CEFR level before rows can be applied
+ */
+export const pendingClasses = pgTable(
+  'pending_classes',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id, { onDelete: 'cascade' }),
+    batchId: uuid('batch_id')
+      .notNull()
+      .references(() => uploadBatches.id, { onDelete: 'cascade' }),
+
+    // Class name from Excel
+    className: varchar('class_name', { length: 100 }).notNull(),
+
+    // CEFR level assigned by admin (required for approval)
+    cefrLevel: varchar('cefr_level', { length: 2 }), // A1, A2, B1, B2, C1, C2, or null
+
+    // Status: pending, approved, rejected
+    status: varchar('status', { length: 20 }).notNull().default('pending'),
+
+    // Approval tracking
+    approvedBy: uuid('approved_by').references(() => users.id),
+    approvedAt: timestamp('approved_at'),
+    rejectionReason: text('rejection_reason'),
+
+    // Count of rows waiting on this class
+    affectedRowCount: integer('affected_row_count').notNull().default(0),
+
+    // Timestamps
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  table => [
+    index('idx_pending_classes_batch').on(table.batchId),
+    index('idx_pending_classes_tenant').on(table.tenantId),
+    index('idx_pending_classes_status').on(table.status),
+  ]
+);
+
+// Type exports for pending classes
+export type PendingClass = typeof pendingClasses.$inferSelect;
+export type NewPendingClass = typeof pendingClasses.$inferInsert;
+
+export const PENDING_CLASS_STATUS = {
+  PENDING: 'pending',
+  APPROVED: 'approved',
+  REJECTED: 'rejected',
+} as const;
+
+export type PendingClassStatus = (typeof PENDING_CLASS_STATUS)[keyof typeof PENDING_CLASS_STATUS];
+
+// Valid CEFR levels
+export const CEFR_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'] as const;
+export type CefrLevel = (typeof CEFR_LEVELS)[number];
