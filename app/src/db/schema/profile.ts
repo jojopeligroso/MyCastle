@@ -746,6 +746,71 @@ export const tutorInteractions = pgTable(
 );
 
 // ============================================================================
+// STUDENT EXPECTATIONS
+// ============================================================================
+
+/**
+ * Student Expectations
+ * Tracks student learning goals, commitments, and self-assessments at course start
+ * Ref: StudentTracker integration (2026-03-09)
+ */
+export const studentExpectations = pgTable(
+  'student_expectations',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id, { onDelete: 'cascade' }),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+
+    // Learning Goals
+    primaryGoal: text('primary_goal'), // Main learning objective
+    secondaryGoals: jsonb('secondary_goals').$type<string[]>(), // Additional goals
+    targetCefrLevel: varchar('target_cefr_level', { length: 10 }), // A1, A2, B1, B2, C1, C2
+    targetDate: timestamp('target_date'), // When they want to achieve this
+
+    // Study Commitment
+    weeklyStudyHours: integer('weekly_study_hours'), // Hours per week committed
+    selfStudyHours: integer('self_study_hours'), // Hours outside class
+    preferredLearningStyle: varchar('preferred_learning_style', { length: 50 }), // visual, auditory, reading, kinesthetic
+
+    // Motivation & Context
+    studyReason: text('study_reason'), // Why they're learning English
+    specificNeeds: text('specific_needs'), // Specific situations (work, travel, exams)
+    prioritySkills: jsonb('priority_skills').$type<string[]>(), // speaking, listening, reading, writing, grammar, vocabulary
+
+    // Self-Assessment
+    currentStrengths: jsonb('current_strengths').$type<string[]>(),
+    areasForImprovement: jsonb('areas_for_improvement').$type<string[]>(),
+    anticipatedChallenges: text('anticipated_challenges'),
+
+    // Expectations from School
+    classroomExpectations: text('classroom_expectations'), // What they expect from classes
+    teacherSupport: text('teacher_support'), // Type of support they need
+    feedbackPreference: varchar('feedback_preference', { length: 50 }), // frequent, weekly, end-of-unit
+
+    // Commitment & Accountability
+    attendanceCommitment: integer('attendance_commitment'), // 1-5 scale
+    homeworkCommitment: integer('homework_commitment'), // 1-5 scale
+    participationCommitment: integer('participation_commitment'), // 1-5 scale
+
+    // Admin fields
+    reviewedBy: uuid('reviewed_by').references(() => users.id),
+    reviewedAt: timestamp('reviewed_at'),
+    reviewNotes: text('review_notes'),
+
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  table => [
+    index('idx_student_expectations_student').on(table.studentId),
+    index('idx_student_expectations_tenant').on(table.tenantId),
+  ]
+);
+
+// ============================================================================
 // TYPE EXPORTS
 // ============================================================================
 
@@ -799,3 +864,6 @@ export type NewVocabList = typeof vocabLists.$inferInsert;
 
 export type TutorInteraction = typeof tutorInteractions.$inferSelect;
 export type NewTutorInteraction = typeof tutorInteractions.$inferInsert;
+
+export type StudentExpectation = typeof studentExpectations.$inferSelect;
+export type NewStudentExpectation = typeof studentExpectations.$inferInsert;
