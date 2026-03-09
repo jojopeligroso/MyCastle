@@ -46,6 +46,11 @@ export const tenants = pgTable(
     // Active textbooks for Learning Objectives filtering (FRESH_0034)
     // NULL = all textbooks active, empty array = none, array of book names = filtered
     activeTextbooks: jsonb('active_textbooks').$type<string[] | null>().default(null),
+    // Auto-provisioning: domains that can self-register to this tenant
+    // e.g., ["castleforbescollege.com"] - users with matching email domain auto-join
+    allowedEmailDomains: jsonb('allowed_email_domains').$type<string[]>().default([]),
+    // Default role for auto-provisioned users (can be changed later via RBAC)
+    defaultRole: varchar('default_role', { length: 50 }).default('teacher'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
