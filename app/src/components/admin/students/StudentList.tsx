@@ -179,7 +179,8 @@ export function StudentList({ students, onStudentClick }: StudentListProps) {
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <div className="overflow-x-auto">
+      {/* Desktop table - hidden on mobile */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -291,8 +292,8 @@ export function StudentList({ students, onStudentClick }: StudentListProps) {
         </table>
       </div>
 
-      {/* Mobile view - Hidden on desktop */}
-      <div className="sm:hidden space-y-4 p-4">
+      {/* Mobile card view - visible only on mobile */}
+      <div className="md:hidden space-y-4 p-4">
         {students.map(student => (
           <div
             key={student.id}

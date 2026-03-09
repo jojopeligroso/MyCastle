@@ -6,7 +6,8 @@
 
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { useCallback, useState, useTransition } from 'react';
+import { useCallback, useState, useTransition, useEffect } from 'react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface ClassData {
   class: {
@@ -65,33 +66,9 @@ export function ClassList({ classes, teachers, filters }: Props) {
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [searchInput, setSearchInput] = useState(filters.search || '');
+  const [debouncedSearch, setDebouncedSearch] = useState(filters.search || '');
   const [deletingClassId, setDeletingClassId] = useState<string | null>(null);
-
-  // Delete class handler
-  const handleDeleteClass = async (classId: string, className: string) => {
-    if (!confirm(`Are you sure you want to delete "${className}"? This will cancel the class.`)) {
-      return;
-    }
-
-    setDeletingClassId(classId);
-    try {
-      const response = await fetch(`/api/admin/classes/${classId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to delete class');
-      }
-
-      // Refresh the page to show updated data
-      router.refresh();
-    } catch (error) {
-      alert(error instanceof Error ? error.message : 'Failed to delete class');
-    } finally {
-      setDeletingClassId(null);
-    }
-  };
+  const [error, setError] = useState<string | null>(null);
 
   // Update URL with new filter
   const updateFilter = useCallback(
@@ -111,10 +88,51 @@ export function ClassList({ classes, teachers, filters }: Props) {
     [searchParams, pathname, router]
   );
 
-  // Handle search submit
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateFilter('search', searchInput || undefined);
+  // Debounced search effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchInput !== debouncedSearch) {
+        setDebouncedSearch(searchInput);
+        updateFilter('search', searchInput || undefined);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchInput, debouncedSearch, updateFilter]);
+
+  // Auto-clear error after 5 seconds
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+
+  // Delete class handler
+  const handleDeleteClass = async (classId: string, className: string) => {
+    if (!confirm(`Are you sure you want to delete "${className}"? This will cancel the class.`)) {
+      return;
+    }
+
+    setDeletingClassId(classId);
+    setError(null);
+    try {
+      const response = await fetch(`/api/admin/classes/${classId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to delete class');
+      }
+
+      // Refresh the page to show updated data
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete class');
+    } finally {
+      setDeletingClassId(null);
+    }
   };
 
   // Clear all filters
@@ -145,26 +163,51 @@ export function ClassList({ classes, teachers, filters }: Props) {
 
   return (
     <div className="bg-white rounded-lg shadow">
+      {/* Error Alert */}
+      {error && (
+        <div className="p-4 border-b border-gray-200">
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        </div>
+      )}
+
       {/* Filters */}
       <div className="p-6 border-b border-gray-200">
         <div className="space-y-4">
           {/* Search and Sort Row */}
           <div className="flex flex-col lg:flex-row gap-4">
-            {/* Search */}
-            <form onSubmit={handleSearchSubmit} className="flex-1">
+            {/* Search - auto-search with debounce */}
+            <div className="flex-1">
               <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg
+                    className="h-5 w-5 text-gray-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                </div>
                 <input
                   type="text"
                   placeholder="Search by class name or code..."
                   value={searchInput}
                   onChange={e => setSearchInput(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
                 />
                 {searchInput && (
                   <button
                     type="button"
                     onClick={() => {
                       setSearchInput('');
+                      setDebouncedSearch('');
                       updateFilter('search', undefined);
                     }}
                     className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
@@ -180,7 +223,7 @@ export function ClassList({ classes, teachers, filters }: Props) {
                   </button>
                 )}
               </div>
-            </form>
+            </div>
 
             {/* Sort Controls */}
             <div className="flex gap-2">
@@ -277,8 +320,8 @@ export function ClassList({ classes, teachers, filters }: Props) {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto">
+      {/* Desktop Table - hidden on mobile */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -437,6 +480,123 @@ export function ClassList({ classes, teachers, filters }: Props) {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile card view - visible only on mobile */}
+      <div className="md:hidden">
+        {isPending && (
+          <div className="p-8 text-center text-gray-500">
+            <div className="flex items-center justify-center gap-2">
+              <svg className="animate-spin h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24">
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+              </svg>
+              Loading...
+            </div>
+          </div>
+        )}
+        {!isPending && classes.length === 0 ? (
+          <div className="p-8 text-center text-gray-500">
+            {hasActiveFilters ? 'No classes match your filters' : 'No classes found'}
+          </div>
+        ) : (
+          !isPending && (
+            <div className="divide-y divide-gray-200">
+              {classes.map(({ class: cls, teacher, enrollmentCount }) => (
+                <div
+                  key={cls.id}
+                  className="p-4 hover:bg-gray-50 cursor-pointer"
+                  onClick={() => router.push(`/admin/classes/${cls.id}`)}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm font-medium text-gray-900 truncate">{cls.name}</h3>
+                      <p className="text-xs text-gray-500">
+                        {cls.code} {cls.level && `• ${cls.level}`}
+                      </p>
+                    </div>
+                    <span
+                      className={`ml-2 px-2 py-0.5 text-xs font-semibold rounded-full ${getStatusBadge(cls.status)}`}
+                    >
+                      {cls.status}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs mb-3">
+                    <div>
+                      <span className="text-gray-500">Teacher:</span>
+                      <p className="text-gray-900 truncate">
+                        {teacher?.name || <span className="text-orange-600">Not assigned</span>}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Enrollment:</span>
+                      <p className={getCapacityColor(enrollmentCount, cls.capacity)}>
+                        {enrollmentCount} / {cls.capacity}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Schedule:</span>
+                      <p className="text-gray-900">
+                        {cls.daysOfWeek && cls.daysOfWeek.length > 0
+                          ? cls.daysOfWeek.map(d => d.substring(0, 3)).join(', ')
+                          : 'Not scheduled'}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Time:</span>
+                      <p className="text-gray-900">
+                        {cls.startTime && cls.endTime
+                          ? `${cls.startTime.substring(0, 5)} - ${cls.endTime.substring(0, 5)}`
+                          : 'TBD'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 text-xs">
+                    <Link
+                      href={`/admin/classes/${cls.id}`}
+                      className="text-purple-600 font-medium"
+                      onClick={e => e.stopPropagation()}
+                    >
+                      View
+                    </Link>
+                    <Link
+                      href={`/admin/classes/${cls.id}/edit`}
+                      className="text-blue-600 font-medium"
+                      onClick={e => e.stopPropagation()}
+                    >
+                      Edit
+                    </Link>
+                    {cls.status !== 'cancelled' && (
+                      <button
+                        onClick={e => {
+                          e.stopPropagation();
+                          handleDeleteClass(cls.id, cls.name);
+                        }}
+                        disabled={deletingClassId === cls.id}
+                        className="text-red-600 font-medium disabled:opacity-50"
+                      >
+                        {deletingClassId === cls.id ? 'Deleting...' : 'Delete'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
+        )}
       </div>
 
       {/* Footer */}

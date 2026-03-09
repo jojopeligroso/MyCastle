@@ -1,13 +1,14 @@
 import React from 'react';
 
 export interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: 'default' | 'destructive';
+  variant?: 'default' | 'destructive' | 'success';
 }
 
 export function Alert({ className = '', variant = 'default', ...props }: AlertProps) {
   const variantStyles = {
     default: 'bg-blue-50 border-blue-200 text-blue-900',
     destructive: 'bg-red-50 border-red-200 text-red-900',
+    success: 'bg-green-50 border-green-200 text-green-900',
   };
 
   return (
