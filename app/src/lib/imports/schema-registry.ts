@@ -42,7 +42,7 @@ export interface ImportableField {
  */
 export const IMPORTABLE_FIELDS: ImportableField[] = [
   // ============================================
-  // IDENTITY FIELDS (used for matching, not editable)
+  // IDENTITY FIELDS (used for matching, now editable in preview)
   // ============================================
   {
     name: 'name',
@@ -51,7 +51,7 @@ export const IMPORTABLE_FIELDS: ImportableField[] = [
     type: 'string',
     aliases: ['Student Name', 'Full Name', 'Student', 'Name'],
     required: true,
-    editable: false,
+    editable: true,
     isIdentity: true,
   },
   {
@@ -61,7 +61,7 @@ export const IMPORTABLE_FIELDS: ImportableField[] = [
     type: 'string',
     aliases: ['Email', 'Email Address', 'E-mail', 'Student Email'],
     required: false,
-    editable: false,
+    editable: true,
     isIdentity: true,
   },
 

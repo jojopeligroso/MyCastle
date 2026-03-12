@@ -49,6 +49,8 @@ export async function POST(_request: NextRequest, { params }: RouteParams) {
       updatedCount: result.updatedCount,
       skippedCount: result.skippedCount,
       enrollmentIds: result.enrollmentIds,
+      insertedStudents: result.insertedStudents,
+      updatedEnrollments: result.updatedEnrollments,
     });
   } catch (error) {
     console.error('[POST /api/imports/batches/[id]/apply] Error:', error);

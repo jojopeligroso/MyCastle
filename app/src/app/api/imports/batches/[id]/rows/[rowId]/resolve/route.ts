@@ -27,7 +27,8 @@ interface RouteParams {
 
 const resolveSchema = z.object({
   // Either link to existing enrollment or treat as new
-  resolutionType: z.enum(['linked', 'new']),
+  // 'force_new' can also be used on VALID/UPDATE rows to override and create new student
+  resolutionType: z.enum(['linked', 'new', 'force_new']),
   // Required if resolutionType is 'linked'
   enrollmentId: z.string().uuid().optional(),
 });
@@ -117,10 +118,26 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Row not found' }, { status: 404 });
     }
 
-    // Only AMBIGUOUS rows can be resolved
-    if (row.rowStatus !== ROW_STATUS.AMBIGUOUS) {
+    // AMBIGUOUS rows can be resolved with 'linked' or 'new'
+    // VALID rows can be forced to 'new' (force_new) - e.g., to create a new student instead of updating
+    const isForceNew = resolutionType === 'force_new' || resolutionType === 'new';
+    if (row.rowStatus !== ROW_STATUS.AMBIGUOUS && !isForceNew) {
       return NextResponse.json(
-        { error: `Only ambiguous rows can be resolved. Row status is ${row.rowStatus}` },
+        {
+          error: `Only ambiguous rows can be resolved with linking. Row status is ${row.rowStatus}`,
+        },
+        { status: 400 }
+      );
+    }
+
+    // For force_new on non-ambiguous rows, only allow on VALID rows
+    if (
+      isForceNew &&
+      row.rowStatus !== ROW_STATUS.AMBIGUOUS &&
+      row.rowStatus !== ROW_STATUS.VALID
+    ) {
+      return NextResponse.json(
+        { error: `Cannot force new student on ${row.rowStatus} rows` },
         { status: 400 }
       );
     }

@@ -78,12 +78,11 @@ describe('Schema Registry', () => {
       expect(editable.length).toBeGreaterThan(0);
     });
 
-    it('should not include identity fields', () => {
+    it('should include identity fields that are now editable', () => {
       const editable = getEditableFields();
       const identityNames = getIdentityFields().map(f => f.name);
-      for (const field of editable) {
-        expect(identityNames).not.toContain(field.name);
-      }
+      // Identity fields (name, email) are now editable per plan requirements
+      expect(editable.some(f => identityNames.includes(f.name))).toBe(true);
     });
   });
 
