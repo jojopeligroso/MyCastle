@@ -23,6 +23,18 @@ import { bookings, courses, agencies, accommodationTypes } from '@/db/schema/bus
 import { eq, and, inArray, sql } from 'drizzle-orm';
 import { canApply, type BatchSummary } from './state-machine';
 
+export interface InsertedStudent {
+  id: string;
+  name: string;
+  email: string;
+}
+
+export interface UpdatedEnrollment {
+  id: string;
+  studentName: string;
+  className: string;
+}
+
 export interface ApplyResult {
   success: boolean;
   appliedCount: number;
@@ -31,6 +43,8 @@ export interface ApplyResult {
   skippedCount: number;
   errors: string[];
   enrollmentIds: string[];
+  insertedStudents: InsertedStudent[];
+  updatedEnrollments: UpdatedEnrollment[];
 }
 
 export async function getBatchSummary(
@@ -85,6 +99,8 @@ export async function applyBatchChanges(
       skippedCount: 0,
       errors: ['Batch not found'],
       enrollmentIds: [],
+      insertedStudents: [],
+      updatedEnrollments: [],
     };
   }
 
@@ -98,6 +114,8 @@ export async function applyBatchChanges(
       skippedCount: 0,
       errors: gateCheck.reasons,
       enrollmentIds: [],
+      insertedStudents: [],
+      updatedEnrollments: [],
     };
   }
 
@@ -109,6 +127,8 @@ export async function applyBatchChanges(
   try {
     const result = await db.transaction(async (tx: Transaction) => {
       const enrollmentIds: string[] = [];
+      const insertedStudents: InsertedStudent[] = [];
+      const updatedEnrollments: UpdatedEnrollment[] = [];
       let insertedCount = 0;
       let updatedCount = 0;
       let skippedCount = 0;
@@ -338,16 +358,28 @@ export async function applyBatchChanges(
       console.log(`Prepared ${usersToInsert.length} users for batch insert`);
 
       // OPTIMIZATION 2: Batch insert users
-      let insertedUsers: { id: string }[] = [];
+      let insertedUsers: { id: string; name: string | null; email: string }[] = [];
       if (usersToInsert.length > 0) {
         console.time('batchInsertUsers');
-        insertedUsers = await tx.insert(users).values(usersToInsert).returning({ id: users.id });
+        insertedUsers = await tx
+          .insert(users)
+          .values(usersToInsert)
+          .returning({ id: users.id, name: users.name, email: users.email });
         console.timeEnd('batchInsertUsers');
         console.log(`Batch inserted ${insertedUsers.length} users`);
+
+        // Track inserted students for summary
+        for (const user of insertedUsers) {
+          insertedStudents.push({
+            id: user.id,
+            name: user.name || 'Unknown',
+            email: user.email,
+          });
+        }
       }
 
       // OPTIMIZATION 3: Batch insert students with visa info
-      let insertedStudents: { id: string }[] = [];
+      let insertedStudentRecords: { id: string }[] = [];
       if (insertedUsers.length > 0) {
         console.time('batchInsertStudents');
         const studentsToInsert = insertedUsers.map((u, i) => {
@@ -364,22 +396,22 @@ export async function applyBatchChanges(
             visaType: parsed.visaType || null,
           };
         });
-        insertedStudents = await tx
+        insertedStudentRecords = await tx
           .insert(students)
           .values(studentsToInsert)
           .returning({ id: students.id });
         console.timeEnd('batchInsertStudents');
-        console.log(`Batch inserted ${insertedStudents.length} students`);
+        console.log(`Batch inserted ${insertedStudentRecords.length} students`);
       }
 
       // OPTIMIZATION 4: Batch insert bookings (financial records)
       // Note: Only create bookings when course is assigned (bookings require courseId)
-      if (insertedStudents.length > 0) {
+      if (insertedStudentRecords.length > 0) {
         console.time('batchInsertBookings');
         const bookingsToInsert: Array<Record<string, unknown>> = [];
 
-        for (let i = 0; i < insertedStudents.length; i++) {
-          const studentRecord = insertedStudents[i];
+        for (let i = 0; i < insertedStudentRecords.length; i++) {
+          const studentRecord = insertedStudentRecords[i];
           const meta = insertMetadata[i];
           const parsed = meta.parsedData as {
             courseStartDate?: string | null;
@@ -532,6 +564,25 @@ export async function applyBatchChanges(
       const updateStagingRowMap = new Map(updateStagingRows.map(r => [r.id, r]));
       console.timeEnd('fetchUpdateStagingRows');
 
+      // Fetch enrollment details for updated enrollments (for summary)
+      const updateEnrollmentIds = updateChanges
+        .filter(c => c.targetEnrollmentId)
+        .map(c => c.targetEnrollmentId as string);
+      const enrollmentDetails =
+        updateEnrollmentIds.length > 0
+          ? await tx
+              .select({
+                id: enrollments.id,
+                studentName: users.name,
+                className: classes.name,
+              })
+              .from(enrollments)
+              .innerJoin(users, eq(enrollments.studentId, users.id))
+              .innerJoin(classes, eq(enrollments.classId, classes.id))
+              .where(inArray(enrollments.id, updateEnrollmentIds))
+          : [];
+      const enrollmentDetailsMap = new Map(enrollmentDetails.map(e => [e.id, e]));
+
       // Process UPDATEs (still sequential for diff application)
       // Only updates explicit fields - empty fields preserve existing data
       // Admin edits override diff values
@@ -596,6 +647,17 @@ export async function applyBatchChanges(
         }
 
         enrollmentIds.push(change.targetEnrollmentId);
+
+        // Track updated enrollment for summary
+        const enrollmentDetail = enrollmentDetailsMap.get(change.targetEnrollmentId);
+        if (enrollmentDetail) {
+          updatedEnrollments.push({
+            id: change.targetEnrollmentId,
+            studentName: enrollmentDetail.studentName || 'Unknown',
+            className: enrollmentDetail.className || 'Unknown',
+          });
+        }
+
         updatedCount++;
       }
       console.timeEnd('processUpdates');
@@ -617,6 +679,8 @@ export async function applyBatchChanges(
         skippedCount,
         errors,
         enrollmentIds,
+        insertedStudents,
+        updatedEnrollments,
       };
     });
 
@@ -642,6 +706,8 @@ export async function applyBatchChanges(
       skippedCount: 0,
       errors: [errorMsg],
       enrollmentIds: [],
+      insertedStudents: [],
+      updatedEnrollments: [],
     };
   }
 }

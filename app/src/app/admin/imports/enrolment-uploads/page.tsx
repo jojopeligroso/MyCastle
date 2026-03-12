@@ -5,13 +5,14 @@
  */
 
 import { Suspense } from 'react';
+import Link from 'next/link';
 import { db } from '@/db';
 import { uploadBatches } from '@/db/schema/imports';
 import { users } from '@/db/schema/core';
 import { requireAuth, getTenantId, setRLSContext } from '@/lib/auth/utils';
 import { desc, eq } from 'drizzle-orm';
 import ImportsList from './_components/ImportsList';
-import UploadBatchDialog from './_components/UploadBatchDialog';
+import { Plus } from 'lucide-react';
 
 async function getImportBatches() {
   await requireAuth(['admin']);
@@ -74,7 +75,13 @@ export default function EnrolmentUploadsPage() {
             Import and manage enrolment data from Excel files
           </p>
         </div>
-        <UploadBatchDialog />
+        <Link
+          href="/admin/imports/enrolment-uploads/new"
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          New Import
+        </Link>
       </div>
 
       {/* Batches List */}
